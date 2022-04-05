@@ -1,0 +1,152 @@
+﻿<Page
+    x:Class="SDLauncher_UWP.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:SDLauncher_UWP.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Loaded="Page_Loaded"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls" xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals" xmlns:Windows10version1903="http://schemas.microsoft.com/winfx/2006/xaml/presentation?IsApiContractPresent(Windows.Foundation.UniversalApiContract, 8)">
+
+    <Page.Resources>
+        <AcrylicBrush x:Key="AcrylicInAppFillColorDefaultBrush" BackgroundSource="Backdrop"
+            TintOpacity="0" Windows10version1903:TintLuminosityOpacity="0.1" TintColor="Black" FallbackColor="SkyBlue" />
+    </Page.Resources>
+    <ScrollViewer x:Name="scrlView" Padding="0,0,10,0">
+        <Grid>
+            <StackPanel>
+                <StackPanel.ChildrenTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                    </TransitionCollection>
+                </StackPanel.ChildrenTransitions>
+                <TextBlock FontSize="26" Margin="0,0,0,15" FontWeight="SemiBold" Text="Settings"/>
+                <TextBlock FontSize="16" Margin="10,0,0,5" FontWeight="SemiBold" Text="Minecraft Settings"/>
+                <Grid CornerRadius="10" Padding="10">
+                    <StackPanel>
+                        <StackPanel.ChildrenTransitions>
+                            <TransitionCollection>
+                                <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                            </TransitionCollection>
+                        </StackPanel.ChildrenTransitions>
+                        <Grid BorderBrush="Transparent"  BorderThickness="0.5"  CornerRadius="10" Margin="0,0,0,5" Height="75" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}" VerticalAlignment="Top">
+                            <Grid ChildrenTransitions="{StaticResource BaseSDAnimation}" Padding="10" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                                <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="Minecraft Path"/>
+                                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                    <TextBlock TextTrimming="CharacterEllipsis" MaxWidth="200" x:Name="txtGamePath" Text="C:\Users\Appdata\.Minecraft" VerticalAlignment="Center"/>
+                                    <Button Click="btnCopyDir_Click" ToolTipService.ToolTip="Copy" x:Name="btnCopyDir" Style="{ThemeResource ButtonRevealStyle}" Padding="7,10" Margin="5,0,0,0">
+                                        <FontIcon FontSize="16" x:Name="smbCopyDir" Glyph="&#xE71B;"/>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Grid>
+                        <Grid BorderBrush="Transparent"  BorderThickness="0.5"  CornerRadius="10" Margin="0,0,0,5" Height="75" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}" VerticalAlignment="Top">
+                            <Grid ChildrenTransitions="{StaticResource BaseSDAnimation}" Padding="10" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                                <TextBlock Text="Use old versions selector" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                <ToggleSwitch OnContent="Yes" OffContent="No" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Grid>
+                        <Grid Margin="0,0,0,5" CornerRadius="10" BorderBrush="Transparent" BorderThickness="0.5"  Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}" >
+                            <controls:Expander Background="{ThemeResource LayerFillColorDefaultBrush}" HorizontalAlignment="Stretch">
+                                <controls:Expander.Header>
+                                    <Grid ChildrenTransitions="{StaticResource BaseSDAnimation}" Height="70" >
+                                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="Ram"/>
+                                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                            <TextBlock x:Name="txtRam" Text="2.4GB" VerticalAlignment="Center"/>
+                                            <RepeatButton x:Name="rptbtnRamPlus" Click="rptbtnRamPlus_Click" Style="{ThemeResource RepeatButtonRevealStyle}" Width="35" Margin="5,0,5,0" Height="35" FontSize="20" Padding="0,0,0,5" FontWeight="SemiBold" Content="+"/>
+                                            <RepeatButton x:Name="rptbtnRamMinus" Click="rptbtnRamMinus_Click" Style="{ThemeResource RepeatButtonRevealStyle}" Width="35" Height="35" FontSize="20" Padding="0,0,0,5" FontWeight="SemiBold" Content="-"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </controls:Expander.Header>
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Slider ValueChanged="SliderRam_ValueChanged" TickFrequency="1024" x:Name="SliderRam" Width="300"/>
+                                        <Button x:Name="btnAutoRAM" Click="btnAutoRAM_Click" Style="{ThemeResource ButtonRevealStyle}" Margin="5,0,0,0" Content="Auto Suggest"/>
+                                    </StackPanel>
+                                </Grid>
+                            </controls:Expander>
+                        </Grid>
+                        <Grid Margin="0,0,0,5" CornerRadius="10" BorderBrush="Transparent" BorderThickness="0.5"  Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}" >
+                            <controls:Expander HorizontalContentAlignment="Left" Background="{ThemeResource LayerFillColorDefaultBrush}" HorizontalAlignment="Stretch" CornerRadius="5">
+                                <controls:Expander.Header>
+                                    <Grid ChildrenTransitions="{StaticResource BaseSDAnimation}" Height="65" >
+                                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="Other"/>
+                                    </Grid>
+                                </controls:Expander.Header>
+                                <Grid HorizontalAlignment="Left">
+                                    <StackPanel>
+                                        <Button Style="{ThemeResource ButtonRevealStyle}" Margin="0,0,0,5" Content="Options.txt"/>
+                                        <Button Style="{ThemeResource ButtonRevealStyle}" Margin="0,0,0,5" Content="Refresh Versions"/>
+                                        <Button Style="{ThemeResource ButtonRevealStyle}" Content="Options.txt"/>
+                                    </StackPanel>
+                                </Grid>
+                            </controls:Expander>
+                        </Grid>
+                        <Grid Margin="0,0,0,5" CornerRadius="10" BorderBrush="Transparent" BorderThickness="0.5"  Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}" >
+                            <controls:Expander HorizontalContentAlignment="Left" Background="{ThemeResource LayerFillColorDefaultBrush}" HorizontalAlignment="Stretch">
+                                <controls:Expander.Header>
+                                    <Grid ChildrenTransitions="{StaticResource BaseSDAnimation}" Height="65" >
+                                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="Download Settings"/>
+                                    </Grid>
+                                </controls:Expander.Header>
+                                <Grid HorizontalAlignment="Left">
+                                    <StackPanel>
+                                        <CheckBox x:Name="cbAsset" Checked="cbAsset_Checked" Unchecked="cbAsset_Unchecked" Content="Assets download"/>
+                                        <CheckBox x:Name="cbHash" Checked="cbHash_Checked" Unchecked="cbHash_Unchecked" Content="Hash check"/>
+                                    </StackPanel>
+                                </Grid>
+                            </controls:Expander>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+                <TextBlock FontSize="16" Margin="10,20,0,5" FontWeight="SemiBold" Text="App Settings"/>
+                <Grid CornerRadius="10" Padding="10">
+                    <StackPanel>
+                        <StackPanel.ChildrenTransitions>
+                            <TransitionCollection>
+                                <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                            </TransitionCollection>
+                        </StackPanel.ChildrenTransitions>
+                        <Grid BorderThickness="0.5"  CornerRadius="10" Margin="0,0,0,5" Height="75" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}" VerticalAlignment="Top">
+                            <Grid ChildrenTransitions="{StaticResource BaseSDAnimation}" Padding="10" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                                <TextBlock Text="Theme" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="cmbxTheme" SelectionChanged="cmbxTheme_SelectionChanged" HorizontalAlignment="Right" Margin="0,0,80,0" VerticalAlignment="Center">
+                                    <x:String>Light</x:String>
+                                    <x:String>Dark</x:String>
+                                    <x:String>System</x:String>
+                                </ComboBox>
+                            </Grid>
+                        </Grid>
+                        <Grid BorderBrush="Transparent"  BorderThickness="0.5"  CornerRadius="10" Margin="0,0,0,5" Height="75" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}" VerticalAlignment="Top">
+                            <Grid ChildrenTransitions="{StaticResource BaseSDAnimation}" Padding="10" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                                <TextBlock Text="Show Discord activity" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                <ToggleSwitch HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Grid>
+                        <Grid BorderBrush="Transparent"  BorderThickness="0.5"  CornerRadius="10" Margin="0,0,0,5" Height="75" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}" VerticalAlignment="Top">
+                            <Grid ChildrenTransitions="{StaticResource BaseSDAnimation}" Padding="10" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                                <TextBlock Text="Show game logs when app starts" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                <ToggleSwitch HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Grid>
+                        <Grid BorderBrush="Transparent"  BorderThickness="0.5"  CornerRadius="10" Margin="0,0,0,5" Height="75" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}" VerticalAlignment="Top">
+                            <Grid ChildrenTransitions="{StaticResource BaseSDAnimation}" Padding="10" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                                <TextBlock Text="Automatically hide when minecraft starts" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                <ToggleSwitch HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Grid>
+                        <Grid BorderBrush="Transparent"  BorderThickness="0.5"  CornerRadius="10" Margin="0,0,0,5" Height="75" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}" VerticalAlignment="Top">
+                            <Grid ChildrenTransitions="{StaticResource BaseSDAnimation}" Padding="10" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                                <TextBlock Text="Autologin from past account at startup" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                <ToggleSwitch x:Name="switchAutolog" HorizontalAlignment="Right" VerticalAlignment="Center" Toggled="switchAutolog_Toggled"/>
+                            </Grid>
+                        </Grid>
+                        <Button x:Name="btnXML" Click="btnXML_Click" Margin="0,0,0,5" Content="settings.xml"/>
+                        <Button x:Name="btnAbout" Content="About this app"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Page>
