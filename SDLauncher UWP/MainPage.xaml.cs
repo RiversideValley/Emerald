@@ -43,6 +43,7 @@ namespace SDLauncher_UWP
 
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            Page_ActualThemeChanged(null, null);
             MainFrame.Content = launcher;
 
             foreach (var account in vars.Accounts)
@@ -155,7 +156,7 @@ namespace SDLauncher_UWP
                 txtLogin.Text = vars.UserName;
                 prpFly.DisplayName = vars.UserName;
                 prpLogin.DisplayName = vars.UserName;
-                btnLogin.Content = "Change";
+                btnLogin.Tag = "Change";
             }
             else
             {
@@ -163,7 +164,7 @@ namespace SDLauncher_UWP
                 txtLogin.Text = "Login";
                 prpFly.DisplayName = "";
                 prpLogin.DisplayName = "";
-                btnLogin.Content = "Login";
+                btnLogin.Tag = "Login";
             }
             if (vars.closing)
             {
@@ -226,7 +227,7 @@ namespace SDLauncher_UWP
         private void btnLogin_Click(object sender, RoutedEventArgs e)
         {
             loginFly.Hide();
-            if (btnLogin.Content.ToString() != "Change Account")
+            if (btnLogin.Tag.ToString() != "Change")
             {
                 login.Hide();
                 login = new Login();

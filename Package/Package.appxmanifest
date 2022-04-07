@@ -8,8 +8,8 @@
 
   <Identity
     Name="92f4ca52-b32c-4442-ae85-f990fbb5eb7d"
-    Publisher="CN=user"
-    Version="1.0.0.0" />
+    Publisher="CN=SeaDev Team"
+    Version="1.0.2.0" />
 
   <Properties>
     <DisplayName>Package</DisplayName>

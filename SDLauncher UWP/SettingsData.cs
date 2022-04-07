@@ -215,6 +215,7 @@ namespace SDLauncher_UWP
                         }
                     }
                     vars.Accounts = Accounts;
+                    vars.AccountsCount = Accounts.Count;
                 }
             }
             vars.LoadedRam = int.Parse(ram);
@@ -306,6 +307,7 @@ namespace SDLauncher_UWP
                                 }
                             }
                         }
+                        vars.CurrentAccountCount = item.Count;
                     }
                 }
 

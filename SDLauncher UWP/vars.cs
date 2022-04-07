@@ -22,6 +22,8 @@ namespace SDLauncher_UWP
         public static int LoadedRam = 1024;
         public static CMLauncher LauncherSynced;
         public static List<Account> Accounts;
+        public static int AccountsCount;
+        public static int? CurrentAccountCount;
 
         //CMLLIB
         public static MSession session;

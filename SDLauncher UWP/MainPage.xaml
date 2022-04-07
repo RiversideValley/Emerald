@@ -9,7 +9,6 @@
     ActualThemeChanged="Page_ActualThemeChanged"
     Loading="Page_Loading"
     Unloaded="Page_Unloaded"
-    
     Loaded="Page_Loaded"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls" xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
     controls:BackdropMaterial.ApplyToRootOrPageBackground="True">
@@ -81,10 +80,15 @@
                             </Grid.RowDefinitions>
                             <Grid.ChildrenTransitions>
                                 <TransitionCollection>
-                                    <EntranceThemeTransition/>
+                                    <EntranceThemeTransition IsStaggeringEnabled="True"/>
                                 </TransitionCollection>
                             </Grid.ChildrenTransitions>
                             <Grid Grid.Row="0" Margin="10" MinWidth="275">
+                                <Grid.ChildrenTransitions>
+                                    <TransitionCollection>
+                                        <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                                    </TransitionCollection>
+                                </Grid.ChildrenTransitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="*"/>
@@ -94,10 +98,24 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Row="0" HorizontalAlignment="Stretch" Orientation="Horizontal">
+                                    <StackPanel.ChildrenTransitions>
+                                        <TransitionCollection>
+                                            <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                                        </TransitionCollection>
+                                    </StackPanel.ChildrenTransitions>
                                     <controls:PersonPicture x:Name="prpFly" Width="60"/>
-                                    <TextBlock TextTrimming="CharacterEllipsis" MaxWidth="110" x:Name="txtUsername" Text="Login" Margin="5,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="23"/>
-                                    <Button x:Name="btnLogin" Click="btnLogin_Click" FontSize="13" Padding="10,5" Margin="10" Content="Login" />
+
+                                    <HyperlinkButton HorizontalContentAlignment="Left" Width="140" Foreground="{ThemeResource ButtonForegroundThemeBrush}" VerticalAlignment="Center" x:Name="btnLogin" Click="btnLogin_Click" FontSize="13" Margin="5,10,5,10">
+                                        <HyperlinkButton.Content>
+                                            <TextBlock HorizontalAlignment="Center" MaxWidth="125" TextTrimming="CharacterEllipsis" x:Name="txtUsername" Text="Login" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="23"/>
+                                        </HyperlinkButton.Content>
+                                    </HyperlinkButton>
                                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                        <StackPanel.ChildrenTransitions>
+                                            <TransitionCollection>
+                                                <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                                            </TransitionCollection>
+                                        </StackPanel.ChildrenTransitions>
                                         <Button Click="btnSettings_Click" x:Name="btnSettings" MinWidth="0" Width="43" Padding="7" HorizontalAlignment="Left">
                                             <controls:AnimatedIcon>
                                                 <controls:AnimatedIcon.Source>
@@ -114,6 +132,11 @@
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel Margin="50,5,0,0" Grid.Row="1">
+                                    <StackPanel.ChildrenTransitions>
+                                        <TransitionCollection>
+                                            <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                                        </TransitionCollection>
+                                    </StackPanel.ChildrenTransitions>
                                     <TextBlock FontSize="13" Text="Status:" Margin="0,0,0,5"/>
                                     <TextBox PlaceholderText="For better RPC please add a small status!" x:Name="txtbxStats" MinHeight="60" TextWrapping="Wrap" />
                                 </StackPanel>

@@ -24,6 +24,7 @@ using System.Net.NetworkInformation;
 using System.Net;
 using System.IO.Compression;
 using Windows.Networking.BackgroundTransfer;
+using SDLauncher_UWP.Views;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -37,21 +38,19 @@ namespace SDLauncher_UWP
         CMLauncher launcher;
         MinecraftPath gamepath;
         MessageBoxEx p;
+        OptiFine OptiFine;
         string launchVer;
         bool isOptiFineRuns;
         public BaseLauncherPage()
         {
             this.InitializeComponent();
+            OptiFine = new OptiFine();
             var timer = new DispatcherTimer();
             timer.Interval = new TimeSpan(0, 0, 0, 0, 1);
             timer.Tick += Timer_Tick;
             timer.Start();
             gamepath = new MinecraftPath(ApplicationData.Current.LocalFolder.Path);
             initializeLauncher(gamepath);
-            if (new Util().CheckInternet() != true)
-            {
-                new MessageBoxEx("me", "e", MessageBoxEx.Buttons.Ok).ShowAsync();
-            }
         }
 
         private void Timer_Tick(object sender, object e)
@@ -76,8 +75,8 @@ namespace SDLauncher_UWP
 
         private async Task initializeLauncher(MinecraftPath path)
         {
+            UI(false);
             gamepath = path;
-
             launcher = new CMLauncher(path);
             vars.LauncherSynced = launcher;
             launcher.FileChanged += Launcher_FileChanged;
@@ -102,6 +101,7 @@ namespace SDLauncher_UWP
         public static CmlLib.Core.Version.MVersionCollection mcFabricVers;
         private async Task refreshVersions(string showVersion)
         {
+            UI(false);
             mcVers = await launcher.GetAllVersionsAsync();
 
             //mcFabricVers = await new FabricVersionLoader().GetVersionMetadatasAsync();
@@ -114,6 +114,7 @@ namespace SDLauncher_UWP
             {
                 cmbxVer.Items.Add(item.Name);
             }
+            UI(true);
 
         }
         private async void BtnLaunch_Click(object sender, RoutedEventArgs e)
@@ -204,37 +205,36 @@ namespace SDLauncher_UWP
                 VersionCheck(mitem);
             }
         }
-        private void VersionCheck(MenuFlyoutItem item)
+        private async void VersionCheck(MenuFlyoutItem item)
         {
-            if (item.Text.ToString() == "Latest")
+            switch (item.Text.ToString())
             {
-                btnMCVer.Content = launcher.Versions?.LatestReleaseVersion?.Name;
-                launchVer = btnMCVer.Content.ToString();
-                return;
+                case "Latest":
+                    btnMCVer.Content = launcher.Versions?.LatestReleaseVersion?.Name;
+                    launchVer = btnMCVer.Content.ToString();
+                    break;
+                case "Latest Snapshot":
+                    btnMCVer.Content = launcher.Versions?.LatestSnapshotVersion?.Name;
+                    launchVer = btnMCVer.Content.ToString();
+                    break;
+                case "OptiFine 1.18.2":
+                    await OptiFine.CheckOptiFine("1.18.2", "1.18.2-OptiFine_HD_U_H6_pre1", item, mcVers);
+                    OptiFineFinish("1.16.5", "OptiFine 1.16.5", item);
+                    break;
+                case "OptiFine 1.18.1":
+                    await OptiFine.CheckOptiFine("1.18.1", "1.18.1-OptiFine_HD_U_H4", item, mcVers);
+                    OptiFineFinish("1.16.5", "OptiFine 1.16.5", item);
+                    break;
+                case "OptiFine 1.17.1":
+                    await OptiFine.CheckOptiFine("1.17.1", "1.17.1-OptiFine_HD_U_H1", item, mcVers);
+                    OptiFineFinish("1.16.5", "OptiFine 1.16.5", item);
+                    break;
+                case "OptiFine 1.16.5":
+                    await OptiFine.CheckOptiFine("1.16.5", "OptiFine 1.16.5", item, mcVers);
+                    OptiFineFinish("1.16.5", "OptiFine 1.16.5", item);
+                    break;
             }
-            else if (item.Text.ToString() == "Latest Snapshot")
-            {
-                btnMCVer.Content = launcher.Versions?.LatestSnapshotVersion?.Name;
-                launchVer = btnMCVer.Content.ToString();
-                return;
-            }
-            else if (item.Text.ToString() == "OptiFine 1.18.2")
-            {
-                CheckOptiFine("1.18.2", "1.18.2-OptiFine_HD_U_H6_pre1", item);
-            }
-            else if (item.Text.ToString() == "OptiFine 1.18.1")
-            {
-                CheckOptiFine("1.18.1", "1.18.1-OptiFine_HD_U_H4", item);
-            }
-            else if (item.Text.ToString() == "OptiFine 1.17.1")
-            {
-                CheckOptiFine("1.17.1", "1.17.1-OptiFine_HD_U_H1", item);
-            }
-            else if (item.Text.ToString() == "OptiFine 1.16.5")
-            {
-                CheckOptiFine("1.16.5", "OptiFine 1.16.5", item);
-            }
-            else if (item.Text.ToString() == "Fabric 1.18.1")
+            if (item.Text.ToString() == "Fabric 1.18.1")
             {
                 CheckFabric("1.18.1", "fabric-loader-0.13.3-1.18.1", item);
             }
@@ -259,6 +259,32 @@ namespace SDLauncher_UWP
             btnMCVer.IsEnabled = value;
             cmbxVer.IsEnabled = value;
         }
+        private void OptiFineFinish(string mcver,string modver,MenuFlyoutItem itm)
+        {
+            switch (OptiFine.returns.Result)
+            {
+                case OptFineVerReturns.Results.DownloadOptiFineVer:
+                    pb_File.Value = 0;
+                    pb_Prog.Maximum = 100;
+                    OptiFine.DownloadOptiFineVer(mcver, modver, itm);
+                    DispatcherTimer optFine = new DispatcherTimer();
+                    optFine.Interval = new TimeSpan(0, 0, 0, 0, 1);
+                    optFine.Tick += OptFine_Tick;
+                    optFine.Start();
+                    break;
+                case OptFineVerReturns.Results.Failed:
+                    new MessageBoxEx("Error", "Failed to get versions", MessageBoxEx.Buttons.Ok).ShowAsync();
+                    break;
+            }
+        }
+
+        private void OptFine_Tick(object sender, object e)
+        {
+            txtStatus.Text = OptiFine.DownloadStats;
+            pb_Prog.Value = OptiFine.DownloadProg;
+            UI(OptiFine.UI);
+        }
+
         //
         private async void CheckFabric(string mcver, string modver, MenuFlyoutItem mit)
         {
@@ -300,201 +326,6 @@ namespace SDLauncher_UWP
                     launchVer = mcver;
                 }
             }
-        }
-        //
-        string optver;
-        public async Task<bool> IsOptiFineFilePresent(string lastFileName,string mcVer,bool isLib)
-        {
-            if (!isLib)
-            {
-                try
-                {
-                    var verFolder = await ApplicationData.Current.LocalFolder.GetFolderAsync("versions");
-                    var mcVerFolder = await verFolder.GetFolderAsync(mcVer);
-                    var file = await mcVerFolder.GetFileAsync(lastFileName);
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                try
-                {
-                    var LibsFolder = await ApplicationData.Current.LocalFolder.GetFolderAsync("libraries");
-                    var LibFolder = await LibsFolder.GetFolderAsync("optifine");
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            }
-        }
-        private async void CheckOptiFine(string mcver, string modVer, MenuFlyoutItem mit)
-        {
-            MessageBoxEx msgbx;
-            bool exists = false;
-            foreach (var veritem in mcVers)
-            {
-                if (veritem.Name == modVer)
-                {
-                    exists = true;
-                }
-            }
-            if (exists)
-            {
-                btnMCVer.Content = mit.Text.ToString();
-                launchVer = modVer;
-            }
-            else
-            {
-                msgbx = new MessageBoxEx("Error","Couldn't find OptiFine installed on this minecraft. Do you want to download and install from our servers ?", MessageBoxEx.Buttons.YesNo);
-                await msgbx.ShowAsync();
-                if (msgbx.Result == MessageBoxEx.Results.Yes)
-                {
-                    if (await IsOptiFineFilePresent(mcver + ".jar",mcver,false))
-                    {
-                        if (await IsOptiFineFilePresent(null,null,true))
-                        {
-                            if (mcver == "1.18.2")
-                            {
-                                btnMCVer.Content = mit.Text.ToString();
-                                launchVer = modVer;
-                                isOptiFineRuns = true;
-                                UI(false);
-                                optver = ": " + mcver;
-                                OptFineDownload("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/OptiFine-1.18.2.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
-                            }
-                            if (mcver == "1.18.1")
-                            {
-                                btnMCVer.Content = mit.Text.ToString();
-                                launchVer = modVer;
-                                isOptiFineRuns = true;
-                                UI(false);
-                                optver = ": " + mcver;
-                                OptFineDownload("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/OptiFine-1.18.1.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
-                            }
-                            else if (mcver == "1.17.1")
-                            {
-                                btnMCVer.Content = mit.Text.ToString();
-                                launchVer = modVer;
-                                isOptiFineRuns = true;
-                                UI(false);
-                                optver = ": " + mcver;
-                                OptFineDownload("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/OptiFine-1.17.1.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
-                            }
-                            else if (mcver == "1.16.5")
-                            {
-                                btnMCVer.Content = mit.Text.ToString();
-                                launchVer = modVer;
-                                isOptiFineRuns = true;
-                                UI(false);
-                                optver = ": " + mcver;
-                                OptFineDownload("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/OptiFine-1.16.5.zip","OptiFine-" + mcver + ".zip", ModType.ver);
-                            }
-                        }
-                        else
-                        {
-                            isOptiFineRuns = true;
-                            msgbx = new MessageBoxEx("Error", "This will download main OptiFine library, Please click again " + mit.Text.ToString() + " (after download and extract the main OptiFine) to install optifine of that version !", MessageBoxEx.Buttons.Ok);
-                            await msgbx.ShowAsync();
-                            optver = " Lib";
-                            OptFineDownload("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/optifine.zip", Directory.GetCurrentDirectory() + "\\OptiFine.zip", ModType.lib);
-                        }
-                    }
-                    else
-                    {
-                        msgbx = new MessageBoxEx("Error", "You have to install & run minecraft version " + mcver + " one time to install OptiFine", MessageBoxEx.Buttons.Ok);
-                        await msgbx.ShowAsync();
-                        btnMCVer.Content = mcver;
-                        launchVer = mcver;
-                    }
-                }
-            }
-        }
-        private enum ModType
-        {
-            lib,
-            ver
-        }
-        string optDir;
-        ModType dwnOptiType;
-        private async void OptFineDownload(string link, string dir, ModType m)
-        {
-            try
-            {
-                Uri source = new Uri(link.Trim());
-                string destination = dir.Trim();
-
-                StorageFile destinationFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(
-                    destination, CreationCollisionOption.GenerateUniqueName);
-
-                BackgroundDownloader downloader = new BackgroundDownloader();
-                DownloadOperation download = downloader.CreateDownload(source, destinationFile);
-                StartDownloadWithProgress(download);
-            }
-            catch
-            {
-
-            }
-            optDir = dir;
-            dwnOptiType = m;
-            UI(false);
-        }
-        DownloadOperation operation;
-        void StartDownloadWithProgress(DownloadOperation obj)
-        {
-            operation = obj;
-            operation.StartAsync();
-            DispatcherTimer downloadprog = new DispatcherTimer();
-            downloadprog.Interval = new TimeSpan(0, 0, 0, 0, 1);
-            downloadprog.Tick += Downloadprog_Tick;
-
-        }
-
-        private void Downloadprog_Tick(object sender, object e)
-        {
-            double bytesIn = double.Parse(operation.Progress.BytesReceived.ToString());
-            double totalBytes = double.Parse(operation.Progress.TotalBytesToReceive.ToString());
-            double percentage = bytesIn / totalBytes * 100;
-            txtStatus.Text = "Downloading: OptiFine" + optver;
-            pb_Prog.Maximum = 100;
-            pb_Prog.Value = int.Parse(Math.Truncate(percentage).ToString());
-            if(pb_Prog.Value == 100)
-            {
-                client_DownloadFileCompleted(null, null);
-            }
-        }
-
-        async void client_DownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
-        {
-            txtStatus.Text = "Extracting";
-
-            //Read the file stream
-            var a = await ApplicationData.Current.TemporaryFolder.GetFileAsync(optDir);
-            Stream b = await a.OpenStreamForReadAsync();
-            //unzip
-            ZipArchive archive = new ZipArchive(b);
-            if (dwnOptiType == ModType.lib)
-            {
-                archive.ExtractToDirectory(gamepath.BasePath + @"\libraries", true);
-            }
-            else if (dwnOptiType == ModType.ver)
-            {
-
-                archive.ExtractToDirectory(gamepath.BasePath + @"\versions", true);
-            }
-            var oldDisver = btnMCVer.Content.ToString();
-            var oldVer = launchVer;
-            await refreshVersions(null);
-            launchVer = oldVer;
-            btnMCVer.Content = oldDisver;
-            txtStatus.Text = "Ready";
-            isOptiFineRuns = false;
-            UI(true);
         }
     }
 }
