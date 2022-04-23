@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,8 +22,9 @@ namespace SDLauncher_UWP
         public static bool autoLog = false;
         public static int LoadedRam = 1024;
         public static CMLauncher LauncherSynced;
-        public static List<Account> Accounts;
+        public static ObservableCollection<Account> Accounts;
         public static int AccountsCount;
+        
         public static int? CurrentAccountCount;
 
         //CMLLIB

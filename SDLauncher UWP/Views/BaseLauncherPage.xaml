@@ -10,6 +10,7 @@
     mc:Ignorable="d">
 
     <Grid>
+        
         <Grid.ChildrenTransitions>
             <TransitionCollection>
                 <EntranceThemeTransition IsStaggeringEnabled="True"/>

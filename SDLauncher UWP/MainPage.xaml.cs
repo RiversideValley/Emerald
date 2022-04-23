@@ -130,11 +130,7 @@ namespace SDLauncher_UWP
         }
 
         private void Page_Loading(FrameworkElement sender, object args)
-        {
-            var titleBar = ApplicationView.GetForCurrentView().TitleBar;
-            titleBar.ButtonBackgroundColor = Colors.Transparent;
-            titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
-
+        { 
             var coreTitleBar = CoreApplication.GetCurrentView().TitleBar;
             coreTitleBar.ExtendViewIntoTitleBar = true;
             UpdateTitleBarLayout(coreTitleBar);
@@ -180,16 +176,7 @@ namespace SDLauncher_UWP
 
         private void CoreTitleBar_IsVisibleChanged(CoreApplicationViewTitleBar sender, object args)
         {
-            if (sender.IsVisible)
-            {
-
-                AppTitleBar.Visibility = Visibility.Visible;
-            }
-            else
-            {
-
-                AppTitleBar.Visibility = Visibility.Collapsed;
-            }
+            AppTitleBar.Visibility = sender.IsVisible ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void Current_Activated(object sender, WindowActivatedEventArgs e)
@@ -227,17 +214,8 @@ namespace SDLauncher_UWP
         private void btnLogin_Click(object sender, RoutedEventArgs e)
         {
             loginFly.Hide();
-            if (btnLogin.Tag.ToString() != "Change")
-            {
-                login.Hide();
-                login = new Login();
-                login.ShowAsync();
-            }
-            else {
-                login.Hide();
-                login = new Login() { Title = "Change Account" };
-                login.ShowAsync();
-            }
+            login = new Login();
+            login.ShowAsync();
         }
 
         private void btnChat_Click(object sender, RoutedEventArgs e)
@@ -272,13 +250,24 @@ namespace SDLauncher_UWP
 
         private void Page_ActualThemeChanged(FrameworkElement sender, object args)
         {
+            var titleBar = ApplicationView.GetForCurrentView().TitleBar;
             if (this.ActualTheme == ElementTheme.Light)
             {
+                titleBar.ButtonBackgroundColor = Colors.Transparent;
+                titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
+                titleBar.ButtonPressedBackgroundColor = Colors.Transparent;
+                titleBar.ButtonForegroundColor = Colors.Black;
+                titleBar.ButtonHoverBackgroundColor = ((SolidColorBrush)Application.Current.Resources["LayerFillColorDefaultBrush"]).Color;
                 imgDiscord.Source = new BitmapImage(new Uri("ms-appx:///Assets/Discord/discord.jpg"));
                 imgBack.ImageSource = new BitmapImage(new Uri("ms-appx:///Assets/BackDrops/bg-light.png"));
             }
             if (this.ActualTheme == ElementTheme.Dark)
             {
+                titleBar.ButtonBackgroundColor = Colors.Transparent;
+                titleBar.ButtonPressedBackgroundColor = Colors.Transparent;
+                titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
+                titleBar.ButtonForegroundColor = Colors.White;
+                titleBar.ButtonHoverBackgroundColor = ((SolidColorBrush)Application.Current.Resources["LayerFillColorDefaultBrush"]).Color;
                 imgDiscord.Source = new BitmapImage(new Uri("ms-appx:///Assets/Discord/discord-dark.png"));
                 imgBack.ImageSource = new BitmapImage(new Uri("ms-appx:///Assets/BackDrops/bg.jpg"));
             }
@@ -289,16 +278,26 @@ namespace SDLauncher_UWP
            await new MessageBoxEx("Meow", "e", MessageBoxEx.Buttons.Ok).ShowAsync();
         }
 
-        private void btnPinDiscord_Click(object sender, RoutedEventArgs e)
+        private async void btnPinDiscord_Click(object sender, RoutedEventArgs e)
         {
+            // await ApplicationView.GetForCurrentView().TryEnterViewModeAsync(ApplicationViewMode.CompactOverlay);
             Canvas.SetZIndex(discordView, 1);
+            Canvas.SetZIndex(discordFixed, 9);
             vars.IsFixedDiscord = true;
             discordView.IsPaneOpen = false;
             btnUnPinDiscord.IsChecked = true;
             discordFixed.Visibility = Visibility.Visible;
             try
             {
+#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
                 wv2DiscordFixed.CoreWebView2.Navigate(wv2Discord.Source.ToString());
+#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
             }
             catch
             {
@@ -309,7 +308,15 @@ namespace SDLauncher_UWP
         private void btnUnPinDiscord_Click(object sender, RoutedEventArgs e)
         {
             Canvas.SetZIndex(discordView, 9);
+#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
             wv2DiscordFixed.CoreWebView2.Navigate(wv2DiscordFixed.Source.ToString());
+#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
             vars.IsFixedDiscord = false;
             discordView.IsPaneOpen = true;
             btnPinDiscord.IsChecked = false;

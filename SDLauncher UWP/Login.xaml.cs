@@ -20,6 +20,8 @@ using System.Net.Http;
 using MojangAPI;
 using Windows.ApplicationModel.DataTransfer;
 using System.Threading.Tasks;
+using Windows.UI.Xaml.Media.Imaging;
+using Microsoft.Toolkit.Uwp.UI;
 
 // The Content Dialog item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -30,6 +32,7 @@ namespace SDLauncher_UWP
         public Login()
         {
             this.InitializeComponent();
+            bodyImagesorce = "/Assets/BackDrops/bg.jpg";
         }
 
         private void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
@@ -114,7 +117,7 @@ namespace SDLauncher_UWP
                     {
                         if (account.Type == "Offline")
                         {
-                            if(account.UserName == txtbxOffUsername.Text.Replace(" ", "").ToString())
+                            if (account.UserName == txtbxOffUsername.Text.Replace(" ", "").ToString())
                             {
                                 count++;
                             }
@@ -137,8 +140,8 @@ namespace SDLauncher_UWP
                         }
                     }
                     if (goAhead)
-                    AddAccount(MSession.GetOfflineSession(txtbxOffUsername.Text.Replace(" ", "").ToString()));
-                    
+                        AddAccount(MSession.GetOfflineSession(txtbxOffUsername.Text.Replace(" ", "").ToString()));
+
                 }
                 else
                 {
@@ -171,7 +174,7 @@ namespace SDLauncher_UWP
                 }
             }
             UpdateAccounts();
-            if(vars.Accounts.Count > 1)
+            if (vars.Accounts.Count > 1)
             {
                 btnChooseAcc_Click(null, null);
             }
@@ -190,10 +193,10 @@ namespace SDLauncher_UWP
             {
                 foreach (var item in vars.Accounts)
                 {
-                    if(item.Count == int.Parse(btn.Tag.ToString()))
+                    if (item.Count == int.Parse(btn.Tag.ToString()))
                     {
                         item.Last = true;
-                        if(item.Type == "Offline")
+                        if (item.Type == "Offline")
                         {
                             UpdateSession(MSession.GetOfflineSession(item.UserName));
                         }
@@ -216,7 +219,7 @@ namespace SDLauncher_UWP
                     {
                         if (item.Type == "Offline")
                         {
-                            if(item.Count == vars.CurrentAccountCount)
+                            if (item.Count == vars.CurrentAccountCount)
                             {
                                 vars.session = null;
                                 vars.UserName = "";
@@ -265,10 +268,18 @@ namespace SDLauncher_UWP
             vars.CurrentAccountCount = vars.AccountsCount;
             this.Hide();
         }
+        AdvancedCollectionView AccountsACV = new AdvancedCollectionView(vars.Accounts, true);
+        bool DontNull = false;
         void UpdateAccounts()
         {
-
-            accountsRepeater.ItemsSource = null;
+            //try
+            //{
+            if (!DontNull)
+            {
+                accountsRepeater.ItemsSource = null;
+            }
+            //}
+            //catch { }
             accountsRepeater.ItemsSource = vars.Accounts;
             if (vars.Accounts.Count == 0)
             {
@@ -278,13 +289,28 @@ namespace SDLauncher_UWP
             {
                 txtEmpty.Visibility = Visibility.Collapsed;
             }
-            accountsRepeater.UpdateLayout();
         }
         private void btnChooseAcc_Click(object sender, RoutedEventArgs e)
         {
+            for (int i = vars.Accounts.Count - 1; i >= 0; i--)
+            {
+                try
+                {
+                    vars.Accounts[i].PropertyChanged -= Login_PropertyChanged;
+                }
+                catch { }
+                vars.Accounts[i].PropertyChanged += Login_PropertyChanged;
+            }
+            ShowSelect(false, false);
             gridChoose.Visibility = Visibility.Visible;
             gridNew.Visibility = Visibility.Collapsed;
             gridSettingsOnline.Visibility = Visibility.Collapsed;
+            UpdateAccounts();
+        }
+
+        private void Login_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            UpdateAccounts();
         }
 
         private void btnBack_Click(object sender, RoutedEventArgs e)
@@ -305,6 +331,8 @@ namespace SDLauncher_UWP
                         if (item.Type == "Offline")
                         {
                             itmRename.IsEnabled = true;
+                            imgBody.Source = new BitmapImage(new Uri("https://minotar.net/body/noob"));
+                            prpSettings.ProfilePicture = new BitmapImage(new Uri("https://minotar.net/avatar/noob"));
                             txtTypeSettings.Text = "Offline Account";
                             fnticoAcTypeSettings.Glyph = item.TypeIconGlyph;
                             prpSettings.DisplayName = item.UserName;
@@ -427,7 +455,7 @@ namespace SDLauncher_UWP
 
         private void txtbxRename_KeyDown(object sender, KeyRoutedEventArgs e)
         {
-            if(e.Key == Windows.System.VirtualKey.Enter)
+            if (e.Key == Windows.System.VirtualKey.Enter)
             {
                 if (sender is TextBox btn)
                 {
@@ -469,17 +497,179 @@ namespace SDLauncher_UWP
 
         private void itmDouble_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var item in vars.Accounts)
-            {
-                if (item.Count == int.Parse(itmDouble.Tag.ToString()))
+            if (sender is MenuFlyoutItem itm)
+                foreach (var item in vars.Accounts)
                 {
-                    vars.Accounts.Add(new Account(item.UserName, item.Type, item.AccessToken, item.UUID, vars.AccountsCount + 1, false));
-                    vars.AccountsCount++;
-                    UpdateAccounts();
-                    btnChooseAcc_Click(null, null);
-                    return;
+                    if (item.Count == int.Parse(itm.Tag.ToString()))
+                    {
+                        vars.Accounts.Add(new Account(item.UserName, item.Type, item.AccessToken, item.UUID, vars.AccountsCount + 1, false));
+                        vars.AccountsCount++;
+                        UpdateAccounts();
+                        btnChooseAcc_Click(null, null);
+                        return;
+                    }
+                }
+        }
+        private void chkbxSelectAcc_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is CheckBox chkbx)
+            {
+
+                if (chkbx.IsChecked == true)
+                {
+                    foreach (var item in vars.Accounts)
+                    {
+                        if (item.Count == int.Parse(chkbx.Tag.ToString()))
+                        {
+                            item.IsChecked = true;
+                            ShowSelect(true);
+                            UpdateAccounts();
+                            return;
+                        }
+                    }
+
+                }
+                if (chkbx.IsChecked == false)
+                {
+                    foreach (var item in vars.Accounts)
+                    {
+                        if (item.Count == int.Parse(chkbx.Tag.ToString()))
+                        {
+                            item.IsChecked = false;
+                            ShowSelect(true);
+                            IsAnyAccountChecked();
+                            return;
+                        }
+                    }
+                }
+
+            }
+        }
+
+        private void itmSelect_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleMenuFlyoutItem chkbx)
+            {
+                if (chkbx.IsChecked == true)
+                {
+                    foreach (var item in vars.Accounts)
+                    {
+                        if (item.Count == int.Parse(chkbx.Tag.ToString()))
+                        {
+                            item.IsChecked = true;
+                            ShowSelect(true);
+                            UpdateAccounts();
+                            return;
+                        }
+                    }
+
+                }
+                if (chkbx.IsChecked == false)
+                {
+                    foreach (var item in vars.Accounts)
+                    {
+                        if (item.Count == int.Parse(chkbx.Tag.ToString()))
+                        {
+                            item.IsChecked = false;
+                            ShowSelect(true);
+                            IsAnyAccountChecked();
+                            return;
+                        }
+                    }
+                }
+
+            }
+        }
+        private void ShowSelect(bool value,bool? isSelected = null)
+        {
+            if (value)
+            {
+                foreach (var item in vars.Accounts)
+                {
+                    item.IsCheckboxVsible = Visibility.Visible;
+                    if(isSelected == true)
+                    {
+                        item.IsChecked = true;
+                    }
+                    else if(isSelected == false)
+                    {
+                        item.IsChecked = false;
+                    }
                 }
             }
+            else
+            {
+                foreach (var item in vars.Accounts)
+                {
+                    item.IsCheckboxVsible = Visibility.Collapsed;
+                    if (isSelected == true)
+                    {
+                        item.IsChecked = true;
+                    }
+                    else if (isSelected == false)
+                    {
+                        item.IsChecked = false;
+                    }
+                }
+            }
+        }
+        private bool IsAnyAccountChecked()
+        {
+            List<bool> isChecked = new List<bool>();
+            foreach (var item in vars.Accounts)
+            {
+                if (item.IsChecked)
+                {
+                    isChecked.Add(true);
+                }
+            }
+            if(isChecked.Count == 0)
+            {
+                foreach (var item in vars.Accounts)
+                {
+                    item.IsChecked = false;
+                    item.IsCheckboxVsible = Visibility.Collapsed;
+                }
+                UpdateAccounts();
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        private void Button_PointerEntered(object sender, PointerRoutedEventArgs e)
+        {
+            //if(sender is Button btn)
+            //{
+            //    foreach (var item in vars.Accounts)
+            //    {
+            //        if (item.Count == int.Parse(btn.Tag.ToString()))
+            //        {
+            //            item.IsCheckboxVsible = Visibility.Visible;
+            //            DontNull = true;
+            //            return;
+            //        }
+            //    }
+            //}
+        }
+
+        private void Button_PointerExited(object sender, PointerRoutedEventArgs e)
+        {
+            //if(!IsAnyAccountChecked())
+            //if (sender is Button btn)
+            //{
+            //    foreach (var item in vars.Accounts)
+            //    {
+            //        if (item.Count == int.Parse(btn.Tag.ToString()))
+            //        {
+            //            item.IsCheckboxVsible = Visibility.Collapsed;
+            //            DontNull = false;
+            //            return;
+            //        }
+            //    }
+            //}
         }
     }
 }

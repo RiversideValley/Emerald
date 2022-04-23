@@ -11,6 +11,9 @@ using System.Xml;
 using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using CmlLib.Core.Auth;
+using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
+using System.ComponentModel;
 
 namespace SDLauncher_UWP
 {
@@ -42,7 +45,7 @@ namespace SDLauncher_UWP
                         "\n      The accounts will be used on the Minecraft." +
                         "\n      Types         : \"Offline\",\"Microsoft\",\"null\"(not added\")." +
                         "\n      AcessToken    : This is the token to login with Microsoft, can be get through the Microsoft Login." +
-                        "\n      UUID          : This is the user ID to login with Microsoft,also can be get through the Microsoft Login." +
+                        "\n      UUID          : This is the UUID to login with Microsoft,also can be get through the Microsoft Login." +
                         "\n      AvatarID      : The avatar of your account. Values: \"0\",\"1\",\"2\",\"3\"(microsoft),\"\"(empty)" +
                         "\n      LastAccessed  : For autologin. Add this to only one account." +
                         "\n      ");
@@ -109,7 +112,7 @@ namespace SDLauncher_UWP
                 Application.Current.Exit();
             }
         }
-        public List<Account> Accounts = new List<Account>();
+        public ObservableCollection<Account> Accounts = new ObservableCollection<Account>();
         public async Task LoadSettingsFile()
         {
             //var doc = await DocumentLoad().AsAsyncOperation();
@@ -315,10 +318,12 @@ namespace SDLauncher_UWP
 
         }
     }
-    public class Account
+    public class Account : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged = delegate { };
         List<string> PicList = new List<string>();
-        public string UserName { get; set; }
+        private string userName;
+        public string UserName { get { return userName; } set { userName = value; OnPropertyChanged(); } }
         public string ProfilePicture { get; set; }
         public string Type { get; set; }
         public string TypeIconGlyph { get; set; }
@@ -327,9 +332,20 @@ namespace SDLauncher_UWP
         public int Count { get; set; }
         public int ProfileAvatarID { get; set; }
         public bool Last { get; set; }
+        // For app UI
+        private Visibility isCheckboxVsible;
+        public Visibility IsCheckboxVsible { get { return isCheckboxVsible; } set { isCheckboxVsible = value; OnPropertyChanged(); } }
+        private bool sChecked;
+        public bool IsChecked { get { return sChecked; } set { sChecked = value; OnPropertyChanged(); } }
 
+        public void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+        }
         public Account(string username, string type, string accesstoken, string uuid, int count, bool last, int? pic = null)
         {
+            IsCheckboxVsible = Visibility.Collapsed;
+            IsChecked = false;
             PicList.Add("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/Pictures/steve.png");
             PicList.Add("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/Pictures/NoobSteve.png");
             PicList.Add("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/Pictures/alex.png");

@@ -25,6 +25,10 @@ using System.Net;
 using System.IO.Compression;
 using Windows.Networking.BackgroundTransfer;
 using SDLauncher_UWP.Views;
+using System.Diagnostics;
+using Windows.ApplicationModel.Core;
+using Windows.UI.Core;
+using Microsoft.Toolkit.Uwp.Helpers;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -75,7 +79,7 @@ namespace SDLauncher_UWP
 
         private async Task initializeLauncher(MinecraftPath path)
         {
-            UI(false);
+            UI(false,false);
             gamepath = path;
             launcher = new CMLauncher(path);
             vars.LauncherSynced = launcher;
@@ -101,7 +105,8 @@ namespace SDLauncher_UWP
         public static CmlLib.Core.Version.MVersionCollection mcFabricVers;
         private async Task refreshVersions(string showVersion)
         {
-            UI(false);
+            txtStatus.Text = "Getting available versions...";
+            UI(false,false);
             mcVers = await launcher.GetAllVersionsAsync();
 
             //mcFabricVers = await new FabricVersionLoader().GetVersionMetadatasAsync();
@@ -114,11 +119,12 @@ namespace SDLauncher_UWP
             {
                 cmbxVer.Items.Add(item.Name);
             }
-            UI(true);
-
+            UI(true,false);
+            txtStatus.Text = "Ready";
         }
         private async void BtnLaunch_Click(object sender, RoutedEventArgs e)
         {
+            UI(false,true);
             if (vars.session == null)
             {
                 p = new MessageBoxEx("Error", "Please Login", MessageBoxEx.Buttons.OkCancel);
@@ -126,12 +132,14 @@ namespace SDLauncher_UWP
                 if (p.Result == MessageBoxEx.Results.Ok)
                 {
                     await new Login().ShowAsync();
+                    UI(true, true);
                     BtnLaunch_Click(null, null);
                 }
                 return;
             }
             if (cmbxVer.SelectedItem == null)
             {
+                UI(true, true);
                 p = new MessageBoxEx("Error", "Please enter a version", MessageBoxEx.Buttons.Ok);
                 await p.ShowAsync();
                 cmbxVer.Focus(FocusState.Keyboard);
@@ -150,7 +158,7 @@ namespace SDLauncher_UWP
                     MaximumRamMb = vars.CurrentRam,
                     Session = vars.session,
                 }); ;
-                process.Start();
+                StartProcess(process);
             }
             catch (System.Net.WebException)
             {
@@ -178,7 +186,21 @@ namespace SDLauncher_UWP
                 p.ShowAsync();
             }
         }
-
+        public static Process GameProcess;
+        private void StartProcess(Process process)
+        {
+            GameProcess = process;
+            GameProcess.Start();
+            var th = new System.Threading.Thread(async () =>
+            {
+                GameProcess.WaitForExit();
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                {
+                    UI(true, true);
+                });
+            });
+            th.Start();
+        }
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
         }
@@ -253,7 +275,7 @@ namespace SDLauncher_UWP
             }
         }
         //
-        private void UI(bool value)
+        private void UI(bool value,bool isEverywhere)
         {
             btnLaunch.IsEnabled = value;
             btnMCVer.IsEnabled = value;
@@ -282,7 +304,7 @@ namespace SDLauncher_UWP
         {
             txtStatus.Text = OptiFine.DownloadStats;
             pb_Prog.Value = OptiFine.DownloadProg;
-            UI(OptiFine.UI);
+            UI(OptiFine.UI,true);
         }
 
         //
@@ -301,12 +323,12 @@ namespace SDLauncher_UWP
                 launchVer = modver;
                 btnMCVer.Content = mit.Text.ToString();
                 txtStatus.Text = "Getting Fabric";
-                UI(false);
+                UI(false,true);
                 System.Threading.Thread thread = new System.Threading.Thread(async () =>
                 {
                     var fabric = mcFabricVers.GetVersionMetadata(launchVer);
                     await fabric.SaveAsync(gamepath);
-                    UI(true);
+                    UI(true,true);
                     txtStatus.Text = "Ready";
                     await refreshVersions(null);
                     launchVer = modver;

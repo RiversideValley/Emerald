@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Toolkit.Uwp.Helpers;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -41,16 +42,28 @@ namespace SDLauncher_UWP
         /// <param name="e">Details about the launch request and process.</param>
         protected async override void OnLaunched(LaunchActivatedEventArgs e)
         {
-            try
+            if (!SystemInformation.Instance.IsFirstRun)
             {
-                await ApplicationData.Current.RoamingFolder.GetFileAsync("settings.xml");
+                try
+                {
+                    await ApplicationData.Current.RoamingFolder.GetFileAsync("settings.xml");
+                }
+                catch
+                {
+                    await settings.CreateSettingsFile(false);
+                }
+                await settings.LoadSettingsFile();
             }
-            catch
+            else
             {
-                await settings.CreateSettingsFile(false);
+                vars.CurrentRam = 2048;
+                try
+                {
+                    await settings.CreateSettingsFile(false);
+                    await settings.LoadSettingsFile();
+                }
+                catch { }
             }
-            await settings.LoadSettingsFile();
-
             Frame rootFrame = Window.Current.Content as Frame;
 
             // Do not repeat app initialization when the Window already has content,
@@ -85,7 +98,54 @@ namespace SDLauncher_UWP
                 Window.Current.Activate();
             }
         }
+        protected async override void OnActivated(IActivatedEventArgs args)
+        {
 
+            if (args.Kind == ActivationKind.CommandLineLaunch)
+            {
+
+                if (!SystemInformation.Instance.IsFirstRun)
+                {
+                    try
+                    {
+                        await ApplicationData.Current.RoamingFolder.GetFileAsync("settings.xml");
+                    }
+                    catch
+                    {
+                        await settings.CreateSettingsFile(false);
+                    }
+                    await settings.LoadSettingsFile();
+                }
+                else
+                {
+                    vars.CurrentRam = 2048;
+                    try
+                    {
+                        await settings.CreateSettingsFile(false);
+                        await settings.LoadSettingsFile();
+                    }
+                    catch { }
+                }
+                Frame rootFrame = Window.Current.Content as Frame;
+
+                // Do not repeat app initialization when the Window already has content,  
+                // just ensure that the window is active  
+                if (rootFrame == null)
+                {
+                    // Create a Frame to act as the navigation context and navigate to the first page
+                    rootFrame = new Frame();
+
+                    rootFrame.NavigationFailed += OnNavigationFailed;
+                    rootFrame.RequestedTheme = (ElementTheme)vars.theme;
+                    // Place the frame in the current Window
+                    Window.Current.Content = rootFrame;
+                }
+
+                rootFrame.Navigate(typeof(MainPage));
+                SystemNavigationManagerPreview.GetForCurrentView().CloseRequested += App_CloseRequested;
+                Window.Current.Activate();
+            }
+        }
         private async void App_CloseRequested(object sender, SystemNavigationCloseRequestedPreviewEventArgs e)
         {
            await settings.CreateSettingsFile(false);
