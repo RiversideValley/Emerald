@@ -10,8 +10,8 @@
     Loading="Page_Loading"
     Unloaded="Page_Unloaded"
     Loaded="Page_Loaded"
-    xmlns:controls="using:Microsoft.UI.Xaml.Controls" xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
-    controls:BackdropMaterial.ApplyToRootOrPageBackground="True">
+    xmlns:winui="using:Microsoft.UI.Xaml.Controls" xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
+    winui:BackdropMaterial.ApplyToRootOrPageBackground="True">
 
     <Grid>
         <Grid.Background>
@@ -22,7 +22,7 @@
                 <EntranceThemeTransition IsStaggeringEnabled="True"/>
             </TransitionCollection>
         </Grid.ChildrenTransitions>
-        <controls:TeachingTip
+        <winui:TeachingTip
             x:Name="tipacc"
             CloseButtonContent="Right!"
             CloseButtonStyle="{ThemeResource ButtonRevealStyle}"
@@ -31,22 +31,22 @@
             Target="{x:Bind btnAccount}"
             Subtitle="Microsoft or offline"
             Title="Choose an account">
-            <controls:TeachingTip.IconSource>
-                <controls:SymbolIconSource Symbol="Account"/>
-            </controls:TeachingTip.IconSource>
-        </controls:TeachingTip>
+            <winui:TeachingTip.IconSource>
+                <winui:SymbolIconSource Symbol="Account"/>
+            </winui:TeachingTip.IconSource>
+        </winui:TeachingTip>
         <TextBlock x:Name="enabletxt" Foreground="{ThemeResource TextFillColorPrimaryBrush}" Visibility="Collapsed"/>
         <TextBlock Foreground="{ThemeResource TextFillColorDisabledBrush}" x:Name="disabletxt" Visibility="Collapsed"/>
         <Grid VerticalAlignment="Top">
-            <Button CornerRadius="0,0,5,0" VerticalAlignment="Top" Canvas.ZIndex="1" x:Name="btnBack" Visibility="Collapsed" Background="Transparent" BorderThickness="0" Click="btnBack_Click" Height="40" Width="43">
-                <controls:AnimatedIcon>
-                    <controls:AnimatedIcon.Source>
+            <Button FocusVisualPrimaryThickness="0" FocusVisualSecondaryThickness="0" CornerRadius="0,0,5,0" VerticalAlignment="Top" Canvas.ZIndex="1" x:Name="btnBack" Visibility="Collapsed" Background="Transparent" BorderThickness="0" Click="btnBack_Click" Height="40" Width="43">
+                <winui:AnimatedIcon>
+                    <winui:AnimatedIcon.Source>
                         <animatedvisuals:AnimatedBackVisualSource/>
-                    </controls:AnimatedIcon.Source>
-                    <controls:AnimatedIcon.FallbackIconSource>
-                        <controls:SymbolIconSource Symbol="Back"/>
-                    </controls:AnimatedIcon.FallbackIconSource>
-                </controls:AnimatedIcon>
+                    </winui:AnimatedIcon.Source>
+                    <winui:AnimatedIcon.FallbackIconSource>
+                        <winui:SymbolIconSource Symbol="Back"/>
+                    </winui:AnimatedIcon.FallbackIconSource>
+                </winui:AnimatedIcon>
             </Button>
             <Border x:Name="AppTitleBar"
                 Background="Transparent"
@@ -66,9 +66,9 @@
                     Style="{StaticResource CaptionTextBlockStyle}" />
             </StackPanel>
             </Border>
-            <Button CornerRadius="0,0,5,5" MaxWidth="200" x:Name="btnAccount" VerticalAlignment="Top" BorderThickness="0" Background="Transparent" HorizontalAlignment="Right" Padding="10,5,30,5" Margin="0,0,175,0">
+            <Button FocusVisualPrimaryThickness="0" FocusVisualSecondaryThickness="0" CornerRadius="0,0,5,5" MaxWidth="200" x:Name="btnAccount" VerticalAlignment="Top" BorderThickness="0" Background="Transparent" HorizontalAlignment="Right" Padding="10,5,30,5" Margin="0,0,175,0">
                 <StackPanel Orientation="Horizontal">
-                    <controls:PersonPicture x:Name="prpLogin" BorderThickness="0" Height="35" Width="35"/>
+                    <winui:PersonPicture x:Name="prpLogin" BorderThickness="0" Height="35" Width="35"/>
                     <TextBlock Text="Login" x:Name="txtLogin" TextTrimming="CharacterEllipsis" MaxWidth="120" VerticalAlignment="Center" Margin="5,0,0,0" />
                 </StackPanel>
                 <Button.Flyout>
@@ -103,7 +103,7 @@
                                             <EntranceThemeTransition IsStaggeringEnabled="True"/>
                                         </TransitionCollection>
                                     </StackPanel.ChildrenTransitions>
-                                    <controls:PersonPicture x:Name="prpFly" Width="60"/>
+                                    <winui:PersonPicture x:Name="prpFly" Width="60"/>
 
                                     <HyperlinkButton HorizontalContentAlignment="Left" Width="140" Foreground="{ThemeResource ButtonForegroundThemeBrush}" VerticalAlignment="Center" x:Name="btnLogin" Click="btnLogin_Click" FontSize="13" Margin="5,10,5,10">
                                         <HyperlinkButton.Content>
@@ -117,14 +117,14 @@
                                             </TransitionCollection>
                                         </StackPanel.ChildrenTransitions>
                                         <Button Click="btnSettings_Click" x:Name="btnSettings" MinWidth="0" Width="43" Padding="7" HorizontalAlignment="Left">
-                                            <controls:AnimatedIcon>
-                                                <controls:AnimatedIcon.Source>
+                                            <winui:AnimatedIcon>
+                                                <winui:AnimatedIcon.Source>
                                                     <animatedvisuals:AnimatedSettingsVisualSource/>
-                                                </controls:AnimatedIcon.Source>
-                                                <controls:AnimatedIcon.FallbackIconSource>
-                                                    <controls:SymbolIconSource Symbol="Setting"/>
-                                                </controls:AnimatedIcon.FallbackIconSource>
-                                            </controls:AnimatedIcon>
+                                                </winui:AnimatedIcon.Source>
+                                                <winui:AnimatedIcon.FallbackIconSource>
+                                                    <winui:SymbolIconSource Symbol="Setting"/>
+                                                </winui:AnimatedIcon.FallbackIconSource>
+                                            </winui:AnimatedIcon>
                                         </Button>
                                         <Button x:Name="btnChat" Click="btnChat_Click" HorizontalAlignment="Left" Padding="5" Margin="5,0,0,0">
                                             <Image Width="30" Stretch="UniformToFill" x:Name="imgDiscord" Source="/Assets/Discord/discord-dark.png"/>
@@ -137,8 +137,8 @@
                                             <EntranceThemeTransition IsStaggeringEnabled="True"/>
                                         </TransitionCollection>
                                     </StackPanel.ChildrenTransitions>
-                                    <TextBlock FontSize="13" Text="Status:" Margin="0,0,0,5"/>
-                                    <TextBox PlaceholderText="For better RPC please add a small status!" x:Name="txtbxStats" MinHeight="60" TextWrapping="Wrap" />
+                                    <TextBlock FontSize="13" x:Name="MainPage_txtStatus" Margin="0,0,0,5"/>
+                                    <TextBox x:Uid="MainPage_txtbxStatus" x:Name="txtbxStats" MinHeight="60" TextWrapping="Wrap" />
                                 </StackPanel>
                             </Grid>
                         </Grid>
@@ -159,7 +159,7 @@
                             </ToggleButton>
                             <TextBlock Text="Chat" Foreground="White" VerticalAlignment="Center" FontSize="20" FontWeight="SemiBold"/>
                         </StackPanel>
-                    <controls:WebView2 Grid.Row="1" x:Name="wv2Discord" Source="https://e.widgetbot.io/channels/949252950772027412/950032703418433537"/>
+                    <winui:WebView2 Grid.Row="1" x:Name="wv2Discord" Source="https://e.widgetbot.io/channels/949252950772027412/950032703418433537"/>
                 </Grid>
             </SplitView.Pane>
         </SplitView>
@@ -189,7 +189,7 @@
                         </ToggleButton>
                         <TextBlock Text="Chat" Foreground="White" VerticalAlignment="Center" FontSize="20" FontWeight="SemiBold"/>
                     </StackPanel>
-                <controls:WebView2 Grid.Row="1" x:Name="wv2DiscordFixed" Source="https://e.widgetbot.io/channels/949252950772027412/950032703418433537"/>
+                <winui:WebView2 Grid.Row="1" x:Name="wv2DiscordFixed" Source="https://e.widgetbot.io/channels/949252950772027412/950032703418433537"/>
                
             </Grid>
             <Frame Grid.Column="0" Navigated="MainFrame_Navigated" Canvas.ZIndex="0" Margin="10,48,10,15" x:Name="MainFrame">

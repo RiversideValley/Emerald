@@ -29,7 +29,11 @@ using System.Diagnostics;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
 using Microsoft.Toolkit.Uwp.Helpers;
-
+using SDLauncher_UWP.Helpers;
+using Windows.Foundation.Metadata;
+using Windows.ApplicationModel;
+using SDLauncher_UWP.Converters;
+using SDLauncher_UWP.Resources;
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace SDLauncher_UWP
@@ -37,24 +41,76 @@ namespace SDLauncher_UWP
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
+    ///
+    
     public sealed partial class BaseLauncherPage : Page
     {
-        CMLauncher launcher;
-        MinecraftPath gamepath;
-        MessageBoxEx p;
-        OptiFine OptiFine;
-        string launchVer;
-        bool isOptiFineRuns;
+        public static string launchVer { get; set; }
+        public event EventHandler<SDLauncher.UIChangeRequestedEventArgs> UIchanged = delegate { };
         public BaseLauncherPage()
         {
             this.InitializeComponent();
-            OptiFine = new OptiFine();
             var timer = new DispatcherTimer();
             timer.Interval = new TimeSpan(0, 0, 0, 0, 1);
             timer.Tick += Timer_Tick;
             timer.Start();
-            gamepath = new MinecraftPath(ApplicationData.Current.LocalFolder.Path);
-            initializeLauncher(gamepath);
+            InitializeLauncher();
+        }
+
+        private void InitializeLauncher()
+        {
+            UI(false);
+            vars.Launcher = SDLauncher.CreateLauncher(new MinecraftPath(ApplicationData.Current.LocalFolder.Path));
+            vars.Launcher.UIChangeRequested += Launcher_UIChangeRequested;
+            vars.Launcher.VersionsRefreshed += Launcher_VersionsRefreshed;
+            vars.Launcher.StatusChanged += Launcher_StatusChanged;
+            vars.Launcher.FileOrProgressChanged += Launcher_FileOrProgressChanged;
+            vars.Launcher.OptiFine.DownloadCompleted += OptiFine_DownloadCompleted;
+            UI(true);
+        }
+
+        private void Launcher_VersionsRefreshed(object sender, EventArgs e)
+        {
+            cmbxVer.ItemsSource = vars.Launcher.MCVerNames;
+        }
+
+        private async void OptiFine_DownloadCompleted(object sender, EventArgs e)
+        {
+            if (!(bool)sender)
+            {
+                launchVer = "";
+                btnMCVer.Content = "Version";
+            }
+            else
+            {
+                await vars.Launcher.RefreshVersions();
+                var result = await vars.Launcher.OptiFine.CheckOptiFine(vars.Launcher.OptiFine.MCver, vars.Launcher.OptiFine.Modver, vars.Launcher.OptiFine.Displayver);
+                OptiFineFinish(vars.Launcher.OptiFine.MCver, vars.Launcher.OptiFine.Modver, vars.Launcher.OptiFine.Displayver, result);
+            }
+        }
+
+        private void Launcher_FileOrProgressChanged(object sender, SDLauncher.ProgressChangedEventArgs e)
+        {
+            if(e.CurrentFile != null && e.MaxFiles != null)
+            {
+                pb_File.Value = (int)e.CurrentFile;
+                pb_File.Value = (int)e.MaxFiles;
+            }
+            if(e.ProgressPercentage != null)
+            {
+                pb_Prog.Maximum = 100;
+                pb_Prog.Value = (int)e.ProgressPercentage;
+            }
+        }
+
+        private void Launcher_StatusChanged(object sender, SDLauncher.StatusChangedEventArgs e)
+        {
+            txtStatus.Text = e.Status;
+        }
+
+        private void Launcher_UIChangeRequested(object sender, SDLauncher.UIChangeRequestedEventArgs e)
+        {
+            UI(e.UI);
         }
 
         private void Timer_Tick(object sender, object e)
@@ -73,136 +129,98 @@ namespace SDLauncher_UWP
             }
             if (vars.UserName != null)
             {
-                txtWelcome.Text = "Welcome " + vars.UserName + "!";
+                txtWelcome.Text = Localized.Welcome + ", " + vars.UserName + "!";
             }
         }
 
-        private async Task initializeLauncher(MinecraftPath path)
-        {
-            UI(false,false);
-            gamepath = path;
-            launcher = new CMLauncher(path);
-            vars.LauncherSynced = launcher;
-            launcher.FileChanged += Launcher_FileChanged;
-            launcher.ProgressChanged += Launcher_ProgressChanged;
-            await refreshVersions(null);
-        }
-
-        private void Launcher_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            pb_Prog.Maximum = 100;
-            pb_Prog.Value = e.ProgressPercentage;
-        }
-
-        private void Launcher_FileChanged(DownloadFileChangedEventArgs e)
-        {
-            txtStatus.Text = $"{e.FileKind} : {e.FileName} ({e.ProgressedFileCount}/{e.TotalFileCount})";
-            pb_File.Maximum = e.TotalFileCount;
-            pb_File.Value = e.ProgressedFileCount;
-        }
-
-        public static CmlLib.Core.Version.MVersionCollection mcVers;
-        public static CmlLib.Core.Version.MVersionCollection mcFabricVers;
-        private async Task refreshVersions(string showVersion)
-        {
-            txtStatus.Text = "Getting available versions...";
-            UI(false,false);
-            mcVers = await launcher.GetAllVersionsAsync();
-
-            //mcFabricVers = await new FabricVersionLoader().GetVersionMetadatasAsync();
-
-            //foreach (var item in mcFabricVers)
-            //{
-            //cmbxVer.Items.Add(item.Name);
-            //}
-            foreach (var item in mcVers)
-            {
-                cmbxVer.Items.Add(item.Name);
-            }
-            UI(true,false);
-            txtStatus.Text = "Ready";
-        }
         private async void BtnLaunch_Click(object sender, RoutedEventArgs e)
         {
-            UI(false,true);
+            UI(false);
             if (vars.session == null)
             {
-                p = new MessageBoxEx("Error", "Please Login", MessageBoxEx.Buttons.OkCancel);
-                await p.ShowAsync();
-                if (p.Result == MessageBoxEx.Results.Ok)
+                if (await MessageBox.Show(Localized.Error, Localized.BegLogIn, MessageBoxButtons.OkCancel) == MessageBoxResults.Ok)
                 {
-                    await new Login().ShowAsync();
-                    UI(true, true);
+                    _ = await new Login().ShowAsync();
+                    UI(true);
                     BtnLaunch_Click(null, null);
                 }
                 return;
             }
-            if (cmbxVer.SelectedItem == null)
+            if (launchVer == null)
             {
-                UI(true, true);
-                p = new MessageBoxEx("Error", "Please enter a version", MessageBoxEx.Buttons.Ok);
-                await p.ShowAsync();
-                cmbxVer.Focus(FocusState.Keyboard);
+                UI(true);
+                _ = await MessageBox.Show(Localized.Error, Localized.BegVer, MessageBoxButtons.Ok);
+                _ = cmbxVer.Focus(FocusState.Keyboard);
                 return;
             }
-            if (vars.MinRam == null) { p = new MessageBoxEx("Error", "Invalid RAM", MessageBoxEx.Buttons.Ok); await p.ShowAsync(); return; }
-            if (vars.CurrentRam == null) { p = new MessageBoxEx("Error", "Invalid RAM", MessageBoxEx.Buttons.Ok); await p.ShowAsync(); return; }
-            ToolTipService.SetToolTip(btnLaunch, gamepath.BasePath);
+            if (vars.MinRam == 0) { _ = await MessageBox.Show(Localized.Error, Localized.WrongRAM, MessageBoxButtons.Ok); return; }
+            if (vars.CurrentRam == 0) { _ = await MessageBox.Show(Localized.Error, Localized.WrongRAM, MessageBoxButtons.Ok); return; }
             System.Net.ServicePointManager.DefaultConnectionLimit = 256;
-            launcher.FileDownloader = new AsyncParallelDownloader();
+            vars.Launcher.Launcher.FileDownloader = new AsyncParallelDownloader();
             try
             {
-                var process = await launcher.CreateProcessAsync(cmbxVer.SelectedItem.ToString(), new MLaunchOption
+                var l = new MLaunchOption
                 {
                     MinimumRamMb = vars.MinRam,
                     MaximumRamMb = vars.CurrentRam,
                     Session = vars.session,
-                }); ;
+                };
+
+                if (vars.JVMScreenWidth != 0 && vars.JVMScreenHeight != 0)
+                {
+                    l.ScreenWidth = vars.JVMScreenWidth;
+                    l.ScreenHeight = vars.JVMScreenHeight;
+                }
+                l.FullScreen = vars.FullScreen;
+                l.JVMArguments = vars.JVMArgs.ToArray();
+                var process = await vars.Launcher.Launcher.CreateProcessAsync(launchVer, l);
                 StartProcess(process);
             }
-            catch (System.Net.WebException)
+            catch (WebException)
             {
-                p = new MessageBoxEx("Error", "Seems like you don't have good internet", MessageBoxEx.Buttons.Ok);
-                p.ShowAsync();
+                _ = await MessageBox.Show(Localized.Error, Localized.NoNetwork, MessageBoxButtons.Ok);
             }
             catch (MDownloadFileException mex) // download exception
             {
-                p = new MessageBoxEx("Error",
+                _ = await MessageBox.Show(Localized.Error,
                     $"FileName : {mex.ExceptionFile.Name}\n" +
                     $"FilePath : {mex.ExceptionFile.Path}\n" +
                     $"FileUrl : {mex.ExceptionFile.Url}\n" +
                     $"FileType : {mex.ExceptionFile.Type}\n\n" +
-                    mex.ToString(), MessageBoxEx.Buttons.Ok);
-                p.ShowAsync();
+                    mex.ToString(), MessageBoxButtons.Ok);
             }
             catch (Win32Exception wex) // java exception
             {
-                p = new MessageBoxEx("Error", wex + "\n\nIt seems your java setting has problem", MessageBoxEx.Buttons.Ok);
-                p.ShowAsync();
+                _ = await MessageBox.Show(Localized.Error, wex + "\n\n" + Localized.Win32Error, MessageBoxButtons.Ok);
             }
             catch (Exception ex) // all exception
             {
-                p = new MessageBoxEx("Error", ex.ToString(), MessageBoxEx.Buttons.Ok);
-                p.ShowAsync();
+                _ = await MessageBox.Show(Localized.Error, ex.ToString(), MessageBoxButtons.Ok);
             }
+            UI(true);
         }
-        public static Process GameProcess;
-        private void StartProcess(Process process)
+        private async void StartProcess(Process process)
         {
-            GameProcess = process;
-            GameProcess.Start();
-            var th = new System.Threading.Thread(async () =>
+            await ProcessToXmlConverter.Convert(process, ApplicationData.Current.LocalFolder, "StartInfo.xml");
+            if (ApiInformation.IsApiContractPresent(
+                 "Windows.ApplicationModel.FullTrustAppContract", 1, 0))
             {
-                GameProcess.WaitForExit();
-                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                {
-                    UI(true, true);
-                });
-            });
-            th.Start();
+                await
+                  FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync("Admin");
+            }
         }
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            if (vars.UseOldVerSeletor)
+            {
+                btnMCVer.Visibility = Visibility.Collapsed;
+                cmbxVer.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                cmbxVer.Visibility = Visibility.Collapsed;
+                btnMCVer.Visibility = Visibility.Visible;
+            }
         }
 
         private void tip_CloseButtonClick(TeachingTip sender, object args)
@@ -222,51 +240,57 @@ namespace SDLauncher_UWP
 
         private void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuFlyoutItem mitem)
+            if (flyVer.IsOpen)
+            {
+                flyVer.Hide();
+            }
+            if (sender is MenuFlyoutItem mitem && !vars.UseOldVerSeletor)
             {
                 VersionCheck(mitem);
             }
         }
         private async void VersionCheck(MenuFlyoutItem item)
         {
-            switch (item.Text.ToString())
+            string displayName = item.Text.ToString();
+            OptFineVerReturns result;
+            switch (displayName)
             {
                 case "Latest":
-                    btnMCVer.Content = launcher.Versions?.LatestReleaseVersion?.Name;
-                    launchVer = btnMCVer.Content.ToString();
+                    launchVer = vars.Launcher.Launcher.Versions.LatestReleaseVersion.Name;
+                    btnMCVer.Content = launchVer;
                     break;
                 case "Latest Snapshot":
-                    btnMCVer.Content = launcher.Versions?.LatestSnapshotVersion?.Name;
-                    launchVer = btnMCVer.Content.ToString();
+                    launchVer = vars.Launcher.Launcher.Versions?.LatestSnapshotVersion?.Name;
+                    btnMCVer.Content = launchVer;
                     break;
                 case "OptiFine 1.18.2":
-                    await OptiFine.CheckOptiFine("1.18.2", "1.18.2-OptiFine_HD_U_H6_pre1", item, mcVers);
-                    OptiFineFinish("1.16.5", "OptiFine 1.16.5", item);
+                    result = await vars.Launcher.OptiFine.CheckOptiFine("1.18.2", "1.18.2-OptiFine_HD_U_H6_pre1", displayName);
+                    OptiFineFinish("1.16.5", "OptiFine 1.16.5", displayName, result);
                     break;
                 case "OptiFine 1.18.1":
-                    await OptiFine.CheckOptiFine("1.18.1", "1.18.1-OptiFine_HD_U_H4", item, mcVers);
-                    OptiFineFinish("1.16.5", "OptiFine 1.16.5", item);
+                    result = await vars.Launcher.OptiFine.CheckOptiFine("1.18.1", "1.18.1-OptiFine_HD_U_H4", displayName);
+                    OptiFineFinish("1.16.5", "OptiFine 1.16.5", displayName, result);
                     break;
                 case "OptiFine 1.17.1":
-                    await OptiFine.CheckOptiFine("1.17.1", "1.17.1-OptiFine_HD_U_H1", item, mcVers);
-                    OptiFineFinish("1.16.5", "OptiFine 1.16.5", item);
+                    result =  await vars.Launcher.OptiFine.CheckOptiFine("1.17.1", "1.17.1-OptiFine_HD_U_H1", displayName);
+                    OptiFineFinish("1.16.5", "OptiFine 1.16.5", displayName, result);
                     break;
                 case "OptiFine 1.16.5":
-                    await OptiFine.CheckOptiFine("1.16.5", "OptiFine 1.16.5", item, mcVers);
-                    OptiFineFinish("1.16.5", "OptiFine 1.16.5", item);
+                    result = await vars.Launcher.OptiFine.CheckOptiFine("1.16.5", "OptiFine 1.16.5", displayName);
+                    OptiFineFinish("1.16.5", "OptiFine 1.16.5", displayName, result);
                     break;
             }
             if (item.Text.ToString() == "Fabric 1.18.1")
             {
-                CheckFabric("1.18.1", "fabric-loader-0.13.3-1.18.1", item);
+                FabricResponse(await vars.Launcher.CheckFabric("1.18.1", "fabric-loader-0.13.3-1.18.1", item.Text));
             }
             else if (item.Text.ToString() == "Fabric 1.17.1")
             {
-                CheckFabric("1.17.1", "fabric-loader-0.13.3-1.17.1", item);
+                FabricResponse(await vars.Launcher.CheckFabric("1.17.1", "fabric-loader-0.13.3-1.17.1", item.Text));
             }
             else if (item.Text.ToString() == "Fabric 1.16.5")
             {
-                CheckFabric("1.16.5", "fabric-loader-0.13.3-1.16.5", item);
+                FabricResponse(await vars.Launcher.CheckFabric("1.16.5", "fabric-loader-0.13.3-1.16.5", item.Text));
             }
             else
             {
@@ -275,79 +299,58 @@ namespace SDLauncher_UWP
             }
         }
         //
-        private void UI(bool value,bool isEverywhere)
+        private void FabricResponse(SDLauncher.FabricResponsoe responsoe)
         {
+            launchVer = responsoe.LaunchVer;
+            btnMCVer.Content = responsoe.DisplayVer;
+        }
+        private void UI(bool value)
+        {
+            UIchanged(this, new SDLauncher.UIChangeRequestedEventArgs(value));
             btnLaunch.IsEnabled = value;
             btnMCVer.IsEnabled = value;
             cmbxVer.IsEnabled = value;
         }
-        private void OptiFineFinish(string mcver,string modver,MenuFlyoutItem itm)
+        private void OptiFineFinish(string mcver, string modver, string displayVer, OptFineVerReturns returned)
         {
-            switch (OptiFine.returns.Result)
+            txtStatus.Text = "Ready";
+            UI(true);
+            switch (returned.Result)
             {
+                case OptFineVerReturns.Results.DownloadOptiFineLib:
+                    btnMCVer.Content = "Version";
+                    launchVer = "";
+                    break;
                 case OptFineVerReturns.Results.DownloadOptiFineVer:
                     pb_File.Value = 0;
                     pb_Prog.Maximum = 100;
-                    OptiFine.DownloadOptiFineVer(mcver, modver, itm);
-                    DispatcherTimer optFine = new DispatcherTimer();
-                    optFine.Interval = new TimeSpan(0, 0, 0, 0, 1);
-                    optFine.Tick += OptFine_Tick;
-                    optFine.Start();
+                    vars.Launcher.OptiFine.DownloadOptiFineVer(mcver, modver, displayVer);
                     break;
                 case OptFineVerReturns.Results.Failed:
-                    new MessageBoxEx("Error", "Failed to get versions", MessageBoxEx.Buttons.Ok).ShowAsync();
+                    _ = MessageBox.Show(Localized.Error, Localized.GetVerFailed, MessageBoxButtons.Ok);
+                    btnMCVer.Content = "Version";
+                    launchVer = "";
+                    break;
+                case OptFineVerReturns.Results.Exists:
+                    btnMCVer.Content = returned.btnVer;
+                    launchVer = returned.LaunchVer;
+                    break;
+                case OptFineVerReturns.Results.DownloadMCVer:
+                    btnMCVer.Content = mcver;
+                    launchVer = mcver;
                     break;
             }
         }
 
-        private void OptFine_Tick(object sender, object e)
-        {
-            txtStatus.Text = OptiFine.DownloadStats;
-            pb_Prog.Value = OptiFine.DownloadProg;
-            UI(OptiFine.UI,true);
-        }
+        
 
-        //
-        private async void CheckFabric(string mcver, string modver, MenuFlyoutItem mit)
+        private void cmbxVer_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            bool exists = false;
-            foreach (var veritem in mcFabricVers)
+            if (vars.UseOldVerSeletor)
             {
-                if (veritem.Name == modver)
-                {
-                    exists = true;
-                }
-            }
-            if (exists)
-            {
-                launchVer = modver;
-                btnMCVer.Content = mit.Text.ToString();
-                txtStatus.Text = "Getting Fabric";
-                UI(false,true);
-                System.Threading.Thread thread = new System.Threading.Thread(async () =>
-                {
-                    var fabric = mcFabricVers.GetVersionMetadata(launchVer);
-                    await fabric.SaveAsync(gamepath);
-                    UI(true,true);
-                    txtStatus.Text = "Ready";
-                    await refreshVersions(null);
-                    launchVer = modver;
-                    btnMCVer.Content = mit.Text.ToString();
-
-                });
-                thread.Start();
-                txtStatus.Text = "Ready";
-            }
-            else
-            {
-                var msg = new MessageBoxEx("Error", "To run " + mit.Text.ToString() + " you need to have installed version " + mcver + ". Vanilla,Do you want to install now ?", MessageBoxEx.Buttons.YesNo);
-                await msg.ShowAsync();
-                if (msg.Result == MessageBoxEx.Results.Yes)
-                {
-                    btnMCVer.Content = mcver;
-                    launchVer = mcver;
-                }
+                launchVer = cmbxVer.SelectedItem.ToString();
             }
         }
     }
 }
+

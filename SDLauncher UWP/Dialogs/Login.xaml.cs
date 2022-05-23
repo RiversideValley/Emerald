@@ -22,6 +22,7 @@ using Windows.ApplicationModel.DataTransfer;
 using System.Threading.Tasks;
 using Windows.UI.Xaml.Media.Imaging;
 using Microsoft.Toolkit.Uwp.UI;
+using SDLauncher_UWP.Helpers;
 
 // The Content Dialog item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -58,29 +59,29 @@ namespace SDLauncher_UWP
             if (result == MSLogin.Exceptions.Cancelled)
             {
                 this.Hide();
-                await new MessageBoxEx("Error", "User canceld the login!", MessageBoxEx.Buttons.Ok).ShowAsync();
+                _ = await MessageBox.Show("Error", "User canceld the login!", MessageBoxButtons.Ok);
                 vars.session = tempsession;
                 vars.UserName = tempsession.Username;
-                this.ShowAsync();
+                _ = this.ShowAsync();
             }
             else if (result == MSLogin.Exceptions.NoAccount)
             {
                 this.Hide();
-                await new MessageBoxEx("Error", "You don't have an Minecraft profile on that Microsoft account!", MessageBoxEx.Buttons.Ok).ShowAsync();
+                _ = await MessageBox.Show("Error", "You don't have an Minecraft profile on that Microsoft account!", MessageBoxButtons.Ok);
                 vars.session = tempsession;
                 vars.UserName = tempsession.Username;
-                this.ShowAsync();
+                _ = this.ShowAsync();
             }
             else if (result == MSLogin.Exceptions.ConnectFailed)
             {
                 this.Hide();
-                await new MessageBoxEx("Error", "Connection to login service failed!", MessageBoxEx.Buttons.Ok).ShowAsync();
+                _ = await MessageBox.Show("Error", "Connection to login service failed!", MessageBoxButtons.Ok);
                 if (tempsession != null)
                 {
                     vars.session = tempsession;
                     vars.UserName = tempsession.Username;
                 }
-                this.ShowAsync();
+                _ = this.ShowAsync();
                 UpdateAccounts();
             }
             else if (result == MSLogin.Exceptions.Success)
@@ -127,10 +128,8 @@ namespace SDLauncher_UWP
                     {
                         string msg = "You already have " + count + " offline account(s) called \"" + txtbxOffUsername.Text.Replace(" ", "").ToString() + "\" \nAre you really want to add a new one";
                         this.Hide();
-                        var m = new MessageBoxEx("Infomation", msg, MessageBoxEx.Buttons.YesNo);
-                        await m.ShowAsync();
-                        this.ShowAsync();
-                        if (m.Result == MessageBoxEx.Results.No)
+                        _ = this.ShowAsync();
+                        if (await MessageBox.Show("Infomation", msg, MessageBoxButtons.YesNo) == MessageBoxResults.No)
                         {
                             goAhead = false;
                         }
@@ -182,29 +181,63 @@ namespace SDLauncher_UWP
 
         private void LoginFromCache(object sender, RoutedEventArgs e)
         {
+            bool isSelectionMode = false;
             foreach (var item in vars.Accounts)
             {
-                if (item.Last)
+                if (item.IsCheckboxVsible == Visibility.Visible)
                 {
-                    item.Last = false;
+                    isSelectionMode = true;
+                }
+                else
+                {
+                    isSelectionMode = false;
                 }
             }
-            if (sender is Button btn)
+            if(vars.Accounts.Count == 1)
+            {
+                isSelectionMode = false;
+            }
+            if (isSelectionMode)
+            {
+                if (sender is Button btn)
+                {
+                    foreach (var item in vars.Accounts)
+                    {
+                        if (item.Count == int.Parse(btn.Tag.ToString()))
+                        {
+                            item.IsChecked = !item.IsChecked;
+                            return;
+                        }
+                    }
+                }
+            }
+            else
             {
                 foreach (var item in vars.Accounts)
                 {
-                    if (item.Count == int.Parse(btn.Tag.ToString()))
+                    if (item.Last)
                     {
-                        item.Last = true;
-                        if (item.Type == "Offline")
+                        item.Last = false;
+                    }
+                }
+                if (sender is Button btn)
+                {
+                    foreach (var item in vars.Accounts)
+                    {
+                        if (item.Count == int.Parse(btn.Tag.ToString()))
                         {
-                            UpdateSession(MSession.GetOfflineSession(item.UserName));
+                            item.Last = true;
+                            if (item.Type == "Offline")
+                            {
+                                UpdateSession(MSession.GetOfflineSession(item.UserName));
+                            }
+                            else
+                            {
+                                UpdateSession(new MSession(item.UserName, item.AccessToken, item.UUID));
+                            }
+                            vars.CurrentAccountCount = item.Count;
+                            return;
                         }
-                        else
-                        {
-                            UpdateSession(new MSession(item.UserName, item.AccessToken, item.UUID));
-                        }
-                        vars.CurrentAccountCount = item.Count;
                     }
                 }
             }
@@ -213,31 +246,52 @@ namespace SDLauncher_UWP
         {
             if (sender is MenuFlyoutItem itm)
             {
-                foreach (var item in vars.Accounts)
+                var sltaccs = GetSelectedAccounts();
+                if (sltaccs.Count > 0)
                 {
-                    if (item.Count == int.Parse(itm.Tag.ToString()))
+                    foreach (var item in sltaccs)
                     {
-                        if (item.Type == "Offline")
+                        if (item.Count == vars.CurrentAccountCount)
                         {
-                            if (item.Count == vars.CurrentAccountCount)
-                            {
-                                vars.session = null;
-                                vars.UserName = "";
-                                vars.CurrentAccountCount = null;
-                            }
+                            vars.session = null;
+                            vars.UserName = "";
+                            vars.CurrentAccountCount = null;
                         }
-                        else
+
+                        _ = vars.Accounts.Remove(item);
+
+                    }
+                    UpdateAccounts();
+                    return;
+                }
+                else
+                {
+                    foreach (var item in vars.Accounts)
+                    {
+                        if (item.Count == int.Parse(itm.Tag.ToString()))
                         {
-                            if (item.Count == vars.CurrentAccountCount)
+                            if (item.Type == "Offline")
                             {
-                                vars.session = null;
-                                vars.UserName = "";
-                                vars.CurrentAccountCount = null;
+                                if (item.Count == vars.CurrentAccountCount)
+                                {
+                                    vars.session = null;
+                                    vars.UserName = "";
+                                    vars.CurrentAccountCount = null;
+                                }
                             }
+                            else
+                            {
+                                if (item.Count == vars.CurrentAccountCount)
+                                {
+                                    vars.session = null;
+                                    vars.UserName = "";
+                                    vars.CurrentAccountCount = null;
+                                }
+                            }
+                            _ = vars.Accounts.Remove(item);
+                            UpdateAccounts();
+                            return;
                         }
-                        vars.Accounts.Remove(item);
-                        UpdateAccounts();
-                        return;
                     }
                 }
             }
@@ -268,18 +322,14 @@ namespace SDLauncher_UWP
             vars.CurrentAccountCount = vars.AccountsCount;
             this.Hide();
         }
-        AdvancedCollectionView AccountsACV = new AdvancedCollectionView(vars.Accounts, true);
-        bool DontNull = false;
-        void UpdateAccounts()
+        private void UpdateAccounts()
         {
-            //try
-            //{
-            if (!DontNull)
+            foreach (var item in vars.Accounts)
             {
-                accountsRepeater.ItemsSource = null;
+                item.IsCheckboxVsible = Visibility.Collapsed;
+                item.IsChecked = false;
             }
-            //}
-            //catch { }
+            accountsRepeater.ItemsSource = null;
             accountsRepeater.ItemsSource = vars.Accounts;
             if (vars.Accounts.Count == 0)
             {
@@ -310,7 +360,7 @@ namespace SDLauncher_UWP
 
         private void Login_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            UpdateAccounts();
+            //  UpdateAccounts();
         }
 
         private void btnBack_Click(object sender, RoutedEventArgs e)
@@ -445,7 +495,7 @@ namespace SDLauncher_UWP
             txtSettingsPrpName.Visibility = Visibility.Collapsed;
             txtbxRename.Visibility = Visibility.Visible;
             txtbxRename.Text = txtSettingsPrpName.Text;
-            txtbxRename.Focus(FocusState.Keyboard);
+            _ = txtbxRename.Focus(FocusState.Keyboard);
         }
 
         private void txtbxRename_LostFocus(object sender, RoutedEventArgs e)
@@ -523,7 +573,6 @@ namespace SDLauncher_UWP
                         {
                             item.IsChecked = true;
                             ShowSelect(true);
-                            UpdateAccounts();
                             return;
                         }
                     }
@@ -537,7 +586,7 @@ namespace SDLauncher_UWP
                         {
                             item.IsChecked = false;
                             ShowSelect(true);
-                            IsAnyAccountChecked();
+                            _ = IsAnyAccountChecked();
                             return;
                         }
                     }
@@ -558,7 +607,6 @@ namespace SDLauncher_UWP
                         {
                             item.IsChecked = true;
                             ShowSelect(true);
-                            UpdateAccounts();
                             return;
                         }
                     }
@@ -572,7 +620,7 @@ namespace SDLauncher_UWP
                         {
                             item.IsChecked = false;
                             ShowSelect(true);
-                            IsAnyAccountChecked();
+                            _ = IsAnyAccountChecked();
                             return;
                         }
                     }
@@ -580,18 +628,18 @@ namespace SDLauncher_UWP
 
             }
         }
-        private void ShowSelect(bool value,bool? isSelected = null)
+        private void ShowSelect(bool value, bool? isSelected = null)
         {
             if (value)
             {
                 foreach (var item in vars.Accounts)
                 {
                     item.IsCheckboxVsible = Visibility.Visible;
-                    if(isSelected == true)
+                    if (isSelected == true)
                     {
                         item.IsChecked = true;
                     }
-                    else if(isSelected == false)
+                    else if (isSelected == false)
                     {
                         item.IsChecked = false;
                     }
@@ -623,14 +671,13 @@ namespace SDLauncher_UWP
                     isChecked.Add(true);
                 }
             }
-            if(isChecked.Count == 0)
+            if (isChecked.Count == 0)
             {
                 foreach (var item in vars.Accounts)
                 {
                     item.IsChecked = false;
                     item.IsCheckboxVsible = Visibility.Collapsed;
                 }
-                UpdateAccounts();
                 return false;
             }
             else
@@ -641,35 +688,79 @@ namespace SDLauncher_UWP
 
         private void Button_PointerEntered(object sender, PointerRoutedEventArgs e)
         {
-            //if(sender is Button btn)
-            //{
-            //    foreach (var item in vars.Accounts)
-            //    {
-            //        if (item.Count == int.Parse(btn.Tag.ToString()))
-            //        {
-            //            item.IsCheckboxVsible = Visibility.Visible;
-            //            DontNull = true;
-            //            return;
-            //        }
-            //    }
-            //}
+            if (sender is Button btn)
+            {
+                foreach (var item in vars.Accounts)
+                {
+                    if (item.Count == int.Parse(btn.Tag.ToString()))
+                    {
+                        item.IsCheckboxVsible = Visibility.Visible;
+                        return;
+                    }
+                }
+            }
         }
 
         private void Button_PointerExited(object sender, PointerRoutedEventArgs e)
         {
-            //if(!IsAnyAccountChecked())
-            //if (sender is Button btn)
-            //{
-            //    foreach (var item in vars.Accounts)
-            //    {
-            //        if (item.Count == int.Parse(btn.Tag.ToString()))
-            //        {
-            //            item.IsCheckboxVsible = Visibility.Collapsed;
-            //            DontNull = false;
-            //            return;
-            //        }
-            //    }
-            //}
+            if (!IsAnyAccountChecked())
+                if (sender is Button btn)
+                {
+                    foreach (var item in vars.Accounts)
+                    {
+                        if (item.Count == int.Parse(btn.Tag.ToString()))
+                        {
+                            item.IsCheckboxVsible = Visibility.Collapsed;
+                            return;
+                        }
+                    }
+                }
         }
+
+        private List<Account> GetSelectedAccounts()
+        {
+            List<Account> SelectedList = new List<Account>();
+            foreach (var item in vars.Accounts)
+            {
+                if (item.IsChecked)
+                {
+                    SelectedList.Add(item);
+                }
+            }
+            return SelectedList;
+        }
+        private void btnDel_Click(object sender, RoutedEventArgs e)
+        {
+            var SelectedList = GetSelectedAccounts();
+            if (SelectedList.Count > 0)
+            {
+                LogOutFromCache(new MenuFlyoutItem(), null);
+                UpdateAccounts();
+            }
+            else
+            {
+                bool isvivsible = true;
+                if (sender is Button btn)
+                {
+                    foreach (var item in vars.Accounts)
+                    {
+                        if (item.IsCheckboxVsible == Visibility.Collapsed)
+                        {
+                            isvivsible = false;
+                        }
+                    }
+                }
+                if (!isvivsible)
+                {
+                    foreach (var item in vars.Accounts)
+                    {
+                        item.IsCheckboxVsible = Visibility.Visible;
+                        item.IsChecked = false;
+                    }
+                }
+            }
+        }
+
+
     }
 }

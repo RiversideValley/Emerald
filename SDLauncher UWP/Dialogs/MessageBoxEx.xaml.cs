@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
@@ -17,53 +18,53 @@ using Windows.UI.Xaml.Navigation;
 
 namespace SDLauncher_UWP
 {
+    public enum MessageBoxResults
+    {
+        Ok,
+        Cancel,
+        Yes,
+        No
+    }
+    public enum MessageBoxButtons
+    {
+        Ok,
+        OkCancel,
+        YesNo
+    }
     public sealed partial class MessageBoxEx : ContentDialog
     {
-        public Results Result { get; set; }
-        public enum Results
-        {
-            Ok,
-            Cancel,
-            Yes,
-            No
-        }
-        public enum Buttons
-        {
-            Ok,
-            OkCancel,
-            YesNo
-        }
-        public MessageBoxEx(string title,string caption, Buttons buttons)
+        public MessageBoxResults Result { get; set; }
+        public MessageBoxEx(string title, string caption, MessageBoxButtons buttons)
         {
             this.InitializeComponent();
             Title = title;
             txt.Text = caption;
-            if (buttons == Buttons.Ok)
+            if (buttons == MessageBoxButtons.Ok)
             {
                 PrimaryButtonText = "";
                 SecondaryButtonText = "OK";
             }
-            else if (buttons == Buttons.OkCancel)
+            else if (buttons == MessageBoxButtons.OkCancel)
             {
                 PrimaryButtonText = "OK";
                 SecondaryButtonText = "Cancel";
             }
-            else if (buttons == Buttons.YesNo)
+            else if (buttons == MessageBoxButtons.YesNo)
             {
                 PrimaryButtonText = "Yes";
                 SecondaryButtonText = "No";
             }
+            this.RequestedTheme = (ElementTheme)vars.theme;
         }
-
         private void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
             if (sender.PrimaryButtonText == "OK")
             {
-                Result = Results.Ok;
+                Result = MessageBoxResults.Ok;
             }
             else if (sender.PrimaryButtonText == "Yes")
             {
-                Result = Results.Yes;
+                Result = MessageBoxResults.Yes;
             }
         }
 
@@ -71,29 +72,29 @@ namespace SDLauncher_UWP
         {
             if (sender.SecondaryButtonText == "OK")
             {
-                Result = Results.Ok;
+                Result = MessageBoxResults.Ok;
             }
             else if (sender.SecondaryButtonText == "Cancel")
             {
-                Result = Results.Cancel;
+                Result = MessageBoxResults.Cancel;
             }
             else if (sender.SecondaryButtonText == "No")
             {
-                Result = Results.No;
+                Result = MessageBoxResults.No;
             }
         }
 
         private void ContentDialog_Loaded(object sender, RoutedEventArgs e)
         {
-            if (vars.theme != null)
-            {
-                if (Window.Current.Content is FrameworkElement fe)
-                {
-                    this.RequestedTheme = (ElementTheme)vars.theme;
-                    fe.RequestedTheme = (ElementTheme)vars.theme;
-                }
-            }
-
+        }
+    }
+    public class MessageBox
+    {
+        public static async Task<MessageBoxResults> Show(string title,string caption, MessageBoxButtons buttons)
+        {
+            var d = new MessageBoxEx(title, caption, buttons);
+            await d.ShowAsync();
+            return d.Result;
         }
     }
 }

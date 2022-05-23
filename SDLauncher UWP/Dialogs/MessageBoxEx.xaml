@@ -8,7 +8,7 @@
     mc:Ignorable="d"
     Loaded="ContentDialog_Loaded"
     Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
-    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:winui="using:Microsoft.UI.Xaml.Controls"
     PrimaryButtonStyle="{StaticResource AccentButtonStyle}"
     SecondaryButtonStyle="{StaticResource ButtonRevealStyle}"
     PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
@@ -20,6 +20,6 @@
                 <EntranceThemeTransition IsStaggeringEnabled="True"/>
             </TransitionCollection>
         </Grid.ChildrenTransitions>
-        <TextBlock x:Name="txt"/>
+        <TextBlock TextWrapping="WrapWholeWords" x:Name="txt"/>
     </Grid>
 </ContentDialog>

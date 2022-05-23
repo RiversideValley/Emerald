@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SDLauncher_UWP.Helpers;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,6 +25,7 @@ namespace SDLauncher_UWP.Views
     /// </summary>
     public sealed partial class SettingsPage : Page
     {
+        public event EventHandler BackRequested = delegate { };
         public SettingsPage()
         {
             this.InitializeComponent();
@@ -36,7 +38,7 @@ namespace SDLauncher_UWP.Views
             txtRam.Text = val.ToString() + "MB";
             SliderRam.Value = val;
             vars.CurrentRam = (int)SliderRam.Value;
-            if (vars.SliderRamMax != null && vars.SliderRamMax != null)
+            if (vars.SliderRamMax != 0 && vars.SliderRamMax != 0)
                 SliderRam.Maximum = vars.SliderRamMax;
             SliderRam.Minimum = vars.SliderRamMin;
         }
@@ -130,27 +132,34 @@ namespace SDLauncher_UWP.Views
                 cmbxTheme.SelectedIndex = 2;
             }
             cbAsset.IsChecked = vars.AssestsCheck;
+            chkbxFullScreen.IsChecked = vars.FullScreen;
+            if(vars.JVMScreenWidth != 0 && vars.JVMScreenHeight != 0)
+            {
+                nbrbxHeight.Value = vars.JVMScreenHeight;
+                nbrbxWidth.Value = vars.JVMScreenWidth;
+            }
+            RefreshScreenData();
             cbHash.IsChecked = vars.HashCheck;
             switchAutolog.IsOn = vars.autoLog;
+            tglOldVerSelector.IsOn = vars.UseOldVerSeletor;
             pageCount++;
             if (pageCount == 1)
             {
                 SetRam(vars.LoadedRam);
             }
-            if(vars.LauncherSynced != null)
+            if(vars.Launcher.Launcher != null)
             {
-                txtGamePath.Text = vars.LauncherSynced.MinecraftPath.BasePath;
+                txtGamePath.Text = vars.Launcher.Launcher.MinecraftPath.BasePath;
             }
         }
 
         private async void btnXML_Click(object sender, RoutedEventArgs e)
         {
-            var p = new MessageBoxEx("Information", "You need to close the application before editing the XML file. \nContinue ?", MessageBoxEx.Buttons.OkCancel);
-            await p.ShowAsync();
-            if (p.Result == MessageBoxEx.Results.Ok)
+            
+            if (await MessageBox.Show("Information", "You need to close the application before editing the XML file. \nContinue ?", MessageBoxButtons.OkCancel) == MessageBoxResults.Ok)
             {
                 vars.showXMLOnClose = true;
-                new SettingsData().CreateSettingsFile(true);
+                await new SettingsDataManager().CreateSettingsFile(true);
             }
         }
 
@@ -194,6 +203,146 @@ namespace SDLauncher_UWP.Views
             Clipboard.SetContent(dataPackage);
             await Task.Delay(TimeSpan.FromSeconds(2));
             smbCopyDir.Glyph = "\xE71B";
+        }
+
+        private void btnRefreshVers_Click(object sender, RoutedEventArgs e)
+        {
+            _ = vars.Launcher.RefreshVersions();
+            BackRequested(this, new EventArgs());
+        }
+
+        private void tglOldVerSelector_Toggled(object sender, RoutedEventArgs e)
+        {
+            vars.UseOldVerSeletor = tglOldVerSelector.IsOn;
+            BackRequested(this, new EventArgs());
+        }
+
+
+        private void nbrbxWidth_ValueChanged(Microsoft.UI.Xaml.Controls.NumberBox sender, Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs args)
+        {
+            int? r = 0;
+            if (double.IsNaN(args.NewValue))
+            {
+                r = -1;
+            }
+            else
+            {
+                var s = Math.Floor(args.NewValue);
+                r = int.Parse(s.ToString());
+            }
+            SetScreenSize(width: r);
+            RefreshScreenData();
+        }
+
+        private void SetScreenSize(int? width = null,int? height = null)
+        {
+            if (width != null)
+            {
+                if (width == 0)
+                {
+                    txtWidth.Visibility = Visibility.Visible;
+                    vars.JVMScreenWidth = 0;
+                    return;
+                }
+                if (width == -1)
+                {
+                    if (!double.IsNaN(nbrbxHeight.Value))
+                    {
+                        txtWidth.Visibility = Visibility.Visible;
+                        vars.JVMScreenWidth = 0;
+                        return;
+                    }
+                    else
+                    {
+                        txtWidth.Visibility = Visibility.Collapsed;
+                        vars.JVMScreenWidth = 0;
+                        return;
+                    }
+                }
+                if (double.IsNaN(nbrbxHeight.Value))
+                {
+                    txtHeight.Visibility = Visibility.Visible;
+                }
+                txtWidth.Visibility = Visibility.Collapsed;
+                vars.JVMScreenWidth = (int)width;
+                return;
+            }
+            if (height != null)
+            {
+                if (height == 0)
+                {
+                    txtHeight.Visibility = Visibility.Visible;
+                    vars.JVMScreenHeight = (int)height;
+                    return;
+                }
+                if(height == -1)
+                {
+                    if (!double.IsNaN(nbrbxWidth.Value))
+                    {
+                        txtHeight.Visibility = Visibility.Visible;
+                        vars.JVMScreenHeight = 0;
+                        return;
+                    }
+                    else
+                    {
+                        txtHeight.Visibility = Visibility.Collapsed;
+                        vars.JVMScreenHeight = 0;
+                        return;
+                    }
+                }
+                if (double.IsNaN(nbrbxWidth.Value))
+                {
+                    txtWidth.Visibility = Visibility.Visible;
+                }
+                txtHeight.Visibility = Visibility.Collapsed;
+                vars.JVMScreenHeight = (int)height;
+                return;
+            }
+        }
+        private void nbrbxHeight_ValueChanged(Microsoft.UI.Xaml.Controls.NumberBox sender, Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs args)
+        {
+            int? r = 0;
+            if (double.IsNaN(args.NewValue))
+            {
+                r = -1;
+            }
+            else
+            {
+                var s = Math.Floor(args.NewValue);
+                r = int.Parse(s.ToString());
+            }
+            SetScreenSize(height: r);
+            RefreshScreenData();
+        }
+
+        private void RefreshScreenData()
+        {
+            if (vars.FullScreen)
+            {
+                nbrbxWidth.IsEnabled = false;
+                nbrbxHeight.IsEnabled = false;
+                txtScreenStatus.Text = "Full Screen";
+            }
+            else
+            {
+                nbrbxWidth.IsEnabled = true;
+                nbrbxHeight.IsEnabled = true;
+                if (vars.JVMScreenWidth != 0 && vars.JVMScreenHeight != 0)
+                {
+                    txtScreenStatus.Text = vars.JVMScreenWidth + " × " + vars.JVMScreenHeight;
+                }
+                else
+                {
+                    txtWidth.Visibility = Visibility.Collapsed;
+                    txtHeight.Visibility = Visibility.Collapsed;
+                    txtScreenStatus.Text = "Default";
+                }
+            }
+        }
+        private void chkbxFullScreen_Click(object sender, RoutedEventArgs e)
+        {
+            vars.FullScreen = (bool)chkbxFullScreen.IsChecked;
+            RefreshScreenData();
         }
     }
 }

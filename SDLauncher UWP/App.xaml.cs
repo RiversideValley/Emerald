@@ -1,4 +1,5 @@
 ﻿using Microsoft.Toolkit.Uwp.Helpers;
+using SDLauncher_UWP.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,7 +35,7 @@ namespace SDLauncher_UWP
             this.InitializeComponent();
             this.Suspending += OnSuspending;
         }
-        SettingsData settings = new SettingsData();
+        SettingsDataManager settings = new SettingsDataManager();
         /// <summary>
         /// Invoked when the application is launched normally by the end user.  Other entry points
         /// will be used such as when the application is launched to open a specific file.

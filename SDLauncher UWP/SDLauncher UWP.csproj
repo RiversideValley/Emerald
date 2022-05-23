@@ -128,27 +128,42 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Login.xaml.cs">
+    <Compile Include="Converters\ProcessToXmlConverter.cs" />
+    <Compile Include="Converters\StringToVisibility.cs" />
+    <Compile Include="Dialogs\Login.xaml.cs">
       <DependentUpon>Login.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MSLogin.cs" />
-    <Compile Include="SettingsData.cs" />
-    <Compile Include="Util.cs" />
+    <Compile Include="Helpers\Account.cs" />
+    <Compile Include="Helpers\Localizer.cs" />
+    <Compile Include="Helpers\MSLogin.cs" />
+    <Compile Include="Helpers\SDLauncher.cs" />
+    <Compile Include="Helpers\SettingsDataManager.cs" />
+    <Compile Include="Helpers\Util.cs" />
+    <Compile Include="Resources\LocalizedStrings.cs" />
+    <Compile Include="UserControls\ArgumentsListView.xaml.cs">
+      <DependentUpon>ArgumentsListView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\SettingsCard.xaml.cs">
+      <DependentUpon>SettingsCard.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Expander.xaml.cs">
+      <DependentUpon>Expander.xaml</DependentUpon>
+    </Compile>
     <Compile Include="vars.cs" />
     <Compile Include="Views\BaseLauncherPage.xaml.cs">
       <DependentUpon>BaseLauncherPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MainPage.xaml.cs">
+    <Compile Include="Views\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MessageBoxEx.xaml.cs">
+    <Compile Include="Dialogs\MessageBoxEx.xaml.cs">
       <DependentUpon>MessageBoxEx.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Views\CursedForgePage.xaml.cs">
       <DependentUpon>CursedForgePage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\OptiFine.cs" />
+    <Compile Include="Helpers\OptiFine.cs" />
     <Compile Include="Views\SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
     </Compile>
@@ -221,7 +236,23 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="Login.xaml">
+    <Page Include="Dialogs\Login.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Resources\ExpanderStyle.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\ArgumentsListView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\SettingsCard.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\Expander.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -229,11 +260,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MainPage.xaml">
+    <Page Include="Views\MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="MessageBoxEx.xaml">
+    <Page Include="Dialogs\MessageBoxEx.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -256,9 +287,6 @@
     <PackageReference Include="CmlLib.Core.Auth.Microsoft.MsalClient">
       <Version>1.1.1</Version>
     </PackageReference>
-    <PackageReference Include="CurseForge.APIClient">
-      <Version>1.1.3</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.12</Version>
     </PackageReference>
@@ -266,7 +294,7 @@
       <Version>7.1.2</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.UI.Xaml">
-      <Version>2.8.0-prerelease.220118001</Version>
+      <Version>2.8.0-prerelease.220413001</Version>
     </PackageReference>
     <PackageReference Include="MojangAPI">
       <Version>1.1.0</Version>
@@ -277,8 +305,13 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="SDLauncher UWP_TemporaryKey.pfx" />
+    <PRIResource Include="Strings\en-US\Resources.resw" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <SDKReference Include="WindowsDesktop, Version=10.0.19041.0">
+      <Name>Windows Desktop Extensions for the UWP</Name>
+    </SDKReference>
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

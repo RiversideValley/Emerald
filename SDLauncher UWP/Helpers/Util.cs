@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.System.Diagnostics;
 
-namespace SDLauncher_UWP
+namespace SDLauncher_UWP.Helpers
 {
     public class Util
     {

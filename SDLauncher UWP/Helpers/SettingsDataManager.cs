@@ -14,10 +14,11 @@ using CmlLib.Core.Auth;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using System.ComponentModel;
+using SDLauncher_UWP.Helpers;
 
-namespace SDLauncher_UWP
+namespace SDLauncher_UWP.Helpers
 {
-    public class SettingsData
+    public class SettingsDataManager
     {
 
         public async Task CreateSettingsFile(bool? Exit)
@@ -71,6 +72,19 @@ namespace SDLauncher_UWP
                     writer.WriteAttributeString("HashCheck", vars.HashCheck.ToString());
                     writer.WriteAttributeString("AssetsCheck", vars.AssestsCheck.ToString());
                     writer.WriteEndElement();
+                    writer.WriteStartElement("JVM");
+                    if (vars.JVMScreenWidth != 0 && vars.JVMScreenHeight != 0)
+                    {
+                        writer.WriteAttributeString("ScreenWidth", vars.JVMScreenWidth.ToString());
+                        writer.WriteAttributeString("ScreenHeight", vars.JVMScreenHeight.ToString());
+                    }
+                    else
+                    {
+                        writer.WriteAttributeString("ScreenWidth", 0.ToString());
+                        writer.WriteAttributeString("ScreenHeight", 0.ToString());
+                    }
+                    writer.WriteAttributeString("FullScreen", vars.FullScreen.ToString());
+                    writer.WriteEndElement();
                     writer.WriteEndElement();
                     writer.WriteStartElement("App");
                     writer.WriteComment("\n    The theme of the app" +
@@ -91,6 +105,9 @@ namespace SDLauncher_UWP
                     writer.WriteEndElement();
                     writer.WriteStartElement("AutoLogin");
                     writer.WriteAttributeString("value", vars.autoLog.ToString());
+                    writer.WriteEndElement();
+                    writer.WriteStartElement("UseOldVersionsSeletor");
+                    writer.WriteAttributeString("value", vars.UseOldVerSeletor.ToString());
                     writer.WriteEndElement();
                     writer.WriteStartElement("Discord");
                     writer.WriteAttributeString("IsPinned", vars.IsFixedDiscord.ToString());
@@ -127,7 +144,12 @@ namespace SDLauncher_UWP
             string hashcheck;
             string assetscheck;
             string autolog;
+            string oldVer;
             string fixDiscord;
+            string jvmArgs;
+            string jvmWidth;
+            string jvmHeight;
+            string jvmFullScreen;
             using (IRandomAccessStream stream = await storagefile.OpenAsync(FileAccessMode.Read))
             {
                 Stream s = stream.AsStreamForRead();
@@ -144,6 +166,10 @@ namespace SDLauncher_UWP
                     reader.ReadToFollowing("Downloader");
                     hashcheck = reader.GetAttribute("HashCheck");
                     assetscheck = reader.GetAttribute("AssetsCheck");
+                    reader.ReadToFollowing("JVM");
+                    jvmWidth = reader.GetAttribute("ScreenWidth");
+                    jvmHeight = reader.GetAttribute("ScreenHeight");
+                    jvmFullScreen = reader.GetAttribute("FullScreen");
                     reader.ReadToFollowing("App");
                     reader.ReadToFollowing("Theme");
                     theme = reader.GetAttribute("value");
@@ -151,6 +177,8 @@ namespace SDLauncher_UWP
                     tips = reader.GetAttribute("value");
                     reader.ReadToFollowing("AutoLogin");
                     autolog = reader.GetAttribute("value");
+                    reader.ReadToFollowing("UseOldVersionsSeletor");
+                    oldVer = reader.GetAttribute("value");
                     reader.ReadToFollowing("Discord");
                     fixDiscord = reader.GetAttribute("IsPinned");
 
@@ -179,28 +207,36 @@ namespace SDLauncher_UWP
                             }
                             try
                             {
-                                string last = list[i].Attributes["LastAccessed"].Value;
-                                if (last == "False")
+                                var lastv = list[i].Attributes["LastAccessed"];
+                                if (lastv != null)
                                 {
-                                    if(string.IsNullOrEmpty(avatarid))
+                                    string last = lastv.Value;
+                                    if (last == "False")
                                     {
-                                        Accounts.Add(new Account(list[i].Attributes["Username"].Value, list[i].Attributes["Type"].Value, list[i].Attributes["AccessToken"].Value, list[i].Attributes["UUID"].Value, Accounts.Count + 1, false));
+                                        if (string.IsNullOrEmpty(avatarid))
+                                        {
+                                            Accounts.Add(new Account(list[i].Attributes["Username"].Value, list[i].Attributes["Type"].Value, list[i].Attributes["AccessToken"].Value, list[i].Attributes["UUID"].Value, Accounts.Count + 1, false));
+                                        }
+                                        else
+                                        {
+                                            Accounts.Add(new Account(list[i].Attributes["Username"].Value, list[i].Attributes["Type"].Value, list[i].Attributes["AccessToken"].Value, list[i].Attributes["UUID"].Value, Accounts.Count + 1, false, int.Parse(avatarid)));
+                                        }
                                     }
                                     else
                                     {
-                                        Accounts.Add(new Account(list[i].Attributes["Username"].Value, list[i].Attributes["Type"].Value, list[i].Attributes["AccessToken"].Value, list[i].Attributes["UUID"].Value, Accounts.Count + 1, false,int.Parse(avatarid)));
+                                        if (string.IsNullOrEmpty(avatarid))
+                                        {
+                                            Accounts.Add(new Account(list[i].Attributes["Username"].Value, list[i].Attributes["Type"].Value, list[i].Attributes["AccessToken"].Value, list[i].Attributes["UUID"].Value, Accounts.Count + 1, true));
+                                        }
+                                        else
+                                        {
+                                            Accounts.Add(new Account(list[i].Attributes["Username"].Value, list[i].Attributes["Type"].Value, list[i].Attributes["AccessToken"].Value, list[i].Attributes["UUID"].Value, Accounts.Count + 1, true, int.Parse(avatarid)));
+                                        }
                                     }
                                 }
                                 else
                                 {
-                                    if (string.IsNullOrEmpty(avatarid))
-                                    {
-                                        Accounts.Add(new Account(list[i].Attributes["Username"].Value, list[i].Attributes["Type"].Value, list[i].Attributes["AccessToken"].Value, list[i].Attributes["UUID"].Value, Accounts.Count + 1, true));
-                                    }
-                                    else
-                                    {
-                                        Accounts.Add(new Account(list[i].Attributes["Username"].Value, list[i].Attributes["Type"].Value, list[i].Attributes["AccessToken"].Value, list[i].Attributes["UUID"].Value, Accounts.Count + 1, true,int.Parse(avatarid)));
-                                    }
+                                    throw new Exception();
                                 }
                             }
                             catch
@@ -221,6 +257,20 @@ namespace SDLauncher_UWP
                     vars.AccountsCount = Accounts.Count;
                 }
             }
+            int jvmwidth;
+            int jvmheight;
+            try
+            {
+                jvmheight = int.Parse(jvmHeight);
+                jvmwidth = int.Parse(jvmWidth);
+            }
+            catch
+            {
+                jvmwidth = 0;
+                jvmheight = 0;
+            }
+            vars.JVMScreenWidth = jvmwidth;
+            vars.JVMScreenHeight = jvmheight;
             vars.LoadedRam = int.Parse(ram);
             if (theme == "Default")
             {
@@ -258,6 +308,14 @@ namespace SDLauncher_UWP
             {
                 vars.HashCheck = false;
             }
+            if (oldVer == "True")
+            {
+                vars.UseOldVerSeletor = true;
+            }
+            else
+            {
+                vars.UseOldVerSeletor = false;
+            }
             if (assetscheck == "True")
             {
                 vars.AssestsCheck = true;
@@ -281,6 +339,14 @@ namespace SDLauncher_UWP
             else
             {
                 vars.IsFixedDiscord = false;
+            }
+            if (jvmFullScreen == "True")
+            {
+                vars.FullScreen = true;
+            }
+            else
+            {
+                vars.FullScreen = false;
             }
             if (vars.autoLog)
             {
@@ -316,63 +382,6 @@ namespace SDLauncher_UWP
 
             }
 
-        }
-    }
-    public class Account : INotifyPropertyChanged
-    {
-        public event PropertyChangedEventHandler PropertyChanged = delegate { };
-        List<string> PicList = new List<string>();
-        private string userName;
-        public string UserName { get { return userName; } set { userName = value; OnPropertyChanged(); } }
-        public string ProfilePicture { get; set; }
-        public string Type { get; set; }
-        public string TypeIconGlyph { get; set; }
-        public string AccessToken { get; set; }
-        public string UUID { get; set; }
-        public int Count { get; set; }
-        public int ProfileAvatarID { get; set; }
-        public bool Last { get; set; }
-        // For app UI
-        private Visibility isCheckboxVsible;
-        public Visibility IsCheckboxVsible { get { return isCheckboxVsible; } set { isCheckboxVsible = value; OnPropertyChanged(); } }
-        private bool sChecked;
-        public bool IsChecked { get { return sChecked; } set { sChecked = value; OnPropertyChanged(); } }
-
-        public void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-        }
-        public Account(string username, string type, string accesstoken, string uuid, int count, bool last, int? pic = null)
-        {
-            IsCheckboxVsible = Visibility.Collapsed;
-            IsChecked = false;
-            PicList.Add("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/Pictures/steve.png");
-            PicList.Add("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/Pictures/NoobSteve.png");
-            PicList.Add("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/Pictures/alex.png");
-            if (pic == null)
-            {
-                Random r = new Random();
-                int index = r.Next(PicList.Count);
-                ProfilePicture = PicList[index];
-                ProfileAvatarID = index;
-            }
-            else
-            {
-                ProfilePicture = PicList[(int)pic];
-                ProfileAvatarID = (int)pic;
-            }
-            UserName = username;
-            Type = type;
-            AccessToken = accesstoken;
-            UUID = uuid;
-            Count = count;
-            Last = last;
-            if(UUID != "null")
-            {
-                ProfilePicture = "https://minotar.net/avatar/" + UUID;
-                ProfileAvatarID = 3;
-            }
-            TypeIconGlyph = Type == "Offline" ? "\xF384" : "\xEC05";
         }
     }
 }

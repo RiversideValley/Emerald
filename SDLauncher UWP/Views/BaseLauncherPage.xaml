@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:SDLauncher_UWP"
     Loaded="Page_Loaded"
-    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:winui="using:Microsoft.UI.Xaml.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
     mc:Ignorable="d">
@@ -22,7 +22,7 @@
             <RowDefinition Height="40"/>
             <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
-        <controls:TeachingTip
+        <winui:TeachingTip
             x:Name="tipVer"
             CloseButtonContent="Got it!"
             CloseButtonStyle="{ThemeResource ButtonRevealStyle}"
@@ -31,11 +31,11 @@
             Target="{x:Bind cmbxVer}"
             Title="Choose A version"
             Subtitle="There is avaible version 1.15 lower for now">
-            <controls:TeachingTip.IconSource>
-                <controls:SymbolIconSource Symbol="Help" />
-            </controls:TeachingTip.IconSource>
-        </controls:TeachingTip>
-        <controls:TeachingTip
+            <winui:TeachingTip.IconSource>
+                <winui:SymbolIconSource Symbol="Help" />
+            </winui:TeachingTip.IconSource>
+        </winui:TeachingTip>
+        <winui:TeachingTip
             x:Name="tipLaunch"
             CloseButtonContent="Let's goooooo guys!"
             Subtitle="Nothing else"
@@ -47,10 +47,10 @@
             Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
             Target="{x:Bind btnLaunch}"
             Title="Start">
-            <controls:TeachingTip.IconSource>
-                <controls:SymbolIconSource Symbol="Accept"/>
-            </controls:TeachingTip.IconSource>
-        </controls:TeachingTip>
+            <winui:TeachingTip.IconSource>
+                <winui:SymbolIconSource Symbol="Accept"/>
+            </winui:TeachingTip.IconSource>
+        </winui:TeachingTip>
         <TextBlock FontFamily="{StaticResource Pixel}" Text="Welcome!" x:Name="txtWelcome" VerticalAlignment="Center" HorizontalAlignment="Left" Grid.Row="0" FontSize="35" FontWeight="Normal"/>
         <ScrollViewer CornerRadius="5" Margin="10" Grid.Row="1" Background="{ThemeResource AcrylicGlass}">
             <RichTextBlock x:Name="txtLogs"/>
@@ -58,10 +58,10 @@
         <Grid Grid.Row="2" VerticalAlignment="Bottom" >
             <TextBlock x:Name="txtStatus" VerticalAlignment="Bottom" Text="Ready" HorizontalAlignment="Left"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <ComboBox x:Name="cmbxVer"/>
-                <controls:DropDownButton x:Name="btnMCVer" Content="Version">
-                    <controls:DropDownButton.Flyout>
-                        <MenuFlyout>
+                <ComboBox SelectionChanged="cmbxVer_SelectionChanged" x:Name="cmbxVer"/>
+                <winui:DropDownButton x:Name="btnMCVer" Content="Version">
+                    <winui:DropDownButton.Flyout>
+                        <MenuFlyout x:Name="flyVer">
                             <MenuFlyoutSubItem Text="1.18">
                                 <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="1.18"/>
                                 <MenuFlyoutSubItem Text="1.18.2">
@@ -101,8 +101,8 @@
                             <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="Latest"/>
                             <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="Latest Snapshot"/>
                         </MenuFlyout>
-                    </controls:DropDownButton.Flyout>
-                </controls:DropDownButton>
+                    </winui:DropDownButton.Flyout>
+                </winui:DropDownButton>
                 <Button Click="BtnLaunch_Click" x:Name="btnLaunch" Content="Launch"/>
             </StackPanel>
         </Grid>

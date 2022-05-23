@@ -9,7 +9,7 @@ using Microsoft.Identity.Client;
 using CmlLib.Core.Auth.Microsoft;
 using System.Net.Http;
 
-namespace SDLauncher_UWP
+namespace SDLauncher_UWP.Helpers
 {
     class MSLogin
     {

@@ -24,6 +24,9 @@ using Windows.UI.Core;
 using SDLauncher_UWP.Views;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.Storage;
+using SDLauncher_UWP.Helpers;
+using CmlLib.Core;
+using SDLauncher_UWP.Resources;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -33,7 +36,7 @@ namespace SDLauncher_UWP
     {
         public BaseLauncherPage launcher = new BaseLauncherPage();
         public SettingsPage settingsPage = new SettingsPage();
-        public SettingsData settings = new SettingsData();
+        public SettingsDataManager settings = new SettingsDataManager();
         public MainPage()
         {
 
@@ -43,9 +46,12 @@ namespace SDLauncher_UWP
 
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
+
             Page_ActualThemeChanged(null, null);
             MainFrame.Content = launcher;
-
+            launcher.UIchanged += Launcher_UIchanged;
+            settingsPage.BackRequested += SettingsPage_BackRequested;
+            _ = vars.Launcher.RefreshVersions();
             foreach (var account in vars.Accounts)
             {
                 
@@ -58,7 +64,6 @@ namespace SDLauncher_UWP
             {
                 btnPinDiscord_Click(null, null);
             }
-            vars.ProgressStatus = "Intializing RAM";
             var computerMemory = new Util().GetMemoryMb();
             if (computerMemory != null)
             {
@@ -125,10 +130,24 @@ namespace SDLauncher_UWP
             }
             else
             {
-               await new MessageBoxEx("Error", "Failed to get ram", MessageBoxEx.Buttons.Ok).ShowAsync();
+               await MessageBox.Show(Localized.Error, Localized.RamFailed, MessageBoxButtons.Ok);
             }
         }
 
+        private void SettingsPage_BackRequested(object sender, EventArgs e)
+        {
+            MainFrame.Content = launcher;
+        }
+
+        private void Launcher_UIchanged(object sender, SDLauncher.UIChangeRequestedEventArgs e)
+        {
+         //   btnAccount.IsEnabled = e.UI;
+        }
+
+        public string localize(string key)
+        {
+            return Localizer.GetLocalizedString(key);
+        }
         private void Page_Loading(FrameworkElement sender, object args)
         { 
             var coreTitleBar = CoreApplication.GetCurrentView().TitleBar;
@@ -156,8 +175,8 @@ namespace SDLauncher_UWP
             }
             else
             {
-                txtUsername.Text = "Login";
-                txtLogin.Text = "Login";
+                txtUsername.Text = Localizer.GetLocalizedString("MainPage_Login");
+                txtLogin.Text = Localizer.GetLocalizedString("MainPage_Login");
                 prpFly.DisplayName = "";
                 prpLogin.DisplayName = "";
                 btnLogin.Tag = "Login";
@@ -215,7 +234,7 @@ namespace SDLauncher_UWP
         {
             loginFly.Hide();
             login = new Login();
-            login.ShowAsync();
+            _ = login.ShowAsync();
         }
 
         private void btnChat_Click(object sender, RoutedEventArgs e)
@@ -273,12 +292,11 @@ namespace SDLauncher_UWP
             }
         }
 
-        private async void Page_Unloaded(object sender, RoutedEventArgs e)
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-           await new MessageBoxEx("Meow", "e", MessageBoxEx.Buttons.Ok).ShowAsync();
         }
 
-        private async void btnPinDiscord_Click(object sender, RoutedEventArgs e)
+        private void btnPinDiscord_Click(object sender, RoutedEventArgs e)
         {
             // await ApplicationView.GetForCurrentView().TryEnterViewModeAsync(ApplicationViewMode.CompactOverlay);
             Canvas.SetZIndex(discordView, 1);
