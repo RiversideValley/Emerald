@@ -66,22 +66,22 @@ namespace SDLauncher_UWP.Helpers
             switch (mcver)
             {
                 case "1.18.2":
-                    returns = new OptFineVerReturns(modVer, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
+                    returns = new OptFineVerReturns(modVer, mcver, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
                     optver = ": " + mcver;
                     OptFineDownload("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/OptiFine-1.18.2.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
                     break;
                 case "1.18.1":
-                    returns = new OptFineVerReturns(modVer, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
+                    returns = new OptFineVerReturns(modVer, mcver, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
                     optver = ": " + mcver;
                     OptFineDownload("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/OptiFine-1.18.1.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
                     break;
                 case "1.17.1":
-                    returns = new OptFineVerReturns(modVer, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
+                    returns = new OptFineVerReturns(modVer, mcver, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
                     optver = ": " + mcver;
                     OptFineDownload("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/OptiFine-1.17.1.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
                     break;
                 case "1.16.5":
-                    returns = new OptFineVerReturns(modVer, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
+                    returns = new OptFineVerReturns(modVer, mcver, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
                     optver = ": " + mcver;
                     OptFineDownload("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/OptiFine-1.16.5.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
                     break;
@@ -106,7 +106,7 @@ namespace SDLauncher_UWP.Helpers
                 }
                 if (exists)
                 {
-                    returns = new OptFineVerReturns(modVer, DisplayVer, OptFineVerReturns.Results.Exists);
+                    returns = new OptFineVerReturns(modVer, mcver, DisplayVer, OptFineVerReturns.Results.Exists);
                     UIChangedReqested(true, new EventArgs());
                     return returns;
                 }
@@ -120,7 +120,7 @@ namespace SDLauncher_UWP.Helpers
                         {
                             if (await IsOptiFineFilePresent(null, null, true))
                             {
-                                returns = new OptFineVerReturns(null, null, OptFineVerReturns.Results.DownloadOptiFineVer);
+                                returns = new OptFineVerReturns(modVer, mcver, "Version", OptFineVerReturns.Results.DownloadOptiFineVer);
                                 UIChangedReqested(true, new EventArgs());
                                 return returns;
                             }
@@ -128,7 +128,7 @@ namespace SDLauncher_UWP.Helpers
                             {
                                 await MessageBox.Show("Information", "This will download main OptiFine library, Please click again " + DisplayVer + " (after download and extract the main OptiFine) to install optifine of that version !", MessageBoxButtons.Ok);
                                 optver = " Lib";
-                                returns = new OptFineVerReturns(modVer, mcver, OptFineVerReturns.Results.DownloadOptiFineLib);
+                                returns = new OptFineVerReturns(modVer, mcver, "Version", OptFineVerReturns.Results.DownloadOptiFineLib);
                                 OptFineDownload("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/optifine.zip", "OptiFine.zip", ModType.lib);
                                 UIChangedReqested(true, new EventArgs());
                                 return returns;
@@ -137,18 +137,22 @@ namespace SDLauncher_UWP.Helpers
                         else
                         {
                             await MessageBox.Show("Error", "You have to install & run minecraft version " + mcver + " one time to install OptiFine", MessageBoxButtons.Ok);
-                            returns = new OptFineVerReturns(mcver, mcver, OptFineVerReturns.Results.DownloadMCVer);
+                            returns = new OptFineVerReturns(mcver, mcver,mcver, OptFineVerReturns.Results.DownloadMCVer);
                             UIChangedReqested(true, new EventArgs());
                             return returns;
                         }
                     }
+                    else
+                    {
+                        returns = new OptFineVerReturns(modVer, mcver, "Version", OptFineVerReturns.Results.Failed);
+                        UIChangedReqested(true, new EventArgs());
+                        return returns;
+                    }
                 }
-                UIChangedReqested(true, new EventArgs());
-                return returns;
             }
             else
             {
-                returns = new OptFineVerReturns(null, null, OptFineVerReturns.Results.Failed);
+                returns = new OptFineVerReturns(modVer, mcver, "Version", OptFineVerReturns.Results.Failed);
                 UIChangedReqested(true, new EventArgs());
                 return returns;
             }
@@ -263,13 +267,15 @@ namespace SDLauncher_UWP.Helpers
             DownloadMCVer,
             Exists
         }
-        public string LaunchVer { get; set; }
-        public string btnVer { get; set; }
+        public string MCVer { get; set; }
+        public string ModVer { get; set; }
+        public string DisplayVer { get; set; }
         public Results Result { get; set; }
-        public OptFineVerReturns(string launchver, string btnver, Results result)
+        public OptFineVerReturns(string modver, string mcver, string displayver, Results result)
         {
-            LaunchVer = launchver;
-            btnVer = btnver;
+            this.ModVer = modver;
+            this.MCVer = mcver;
+            DisplayVer = displayver;
             Result = result;
         }
     }

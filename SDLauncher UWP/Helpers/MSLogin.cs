@@ -25,7 +25,7 @@ namespace SDLauncher_UWP.Helpers
             Cancelled,
             ConnectFailed
         }
-        public async Task Initialize()
+        public void Initialize()
         {
             app = MsalMinecraftLoginHelper.CreateDefaultApplicationBuilder("ff127655-b402-4ca7-815f-b878147837ad").Build();
             handler = new MsalMinecraftLoginHandler(app);

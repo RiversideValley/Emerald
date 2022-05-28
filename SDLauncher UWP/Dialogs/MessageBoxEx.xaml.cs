@@ -54,7 +54,7 @@ namespace SDLauncher_UWP
                 PrimaryButtonText = "Yes";
                 SecondaryButtonText = "No";
             }
-            this.RequestedTheme = (ElementTheme)vars.theme;
+            this.RequestedTheme = (ElementTheme)vars.Theme;
         }
         private void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {

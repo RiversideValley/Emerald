@@ -20,7 +20,7 @@
                     <FontIcon Glyph="&#xe738;"/>
                 </Button>
             </StackPanel>
-            <ListView x:Name="view">
+            <ListView SelectionChanged="view_SelectionChanged" x:Name="view">
                 <ListView.Transitions>
                     <TransitionCollection>
                         <AddDeleteThemeTransition/>

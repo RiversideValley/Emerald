@@ -31,6 +31,7 @@ namespace SDLauncher_UWP.Converters
                     writer.WriteStartElement("StartInfo");
                     writer.WriteAttributeString("Arguments", inf.Arguments);
                     writer.WriteAttributeString("FileName", inf.FileName);
+                    writer.WriteAttributeString("GameLogs", vars.GameLogs.ToString());
                     writer.WriteAttributeString("WorkingDirectory", inf.WorkingDirectory);
                     writer.WriteEndElement();
                     writer.WriteEndElement();

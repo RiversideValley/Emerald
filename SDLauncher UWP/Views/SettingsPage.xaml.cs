@@ -1,4 +1,5 @@
-﻿using SDLauncher_UWP.Helpers;
+﻿using Microsoft.Toolkit.Uwp.Helpers;
+using SDLauncher_UWP.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,12 +9,16 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
@@ -26,6 +31,7 @@ namespace SDLauncher_UWP.Views
     public sealed partial class SettingsPage : Page
     {
         public event EventHandler BackRequested = delegate { };
+        public event EventHandler UpdateBGRequested = delegate { };
         public SettingsPage()
         {
             this.InitializeComponent();
@@ -42,11 +48,10 @@ namespace SDLauncher_UWP.Views
                 SliderRam.Maximum = vars.SliderRamMax;
             SliderRam.Minimum = vars.SliderRamMin;
         }
-        [Obsolete]
 
         public void ScrollteToTop()
         {
-            scrlView.ScrollToVerticalOffset(-1000);
+            scrlView.ChangeView(0,0,1);
         }
         private void cmbxTheme_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -54,17 +59,17 @@ namespace SDLauncher_UWP.Views
             {
                 if (cmbxTheme.SelectedItem.ToString() == "Light")
                 {
-                    vars.theme = ElementTheme.Light;
+                    vars.Theme = ElementTheme.Light;
                     fe.RequestedTheme = ElementTheme.Light;
                 }
                 if (cmbxTheme.SelectedItem.ToString() == "Dark")
                 {
-                    vars.theme = ElementTheme.Dark;
+                    vars.Theme = ElementTheme.Dark;
                     fe.RequestedTheme = ElementTheme.Dark;
                 }
                 if (cmbxTheme.SelectedItem.ToString() == "System")
                 {
-                    vars.theme = ElementTheme.Default;
+                    vars.Theme = ElementTheme.Default;
                     fe.RequestedTheme = ElementTheme.Default;
                 }
             }
@@ -119,15 +124,15 @@ namespace SDLauncher_UWP.Views
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
            
-            if (vars.theme == ElementTheme.Dark)
+            if (vars.Theme == ElementTheme.Dark)
             {
                 cmbxTheme.SelectedIndex = 1;
             }
-            else if (vars.theme == ElementTheme.Light)
+            else if (vars.Theme == ElementTheme.Light)
             {
                 cmbxTheme.SelectedIndex = 0;
             }
-            else if (vars.theme == ElementTheme.Default)
+            else if (vars.Theme == ElementTheme.Default)
             {
                 cmbxTheme.SelectedIndex = 2;
             }
@@ -138,7 +143,10 @@ namespace SDLauncher_UWP.Views
                 nbrbxHeight.Value = vars.JVMScreenHeight;
                 nbrbxWidth.Value = vars.JVMScreenWidth;
             }
+            args.UpdateSource();
+            ver.Text = $"Version {SystemInformation.Instance.ApplicationVersion.Major}.{SystemInformation.Instance.ApplicationVersion.Minor}.{SystemInformation.Instance.ApplicationVersion.Build}.{SystemInformation.Instance.ApplicationVersion.Revision}";
             RefreshScreenData();
+            tglLogs.IsOn = vars.GameLogs;
             cbHash.IsChecked = vars.HashCheck;
             switchAutolog.IsOn = vars.autoLog;
             tglOldVerSelector.IsOn = vars.UseOldVerSeletor;
@@ -343,6 +351,101 @@ namespace SDLauncher_UWP.Views
         {
             vars.FullScreen = (bool)chkbxFullScreen.IsChecked;
             RefreshScreenData();
+        }
+
+        private void tglRPC_Toggled(object sender, RoutedEventArgs e)
+        {
+            vars.SDRPC = new RPCHelper();
+           _ = vars.SDRPC.Authenticate();
+        }
+
+        private void tglLogs_Toggled(object sender, RoutedEventArgs e)
+        {
+            vars.GameLogs = tglLogs.IsOn;
+        }
+
+        public async void GetAndSetBG()
+        {
+            var file = await StorageFile.GetFileFromPathAsync(vars.BackgroundImagePath);
+            vars.BackgroundImage = await Util.LoadImage(file);
+            if (vars.CustomBackground)
+            {
+                if (cmbxBG.Items[3] == null)
+                {
+                    cmbxBG.Items.Add(file.DisplayName);
+                    cmbxBG.SelectedIndex = 3;
+                }
+                else
+                {
+                    cmbxBG.Items[3] = file.DisplayName;
+                    cmbxBG.SelectedIndex = 3;
+                }
+            }
+        }
+        private async void cmbxBG_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if ((string)cmbxBG.SelectedItem == "Browse")
+            {
+
+                FileOpenPicker fop = new FileOpenPicker();
+                fop.SuggestedStartLocation = PickerLocationId.Desktop;
+                fop.ViewMode = PickerViewMode.Thumbnail;
+                fop.FileTypeFilter.Add(".png");
+                fop.FileTypeFilter.Add(".jpg");
+
+                var file = await fop.PickSingleFileAsync();
+                if(file != null)
+                {
+                    vars.BackgroundImage = await Util.LoadImage(file);
+                    vars.CustomBackground = true;
+                    vars.BackgroundImagePath = file.Path;
+                    if(cmbxBG.Items[3] == null)
+                    {
+                        cmbxBG.Items.Add(file.DisplayName);
+                        cmbxBG.SelectedIndex = 3;
+                    }
+                    else
+                    {
+                        cmbxBG.Items[3] = file.DisplayName;
+                        cmbxBG.SelectedIndex = 3;
+                    }
+                }
+                else
+                {
+                    cmbxBG.SelectedItem = e.RemovedItems[0];
+                }
+            }
+            else if ((string)cmbxBG.SelectedItem == "None")
+            {
+                if (cmbxBG.Items[3] != null)
+                {
+                    cmbxBG.Items.Remove(cmbxBG.Items[3]);
+                }
+                vars.BackgroundImage = new BitmapImage(new Uri("ms-appx:///Assets/BackDrops/Transparent.png"));
+                vars.CustomBackground = true;
+            }
+            else if ((string)cmbxBG.SelectedItem == "Default")
+            {
+                if (cmbxBG.Items[3] != null)
+                {
+                    cmbxBG.Items.Remove(cmbxBG.Items[3]);
+                }
+                vars.CustomBackground = false;
+
+                if (Window.Current.Content is FrameworkElement fe)
+                {
+                    if(ActualTheme == ElementTheme.Dark)
+                    {
+                        fe.RequestedTheme = ElementTheme.Light;
+                        fe.RequestedTheme = ElementTheme.Dark;
+                    }
+                    else
+                    {
+                        fe.RequestedTheme = ElementTheme.Dark;
+                        fe.RequestedTheme = ElementTheme.Light;
+                    }
+                }
+            }
         }
     }
 }

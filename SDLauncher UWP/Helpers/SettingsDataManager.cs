@@ -84,20 +84,32 @@ namespace SDLauncher_UWP.Helpers
                         writer.WriteAttributeString("ScreenHeight", 0.ToString());
                     }
                     writer.WriteAttributeString("FullScreen", vars.FullScreen.ToString());
+                    writer.WriteAttributeString("GameLogs", vars.GameLogs.ToString());
+                    writer.WriteStartElement("Arguments");
+                    if(vars.JVMArgs != null)
+                    {
+                        foreach (var item in vars.JVMArgs)
+                        {
+                            writer.WriteStartElement("Argument");
+                            writer.WriteAttributeString("Content", item);
+                            writer.WriteEndElement();
+                        }
+                    }
+                    writer.WriteEndElement();
                     writer.WriteEndElement();
                     writer.WriteEndElement();
                     writer.WriteStartElement("App");
-                    writer.WriteComment("\n    The theme of the app" +
-                        "\n    values: \"Light\",\"Dark\",\"Default\"(System)" +
-                        "\n    ");
-                    writer.WriteStartElement("Theme");
-                    if (vars.theme.ToString() == "")
+                    writer.WriteComment("\n    The theme and background of the app");
+                    writer.WriteStartElement("Appearance");
+                    writer.WriteAttributeString("CustomBackgroundImagePath", vars.BackgroundImagePath.ToString());
+                    writer.WriteAttributeString("UseCustomBackgroundImage", vars.CustomBackground.ToString());
+                    if (vars.Theme.ToString() == "")
                     {
-                        writer.WriteAttributeString("value", "null");
+                        writer.WriteAttributeString("Theme", "null");
                     }
                     else
                     {
-                        writer.WriteAttributeString("value", vars.theme.ToString());
+                        writer.WriteAttributeString("Theme", vars.Theme.ToString());
                     }
                     writer.WriteEndElement();
                     writer.WriteStartElement("Tips");
@@ -146,10 +158,12 @@ namespace SDLauncher_UWP.Helpers
             string autolog;
             string oldVer;
             string fixDiscord;
-            string jvmArgs;
+            string gamelogs;
             string jvmWidth;
             string jvmHeight;
             string jvmFullScreen;
+            string isCustombg;
+            string BGPath;
             using (IRandomAccessStream stream = await storagefile.OpenAsync(FileAccessMode.Read))
             {
                 Stream s = stream.AsStreamForRead();
@@ -170,9 +184,12 @@ namespace SDLauncher_UWP.Helpers
                     jvmWidth = reader.GetAttribute("ScreenWidth");
                     jvmHeight = reader.GetAttribute("ScreenHeight");
                     jvmFullScreen = reader.GetAttribute("FullScreen");
+                    gamelogs = reader.GetAttribute("GameLogs");
                     reader.ReadToFollowing("App");
-                    reader.ReadToFollowing("Theme");
-                    theme = reader.GetAttribute("value");
+                    reader.ReadToFollowing("Appearance");
+                    theme = reader.GetAttribute("Theme");
+                    isCustombg = reader.GetAttribute("UseCustomBackgroundImage");
+                    BGPath = reader.GetAttribute("CustomBackgroundImagePath");
                     reader.ReadToFollowing("Tips");
                     tips = reader.GetAttribute("value");
                     reader.ReadToFollowing("AutoLogin");
@@ -191,7 +208,7 @@ namespace SDLauncher_UWP.Helpers
                     System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
                     doc.LoadXml(content);
 
-                    System.Xml.XmlNodeList list = doc.SelectNodes("//Settings/Minecraft/Accounts/Account");
+                    var list = doc.SelectNodes("//Settings/Minecraft/Accounts/Account");
                     for (int i = list.Count - 1; i >= 0; i--)
                     {
                         if (list[i].Attributes["Type"].Value != "null")
@@ -255,6 +272,13 @@ namespace SDLauncher_UWP.Helpers
                     }
                     vars.Accounts = Accounts;
                     vars.AccountsCount = Accounts.Count;
+                    list = doc.SelectNodes("//Settings/Minecraft/JVM/Arguments/Argument");
+                    var args = new List<string>();
+                    for (int i = list.Count - 1; i >= 0; i--)
+                    {
+                        args.Add(list[i].Attributes["Content"].Value);
+                    }
+                    vars.JVMArgs = args;
                 }
             }
             int jvmwidth;
@@ -271,26 +295,27 @@ namespace SDLauncher_UWP.Helpers
             }
             vars.JVMScreenWidth = jvmwidth;
             vars.JVMScreenHeight = jvmheight;
+            vars.BackgroundImagePath = BGPath;
             vars.LoadedRam = int.Parse(ram);
             if (theme == "Default")
             {
-                vars.theme = ElementTheme.Default;
+                vars.Theme = ElementTheme.Default;
             }
             else if (theme == "Light")
             {
-                vars.theme = ElementTheme.Light;
+                vars.Theme = ElementTheme.Light;
             }
             else if (theme == "Dark")
             {
-                vars.theme = ElementTheme.Dark;
+                vars.Theme = ElementTheme.Dark;
             }
             else
             {
-                vars.theme = ElementTheme.Default;
+                vars.Theme = ElementTheme.Default;
             }
             if (Window.Current.Content is FrameworkElement fe)
             {
-                fe.RequestedTheme = (ElementTheme)vars.theme;
+                fe.RequestedTheme = (ElementTheme)vars.Theme;
             }
             if (tips == "True")
             {
@@ -315,6 +340,22 @@ namespace SDLauncher_UWP.Helpers
             else
             {
                 vars.UseOldVerSeletor = false;
+            }
+            if (isCustombg == "True")
+            {
+                vars.CustomBackground = true;
+            }
+            else
+            {
+                vars.CustomBackground = false;
+            }
+            if (gamelogs == "True")
+            {
+                vars.GameLogs = true;
+            }
+            else
+            {
+                vars.GameLogs = false;
             }
             if (assetscheck == "True")
             {

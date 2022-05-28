@@ -134,8 +134,10 @@
       <DependentUpon>Login.xaml</DependentUpon>
     </Compile>
     <Compile Include="Helpers\Account.cs" />
+    <Compile Include="Helpers\GlacierClient.cs" />
     <Compile Include="Helpers\Localizer.cs" />
     <Compile Include="Helpers\MSLogin.cs" />
+    <Compile Include="Helpers\RPCHelper.cs" />
     <Compile Include="Helpers\SDLauncher.cs" />
     <Compile Include="Helpers\SettingsDataManager.cs" />
     <Compile Include="Helpers\Util.cs" />
@@ -176,6 +178,7 @@
   <ItemGroup>
     <Content Include="Assets\BackDrops\bg-light.png" />
     <Content Include="Assets\BackDrops\bg.jpg" />
+    <Content Include="Assets\BackDrops\Transparent.png" />
     <Content Include="Assets\Discord\discord-dark.png" />
     <Content Include="Assets\Discord\discord.jpg" />
     <Content Include="Assets\LargeTile.scale-100.png" />
@@ -286,6 +289,9 @@
     </PackageReference>
     <PackageReference Include="CmlLib.Core.Auth.Microsoft.MsalClient">
       <Version>1.1.1</Version>
+    </PackageReference>
+    <PackageReference Include="DiscordRichPresence">
+      <Version>1.0.175</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.12</Version>

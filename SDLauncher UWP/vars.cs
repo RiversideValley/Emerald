@@ -8,21 +8,30 @@ using CmlLib.Core;
 using CmlLib.Core.Auth;
 using SDLauncher_UWP.Helpers;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Media.Imaging;
 
 namespace SDLauncher_UWP
 {
-    public class vars
+    public static class vars
     {
+        public static event EventHandler ThemeUpdated = delegate { };
+        public static event EventHandler BackgroundUpdatd = delegate { };
         //App
         public static bool closing = false;
         public static bool showXMLOnClose = false;
-        public static ElementTheme? theme = ElementTheme.Default;
+        private static ElementTheme? theme = ElementTheme.Default;
+        public static ElementTheme? Theme { get { return theme; } set { theme = value; ThemeUpdated(theme, new EventArgs()); } }
+        public static BitmapImage BackgroundImage;
+        public static string BackgroundImagePath;
         public static bool ShowLaunchTips = false;
+        public static bool CustomBackground = false;
         public static bool ShowTips = true;
         public static bool UseOldVerSeletor = false;
+        public static bool GameLogs = false;
         public static bool autoLog = false;
         public static int LoadedRam = 1024;
         public static SDLauncher Launcher;
+        public static RPCHelper SDRPC;
         public static ObservableCollection<Account> Accounts;
         public static int AccountsCount;
         

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CmlLib.Core.Version;
 using SDLauncher_UWP.Resources;
+using CmlLib.Utils;
 
 namespace SDLauncher_UWP.Helpers
 {
@@ -22,10 +23,10 @@ namespace SDLauncher_UWP.Helpers
         {
             get
             {
-                if (mcVers != null)
+                if (MCVersions != null)
                 {
                     List<string> temp = new List<string>();
-                    foreach (var item in mcVers)
+                    foreach (var item in MCVersions)
                     {
                         temp.Add(item.Name);
                     }
@@ -37,25 +38,12 @@ namespace SDLauncher_UWP.Helpers
                 }
             }
         }
-        public MVersionCollection MCVersions
-        {
-            get
-            {
-                return mcVers;
-            }
-        }
-        public MVersionCollection FabricMCVersions
-        {
-            get
-            {
-                return mcFabricVers;
-            }
-        }
-        private MVersionCollection mcVers;
-        private MVersionCollection mcFabricVers;
+        public MVersionCollection MCVersions { get; private set; }
+        public MVersionCollection FabricMCVersions { get; private set; }
 
         public CMLauncher Launcher { get; set; }
         public OptiFine OptiFine { get; set; }
+        public GlacierClient GlacierClient { get; set; }
         public SDLauncher()
         {
             OptiFine = new OptiFine();
@@ -63,7 +51,39 @@ namespace SDLauncher_UWP.Helpers
             OptiFine.StatusChanged += OptiFine_StatusChanged;
             OptiFine.UIChangedReqested += OptiFine_UIChangedReqested;
             OptiFine.ErrorAppeared += OptiFine_ErrorAppeared;
+
+            GlacierClient = new GlacierClient();
+            GlacierClient.StatusChanged += GlacierClient_StatusChanged;
+            GlacierClient.ProgressChanged += GlacierClient_ProgressChanged; ;
+            GlacierClient.UIChangedReqested += GlacierClient_UIChangedReqested;
         }
+        public async Task<string> GetChangelog(string version)
+        {
+            Status("Loading changelog v:" + version);
+            Changelogs changelogs = await Changelogs.GetChangelogs(); // get changelog informations
+            string[] versions = changelogs.GetAvailableVersions(); // get all available versions
+            var changelogHtml = await changelogs.GetChangelogHtml(version);
+
+            var fullbody = "<style>\np,h1,li,span,body,html {\nfont-family:\"Segoe UI\";\n}\n</style>\n" + "<h1>Version " + version + "</h1>" + changelogHtml;
+            Status("Ready");
+            return fullbody.Replace("h1", "h2").ToString();
+        }
+        private void GlacierClient_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            FileOrProgressChanged(sender, e);
+        }
+
+        private void GlacierClient_UIChangedReqested(object sender, EventArgs e)
+        {
+            UIChangeRequested(this, new UIChangeRequestedEventArgs((bool)sender));
+        }
+
+
+        private void GlacierClient_StatusChanged(object sender, EventArgs e)
+        {
+            StatusChanged(this, new StatusChangedEventArgs(sender.ToString()));
+        }
+
         public static SDLauncher CreateLauncher(MinecraftPath mcpath)
         {
             var l = new SDLauncher();
@@ -111,8 +131,9 @@ namespace SDLauncher_UWP.Helpers
         {
             UI(false);
             Status(Localized.GettingVers);
-            mcVers = await Launcher.GetAllVersionsAsync();
-            mcFabricVers = await new FabricVersionLoader().GetVersionMetadatasAsync();
+            MCVersions = await Launcher.GetAllVersionsAsync();
+            var fabricVersionLoader = new FabricVersionLoader();
+            FabricMCVersions = await fabricVersionLoader.GetVersionMetadatasAsync();
             Status(Localized.Ready);
             VersionsRefreshed(this, new EventArgs());
             UI(true);
@@ -135,7 +156,8 @@ namespace SDLauncher_UWP.Helpers
             string launchVer = "";
             string displayVer = "";
             bool exists = false;
-            foreach (var veritem in vars.Launcher.FabricMCVersions)
+            await RefreshVersions();
+            foreach (var veritem in FabricMCVersions)
             {
                 if (veritem.Name == modver)
                 {
@@ -175,12 +197,11 @@ namespace SDLauncher_UWP.Helpers
 
         public class FabricResponsoe
         {
-            public string LaunchVer { get { return launchVer; } }
-            private string launchVer;
-            public string DisplayVer { get { return displayVer; } }
-            private string displayVer;
-            public Responses Response { get { return response; } }
-            private Responses response;
+            public string LaunchVer { get; }
+
+            public string DisplayVer { get; }
+
+            public Responses Response { get; }
 
             public enum Responses
             {
@@ -189,9 +210,9 @@ namespace SDLauncher_UWP.Helpers
             }
             public FabricResponsoe(string launchver, string displayver, Responses response)
             {
-                this.launchVer = launchver;
-                this.displayVer = displayver;
-                this.response = response;
+                this.LaunchVer = launchver;
+                this.DisplayVer = displayver;
+                this.Response = response;
             }
         }
         public class UIChangeRequestedEventArgs : EventArgs

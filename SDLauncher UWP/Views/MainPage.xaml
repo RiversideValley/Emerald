@@ -189,7 +189,7 @@
                         </ToggleButton>
                         <TextBlock Text="Chat" Foreground="White" VerticalAlignment="Center" FontSize="20" FontWeight="SemiBold"/>
                     </StackPanel>
-                <winui:WebView2 Grid.Row="1" x:Name="wv2DiscordFixed" Source="https://e.widgetbot.io/channels/949252950772027412/950032703418433537"/>
+                <winui:WebView2 Grid.Row="1" x:Name="wv2DiscordSticked" Source="https://e.widgetbot.io/channels/949252950772027412/950032703418433537"/>
                
             </Grid>
             <Frame Grid.Column="0" Navigated="MainFrame_Navigated" Canvas.ZIndex="0" Margin="10,48,10,15" x:Name="MainFrame">

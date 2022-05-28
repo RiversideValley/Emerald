@@ -151,14 +151,23 @@
                                 </ComboBox>
                             </NoobUI:SettingsCard.Controls>
                         </NoobUI:SettingsCard>
+                        <NoobUI:SettingsCard Icon="&#xe8b9;" Description="Customize your launcher background" Margin="0,5,0,0" Title="Background Image">
+                            <NoobUI:SettingsCard.Controls>
+                                <ComboBox x:Name="cmbxBG" SelectionChanged="cmbxBG_SelectionChanged">
+                                    <x:String>Default</x:String>
+                                    <x:String>Browse</x:String>
+                                    <x:String>None</x:String>
+                                </ComboBox>
+                            </NoobUI:SettingsCard.Controls>
+                        </NoobUI:SettingsCard>
                         <NoobUI:SettingsCard Icon="&#xe8f2;" Description="Show your own status on your Discord profile with Discord RPC" Margin="0,5,0,0" Title="Show Discord activity">
                             <NoobUI:SettingsCard.Controls>
-                                <ToggleSwitch MinWidth="100" HorizontalAlignment="Right"/>
+                                <ToggleSwitch x:Name="tglRPC" Toggled="tglRPC_Toggled" MinWidth="100" HorizontalAlignment="Right"/>
                             </NoobUI:SettingsCard.Controls>
                         </NoobUI:SettingsCard>
                         <NoobUI:SettingsCard Margin="0,5,0,0" Description="For developers" Icon="&#xE946;" Title="Show game logs when minecraft starts">
                             <NoobUI:SettingsCard.Controls>
-                                <ToggleSwitch MinWidth="100"  HorizontalAlignment="Right"/>
+                                <ToggleSwitch x:Name="tglLogs" Toggled="tglLogs_Toggled" MinWidth="100"  HorizontalAlignment="Right"/>
                             </NoobUI:SettingsCard.Controls>
                         </NoobUI:SettingsCard>
                         <NoobUI:SettingsCard  Icon="&#xe8bb;" Description="When this turned on the launcher will close itself when minecraft client starts" Margin="0,5,0,0" Title="Automatically close when minecraft starts">
@@ -174,10 +183,21 @@
                         <NoobUI:Expander Margin="0,5,0,0" Title="About" Icon="&#xe946;" Description="Version, updates, copyrights, settings">
                             <NoobUI:Expander.Controls>
                                 <Grid>
-                                    <StackPanel>
-                                        <TextBlock Style="{ThemeResource TitleTextBlockStyle}"/>
-                                        <Button x:Name="btnXML" Click="btnXML_Click" Margin="0,0,0,5" Content="settings.xml"/>
-                                        <Button x:Name="btnAbout" Content="About this app"/>
+                                    <StackPanel HorizontalAlignment="Left">
+                                        <Image Source="/Assets/StoreLogo.scale-400.png" Width="70" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="SDLauncher" HorizontalAlignment="Center" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                                        <TextBlock HorizontalAlignment="Center" Text="A custom UWP Minecraft Launcher" Style="{ThemeResource BaseTextBlockStyle}"/>
+                                        <TextBlock HorizontalAlignment="Center" x:Name="ver"/>
+                                        <TextBlock HorizontalAlignment="Center" Text="Copyright © SeaDev Team"/>
+                                        <TextBlock HorizontalAlignment="Center">
+                                            Based on <Hyperlink NavigateUri="https://github.com/CmlLib">CMLLib</Hyperlink> by <Hyperlink NavigateUri="https://github.com/AlphaBs">AlphaBs</Hyperlink><LineBreak/>
+                                        </TextBlock>
+                                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                            <HyperlinkButton NavigateUri="https://github.com/Chaniru22/SDLauncher" Content="Github"/>
+                                            <HyperlinkButton Margin="5,0,0,0" NavigateUri="https://discord.gg/kN7bjt6Ncq" Content="Discord"/>
+                                        </StackPanel>
+                                        <HyperlinkButton NavigateUri="https://github.com/Chaniru22/SDLauncher-UWP" HorizontalAlignment="Center" Content="Github source-code"/>
+                                        <Button x:Name="btnXML" Click="btnXML_Click" Margin="0,5,0,0" Content="settings.xml"/>
                                     </StackPanel>
                                 </Grid>
                             </NoobUI:Expander.Controls>

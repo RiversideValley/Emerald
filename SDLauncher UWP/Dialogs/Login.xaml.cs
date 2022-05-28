@@ -54,7 +54,7 @@ namespace SDLauncher_UWP
             var x = new MSLogin();
             UI(false);
             btnMSLogin.Content = "Please wait";
-            await x.Initialize();
+            x.Initialize();
             var result = await x.Login();
             if (result == MSLogin.Exceptions.Cancelled)
             {
@@ -164,12 +164,12 @@ namespace SDLauncher_UWP
         private void ContentDialog_Loaded(object sender, RoutedEventArgs e)
         {
             btnBack_Click(null, null);
-            if (vars.theme != null)
+            if (vars.Theme != null)
             {
                 if (Window.Current.Content is FrameworkElement fe)
                 {
-                    this.RequestedTheme = (ElementTheme)vars.theme;
-                    fe.RequestedTheme = (ElementTheme)vars.theme;
+                    this.RequestedTheme = (ElementTheme)vars.Theme;
+                    fe.RequestedTheme = (ElementTheme)vars.Theme;
                 }
             }
             UpdateAccounts();

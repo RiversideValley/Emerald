@@ -6,12 +6,25 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Storage;
+using Windows.Storage.Streams;
 using Windows.System.Diagnostics;
+using Windows.UI.Xaml.Media.Imaging;
 
 namespace SDLauncher_UWP.Helpers
 {
     public class Util
     {
+        public static async Task<BitmapImage> LoadImage(StorageFile file)
+        {
+            BitmapImage bitmapImage = new BitmapImage();
+            FileRandomAccessStream stream = (FileRandomAccessStream)await file.OpenAsync(FileAccessMode.Read);
+
+            bitmapImage.SetSource(stream);
+
+            return bitmapImage;
+
+        }
         public long? GetMemoryMb()
         {
             try

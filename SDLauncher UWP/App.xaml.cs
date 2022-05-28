@@ -53,7 +53,20 @@ namespace SDLauncher_UWP
                 {
                     await settings.CreateSettingsFile(false);
                 }
-                await settings.LoadSettingsFile();
+                try
+                {
+                    await settings.LoadSettingsFile();
+                }
+                catch
+                {
+                    vars.CurrentRam = 2048;
+                    try
+                    {
+                        await settings.CreateSettingsFile(false);
+                        await settings.LoadSettingsFile();
+                    }
+                    catch { }
+                }
             }
             else
             {
@@ -80,7 +93,7 @@ namespace SDLauncher_UWP
                 {
                     //TODO: Load state from previously suspended application
                 }
-                rootFrame.RequestedTheme = (ElementTheme)vars.theme;
+                rootFrame.RequestedTheme = (ElementTheme)vars.Theme;
                 // Place the frame in the current Window
                 Window.Current.Content = rootFrame;
             }
@@ -137,7 +150,7 @@ namespace SDLauncher_UWP
                     rootFrame = new Frame();
 
                     rootFrame.NavigationFailed += OnNavigationFailed;
-                    rootFrame.RequestedTheme = (ElementTheme)vars.theme;
+                    rootFrame.RequestedTheme = (ElementTheme)vars.Theme;
                     // Place the frame in the current Window
                     Window.Current.Content = rootFrame;
                 }

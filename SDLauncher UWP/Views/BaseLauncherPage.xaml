@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:SDLauncher_UWP"
     Loaded="Page_Loaded"
+    ActualThemeChanged="Page_ActualThemeChanged"
     xmlns:winui="using:Microsoft.UI.Xaml.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
@@ -52,14 +53,14 @@
             </winui:TeachingTip.IconSource>
         </winui:TeachingTip>
         <TextBlock FontFamily="{StaticResource Pixel}" Text="Welcome!" x:Name="txtWelcome" VerticalAlignment="Center" HorizontalAlignment="Left" Grid.Row="0" FontSize="35" FontWeight="Normal"/>
-        <ScrollViewer CornerRadius="5" Margin="10" Grid.Row="1" Background="{ThemeResource AcrylicGlass}">
-            <RichTextBlock x:Name="txtLogs"/>
-        </ScrollViewer>
+        <Grid CornerRadius="5" Margin="10" Grid.Row="1" Background="{ThemeResource AcrylicGlass}">
+            <WebView DefaultBackgroundColor="Transparent" x:Name="wvLogs"/>
+        </Grid>
         <Grid Grid.Row="2" VerticalAlignment="Bottom" >
             <TextBlock x:Name="txtStatus" VerticalAlignment="Bottom" Text="Ready" HorizontalAlignment="Left"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <ComboBox SelectionChanged="cmbxVer_SelectionChanged" x:Name="cmbxVer"/>
-                <winui:DropDownButton x:Name="btnMCVer" Content="Version">
+                <winui:DropDownButton Margin="0,0,5,0" x:Name="btnMCVer" Content="Version">
                     <winui:DropDownButton.Flyout>
                         <MenuFlyout x:Name="flyVer">
                             <MenuFlyoutSubItem Text="1.18">
@@ -98,12 +99,15 @@
                             <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="1.8.9"/>
                             <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="1.7"/>
                             <MenuFlyoutSeparator/>
+                            <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="Glacier Client"/>
+                            <MenuFlyoutSeparator/>
                             <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="Latest"/>
                             <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="Latest Snapshot"/>
                         </MenuFlyout>
                     </winui:DropDownButton.Flyout>
                 </winui:DropDownButton>
-                <Button Click="BtnLaunch_Click" x:Name="btnLaunch" Content="Launch"/>
+                <Button x:Name="btnServer" Content="Servers" Margin="0,0,5,0"/>
+                <Button Style="{ThemeResource AccentButtonStyle}" Click="BtnLaunch_Click" Margin="0,0,5,0" x:Name="btnLaunch" Content="Launch"/>
             </StackPanel>
         </Grid>
         <StackPanel VerticalAlignment="Bottom" Grid.Row="3">

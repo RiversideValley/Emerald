@@ -10,29 +10,13 @@ namespace ClientLauncher
     {
         static void Main(string[] args)
         {
-
-            if (args.Length > 2)
-            {
-                if (args[2] == "/admin")
-                {
-                    string aliasPath =
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory +
-                @"\ClientLauncher.exe");
-
-                    ProcessStartInfo Restartinfo = new ProcessStartInfo();
-                    Restartinfo.Verb = "runas";
-                    Restartinfo.UseShellExecute = true;
-                    Restartinfo.FileName = aliasPath;
-                    Process.Start(Restartinfo);
-                    return;
-                }
-            }
             Console.Title = "SDLauncher Loging System";
             var l = GetEnviromentVar("LocalAppData");
             var path = Path.Combine(l, @"Packages\SeaDevs.Launcher.UWP_0dk3ndwmrga1t\LocalState");
             string arguements = "";
             string fileName = "";
             string workdir = "";
+            string logs = "";
             using (StreamReader sr = File.OpenText(Path.Combine(path, "StartInfo.xml")))
             {
                 var s = sr.BaseStream;
@@ -46,6 +30,7 @@ namespace ClientLauncher
                     reader.ReadToFollowing("StartInfo");
                     arguements = reader.GetAttribute("Arguments");
                     fileName = reader.GetAttribute("FileName");
+                    logs = reader.GetAttribute("GameLogs");
                     workdir = reader.GetAttribute("WorkingDirectory");
                     reader.Close();
                 }
@@ -57,6 +42,36 @@ namespace ClientLauncher
                 catch
                 {
 
+                }
+            }
+
+            if (args.Length > 2)
+            {
+                if (args[2] == "/admin")
+                {
+                    string appPath =
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory +
+                @"\ClientLauncher.exe");
+
+                    ProcessStartInfo Restartinfo = new ProcessStartInfo();
+                    Restartinfo.Verb = "runas";
+                    if(logs != "True")
+                    {
+                        Restartinfo.WindowStyle = ProcessWindowStyle.Hidden;
+                        Restartinfo.CreateNoWindow = true;
+                    }
+                    Restartinfo.UseShellExecute = true;
+                    Restartinfo.FileName = appPath;
+                    try
+                    {
+                        Process.Start(Restartinfo);
+                    }
+                    catch
+                    {
+                        Console.WriteLine("User Cancelled the request...");
+                        Console.ReadLine();
+                    }
+                    return;
                 }
             }
             //Console.WriteLine(arguements);

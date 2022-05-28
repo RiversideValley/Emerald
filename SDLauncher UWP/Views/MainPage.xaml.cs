@@ -27,6 +27,10 @@ using Windows.Storage;
 using SDLauncher_UWP.Helpers;
 using CmlLib.Core;
 using SDLauncher_UWP.Resources;
+#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -34,24 +38,35 @@ namespace SDLauncher_UWP
 {
     public sealed partial class MainPage : Page
     {
-        public BaseLauncherPage launcher = new BaseLauncherPage();
-        public SettingsPage settingsPage = new SettingsPage();
+        public BaseLauncherPage launcher;
+        public SettingsPage settingsPage;
         public SettingsDataManager settings = new SettingsDataManager();
         public MainPage()
         {
-
             this.InitializeComponent();
+            vars.Launcher = SDLauncher.CreateLauncher(new MinecraftPath(ApplicationData.Current.LocalFolder.Path));
+            launcher = new BaseLauncherPage();
+            settingsPage = new SettingsPage();
+            settingsPage.UpdateBGRequested += SettingsPage_UpdateBGRequested;
+            settingsPage.BackRequested += SettingsPage_BackRequested;
+            launcher.UIchanged += Launcher_UIchanged;
+            launcher.InitializeLauncher();
+            if(!string.IsNullOrEmpty(vars.BackgroundImagePath))
+            {
+                settingsPage.GetAndSetBG();
+            }
         }
 
+        private void SettingsPage_UpdateBGRequested(object sender, EventArgs e)
+        {
+            Page_ActualThemeChanged(null, null);
+        }
 
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
 
             Page_ActualThemeChanged(null, null);
             MainFrame.Content = launcher;
-            launcher.UIchanged += Launcher_UIchanged;
-            settingsPage.BackRequested += SettingsPage_BackRequested;
-            _ = vars.Launcher.RefreshVersions();
             foreach (var account in vars.Accounts)
             {
                 
@@ -136,12 +151,13 @@ namespace SDLauncher_UWP
 
         private void SettingsPage_BackRequested(object sender, EventArgs e)
         {
-            MainFrame.Content = launcher;
+            btnBack_Click(null, null);
         }
 
         private void Launcher_UIchanged(object sender, SDLauncher.UIChangeRequestedEventArgs e)
         {
-         //   btnAccount.IsEnabled = e.UI;
+            settingsPage.IsEnabled = e.UI;
+            btnAccount.IsEnabled = e.UI;
         }
 
         public string localize(string key)
@@ -162,7 +178,7 @@ namespace SDLauncher_UWP
             timer.Tick += Timer_Tick;
             timer.Start();
         }
-
+        BitmapImage bg;
         private async void Timer_Tick(object sender, object e)
         {
             if (!string.IsNullOrEmpty(vars.UserName))
@@ -185,6 +201,14 @@ namespace SDLauncher_UWP
             {
                 vars.closing = false;
                 await settings.CreateSettingsFile(true);
+            }
+            if (vars.CustomBackground)
+            {
+                if (bg != vars.BackgroundImage)
+                {
+                    imgBack.ImageSource = vars.BackgroundImage;
+                    bg = vars.BackgroundImage;
+                }
             }
         }
 
@@ -249,7 +273,7 @@ namespace SDLauncher_UWP
         {
             btnBack.Visibility = Visibility.Collapsed;
             pnlTitle.Margin = new Thickness(0, pnlTitle.Margin.Top, pnlTitle.Margin.Right, pnlTitle.Margin.Bottom);
-            MainFrame.Content = launcher;            
+            MainFrame.Content = launcher;        
         }
 
         private void MainFrame_Navigated(object sender, NavigationEventArgs e)
@@ -277,8 +301,11 @@ namespace SDLauncher_UWP
                 titleBar.ButtonPressedBackgroundColor = Colors.Transparent;
                 titleBar.ButtonForegroundColor = Colors.Black;
                 titleBar.ButtonHoverBackgroundColor = ((SolidColorBrush)Application.Current.Resources["LayerFillColorDefaultBrush"]).Color;
-                imgDiscord.Source = new BitmapImage(new Uri("ms-appx:///Assets/Discord/discord.jpg"));
-                imgBack.ImageSource = new BitmapImage(new Uri("ms-appx:///Assets/BackDrops/bg-light.png"));
+                    imgDiscord.Source = new BitmapImage(new Uri("ms-appx:///Assets/Discord/discord.jpg"));
+                if (!vars.CustomBackground)
+                {
+                    imgBack.ImageSource = new BitmapImage(new Uri("ms-appx:///Assets/BackDrops/bg-light.png"));
+                }
             }
             if (this.ActualTheme == ElementTheme.Dark)
             {
@@ -288,7 +315,10 @@ namespace SDLauncher_UWP
                 titleBar.ButtonForegroundColor = Colors.White;
                 titleBar.ButtonHoverBackgroundColor = ((SolidColorBrush)Application.Current.Resources["LayerFillColorDefaultBrush"]).Color;
                 imgDiscord.Source = new BitmapImage(new Uri("ms-appx:///Assets/Discord/discord-dark.png"));
-                imgBack.ImageSource = new BitmapImage(new Uri("ms-appx:///Assets/BackDrops/bg.jpg"));
+                if (!vars.CustomBackground)
+                {
+                    imgBack.ImageSource = new BitmapImage(new Uri("ms-appx:///Assets/BackDrops/bg.jpg"));
+                }
             }
         }
 
@@ -307,15 +337,10 @@ namespace SDLauncher_UWP
             discordFixed.Visibility = Visibility.Visible;
             try
             {
-#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
-#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
-#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
-#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
-                wv2DiscordFixed.CoreWebView2.Navigate(wv2Discord.Source.ToString());
-#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
-#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
-#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
-#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+                if (wv2Discord.Source.ToString() != wv2DiscordSticked.Source.ToString())
+                {
+                    wv2DiscordSticked.CoreWebView2.Navigate(wv2Discord.Source.ToString());
+                }
             }
             catch
             {
@@ -326,15 +351,10 @@ namespace SDLauncher_UWP
         private void btnUnPinDiscord_Click(object sender, RoutedEventArgs e)
         {
             Canvas.SetZIndex(discordView, 9);
-#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
-#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
-#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
-#pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
-            wv2DiscordFixed.CoreWebView2.Navigate(wv2DiscordFixed.Source.ToString());
-#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
-#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
-#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
-#pragma warning restore CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+            if (wv2Discord.Source.ToString() != wv2DiscordSticked.Source.ToString())
+            {
+                wv2DiscordSticked.CoreWebView2.Navigate(wv2DiscordSticked.Source.ToString());
+            }
             vars.IsFixedDiscord = false;
             discordView.IsPaneOpen = true;
             btnPinDiscord.IsChecked = false;

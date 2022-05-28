@@ -36,7 +36,7 @@ namespace SDLauncher_UWP.UserControls
             RefreshView();
             view.SelectedItem = r;
         }
-        private void UpdateSource()
+        public void UpdateSource()
         {
             source = new List<ArgTemplate>();
             foreach (var item in vars.JVMArgs)
@@ -45,8 +45,10 @@ namespace SDLauncher_UWP.UserControls
                 var r = new ArgTemplate { Arg = item, Count = count };
                 source.Add(r);
             }
+            btnRemove.IsEnabled = source.Count != 0;
+            RefreshView();
         }
-         private void RefreshView()
+        private void RefreshView()
         {
             view.ItemsSource = null;
             view.ItemsSource = source;
@@ -70,11 +72,11 @@ namespace SDLauncher_UWP.UserControls
 
         private void TextBox_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
-            if(sender is TextBox bx)
+            if (sender is TextBox bx)
             {
                 foreach (var item in source)
                 {
-                    if(item.Count == int.Parse(bx.Tag.ToString()))
+                    if (item.Count == int.Parse(bx.Tag.ToString()))
                     {
                         view.SelectedItem = null;
                         view.SelectedItem = item;
@@ -118,6 +120,11 @@ namespace SDLauncher_UWP.UserControls
                     }
                 }
             }
+        }
+
+        private void view_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            btnRemove.IsEnabled = view.SelectedItems.Count != 0;
         }
     }
     public class ArgTemplate
