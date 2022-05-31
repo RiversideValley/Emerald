@@ -10,12 +10,19 @@
             <winui:XamlControlsResources.MergedDictionaries>
                 <!-- Other app resources here -->
                 <ResourceDictionary>
-                    <FontFamily x:Key="Pixel">/Fonts/Pixeboy.ttf#Pixeboy</FontFamily>
-                    <AcrylicBrush x:Key="AcrylicGlass" BackgroundSource="Backdrop"
-            TintOpacity="0" Windows10version1903:TintLuminosityOpacity="0" TintColor="SkyBlue" FallbackColor="SkyBlue" />
+                    <ResourceDictionary.ThemeDictionaries>
+                    </ResourceDictionary.ThemeDictionaries>
+                    <AcrylicBrush x:Key="AcrylicGlass" BackgroundSource="Backdrop" TintOpacity="0" Windows10version1903:TintLuminosityOpacity="0" TintColor="Black" FallbackColor="Black" />
                     <TransitionCollection x:Key="BaseSDAnimation">
                         <EntranceThemeTransition IsStaggeringEnabled="True"/>
                     </TransitionCollection>
+                    <FontFamily x:Key="Pixel">/Fonts/Pixeboy.ttf#Pixeboy</FontFamily>
+                    <Style x:Key="ChooseButtonSyle" TargetType="Button">
+                        <Setter Property="Background" Value="{ThemeResource ExpanderHeaderBackground}" />
+                        <Setter Property="BorderBrush" Value="{ThemeResource ExpanderHeaderBorderBrush}" />
+                        <Setter Property="BorderThickness" Value="{ThemeResource ExpanderHeaderBorderThickness}" />
+                        <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
+                    </Style>
                 </ResourceDictionary>
                 <ResourceDictionary Source="/Resources/ExpanderStyle.xaml"/>
             </winui:XamlControlsResources.MergedDictionaries>

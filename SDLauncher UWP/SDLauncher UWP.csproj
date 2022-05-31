@@ -130,8 +130,12 @@
     </Compile>
     <Compile Include="Converters\ProcessToXmlConverter.cs" />
     <Compile Include="Converters\StringToVisibility.cs" />
+    <Compile Include="DataTemplates\ServerTemplate.cs" />
     <Compile Include="Dialogs\Login.xaml.cs">
       <DependentUpon>Login.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\ServerChooserDialog.xaml.cs">
+      <DependentUpon>ServerChooserDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Helpers\Account.cs" />
     <Compile Include="Helpers\GlacierClient.cs" />
@@ -139,6 +143,7 @@
     <Compile Include="Helpers\MSLogin.cs" />
     <Compile Include="Helpers\RPCHelper.cs" />
     <Compile Include="Helpers\SDLauncher.cs" />
+    <Compile Include="Helpers\ServerStatusInfo.cs" />
     <Compile Include="Helpers\SettingsDataManager.cs" />
     <Compile Include="Helpers\Util.cs" />
     <Compile Include="Resources\LocalizedStrings.cs" />
@@ -240,6 +245,14 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Page Include="Dialogs\Login.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\ServerChooserDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Resources\AcrylicButton.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

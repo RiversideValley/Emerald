@@ -15,6 +15,28 @@ namespace SDLauncher_UWP.Helpers
 {
     public class Util
     {
+        public static BitmapImage Base64StringToBitmap(string base64String)
+        {
+            byte[] byteBuffer = Convert.FromBase64String(base64String);
+            MemoryStream memoryStream = new MemoryStream(byteBuffer);
+            memoryStream.Position = 0;
+            BitmapImage bitmapImage = new BitmapImage();
+            bitmapImage.SetSource(memoryStream.AsRandomAccessStream());
+
+            memoryStream.Close();
+            memoryStream = null;
+            byteBuffer = null;
+
+            return bitmapImage;
+        }
+
+        public static async Task<string> DownloadText(string url)
+        {
+            var c = new System.Net.WebClient();
+            var s = await c.DownloadStringTaskAsync(new Uri(url));
+            return s;
+        }
+
         public static async Task<BitmapImage> LoadImage(StorageFile file)
         {
             BitmapImage bitmapImage = new BitmapImage();
@@ -25,26 +47,21 @@ namespace SDLauncher_UWP.Helpers
             return bitmapImage;
 
         }
-        public long? GetMemoryMb()
+        public static int? GetMemoryMb()
         {
             try
             {
                 var diagnosticInfo = SystemDiagnosticInfo.GetForCurrentSystem();
                 SystemMemoryUsageReport systemMemoryUsageReport = SystemDiagnosticInfo.GetForCurrentSystem().MemoryUsage.GetReport();
-                //ulong totalMemory = diagnosticInfo.MemoryUsage.GetReport().TotalPhysicalSizeInBytes;
-                ulong totalMemory = systemMemoryUsageReport.TotalPhysicalSizeInBytes;
 
-                return (long?)(totalMemory / 1000000);
+                long memkb = Convert.ToInt64(systemMemoryUsageReport.TotalPhysicalSizeInBytes);
+                //Debug.WriteLine(Convert.ToInt32((memkb / Math.Pow(1024, 3) + 0.5)) + " GB of RAM installed.");
+                return Convert.ToInt32(memkb / Math.Pow(1024, 3) + 0.5);
             }
             catch
             {
                 return null;
             }
-        }
-        public bool CheckInternet()
-        {
-            bool result = System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
-            return result;
         }
     }
     

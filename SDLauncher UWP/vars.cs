@@ -13,7 +13,7 @@ using Windows.UI.Xaml.Media.Imaging;
 namespace SDLauncher_UWP
 {
     public static class vars
-    {
+    {//some of these are not used (outdated)
         public static event EventHandler ThemeUpdated = delegate { };
         public static event EventHandler BackgroundUpdatd = delegate { };
         //App
@@ -29,6 +29,7 @@ namespace SDLauncher_UWP
         public static bool UseOldVerSeletor = false;
         public static bool GameLogs = false;
         public static bool autoLog = false;
+        public static bool AutoClose = false;
         public static int LoadedRam = 1024;
         public static SDLauncher Launcher;
         public static RPCHelper SDRPC;

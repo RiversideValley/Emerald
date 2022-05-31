@@ -68,22 +68,22 @@ namespace SDLauncher_UWP.Helpers
                 case "1.18.2":
                     returns = new OptFineVerReturns(modVer, mcver, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
                     optver = ": " + mcver;
-                    OptFineDownload("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/OptiFine-1.18.2.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
+                    OptFineDownload("https://github.com/SeaDevTeam/SDLauncher/raw/main/OptiFine-1.18.2.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
                     break;
                 case "1.18.1":
                     returns = new OptFineVerReturns(modVer, mcver, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
                     optver = ": " + mcver;
-                    OptFineDownload("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/OptiFine-1.18.1.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
+                    OptFineDownload("https://github.com/SeaDevTeam/SDLauncher/raw/main/OptiFine-1.18.1.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
                     break;
                 case "1.17.1":
                     returns = new OptFineVerReturns(modVer, mcver, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
                     optver = ": " + mcver;
-                    OptFineDownload("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/OptiFine-1.17.1.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
+                    OptFineDownload("https://github.com/SeaDevTeam/SDLauncher/raw/main/OptiFine-1.17.1.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
                     break;
                 case "1.16.5":
                     returns = new OptFineVerReturns(modVer, mcver, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
                     optver = ": " + mcver;
-                    OptFineDownload("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/OptiFine-1.16.5.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
+                    OptFineDownload("https://github.com/SeaDevTeam/SDLauncher/raw/main/OptiFine-1.16.5.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
                     break;
             }
         }
@@ -129,7 +129,7 @@ namespace SDLauncher_UWP.Helpers
                                 await MessageBox.Show("Information", "This will download main OptiFine library, Please click again " + DisplayVer + " (after download and extract the main OptiFine) to install optifine of that version !", MessageBoxButtons.Ok);
                                 optver = " Lib";
                                 returns = new OptFineVerReturns(modVer, mcver, "Version", OptFineVerReturns.Results.DownloadOptiFineLib);
-                                OptFineDownload("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/optifine.zip", "OptiFine.zip", ModType.lib);
+                                OptFineDownload("https://github.com/SeaDevTeam/SDLauncher/raw/main/optifine.zip", "OptiFine.zip", ModType.lib);
                                 UIChangedReqested(true, new EventArgs());
                                 return returns;
                             }

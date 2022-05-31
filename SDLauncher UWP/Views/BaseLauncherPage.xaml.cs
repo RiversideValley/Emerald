@@ -35,6 +35,7 @@ using Windows.ApplicationModel;
 using SDLauncher_UWP.Converters;
 using SDLauncher_UWP.Resources;
 using CmlLib.Utils;
+using SDLauncher_UWP.Dialogs;
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace SDLauncher_UWP
@@ -248,6 +249,10 @@ namespace SDLauncher_UWP
                 await
                   FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync("Admin");
             }
+            if (vars.AutoClose)
+            {
+                Application.Current.Exit();
+            }
         }
         public string ChangeLogsHTMLBody { get; private set; }
         public async void LoadChangeLogs()
@@ -439,6 +444,11 @@ namespace SDLauncher_UWP
         private void Page_ActualThemeChanged(FrameworkElement sender, object args)
         {
 
+        }
+
+        private void btnServer_Click(object sender, RoutedEventArgs e)
+        {
+           _ = new ServerChooserDialog().ShowAsync();
         }
     }
 }
