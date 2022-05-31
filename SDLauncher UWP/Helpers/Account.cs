@@ -37,9 +37,9 @@ namespace SDLauncher_UWP.Helpers
         {
             IsCheckboxVsible = Visibility.Collapsed;
             IsChecked = false;
-            PicList.Add("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/Pictures/steve.png");
-            PicList.Add("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/Pictures/NoobSteve.png");
-            PicList.Add("https://raw.githubusercontent.com/Chaniru22/SDLauncher/main/Pictures/alex.png");
+            PicList.Add("https://github.com/SeaDevTeam/SDLauncher/raw/main/Pictures/steve.png");
+            PicList.Add("https://github.com/SeaDevTeam/SDLauncher/raw/main/Pictures/NoobSteve.png");
+            PicList.Add("https://github.com/SeaDevTeam/SDLauncher/raw/main/Pictures/alex.png");
             if (pic == null)
             {
                 Random r = new Random();

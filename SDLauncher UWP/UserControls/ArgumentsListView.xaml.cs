@@ -51,6 +51,7 @@ namespace SDLauncher_UWP.UserControls
         private void RefreshView()
         {
             view.ItemsSource = null;
+            UpdateMainSource();
             view.ItemsSource = source;
         }
         private void UpdateMainSource()

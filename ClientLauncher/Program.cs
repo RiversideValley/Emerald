@@ -83,6 +83,10 @@ namespace ClientLauncher
             processUtil.OutputReceived += (s, e) => Console.WriteLine(e);
             processUtil.StartWithEvents();
             proc.WaitForExit();
+            if (logs == "True")
+            {
+                Console.ReadLine();
+            }
         }
         static string GetEnviromentVar(string variableName)
         {

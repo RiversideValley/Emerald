@@ -103,7 +103,7 @@
                                     </TransitionCollection>
                                 </Grid.ChildrenTransitions>
                                 <Grid Canvas.ZIndex="10"/>
-                                <Button PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited" Height="200" Width="160" Padding="0,0,0,0" Tag="{x:Bind Count.ToString(),Mode=OneWay}" Click="LoginFromCache" Margin="5,0,0,5" HorizontalAlignment="Left">
+                                <Button Style="{ThemeResource ChooseButtonSyle}" PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited" Height="200" Width="160" Padding="0,0,0,0" Tag="{x:Bind Count.ToString(),Mode=OneWay}" Click="LoginFromCache" Margin="5,0,0,5" HorizontalAlignment="Left">
                                     <Button.ContextFlyout>
                                         <MenuFlyout>
                                             <MenuFlyoutItem Tag="{x:Bind Count.ToString(),Mode=OneWay}" Text="Remove" Click="LogOutFromCache"/>
@@ -112,14 +112,6 @@
                                             <MenuFlyoutItem  Tag="{x:Bind Count.ToString(),Mode=OneWay}" Text="Duplicate" Click="itmDouble_Click"/>
                                         </MenuFlyout>
                                     </Button.ContextFlyout>
-                                    <Button.Style>
-                                        <Style TargetType="Button">
-                                            <Setter Property="Background" Value="{ThemeResource ExpanderHeaderBackground}" />
-                                            <Setter Property="BorderBrush" Value="{ThemeResource ExpanderHeaderBorderBrush}" />
-                                            <Setter Property="BorderThickness" Value="{ThemeResource ExpanderHeaderBorderThickness}" />
-                                            <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
-                                        </Style>
-                                    </Button.Style>
                                     <Grid>
                                         <CheckBox IsChecked="{x:Bind IsChecked,Mode=OneWay}" Tag="{x:Bind Count.ToString(),Mode=OneWay}" Canvas.ZIndex="3" Click="chkbxSelectAcc_Click" Visibility="{x:Bind IsCheckboxVsible,Mode=OneWay}" Margin="5,-6,0,0" MinWidth="0" VerticalAlignment="Top" HorizontalAlignment="Left"/>
                                         <Grid Margin="10" Padding="20,10">

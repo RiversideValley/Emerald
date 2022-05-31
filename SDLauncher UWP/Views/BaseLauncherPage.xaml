@@ -9,7 +9,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
     mc:Ignorable="d">
-
+    <Page.Resources>
+        <ResourceDictionary Source="/Resources/AcrylicButton.xaml"/>
+    </Page.Resources>
     <Grid>
         
         <Grid.ChildrenTransitions>
@@ -106,7 +108,7 @@
                         </MenuFlyout>
                     </winui:DropDownButton.Flyout>
                 </winui:DropDownButton>
-                <Button x:Name="btnServer" Content="Servers" Margin="0,0,5,0"/>
+                <Button CornerRadius="5" Click="btnServer_Click" x:Name="btnServer" Content="Servers" Margin="0,0,5,0"/>
                 <Button Style="{ThemeResource AccentButtonStyle}" Click="BtnLaunch_Click" Margin="0,0,5,0" x:Name="btnLaunch" Content="Launch"/>
             </StackPanel>
         </Grid>

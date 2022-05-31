@@ -79,45 +79,13 @@ namespace SDLauncher_UWP
             {
                 btnPinDiscord_Click(null, null);
             }
-            var computerMemory = new Util().GetMemoryMb();
+            var computerMemory = Util.GetMemoryMb() * 1024;
             if (computerMemory != null)
             {
-                double max = (double)computerMemory;
-                if (max < 1024)
-                {
-                    max = 1024;
-                }
-                else if (max > 4096 && max < 6000)
-                {
-                    max = 4096;
-                }
-                else if (max > 6000 && max < 12000)
-                {
-                    max = 8192;
-                }
-                else if (max > 12000 && max < 17000)
-                {
-                    max = 16384;
-                }
-                else if (max > 17000 && max < 21000)
-                {
-                    max = 20480;
-                }
-                else if (max > 21000 && max < 25000)
-                {
-                    max = 24576;
-                }
-                else if (max > 25000 && max < 29000)
-                {
-                    max = 28672;
-                }
-                else if (max > 29000 && max < 33000)
-                {
-                    max = 32768;
-                }
-                double min = max / 10;
+                int max = (int)computerMemory;
+                int min = max / 10;
                 double slidermin = (long)(max / 7);
-                vars.MinRam = (int)Math.Floor(min);
+                vars.MinRam = min;
                 if (slidermin < 1024 && slidermin > 0)
                 {
                     if (slidermin >= 512)
@@ -130,8 +98,8 @@ namespace SDLauncher_UWP
                     slidermin = 1024;
                 }
                 vars.SliderRamMin = (long)slidermin;
-                vars.SliderRamMax = (long)max;
-                vars.SliderRamValue = (long)(max / 2);
+                vars.SliderRamMax = max;
+                vars.SliderRamValue = max / 2;
                 settingsPage = new SettingsPage();
                 if (vars.LoadedRam != 0)
                 {

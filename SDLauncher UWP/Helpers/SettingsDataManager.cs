@@ -99,6 +99,7 @@ namespace SDLauncher_UWP.Helpers
                     writer.WriteEndElement();
                     writer.WriteEndElement();
                     writer.WriteStartElement("App");
+                    writer.WriteAttributeString("AutoClose", vars.AutoClose.ToString());
                     writer.WriteComment("\n    The theme and background of the app");
                     writer.WriteStartElement("Appearance");
                     writer.WriteAttributeString("CustomBackgroundImagePath", vars.BackgroundImagePath.ToString());
@@ -164,6 +165,7 @@ namespace SDLauncher_UWP.Helpers
             string jvmFullScreen;
             string isCustombg;
             string BGPath;
+            string autoClose;
             using (IRandomAccessStream stream = await storagefile.OpenAsync(FileAccessMode.Read))
             {
                 Stream s = stream.AsStreamForRead();
@@ -186,6 +188,7 @@ namespace SDLauncher_UWP.Helpers
                     jvmFullScreen = reader.GetAttribute("FullScreen");
                     gamelogs = reader.GetAttribute("GameLogs");
                     reader.ReadToFollowing("App");
+                    autoClose = reader.GetAttribute("AutoClose");
                     reader.ReadToFollowing("Appearance");
                     theme = reader.GetAttribute("Theme");
                     isCustombg = reader.GetAttribute("UseCustomBackgroundImage");
@@ -305,90 +308,24 @@ namespace SDLauncher_UWP.Helpers
             {
                 vars.Theme = ElementTheme.Light;
             }
-            else if (theme == "Dark")
-            {
-                vars.Theme = ElementTheme.Dark;
-            }
             else
             {
-                vars.Theme = ElementTheme.Default;
+                vars.Theme = theme == "Dark" ? (ElementTheme?)ElementTheme.Dark : (ElementTheme?)ElementTheme.Default;
             }
             if (Window.Current.Content is FrameworkElement fe)
             {
                 fe.RequestedTheme = (ElementTheme)vars.Theme;
             }
-            if (tips == "True")
-            {
-                vars.ShowTips = true;
-            }
-            else
-            {
-                vars.ShowTips = false;
-            }
-            if (hashcheck == "True")
-            {
-                vars.HashCheck = true;
-            }
-            else
-            {
-                vars.HashCheck = false;
-            }
-            if (oldVer == "True")
-            {
-                vars.UseOldVerSeletor = true;
-            }
-            else
-            {
-                vars.UseOldVerSeletor = false;
-            }
-            if (isCustombg == "True")
-            {
-                vars.CustomBackground = true;
-            }
-            else
-            {
-                vars.CustomBackground = false;
-            }
-            if (gamelogs == "True")
-            {
-                vars.GameLogs = true;
-            }
-            else
-            {
-                vars.GameLogs = false;
-            }
-            if (assetscheck == "True")
-            {
-                vars.AssestsCheck = true;
-            }
-            else
-            {
-                vars.AssestsCheck = false;
-            }
-            if (autolog == "True")
-            {
-                vars.autoLog = true;
-            }
-            else
-            {
-                vars.autoLog = false;
-            }
-            if (fixDiscord == "True")
-            {
-                vars.IsFixedDiscord = true;
-            }
-            else
-            {
-                vars.IsFixedDiscord = false;
-            }
-            if (jvmFullScreen == "True")
-            {
-                vars.FullScreen = true;
-            }
-            else
-            {
-                vars.FullScreen = false;
-            }
+            vars.ShowTips = tips == "True";
+            vars.HashCheck = hashcheck == "True";
+            vars.UseOldVerSeletor = oldVer == "True";
+            vars.AutoClose = autoClose == "True";
+            vars.CustomBackground = isCustombg == "True";
+            vars.GameLogs = gamelogs == "True";
+            vars.AssestsCheck = assetscheck == "True";
+            vars.autoLog = autolog == "True";
+            vars.IsFixedDiscord = fixDiscord == "True";
+            vars.FullScreen = jvmFullScreen == "True";
             if (vars.autoLog)
             {
                 foreach (var item in vars.Accounts)

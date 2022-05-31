@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
+    d:Height="2000"
     Loaded="Page_Loaded"
     xmlns:NoobUI="using:SDLauncher_UWP.UserControls"
     xmlns:winui="using:Microsoft.UI.Xaml.Controls" xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals" xmlns:Windows10version1903="http://schemas.microsoft.com/winfx/2006/xaml/presentation?IsApiContractPresent(Windows.Foundation.UniversalApiContract, 8)">
@@ -77,9 +78,9 @@
                         <NoobUI:Expander  Icon="&#xec7a;" Margin="0,5,0,0" Title="Other" Description="Refresh versions, Kill Minecraft, Options.txt">
                             <NoobUI:Expander.Controls>
                                 <StackPanel>
-                                    <Button Margin="0,0,0,5" Content="Options.txt"/>
+                                    <Button Margin="0,0,0,5" IsEnabled="False" Content="Options.txt"/>
                                     <Button Margin="0,0,0,5" x:Name="btnRefreshVers" Click="btnRefreshVers_Click" Content="Refresh Versions"/>
-                                    <Button Content="Kill Minecraft"/>
+                                    <Button IsEnabled="False" Content="Kill Minecraft"/>
                                 </StackPanel>
                             </NoobUI:Expander.Controls>
                         </NoobUI:Expander>
@@ -162,7 +163,7 @@
                         </NoobUI:SettingsCard>
                         <NoobUI:SettingsCard Icon="&#xe8f2;" Description="Show your own status on your Discord profile with Discord RPC" Margin="0,5,0,0" Title="Show Discord activity">
                             <NoobUI:SettingsCard.Controls>
-                                <ToggleSwitch x:Name="tglRPC" Toggled="tglRPC_Toggled" MinWidth="100" HorizontalAlignment="Right"/>
+                                <ToggleSwitch IsEnabled="False" x:Name="tglRPC" Toggled="tglRPC_Toggled" MinWidth="100" HorizontalAlignment="Right"/>
                             </NoobUI:SettingsCard.Controls>
                         </NoobUI:SettingsCard>
                         <NoobUI:SettingsCard Margin="0,5,0,0" Description="For developers" Icon="&#xE946;" Title="Show game logs when minecraft starts">
@@ -172,7 +173,7 @@
                         </NoobUI:SettingsCard>
                         <NoobUI:SettingsCard  Icon="&#xe8bb;" Description="When this turned on the launcher will close itself when minecraft client starts" Margin="0,5,0,0" Title="Automatically close when minecraft starts">
                             <NoobUI:SettingsCard.Controls>
-                                <ToggleSwitch  MinWidth="100" HorizontalAlignment="Right"/>
+                                <ToggleSwitch x:Name="tglAutoClose" Toggled="tglAutoClose_Toggled" MinWidth="100" HorizontalAlignment="Right"/>
                             </NoobUI:SettingsCard.Controls>
                         </NoobUI:SettingsCard>
                         <NoobUI:SettingsCard Description="When this turned on, the app wull automatically log in with the last account you used" Icon="&#xec7a;" Margin="0,5,0,0" Title="Autologin from past account at startup">

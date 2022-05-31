@@ -94,31 +94,32 @@ namespace SDLauncher_UWP.Views
 
         public void btnAutoRAM_Click(object sender, RoutedEventArgs e)
         {
-            var half = SliderRam.Maximum / 2;
-            if (half > 3000 && half < 6000)
-            {
-                SetRam(4096);
-            }
-            else if (half > 1000 && half < 3000)
-            {
-                SetRam(2048);
-            }
-            else if (half > 6000 && half < 12000)
-            {
-                SetRam(8192);
-            }
-            else if (half > 12000 && half < 17000)
-            {
-                SetRam(16384);
-            }
-            else if (half > 17000)
-            {
-                SetRam((long)half);
-            }
-            else if (half < 1000)
-            {
-                SetRam(512);
-            }
+            var half = vars.SliderRamMax / 2;
+            SetRam(half);
+            //if (half > 3000 && half < 6000)
+            //{
+            //    SetRam(4096);
+            //}
+            //else if (half > 1000 && half < 3000)
+            //{
+            //    SetRam(2048);
+            //}
+            //else if (half > 6000 && half < 12000)
+            //{
+            //    SetRam(8192);
+            //}
+            //else if (half > 12000 && half < 17000)
+            //{
+            //    SetRam(16384);
+            //}
+            //else if (half > 17000)
+            //{
+            //    SetRam((long)half);
+            //}
+            //else if (half < 1000)
+            //{
+            //    SetRam(512);
+            //}
         }
         int pageCount = 0;
         private void Page_Loaded(object sender, RoutedEventArgs e)
@@ -138,6 +139,7 @@ namespace SDLauncher_UWP.Views
             }
             cbAsset.IsChecked = vars.AssestsCheck;
             chkbxFullScreen.IsChecked = vars.FullScreen;
+            tglAutoClose.IsOn = vars.AutoClose;
             if(vars.JVMScreenWidth != 0 && vars.JVMScreenHeight != 0)
             {
                 nbrbxHeight.Value = vars.JVMScreenHeight;
@@ -386,7 +388,6 @@ namespace SDLauncher_UWP.Views
         {
             if ((string)cmbxBG.SelectedItem == "Browse")
             {
-
                 FileOpenPicker fop = new FileOpenPicker();
                 fop.SuggestedStartLocation = PickerLocationId.Desktop;
                 fop.ViewMode = PickerViewMode.Thumbnail;
@@ -412,7 +413,14 @@ namespace SDLauncher_UWP.Views
                 }
                 else
                 {
-                    cmbxBG.SelectedItem = e.RemovedItems[0];
+                    if (e.RemovedItems.Count > 0)
+                    {
+                        cmbxBG.SelectedItem = e.RemovedItems[0];
+                    }
+                    else
+                    {
+                        cmbxBG.SelectedIndex = 0;
+                    }
                 }
             }
             else if ((string)cmbxBG.SelectedItem == "None")
@@ -446,6 +454,11 @@ namespace SDLauncher_UWP.Views
                     }
                 }
             }
+        }
+
+        private void tglAutoClose_Toggled(object sender, RoutedEventArgs e)
+        {
+            vars.AutoClose = tglAutoClose.IsOn;
         }
     }
 }
