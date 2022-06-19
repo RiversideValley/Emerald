@@ -22,6 +22,7 @@ The image is from version 0.3.6-uwp
 <h3> UWP version</h3>
 
 - [x] Microsoft Login
+- [ ] SD Store (still making)
 - [ ] Mojang Login (Expired)
 - [x] Offline Login
 - [x] Save Accounts
@@ -31,7 +32,7 @@ The image is from version 0.3.6-uwp
 - [x] Download/Install Minecraft any versions including snapshots
 - [x] Launch Minecraft
 - [ ] Forge (trying to make)
-- [ ] Fabric (developing)
+- [x] Fabric
 - [x] Optifine
 
 <h3> WPF version</h3>
