@@ -35,11 +35,16 @@ using Windows.ApplicationModel;
 using SDLauncher_UWP.Converters;
 using SDLauncher_UWP.Resources;
 using CmlLib.Utils;
+using MojangAPI;
 using SDLauncher_UWP.Dialogs;
+using SDLauncher_UWP.DataTemplates;
+using Microsoft.Toolkit.Uwp.Notifications;
+using Windows.UI.Notifications;
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace SDLauncher_UWP
 {
+    
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
@@ -48,6 +53,8 @@ namespace SDLauncher_UWP
     public sealed partial class BaseLauncherPage : Page
     {
         public static string launchVer { get; set; }
+        public ChangeLogsPage LogsPage { get; set; }
+        public StorePage StorePage { get; set; }
         public event EventHandler<SDLauncher.UIChangeRequestedEventArgs> UIchanged = delegate { };
         public BaseLauncherPage()
         {
@@ -57,11 +64,11 @@ namespace SDLauncher_UWP
             timer.Tick += Timer_Tick;
             timer.Start();
             vars.ThemeUpdated += Vars_ThemeUpdated;
+            var s = new ServerTemplate("mc.hypixel.net", 25565);
         }
 
         private void Vars_ThemeUpdated(object sender, EventArgs e)
         {
-
             if (vars.Theme != null)
             {
                 if (Window.Current.Content is FrameworkElement fe)
@@ -77,21 +84,39 @@ namespace SDLauncher_UWP
 
                 }
             }
-            UpdateLogs();
         }
 
         public async void InitializeLauncher()
         {
             UI(false);
+            int taskID = LittleHelp.AddTask("Initialize Launcher Core");
+            navitmStore.IsEnabled = false;
             vars.Launcher.UIChangeRequested += Launcher_UIChangeRequested;
             vars.Launcher.VersionsRefreshed += Launcher_VersionsRefreshed;
             vars.Launcher.StatusChanged += Launcher_StatusChanged;
             vars.Launcher.FileOrProgressChanged += Launcher_FileOrProgressChanged;
             vars.Launcher.OptiFine.DownloadCompleted += OptiFine_DownloadCompleted;
             vars.Launcher.GlacierClient.DownloadCompleted += GlacierClient_DownloadCompleted;
+            vars.Launcher.VersionLoaderChanged += Launcher_VersionLoaderChanged;
+            LogsPage = new ChangeLogsPage();
+            navViewFrame.Content = LogsPage;
+            LittleHelp.CompleteTask(taskID);
             await vars.Launcher.RefreshVersions();
-            LoadChangeLogs();
             UI(true);
+            if (await vars.Launcher.LoadStore() == true)
+            {
+                navitmStore.IsEnabled = true;
+            }
+            await vars.Launcher.LoadChangeLogs();
+        }
+
+        private void Launcher_VersionLoaderChanged(object sender, EventArgs e)
+        {
+            if (vars.Launcher.UseOfflineLoader)
+            {
+                btnMCVer.Visibility = Visibility.Collapsed;
+                cmbxVer.Visibility = Visibility.Visible;
+            }
         }
 
         private async void GlacierClient_DownloadCompleted(object sender, EventArgs e)
@@ -185,13 +210,21 @@ namespace SDLauncher_UWP
                     UI(true);
                     BtnLaunch_Click(null, null);
                 }
+                UI(true);
                 return;
             }
             if (launchVer == null)
             {
                 UI(true);
                 _ = await MessageBox.Show(Localized.Error, Localized.BegVer, MessageBoxButtons.Ok);
-                _ = cmbxVer.Focus(FocusState.Keyboard);
+                if(btnMCVer.Visibility == Visibility.Visible)
+                {
+                    btnMCVer.Focus(FocusState.Keyboard);
+                }
+                else
+                {
+                    cmbxVer.Focus(FocusState.Keyboard);
+                }
                 return;
             }
             if (vars.MinRam == 0) { _ = await MessageBox.Show(Localized.Error, Localized.WrongRAM, MessageBoxButtons.Ok); return; }
@@ -214,7 +247,10 @@ namespace SDLauncher_UWP
                 }
                 l.FullScreen = vars.FullScreen;
                 l.JVMArguments = vars.JVMArgs.ToArray();
+                vars.Launcher.CreateToast();
+                int taskID = LittleHelp.AddTask("Launch Minecraft");
                 var process = await vars.Launcher.Launcher.CreateProcessAsync(launchVer, l);
+                LittleHelp.CompleteTask(taskID);
                 StartProcess(process);
             }
             catch (WebException)
@@ -243,53 +279,56 @@ namespace SDLauncher_UWP
         private async void StartProcess(Process process)
         {
             await ProcessToXmlConverter.Convert(process, ApplicationData.Current.LocalFolder, "StartInfo.xml");
-            if (ApiInformation.IsApiContractPresent(
-                 "Windows.ApplicationModel.FullTrustAppContract", 1, 0))
+            if (ApiInformation.IsApiContractPresent("Windows.ApplicationModel.FullTrustAppContract", 1, 0))
             {
-                await
-                  FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync("Admin");
+                await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync("User");
             }
+            CreateToast("Done!", "Successfully launcher minecraft version \"" + launchVer + "\"", true);
             if (vars.AutoClose)
             {
                 Application.Current.Exit();
             }
         }
-        public string ChangeLogsHTMLBody { get; private set; }
-        public async void LoadChangeLogs()
+        private void CreateToast(string Title,string description,bool clearBefore)
         {
-            string html = "";
-            try
+            if (clearBefore)
             {
-                html += await vars.Launcher.GetChangelog(vars.Launcher.Launcher.Versions.LatestSnapshotVersion.Name);
-                if (vars.Launcher.Launcher.Versions.LatestReleaseVersion.Name != "1.18.2")
+                ToastNotificationManagerCompat.History.Clear();
+            }
+            var toastContent = new ToastContent()
+            {
+                Visual = new ToastVisual()
                 {
-                    html += await vars.Launcher.GetChangelog(vars.Launcher.Launcher.Versions.LatestReleaseVersion.Name);
+                    BindingGeneric = new ToastBindingGeneric()
+                    {
+                        Children =
+            {
+                new AdaptiveText()
+                {
+                    Text = Title
+                },
+                new AdaptiveText()
+                {
+                    Text = description
                 }
-            }catch { }
-            html += await vars.Launcher.GetChangelog("1.18.2");
-            html += await vars.Launcher.GetChangelog("1.18.1");
-            html += await vars.Launcher.GetChangelog("1.18");
-            html += await vars.Launcher.GetChangelog("1.17.1");
-            html += await vars.Launcher.GetChangelog("1.16.5");
-            ChangeLogsHTMLBody = html;
-            UpdateLogs();
-        }
-        public void UpdateLogs()
-        {
-            string finalHTML = "";
-            if(this.ActualTheme == ElementTheme.Dark)
-            {
-                finalHTML = "<html>\n<head>\n<style>\np,h1,li,span,body,html {\ncolor: white;\n}\n</style>\n</head><body>" + ChangeLogsHTMLBody + "</body></html>";
             }
-            else
-            {
-                finalHTML = "<html>\n<head>\n<style>\np,h1,li,span,body,html {\ncolor: black;\n}\n</style>\n</head><body>" + ChangeLogsHTMLBody + "</body></html>";
-            }
-            wvLogs.NavigateToString("");
-            wvLogs.NavigateToString(finalHTML);
+                    }
+                },
+                Launch = "action=ToastClicked"
+            };
+
+            // Create the toast notification
+            var toastNotif = new ToastNotification(toastContent.GetXml());
+
+            // And send the notification
+            ToastNotificationManager.CreateToastNotifier().Show(toastNotif);
         }
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            LogsPage.UpdateLogs();
+            if (vars.Launcher.UseOfflineLoader)
+                return;
+
             if (vars.UseOldVerSeletor)
             {
                 btnMCVer.Visibility = Visibility.Collapsed;
@@ -323,7 +362,7 @@ namespace SDLauncher_UWP
             {
                 flyVer.Hide();
             }
-            if (sender is MenuFlyoutItem mitem && !vars.UseOldVerSeletor)
+            if (sender is MenuFlyoutItem mitem && !vars.UseOldVerSeletor && !vars.Launcher.UseOfflineLoader)
             {
                 VersionCheck(mitem);
             }
@@ -356,6 +395,10 @@ namespace SDLauncher_UWP
                     launchVer = vars.Launcher.Launcher.Versions.LatestReleaseVersion.Name;
                     btnMCVer.Content = launchVer;
                     break;
+                case "Latest Fabric":
+                    FabricResponse(await vars.Launcher.CheckFabric(vars.Launcher.Launcher.Versions.LatestReleaseVersion.Name, SearchFabric(vars.Launcher.Launcher.Versions.LatestReleaseVersion.Name), item.Text));
+                    btnMCVer.Content = "Fabric " + vars.Launcher.Launcher.Versions.LatestReleaseVersion.Name;
+                    break;
                 case "Latest Snapshot":
                     launchVer = vars.Launcher.Launcher.Versions?.LatestSnapshotVersion?.Name;
                     btnMCVer.Content = launchVer;
@@ -372,14 +415,21 @@ namespace SDLauncher_UWP
                 case "OptiFine 1.16.5":
                     OptiFineFinish(await vars.Launcher.OptiFine.CheckOptiFine("1.16.5", "OptiFine 1.16.5", displayName));
                     break;
+
+                case "Fabric 1.19":
+                    FabricResponse(await vars.Launcher.CheckFabric("1.19", SearchFabric("1.19"), item.Text));
+                    break;
+                case "Fabric 1.18.2":
+                    FabricResponse(await vars.Launcher.CheckFabric("1.18.2", SearchFabric("1.18.2"), item.Text));
+                    break;
                 case "Fabric 1.18.1":
-                    FabricResponse(await vars.Launcher.CheckFabric("1.18.1", "fabric-loader-0.14.6-1.18.1", item.Text));
+                    FabricResponse(await vars.Launcher.CheckFabric("1.18.1", SearchFabric("1.18.1"), item.Text));
                     break;
                 case "Fabric 1.17.1":
-                    FabricResponse(await vars.Launcher.CheckFabric("1.17.1", "fabric-loader-0.14.6-1.17.1", item.Text));
+                    FabricResponse(await vars.Launcher.CheckFabric("1.17.1", SearchFabric("1.17.1"), item.Text));
                     break;
                 case "Fabric 1.16.5":
-                    FabricResponse(await vars.Launcher.CheckFabric("1.16.5", "fabric-loader-0.14.6-1.16.5", item.Text));
+                    FabricResponse(await vars.Launcher.CheckFabric("1.16.5", SearchFabric("1.16.5"), item.Text));
                     break;
                 default:
                     btnMCVer.Content = item.Text;
@@ -388,6 +438,18 @@ namespace SDLauncher_UWP
             }
         }
         //
+        public string SearchFabric(string ver)
+        {
+            var item = from t in vars.Launcher.FabricMCVersions where t.Name.Contains(ver) select t;
+            if (item != null)
+            {
+                return item.First().Name;
+            }
+            else
+            {
+                return "";
+            }
+        }
         private void FabricResponse(SDLauncher.FabricResponsoe responsoe)
         {
             launchVer = responsoe.LaunchVer;
@@ -435,7 +497,7 @@ namespace SDLauncher_UWP
 
         private void cmbxVer_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (vars.UseOldVerSeletor)
+            if (vars.UseOldVerSeletor || vars.Launcher.UseOfflineLoader)
             {
                 launchVer = cmbxVer.SelectedItem.ToString();
             }
@@ -443,12 +505,26 @@ namespace SDLauncher_UWP
 
         private void Page_ActualThemeChanged(FrameworkElement sender, object args)
         {
-
         }
 
         private void btnServer_Click(object sender, RoutedEventArgs e)
         {
            _ = new ServerChooserDialog().ShowAsync();
+        }
+
+        private void navView_ItemInvoked(Microsoft.UI.Xaml.Controls.NavigationView sender, Microsoft.UI.Xaml.Controls.NavigationViewItemInvokedEventArgs args)
+        {
+            if(navView.SelectedItem is Microsoft.UI.Xaml.Controls.NavigationViewItem itm)
+            {
+                if(itm.Content.ToString() == "ChangeLogs")
+                {
+                    navViewFrame.Content = LogsPage;
+                }
+                else
+                {
+                    navViewFrame.Navigate(typeof(StorePage));
+                }
+            }
         }
     }
 }

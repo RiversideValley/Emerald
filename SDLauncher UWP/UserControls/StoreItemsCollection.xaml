@@ -1,0 +1,115 @@
+﻿<UserControl
+    x:Class="SDLauncher_UWP.UserControls.StoreItemsCollection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:SDLauncher_UWP.UserControls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400"
+    xmlns:ToolKit="using:Microsoft.Toolkit.Uwp.UI.Controls"
+    xmlns:animations="using:Microsoft.Toolkit.Uwp.UI.Animations" xmlns:helpers="using:SDLauncher_UWP.Helpers" xmlns:winui="using:Microsoft.UI.Xaml.Controls" xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals">
+
+    <Grid>
+        <Grid.ChildrenTransitions>
+            <TransitionCollection>
+                <AddDeleteThemeTransition/>
+            </TransitionCollection>
+        </Grid.ChildrenTransitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid Margin="5,0,5,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox KeyDown="txtSearch_KeyDown" VerticalAlignment="Center" Grid.Column="0" PlaceholderText="Search" x:Name="txtSearch" TextChanged="txtSearch_TextChanged" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <winui:DropDownButton Content="Sort By">
+                        <winui:DropDownButton.Flyout>
+                            <MenuFlyout>
+                                <winui:RadioMenuFlyoutItem Text="Relevance"/>
+                                <winui:RadioMenuFlyoutItem Text="Downloads"/>
+                                <winui:RadioMenuFlyoutItem Text="Follows"/>
+                                <winui:RadioMenuFlyoutItem Text="Updated"/>
+                            </MenuFlyout>
+                        </winui:DropDownButton.Flyout>
+                    </winui:DropDownButton>
+                    <winui:DropDownButton Content="Categories">
+                        <winui:DropDownButton.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="All"/>
+                                <MenuFlyoutSeparator/>
+                                <ToggleMenuFlyoutItem Text="Adventure"/>
+                                <ToggleMenuFlyoutItem Text="Cursed"/>
+                                <ToggleMenuFlyoutItem Text="Decoration"/>
+                                <ToggleMenuFlyoutItem Text="Equipment"/>
+                                <ToggleMenuFlyoutItem Text="Food"/>
+                                <ToggleMenuFlyoutItem Text="Library"/>
+                                <ToggleMenuFlyoutItem Text="Magic"/>
+                                <ToggleMenuFlyoutItem Text="Misc"/>
+                                <ToggleMenuFlyoutItem Text="Optimization"/>
+                                <ToggleMenuFlyoutItem Text="Storage"/>
+                                <ToggleMenuFlyoutItem Text="Technology"/>
+                                <ToggleMenuFlyoutItem Text="Utility"/>
+                                <ToggleMenuFlyoutItem Text="Worldgen"/>
+                            </MenuFlyout>
+                        </winui:DropDownButton.Flyout>
+                    </winui:DropDownButton>
+                </StackPanel>
+            </Grid>
+        </Grid>
+        <ToolKit:AdaptiveGridView Padding="0,0,15,0" Grid.Row="1" BorderThickness="0" Background="Transparent" x:Name="storeItemsGrid" StretchContentForSingleRow="False"
+                                   OneRowModeEnabled="False"
+                                   DesiredWidth="400"
+                                   SelectionMode="None"
+                                   IsItemClickEnabled="False"
+                  animations:ItemsReorderAnimation.Duration="00:00:00.5000000">
+            <ToolKit:AdaptiveGridView.ItemTemplate>
+                <DataTemplate x:DataType="helpers:StoreItem">
+                    <Button Tag="{x:Bind ID}" Click="Button_Click" HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" MinWidth="0" Height="130">
+                        <Button.Resources>
+                            <ResourceDictionary Source="/Resources/AcrylicButton.xaml"/>
+                        </Button.Resources>
+                        <Grid HorizontalAlignment="Stretch">
+                            <Grid HorizontalAlignment="Left">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="85"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="0" Width="85" CornerRadius="10">
+                                    <Image Stretch="UniformToFill" Margin="0,10" HorizontalAlignment="Left" Source="{x:Bind Icon}" Width="75" Height="75"/>
+                                </Grid>
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="auto"/>
+                                    </Grid.RowDefinitions>
+                                    <StackPanel Orientation="Vertical" Grid.Row="0">
+                                        <TextBlock FontWeight="SemiBold" FontSize="20" TextTrimming="CharacterEllipsis" Text="{x:Bind Name}"/>
+                                        <TextBlock VerticalAlignment="Bottom" Style="{ThemeResource CaptionTextBlockStyle}">
+                                            By <Run  Text="{x:Bind Author}" />
+                                        </TextBlock>
+                                        <TextBlock VerticalAlignment="Bottom" Style="{ThemeResource CaptionTextBlockStyle}">
+                                            <Run Text="&#xe896;" FontFamily="{ThemeResource SymbolThemeFontFamily}"/> 
+                                            <Run Text="{x:Bind TotalDownloads.ToString()}"/> 
+                                            Downloads | 
+                                            <Run Text="{x:Bind Followers.ToString()}"/> 
+                                            Followers
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <TextBlock MaxHeight="65" TextWrapping="WrapWholeWords" TextTrimming="CharacterEllipsis" Style="{ThemeResource CaptionTextBlockStyle}" Grid.Row="1" Text="{x:Bind Description}"/>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </Button>
+                </DataTemplate>
+            </ToolKit:AdaptiveGridView.ItemTemplate>
+        </ToolKit:AdaptiveGridView>
+
+    </Grid>
+</UserControl>

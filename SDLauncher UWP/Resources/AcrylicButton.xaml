@@ -6,10 +6,14 @@
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Dark">
             <AcrylicBrush x:Key="AcrylicHover" TintColor="Black" TintOpacity="0.3" BackgroundSource="Backdrop"/>
-            <AcrylicBrush x:Key="ButtonAcrylicaPressed" BackgroundSource="Backdrop" TintOpacity="0.3" Windows10version1903:TintLuminosityOpacity="0.2" TintColor="Black" FallbackColor="Black" />
+            
+            <AcrylicBrush x:Key="ButtonAcrylicaPressed" BackgroundSource="Backdrop" TintOpacity="0.3" Windows10version1903:TintLuminosityOpacity="0.2" TintColor="White" FallbackColor="White" />
             <StaticResource x:Key="ButtonBackground" ResourceKey="AcrylicInAppFillColorDefaultBrush"/>
+            <StaticResource x:Key="ComboBoxBackground" ResourceKey="AcrylicInAppFillColorDefaultBrush"/>
             <StaticResource x:Key="ButtonBackgroundPointerOver" ResourceKey="AcrylicHover"/>
+            <StaticResource x:Key="ComboBoxBackgroundPointerOver" ResourceKey="AcrylicHover"/>
             <StaticResource x:Key="ButtonBackgroundPressed" ResourceKey="ButtonAcrylicaPressed"/>
+            <StaticResource x:Key="ComboBoxBackgroundPressed" ResourceKey="ButtonAcrylicaPressed"/>
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="Light">
@@ -17,8 +21,11 @@
 
             <AcrylicBrush x:Key="ButtonAcrylicaPressed" BackgroundSource="Backdrop" TintOpacity="0.3" Windows10version1903:TintLuminosityOpacity="0.2" TintColor="White" FallbackColor="White" />
             <StaticResource x:Key="ButtonBackground" ResourceKey="AcrylicInAppFillColorDefaultBrush"/>
+            <StaticResource x:Key="ComboBoxBackground" ResourceKey="AcrylicInAppFillColorDefaultBrush"/>
             <StaticResource x:Key="ButtonBackgroundPointerOver" ResourceKey="AcrylicHover"/>
+            <StaticResource x:Key="ComboBoxBackgroundPointerOver" ResourceKey="AcrylicHover"/>
             <StaticResource x:Key="ButtonBackgroundPressed" ResourceKey="ButtonAcrylicaPressed"/>
+            <StaticResource x:Key="ComboBoxBackgroundPressed" ResourceKey="ButtonAcrylicaPressed"/>
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
     

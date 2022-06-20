@@ -56,9 +56,11 @@ namespace SDLauncher_UWP.Helpers
                 }
             }
         }
+        int taskID;
 
         public void DownloadOptiFineVer(string mcver, string modVer, string DisplayVer)
         {
+            taskID = LittleHelp.AddTask("Download OptiFine");
             MCver = mcver;
             Modver = modVer;
             Displayver = DisplayVer;
@@ -253,6 +255,7 @@ namespace SDLauncher_UWP.Helpers
             StatusChanged(Localized.Ready, new EventArgs());
             UIChangedReqested(true, new EventArgs());
             DownloadCompleted(true, new EventArgs());
+            LittleHelp.CompleteTask(taskID);
         }
         
 

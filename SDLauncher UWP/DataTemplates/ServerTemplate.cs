@@ -31,6 +31,9 @@ namespace SDLauncher_UWP.DataTemplates
         //favicon
         private string favicon;
         public string Favicon { get => favicon; private set { favicon = value; OnPropertyChanged(); } }
+        //MOTD
+        private string motd;
+        public string MOTD { get => motd; private set { motd = value; OnPropertyChanged(); } }
 
         public ServerTemplate(string server, int port)
         {
@@ -43,15 +46,14 @@ namespace SDLauncher_UWP.DataTemplates
         {
             try
             {
-                var status = ServerStatusJSONConverter.Convert(await Util.DownloadText("https://api.mcstatus.io/status/java/" + Server.Trim() + ":" + Port.ToString()));
+                var status = JSONConverter.ConvertToServerStatus(await Util.DownloadText("https://api.mcstatus.io/status/java/" + Server.Trim() + ":" + Port.ToString()));
                 if (status.online)
                 {
-                    server = status.host;
-                    port = status.port;
+                    Server = status.host;
+                    Port = status.port;
                     MaxPlayers = status.response.players.max;
                     Versions = status.response.version.name;
                     OnlinePlayers = status.response.players.online;
-                    OnPropertyChanged();
                     Favicon = status.response.favicon;
                 }
             }

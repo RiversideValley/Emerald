@@ -298,7 +298,14 @@ namespace SDLauncher_UWP.Helpers
             }
             vars.JVMScreenWidth = jvmwidth;
             vars.JVMScreenHeight = jvmheight;
-            vars.BackgroundImagePath = BGPath;
+            if(BGPath != null)
+            {
+                vars.BackgroundImagePath = BGPath;
+            }
+            else
+            {
+                vars.BackgroundImagePath = "";
+            }
             vars.LoadedRam = int.Parse(ram);
             if (theme == "Default")
             {
@@ -310,7 +317,7 @@ namespace SDLauncher_UWP.Helpers
             }
             else
             {
-                vars.Theme = theme == "Dark" ? (ElementTheme?)ElementTheme.Dark : (ElementTheme?)ElementTheme.Default;
+                vars.Theme = theme == "Dark" ? ElementTheme.Dark : ElementTheme.Default;
             }
             if (Window.Current.Content is FrameworkElement fe)
             {

@@ -11,7 +11,7 @@
     <AssemblyName>SDLauncher UWP</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.19041.0</TargetPlatformVersion>
+    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.22000.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.18362.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
@@ -128,6 +128,7 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Converters\ListToBulletsConverter.cs" />
     <Compile Include="Converters\ProcessToXmlConverter.cs" />
     <Compile Include="Converters\StringToVisibility.cs" />
     <Compile Include="DataTemplates\ServerTemplate.cs" />
@@ -137,9 +138,15 @@
     <Compile Include="Dialogs\ServerChooserDialog.xaml.cs">
       <DependentUpon>ServerChooserDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Dialogs\StoreItemInstallDialog.xaml.cs">
+      <DependentUpon>StoreItemInstallDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Helpers\Account.cs" />
+    <Compile Include="Helpers\AppServiceHandler.cs" />
     <Compile Include="Helpers\GlacierClient.cs" />
+    <Compile Include="Helpers\Labrinth.cs" />
     <Compile Include="Helpers\Localizer.cs" />
+    <Compile Include="Helpers\ModManager.cs" />
     <Compile Include="Helpers\MSLogin.cs" />
     <Compile Include="Helpers\RPCHelper.cs" />
     <Compile Include="Helpers\SDLauncher.cs" />
@@ -156,9 +163,18 @@
     <Compile Include="UserControls\Expander.xaml.cs">
       <DependentUpon>Expander.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UserControls\StoreItemsCollection.xaml.cs">
+      <DependentUpon>StoreItemsCollection.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\TaskListView.xaml.cs">
+      <DependentUpon>TaskListView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="vars.cs" />
     <Compile Include="Views\BaseLauncherPage.xaml.cs">
       <DependentUpon>BaseLauncherPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ChangeLogs.xaml.cs">
+      <DependentUpon>ChangeLogs.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
@@ -167,12 +183,12 @@
       <DependentUpon>MessageBoxEx.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Views\CursedForgePage.xaml.cs">
-      <DependentUpon>CursedForgePage.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Helpers\OptiFine.cs" />
     <Compile Include="Views\SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\StorePage.xaml.cs">
+      <DependentUpon>StorePage.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -252,6 +268,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Dialogs\StoreItemInstallDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Resources\AcrylicButton.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -272,7 +292,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="UserControls\StoreItemsCollection.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\TaskListView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\BaseLauncherPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ChangeLogs.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -284,11 +316,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\CursedForgePage.xaml">
+    <Page Include="Views\SettingsPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\SettingsPage.xaml">
+    <Page Include="Views\StorePage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -309,11 +341,20 @@
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.12</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications">
+      <Version>7.1.2</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.Toolkit.Uwp.UI">
       <Version>7.1.2</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.Toolkit.Uwp.UI.Animations">
+      <Version>7.1.2</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Toolkit.Uwp.UI.Controls">
+      <Version>7.1.2</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.UI.Xaml">
-      <Version>2.8.0-prerelease.220413001</Version>
+      <Version>2.8.0-prerelease.220601001</Version>
     </PackageReference>
     <PackageReference Include="MojangAPI">
       <Version>1.1.0</Version>
@@ -327,7 +368,7 @@
     <PRIResource Include="Strings\en-US\Resources.resw" />
   </ItemGroup>
   <ItemGroup>
-    <SDKReference Include="WindowsDesktop, Version=10.0.19041.0">
+    <SDKReference Include="WindowsDesktop, Version=10.0.22000.0">
       <Name>Windows Desktop Extensions for the UWP</Name>
     </SDKReference>
   </ItemGroup>

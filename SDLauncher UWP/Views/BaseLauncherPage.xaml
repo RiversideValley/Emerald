@@ -55,21 +55,59 @@
             </winui:TeachingTip.IconSource>
         </winui:TeachingTip>
         <TextBlock FontFamily="{StaticResource Pixel}" Text="Welcome!" x:Name="txtWelcome" VerticalAlignment="Center" HorizontalAlignment="Left" Grid.Row="0" FontSize="35" FontWeight="Normal"/>
-        <Grid CornerRadius="5" Margin="10" Grid.Row="1" Background="{ThemeResource AcrylicGlass}">
-            <WebView DefaultBackgroundColor="Transparent" x:Name="wvLogs"/>
-        </Grid>
+        <winui:NavigationView CornerRadius="10" IsSettingsVisible="False" IsBackButtonVisible="Collapsed" ItemInvoked="navView_ItemInvoked" x:Name="navView" PaneDisplayMode="Top" Grid.Row="1">
+            <winui:NavigationView.Resources>
+                <ResourceDictionary>
+                    <ResourceDictionary.ThemeDictionaries>
+                        <ResourceDictionary  x:Key="Light">
+                            <StaticResource x:Key="NavigationViewContentBackground" ResourceKey="SystemControlTransparentBrush"/>
+                            <StaticResource x:Key="NavigationViewContentGridBorderBrush" ResourceKey="SystemControlTransparentBrush"/>
+                            <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
+                            <Thickness x:Key="NavigationViewMinimalContentGridBorderThickness">0</Thickness>
+                            <Thickness x:Key="TopNavigationViewContentGridBorderThickness">0</Thickness>
+                        </ResourceDictionary>
+                        <ResourceDictionary  x:Key="Dark">
+                            <StaticResource x:Key="NavigationViewContentBackground" ResourceKey="SystemControlTransparentBrush"/>
+                            <StaticResource x:Key="NavigationViewContentGridBorderBrush" ResourceKey="SystemControlTransparentBrush"/>
+                            <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
+                            <Thickness x:Key="NavigationViewMinimalContentGridBorderThickness">0</Thickness>
+                            <Thickness x:Key="TopNavigationViewContentGridBorderThickness">0</Thickness>
+                        </ResourceDictionary>
+                        <ResourceDictionary  x:Key="HighContrast">
+                            <StaticResource x:Key="NavigationViewContentBackground" ResourceKey="SystemControlTransparentBrush"/>
+                            <StaticResource x:Key="NavigationViewContentGridBorderBrush" ResourceKey="SystemControlTransparentBrush"/>
+                            <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
+                            <Thickness x:Key="NavigationViewMinimalContentGridBorderThickness">0</Thickness>
+                            <Thickness x:Key="TopNavigationViewContentGridBorderThickness">0</Thickness>
+                        </ResourceDictionary>
+                    </ResourceDictionary.ThemeDictionaries>
+                </ResourceDictionary>
+            </winui:NavigationView.Resources>
+            <winui:NavigationView.MenuItems>
+                <winui:NavigationViewItem IsSelected="True" Content="ChangeLogs"/>
+                <winui:NavigationViewItem x:Name="navitmStore" Content="Store"/>
+            </winui:NavigationView.MenuItems>
+            <winui:NavigationView.Content>
+                <Frame CornerRadius="10" x:Name="navViewFrame"/>
+            </winui:NavigationView.Content>
+        </winui:NavigationView>
         <Grid Grid.Row="2" VerticalAlignment="Bottom" >
             <TextBlock x:Name="txtStatus" VerticalAlignment="Bottom" Text="Ready" HorizontalAlignment="Left"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <ComboBox SelectionChanged="cmbxVer_SelectionChanged" x:Name="cmbxVer"/>
+                <ComboBox Margin="0,0,5,0" SelectionChanged="cmbxVer_SelectionChanged" x:Name="cmbxVer"/>
                 <winui:DropDownButton Margin="0,0,5,0" x:Name="btnMCVer" Content="Version">
                     <winui:DropDownButton.Flyout>
                         <MenuFlyout x:Name="flyVer">
+                            <MenuFlyoutSubItem Text="1.19">
+                                <MenuFlyoutItem Text="Fabric 1.19" Click="MenuFlyoutItem_Click"/>
+                                <MenuFlyoutItem Text="1.19" Click="MenuFlyoutItem_Click"/>
+                            </MenuFlyoutSubItem>
                             <MenuFlyoutSubItem Text="1.18">
                                 <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="1.18"/>
                                 <MenuFlyoutSubItem Text="1.18.2">
                                     <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="1.18.2"/>
                                     <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="OptiFine 1.18.2"/>
+                                    <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="Fabric 1.18.2"/>
                                 </MenuFlyoutSubItem>
                                 <MenuFlyoutSubItem Text="1.18.1">
                                     <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="1.18.1"/>
@@ -103,8 +141,11 @@
                             <MenuFlyoutSeparator/>
                             <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="Glacier Client"/>
                             <MenuFlyoutSeparator/>
-                            <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="Latest"/>
-                            <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="Latest Snapshot"/>
+                            <MenuFlyoutSubItem Text="Latest">
+                                <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="Latest"/>
+                                <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="Latest Snapshot"/>
+                                <MenuFlyoutItem Click="MenuFlyoutItem_Click" Text="Latest Fabric"/>
+                            </MenuFlyoutSubItem>
                         </MenuFlyout>
                     </winui:DropDownButton.Flyout>
                 </winui:DropDownButton>
@@ -113,8 +154,8 @@
             </StackPanel>
         </Grid>
         <StackPanel VerticalAlignment="Bottom" Grid.Row="3">
-            <ProgressBar Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" x:Name="pb_File" Height="10" CornerRadius="5" Margin="0,0,0,5"/>
-            <ProgressBar Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" x:Name="pb_Prog" Height="10" CornerRadius="5"/>
+            <ProgressBar Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" x:Name="pb_File" Height="10" CornerRadius="5,5,0,0" />
+            <ProgressBar Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" x:Name="pb_Prog" Height="10" CornerRadius="0,0,5,5"/>
         </StackPanel>
     </Grid>
 </Page>

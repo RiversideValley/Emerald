@@ -32,16 +32,23 @@
                                 <EntranceThemeTransition IsStaggeringEnabled="True"/>
                             </TransitionCollection>
                         </StackPanel.ChildrenTransitions>
-                        <NoobUI:SettingsCard Icon="&#xf12b;" Description="The path of the minecraft client" Title="Minecraft Path">
-                            <NoobUI:SettingsCard.Controls>
+                        <NoobUI:Expander Icon="&#xf12b;" Description="The path of the minecraft client" Title="Minecraft Path">
+                            <NoobUI:Expander.HeaderControls>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock TextTrimming="CharacterEllipsis" MaxWidth="200" x:Name="txtGamePath" Text="C:\Users\Appdata\.Minecraft" VerticalAlignment="Center"/>
                                     <Button Click="btnCopyDir_Click" ToolTipService.ToolTip="Copy" x:Name="btnCopyDir" Padding="7,7" Margin="5,0,0,0">
-                                        <FontIcon FontSize="16" x:Name="smbCopyDir" Glyph="&#xE71B;"/>
+                                        <FontIcon FontSize="16" x:Name="smbCopyDir" Glyph="&#xed25;"/>
                                     </Button>
                                 </StackPanel>
-                            </NoobUI:SettingsCard.Controls>
-                        </NoobUI:SettingsCard>
+                            </NoobUI:Expander.HeaderControls>
+                            <NoobUI:Expander.Controls>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                </Grid>
+                            </NoobUI:Expander.Controls>
+                        </NoobUI:Expander>
                         <NoobUI:SettingsCard Description="Not Recommended. Use the old versions seletor for launch any Minecraft versions" Icon="&#xec7a;" Margin="0,5,0,0" Title="Use old versions selector">
                             <NoobUI:SettingsCard.Controls>
                                 <ToggleSwitch OnContent="Yes" x:Name="tglOldVerSelector" Toggled="tglOldVerSelector_Toggled" MinWidth="100" OffContent="No" HorizontalAlignment="Right" VerticalAlignment="Center"/>

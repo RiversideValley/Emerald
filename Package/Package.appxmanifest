@@ -11,7 +11,7 @@
   <Identity
     Name="SeaDevs.Launcher.UWP"
     Publisher="CN=SeaDev Team"
-    Version="0.3.7.0" />
+    Version="0.4.3.0" />
 
   <Properties>
     <DisplayName>SD Launcher</DisplayName>
@@ -36,11 +36,14 @@
         DisplayName="SDLauncher UWP"
         BackgroundColor="transparent"
         Square150x150Logo="Images\Square150x150Logo.png"
-        Square44x44Logo="Images\Square44x44Logo.png" Description="UWP Minecraft Launcher for Windows by SeaDevs">
+        Square44x44Logo="Images\Square44x44Logo.png" Description="UWP Minecraft Launcher for latest Windows by SeaDevs">
         <uap:DefaultTile Wide310x150Logo="Images\Wide310x150Logo.png"  Square71x71Logo="Images\SmallTile.png" Square310x310Logo="Images\LargeTile.png" ShortName="SDLauncher"/>
         <uap:SplashScreen Image="Images\SplashScreen.png" />
       </uap:VisualElements>
 		<Extensions>
+			<uap:Extension Category="windows.appService">
+				<uap:AppService Name="SampleInteropService" />
+			</uap:Extension>
 			<uap5:Extension
 			  Category="windows.appExecutionAlias"
 			  Executable="SDLauncher UWP.exe"
@@ -51,7 +54,7 @@
 			</uap5:Extension>
 			<desktop:Extension
 			  Category="windows.fullTrustProcess"
-			  Executable="ClientLauncher\ClientLauncher.exe">
+			  Executable="ClientHandler\ClientHandler.exe">
 				<desktop:FullTrustProcess>
 					<desktop:ParameterGroup GroupId="User" Parameters="/user" />
 					<desktop:ParameterGroup GroupId="Admin" Parameters="/admin" />

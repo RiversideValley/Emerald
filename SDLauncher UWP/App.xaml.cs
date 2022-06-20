@@ -7,6 +7,8 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Windows.ApplicationModel.AppService;
+using Windows.ApplicationModel.Background;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage;
@@ -36,6 +38,10 @@ namespace SDLauncher_UWP
             this.Suspending += OnSuspending;
         }
         SettingsDataManager settings = new SettingsDataManager();
+        public static event EventHandler<AppServiceTriggerDetails> AppServiceConnected = delegate { };
+        public static AppServiceConnection Connection { get; private set; }
+        public BackgroundTaskDeferral AppServiceDeferral { get; private set; }
+
         /// <summary>
         /// Invoked when the application is launched normally by the end user.  Other entry points
         /// will be used such as when the application is launched to open a specific file.
@@ -112,6 +118,30 @@ namespace SDLauncher_UWP
                 Window.Current.Activate();
             }
         }
+        protected override void OnBackgroundActivated(BackgroundActivatedEventArgs args)
+        {
+            base.OnBackgroundActivated(args);
+
+            if (args.TaskInstance.TriggerDetails is AppServiceTriggerDetails details)
+            {
+                // only accept connections from callers in the same package
+                if (details.CallerPackageFamilyName == Package.Current.Id.FamilyName)
+                {
+                    // connection established from the fulltrust process
+                    AppServiceDeferral = args.TaskInstance.GetDeferral();
+                    args.TaskInstance.Canceled += TaskInstance_Canceled; ;
+
+                    Connection = details.AppServiceConnection;
+                    AppServiceConnected.Invoke(this, args.TaskInstance.TriggerDetails as AppServiceTriggerDetails);
+                }
+            }
+        }
+
+        private void TaskInstance_Canceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
+        {
+
+        }
+
         protected async override void OnActivated(IActivatedEventArgs args)
         {
 

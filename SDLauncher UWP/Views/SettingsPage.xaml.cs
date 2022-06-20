@@ -12,6 +12,7 @@ using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
+using Windows.System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -205,14 +206,12 @@ namespace SDLauncher_UWP.Views
             }
         }
 
-        private async void btnCopyDir_Click(object sender, RoutedEventArgs e)
+        private void btnCopyDir_Click(object sender, RoutedEventArgs e)
         {
-            smbCopyDir.Glyph = "\xE8FB";
-            var dataPackage = new DataPackage();
-            dataPackage.SetText(txtGamePath.Text);
-            Clipboard.SetContent(dataPackage);
-            await Task.Delay(TimeSpan.FromSeconds(2));
-            smbCopyDir.Glyph = "\xE71B";
+            //var dataPackage = new DataPackage();
+            // dataPackage.SetText(txtGamePath.Text);
+            // Clipboard.SetContent(dataPackage);
+            _ = Launcher.LaunchFolderPathAsync(vars.Launcher.Launcher.MinecraftPath.BasePath);
         }
 
         private void btnRefreshVers_Click(object sender, RoutedEventArgs e)

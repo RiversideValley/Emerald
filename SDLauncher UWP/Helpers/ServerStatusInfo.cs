@@ -7,11 +7,19 @@ using System.Threading.Tasks;
 
 namespace SDLauncher_UWP.Helpers
 {
-    public static class ServerStatusJSONConverter
+    public static class JSONConverter
     {
-        public static ServerStatusInfo.Root Convert(string json)
+        public static ServerStatusInfo.Root ConvertToServerStatus(string json)
         {
             return JsonConvert.DeserializeObject<ServerStatusInfo.Root>(json);
+        }
+        public static LabrinthResults.SearchResult ConvertToLabrinthSearchResult(string json)
+        {
+            return JsonConvert.DeserializeObject<LabrinthResults.SearchResult>(json);
+        }
+        public static LabrinthResults.ModrinthProject ConvertToLabrinthProject(string json)
+        {
+            return JsonConvert.DeserializeObject<LabrinthResults.ModrinthProject>(json);
         }
     }
     public class ServerStatusInfo

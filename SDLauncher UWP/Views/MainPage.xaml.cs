@@ -51,10 +51,22 @@ namespace SDLauncher_UWP
             settingsPage.BackRequested += SettingsPage_BackRequested;
             launcher.UIchanged += Launcher_UIchanged;
             launcher.InitializeLauncher();
+            vars.Launcher.TasksHelper.TaskAddRequested += TasksHelper_TaskAddRequested;
+            vars.Launcher.TasksHelper.TaskCompleteRequested += TasksHelper_TaskCompleteRequested; ;
             if(!string.IsNullOrEmpty(vars.BackgroundImagePath))
             {
                 settingsPage.GetAndSetBG();
             }
+        }
+
+        private void TasksHelper_TaskCompleteRequested(object sender, int e)
+        {
+            tasks.CompleteTask(e);
+        }
+
+        private void TasksHelper_TaskAddRequested(object sender, UserControls.Task e)
+        {
+            tasks.AddTask(e.Name, e.ID);
         }
 
         private void SettingsPage_UpdateBGRequested(object sender, EventArgs e)
@@ -64,7 +76,6 @@ namespace SDLauncher_UWP
 
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
-
             Page_ActualThemeChanged(null, null);
             MainFrame.Content = launcher;
             foreach (var account in vars.Accounts)
