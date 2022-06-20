@@ -17,6 +17,7 @@
                         <EntranceThemeTransition IsStaggeringEnabled="True"/>
                     </TransitionCollection>
                     <FontFamily x:Key="Pixel">/Fonts/Pixeboy.ttf#Pixeboy</FontFamily>
+                    <ResourceDictionary x:Key="AcrylicStyle" Source="/Resources/AcrylicButton.xaml"/>
                     <Style x:Key="ChooseButtonSyle" TargetType="Button">
                         <Setter Property="Background" Value="{ThemeResource ExpanderHeaderBackground}" />
                         <Setter Property="BorderBrush" Value="{ThemeResource ExpanderHeaderBorderBrush}" />

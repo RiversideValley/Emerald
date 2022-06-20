@@ -159,7 +159,7 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.19041.8" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ClientLauncher\ClientLauncher.csproj" />
+    <ProjectReference Include="..\ClientHandler\ClientHandler.csproj" />
     <ProjectReference Include="..\SDLauncher UWP\SDLauncher UWP.csproj" />
   </ItemGroup>
 </Project>

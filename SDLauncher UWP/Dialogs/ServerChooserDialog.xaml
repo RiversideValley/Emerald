@@ -16,7 +16,8 @@
     CornerRadius="10"
     PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
     SecondaryButtonClick="ContentDialog_SecondaryButtonClick"
-    xmlns:data="using:SDLauncher_UWP.DataTemplates">
+    xmlns:data="using:SDLauncher_UWP.DataTemplates"
+    xmlns:winui="using:Microsoft.UI.Xaml.Controls">
 
     <Grid>
         <FlipView BorderBrush="Black" BorderThickness="1" x:Name="view">
@@ -25,7 +26,7 @@
                     <Button Padding="15,45" Style="{ThemeResource ChooseButtonSyle}">
                         <Grid>
                             <StackPanel>
-                                <WebView DefaultBackgroundColor="Transparent" Source="{x:Bind Favicon,Mode=OneWay}" HorizontalAlignment="Center"/>
+                                <winui:WebView2 Background="Transparent" Source="{x:Bind Favicon,Mode=OneWay}" HorizontalAlignment="Center"/>
                                 <TextBlock HorizontalAlignment="Center" Style="{ThemeResource SubtitleTextBlockStyle}" Text="{x:Bind Server,Mode=OneWay}"/>
                                 <WebView DefaultBackgroundColor="Transparent" HorizontalAlignment="Center"/>
                                 <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">

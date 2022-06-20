@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CmlLib.Core;
+using CmlLib.Core.VersionLoader;
 using CmlLib.Core.Auth;
 using SDLauncher_UWP.Helpers;
 using Windows.UI.Xaml;
@@ -22,7 +22,7 @@ namespace SDLauncher_UWP
         private static ElementTheme? theme = ElementTheme.Default;
         public static ElementTheme? Theme { get { return theme; } set { theme = value; ThemeUpdated(theme, new EventArgs()); } }
         public static BitmapImage BackgroundImage;
-        public static string BackgroundImagePath;
+        public static string BackgroundImagePath = "";
         public static bool ShowLaunchTips = false;
         public static bool CustomBackground = false;
         public static bool ShowTips = true;

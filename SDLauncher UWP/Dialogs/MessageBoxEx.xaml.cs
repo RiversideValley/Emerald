@@ -23,18 +23,22 @@ namespace SDLauncher_UWP
         Ok,
         Cancel,
         Yes,
-        No
+        No,
+        CustomResult1,
+        CustomResult2
     }
     public enum MessageBoxButtons
     {
         Ok,
         OkCancel,
-        YesNo
+        YesNo,
+        Custom,
+        CustomWithCancel
     }
     public sealed partial class MessageBoxEx : ContentDialog
     {
         public MessageBoxResults Result { get; set; }
-        public MessageBoxEx(string title, string caption, MessageBoxButtons buttons)
+        public MessageBoxEx(string title, string caption, MessageBoxButtons buttons, string cusbtn1 = null, string cusbtn2 = null)
         {
             this.InitializeComponent();
             Title = title;
@@ -54,6 +58,39 @@ namespace SDLauncher_UWP
                 PrimaryButtonText = "Yes";
                 SecondaryButtonText = "No";
             }
+            else if (buttons == MessageBoxButtons.Custom)
+            {
+                if(!string.IsNullOrEmpty(cusbtn1))
+                {
+                    PrimaryButtonText = cusbtn1;
+                }
+                if(!string.IsNullOrEmpty(cusbtn2))
+                {
+                    SecondaryButtonText = cusbtn2;
+                }
+                if(string.IsNullOrEmpty(cusbtn2) && string.IsNullOrEmpty(cusbtn1))
+                {
+                    PrimaryButtonText = "Yes";
+                    SecondaryButtonText = "No";
+                }
+            }else if(buttons == MessageBoxButtons.CustomWithCancel)
+            {
+                if (!string.IsNullOrEmpty(cusbtn1))
+                {
+                    PrimaryButtonText = cusbtn1;
+                }
+                if (!string.IsNullOrEmpty(cusbtn2))
+                {
+                    SecondaryButtonText = cusbtn2;
+                }
+                if (string.IsNullOrEmpty(cusbtn2) && string.IsNullOrEmpty(cusbtn1))
+                {
+                    PrimaryButtonText = "Yes";
+                    SecondaryButtonText = "No";
+                }
+                CloseButtonText = "Cancel";
+            }
+            
             this.RequestedTheme = (ElementTheme)vars.Theme;
         }
         private void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
@@ -65,6 +102,10 @@ namespace SDLauncher_UWP
             else if (sender.PrimaryButtonText == "Yes")
             {
                 Result = MessageBoxResults.Yes;
+            }
+            else
+            {
+                Result = MessageBoxResults.CustomResult1;
             }
         }
 
@@ -82,17 +123,26 @@ namespace SDLauncher_UWP
             {
                 Result = MessageBoxResults.No;
             }
+            else
+            {
+                Result = MessageBoxResults.CustomResult2;
+            }
         }
 
         private void ContentDialog_Loaded(object sender, RoutedEventArgs e)
         {
         }
+
+        private void ContentDialog_CloseButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        {
+
+        }
     }
     public class MessageBox
     {
-        public static async Task<MessageBoxResults> Show(string title,string caption, MessageBoxButtons buttons)
+        public static async Task<MessageBoxResults> Show(string title,string caption, MessageBoxButtons buttons,string customResult1 = null, string customResult2 = null)
         {
-            var d = new MessageBoxEx(title, caption, buttons);
+            var d = new MessageBoxEx(title, caption, buttons,customResult1,customResult2);
             await d.ShowAsync();
             return d.Result;
         }
