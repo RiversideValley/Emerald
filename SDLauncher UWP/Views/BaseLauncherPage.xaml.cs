@@ -281,7 +281,14 @@ namespace SDLauncher_UWP
             await ProcessToXmlConverter.Convert(process, ApplicationData.Current.LocalFolder, "StartInfo.xml");
             if (ApiInformation.IsApiContractPresent("Windows.ApplicationModel.FullTrustAppContract", 1, 0))
             {
-                await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync("User");
+                if (vars.AdminLaunch)
+                {
+                    await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync("Admin");
+                }
+                else
+                {
+                    await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync("User");
+                }
             }
             CreateToast("Done!", "Successfully launcher minecraft version \"" + launchVer + "\"", true);
             if (vars.AutoClose)

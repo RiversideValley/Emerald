@@ -27,6 +27,7 @@ namespace SDLauncher_UWP
         public static bool CustomBackground = false;
         public static bool ShowTips = true;
         public static bool UseOldVerSeletor = false;
+        public static bool AdminLaunch = true;
         public static bool GameLogs = false;
         public static bool autoLog = false;
         public static bool AutoClose = false;

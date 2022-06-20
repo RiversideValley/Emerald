@@ -14,6 +14,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
         <ui:TitleBar Title="SDL Logging System" Grid.Row="0"/>
@@ -29,5 +30,6 @@
             </StackPanel>
             <RichTextBox x:Name="txtLogs" Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" IsReadOnly="True"/>
         </Grid>
+        <Grid x:Name="g" Grid.Row="2"/>
     </Grid>
     </ui:UiWindow>

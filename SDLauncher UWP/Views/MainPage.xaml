@@ -67,100 +67,105 @@
                     Style="{StaticResource CaptionTextBlockStyle}" />
             </StackPanel>
             </Border>
-            <Button Width="45" Height="45"  FocusVisualPrimaryThickness="0" Padding="5" FocusVisualSecondaryThickness="0" CornerRadius="0,0,5,5" VerticalAlignment="Top" BorderThickness="0" Background="Transparent" HorizontalAlignment="Right" Margin="0,0,175,0">
-                <FontIcon Glyph="&#xe9d5;" FontSize="19"/>
-                <Button.Flyout>
-                    <Flyout>
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Text="Tasks" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold"/>
-                            <NoobUI:TaskListView Grid.Row="1" x:Name="tasks"/>
-                        </Grid>
-                    </Flyout>
-                </Button.Flyout>
-            </Button>
-            <Button FocusVisualPrimaryThickness="0" FocusVisualSecondaryThickness="0" CornerRadius="0,0,5,5" MaxWidth="200" x:Name="btnAccount" VerticalAlignment="Top" BorderThickness="0" Background="Transparent" HorizontalAlignment="Right" Padding="10,5,30,5" Margin="0,0,225,0">
-                <StackPanel Orientation="Horizontal">
-                    <winui:PersonPicture x:Name="prpLogin" BorderThickness="0" Height="35" Width="35"/>
-                    <TextBlock Text="Login" x:Name="txtLogin" TextTrimming="CharacterEllipsis" MaxWidth="120" VerticalAlignment="Center" Margin="5,0,0,0" />
-                </StackPanel>
-                <Button.Flyout>
-                    <Flyout x:Name="loginFly" Placement="Bottom">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ChildrenTransitions>
-                                <TransitionCollection>
-                                    <EntranceThemeTransition IsStaggeringEnabled="True"/>
-                                </TransitionCollection>
-                            </Grid.ChildrenTransitions>
-                            <Grid Grid.Row="0" Margin="10" MinWidth="275">
+            <Grid>
+                <Grid.Resources>
+                    <ResourceDictionary Source="/Resources/AcrylicButton.xaml"/>
+                </Grid.Resources>
+                <Button BorderThickness="0" Width="45" Background="Transparent" Height="45"  FocusVisualPrimaryThickness="0" Padding="5" FocusVisualSecondaryThickness="0" CornerRadius="0,0,5,5" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,180,0">
+                    <FontIcon Glyph="&#xe9d5;" FontSize="19"/>
+                    <Button.Flyout>
+                        <Flyout>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Tasks" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold"/>
+                                <NoobUI:TaskListView Grid.Row="1" x:Name="tasks"/>
+                            </Grid>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+                <Button BorderThickness="0" FocusVisualPrimaryThickness="0" FocusVisualSecondaryThickness="0" CornerRadius="0,0,5,5" MaxWidth="200" x:Name="btnAccount" VerticalAlignment="Top" Background="Transparent" HorizontalAlignment="Right" Padding="10,5,30,5" Margin="0,0,230,0">
+                    <StackPanel Orientation="Horizontal">
+                        <winui:PersonPicture x:Name="prpLogin" BorderThickness="0" Height="35" Width="35"/>
+                        <TextBlock Text="Login" x:Name="txtLogin" TextTrimming="CharacterEllipsis" MaxWidth="120" VerticalAlignment="Center" Margin="5,0,0,0" />
+                    </StackPanel>
+                    <Button.Flyout>
+                        <Flyout x:Name="loginFly" Placement="Bottom">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
                                 <Grid.ChildrenTransitions>
                                     <TransitionCollection>
                                         <EntranceThemeTransition IsStaggeringEnabled="True"/>
                                     </TransitionCollection>
                                 </Grid.ChildrenTransitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Row="0" HorizontalAlignment="Stretch" Orientation="Horizontal">
-                                    <StackPanel.ChildrenTransitions>
+                                <Grid Grid.Row="0" Margin="10" MinWidth="275">
+                                    <Grid.ChildrenTransitions>
                                         <TransitionCollection>
                                             <EntranceThemeTransition IsStaggeringEnabled="True"/>
                                         </TransitionCollection>
-                                    </StackPanel.ChildrenTransitions>
-                                    <winui:PersonPicture x:Name="prpFly" Width="60"/>
-
-                                    <HyperlinkButton HorizontalContentAlignment="Left" Width="140" Foreground="{ThemeResource ButtonForegroundThemeBrush}" VerticalAlignment="Center" x:Name="btnLogin" Click="btnLogin_Click" FontSize="13" Margin="5,10,5,10">
-                                        <HyperlinkButton.Content>
-                                            <TextBlock HorizontalAlignment="Center" MaxWidth="125" TextTrimming="CharacterEllipsis" x:Name="txtUsername" Text="Login" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="23"/>
-                                        </HyperlinkButton.Content>
-                                    </HyperlinkButton>
-                                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                    </Grid.ChildrenTransitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Row="0" HorizontalAlignment="Stretch" Orientation="Horizontal">
                                         <StackPanel.ChildrenTransitions>
                                             <TransitionCollection>
                                                 <EntranceThemeTransition IsStaggeringEnabled="True"/>
                                             </TransitionCollection>
                                         </StackPanel.ChildrenTransitions>
-                                        <Button Click="btnSettings_Click" x:Name="btnSettings" MinWidth="0" Width="43" Padding="7" HorizontalAlignment="Left">
-                                            <winui:AnimatedIcon>
-                                                <winui:AnimatedIcon.Source>
-                                                    <animatedvisuals:AnimatedSettingsVisualSource/>
-                                                </winui:AnimatedIcon.Source>
-                                                <winui:AnimatedIcon.FallbackIconSource>
-                                                    <winui:SymbolIconSource Symbol="Setting"/>
-                                                </winui:AnimatedIcon.FallbackIconSource>
-                                            </winui:AnimatedIcon>
-                                        </Button>
-                                        <Button x:Name="btnChat" Click="btnChat_Click" HorizontalAlignment="Left" Padding="5" Margin="5,0,0,0">
-                                            <Image Width="30" Stretch="UniformToFill" x:Name="imgDiscord" Source="/Assets/Discord/discord-dark.png"/>
-                                        </Button>
+                                        <winui:PersonPicture x:Name="prpFly" Width="60"/>
+
+                                        <HyperlinkButton HorizontalContentAlignment="Left" Width="140" Foreground="{ThemeResource ButtonForegroundThemeBrush}" VerticalAlignment="Center" x:Name="btnLogin" Click="btnLogin_Click" FontSize="13" Margin="5,10,5,10">
+                                            <HyperlinkButton.Content>
+                                                <TextBlock HorizontalAlignment="Center" MaxWidth="125" TextTrimming="CharacterEllipsis" x:Name="txtUsername" Text="Login" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="23"/>
+                                            </HyperlinkButton.Content>
+                                        </HyperlinkButton>
+                                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                            <StackPanel.ChildrenTransitions>
+                                                <TransitionCollection>
+                                                    <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                                                </TransitionCollection>
+                                            </StackPanel.ChildrenTransitions>
+                                            <Button Click="btnSettings_Click" x:Name="btnSettings" MinWidth="0" Width="43" Padding="7" HorizontalAlignment="Left">
+                                                <winui:AnimatedIcon>
+                                                    <winui:AnimatedIcon.Source>
+                                                        <animatedvisuals:AnimatedSettingsVisualSource/>
+                                                    </winui:AnimatedIcon.Source>
+                                                    <winui:AnimatedIcon.FallbackIconSource>
+                                                        <winui:SymbolIconSource Symbol="Setting"/>
+                                                    </winui:AnimatedIcon.FallbackIconSource>
+                                                </winui:AnimatedIcon>
+                                            </Button>
+                                            <Button x:Name="btnChat" Click="btnChat_Click" HorizontalAlignment="Left" Padding="5" Margin="5,0,0,0">
+                                                <Image Width="30" Stretch="UniformToFill" x:Name="imgDiscord" Source="/Assets/Discord/discord-dark.png"/>
+                                            </Button>
+                                        </StackPanel>
                                     </StackPanel>
-                                </StackPanel>
-                                <StackPanel Margin="50,5,0,0" Grid.Row="1">
-                                    <StackPanel.ChildrenTransitions>
-                                        <TransitionCollection>
-                                            <EntranceThemeTransition IsStaggeringEnabled="True"/>
-                                        </TransitionCollection>
-                                    </StackPanel.ChildrenTransitions>
-                                    <TextBlock FontSize="13" x:Name="MainPage_txtStatus" Margin="0,0,0,5"/>
-                                    <TextBox x:Uid="MainPage_txtbxStatus" x:Name="txtbxStats" MinHeight="60" TextWrapping="Wrap" />
-                                </StackPanel>
+                                    <StackPanel Margin="50,5,0,0" Grid.Row="1">
+                                        <StackPanel.ChildrenTransitions>
+                                            <TransitionCollection>
+                                                <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                                            </TransitionCollection>
+                                        </StackPanel.ChildrenTransitions>
+                                        <TextBlock FontSize="13" x:Name="MainPage_txtStatus" Margin="0,0,0,5"/>
+                                        <TextBox x:Uid="MainPage_txtbxStatus" x:Name="txtbxStats" MinHeight="60" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Grid>
                             </Grid>
-                        </Grid>
-                    </Flyout>
-                </Button.Flyout>
-            </Button>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+            </Grid>
         </Grid>
         <SplitView PaneClosed="discordView_PaneClosed" Canvas.ZIndex="0" PanePlacement="Right" OpenPaneLength="350" PaneBackground="#303339" CornerRadius="5" Margin="0,50,-5,0" x:Name="discordView">
             <SplitView.Pane>

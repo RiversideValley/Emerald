@@ -59,6 +59,7 @@ namespace SDLauncher_UWP.UserControls
                         CurrentTasks.Remove(itm);
                         itm.DateAdded = DateTime.Now;
                         TasksCompleted.Add(itm);
+                        RefreshTasks();
                         return true;
                     }
                     else
@@ -80,6 +81,7 @@ namespace SDLauncher_UWP.UserControls
         {
             lvRuning.ItemsSource = null;
             lvDone.ItemsSource = null;
+            //Remove Before empty tasks
             var emptyTasks = new List<Task>();
             foreach (var item in CurrentTasks)
             {
@@ -92,6 +94,7 @@ namespace SDLauncher_UWP.UserControls
             {
                 CurrentTasks.Remove(item);
             }
+            //
             emptyTasks = new List<Task>();
             foreach (var item in TasksCompleted)
             {
@@ -104,11 +107,13 @@ namespace SDLauncher_UWP.UserControls
             {
                 TasksCompleted.Remove(item);
             }
-            if (CurrentTasks.Count == 0)
+            //Add Empty Tasks
+            if (CurrentTasks.Count < 1)
             {
                 CurrentTasks.Add(new Task("Empty", 1000));
             }
-            if (TasksCompleted.Count == 0)
+            //
+            if (TasksCompleted.Count < 1)
             {
                 TasksCompleted.Add(new Task("Empty", 1000));
             }
