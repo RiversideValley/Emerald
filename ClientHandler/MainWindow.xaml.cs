@@ -14,7 +14,9 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.AppService;
+using System.IO;
 using Wpf.Ui.Controls;
+using Microsoft.Win32;
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 namespace ClientHandler
@@ -24,6 +26,7 @@ namespace ClientHandler
     /// </summary>
     public partial class MainWindow : UiWindow
     {
+        string logs = "";
         public MainWindow()
         {
             InitializeComponent();
@@ -34,7 +37,15 @@ namespace ClientHandler
 
         private void ProcessUtil_Exited(object? sender, EventArgs e)
         {
-            Application.Current.Shutdown();
+            this.Dispatcher.Invoke(async delegate
+            {
+                btnKillGame.IsEnabled = false;
+                Snackbar? bar = new Snackbar();
+                g.Children.Add(bar);
+                await bar.ShowAsync("Minecraft Closed", "You can close this window now!");
+                g.Children.Remove(bar);
+                bar = null;
+            });
         }
 
 
@@ -49,7 +60,9 @@ namespace ClientHandler
             catch { }
             this.Dispatcher.Invoke(delegate
             {
+                logs += e;
                 txtLogs.AppendText(e);
+                txtLogs.ScrollToEnd();
             });
         }
 
@@ -60,6 +73,15 @@ namespace ClientHandler
 
         private void btnSaveLogs_Click(object sender, RoutedEventArgs e)
         {
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.Title = "Save Log as";
+            sfd.Filter = "All files|*.";
+            if (sfd.ShowDialog() == true)
+            {
+                var sw = File.CreateText(sfd.FileName);
+                sw.Write(logs);
+                sw.Close();
+            }
         }
     }
 }

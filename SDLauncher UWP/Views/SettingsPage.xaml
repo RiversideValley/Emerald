@@ -103,7 +103,7 @@
                         </StackPanel.ChildrenTransitions>
                         <NoobUI:SettingsCard Description="You can't change this for now" Icon="&#xe83d;" Margin="0,5,0,0" Title="Launch minecraft as admin">
                             <NoobUI:SettingsCard.Controls>
-                                <ToggleSwitch OnContent="Yes"  IsOn="True" IsEnabled="False" MinWidth="100" OffContent="No" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                <ToggleSwitch OnContent="Yes"  IsOn="True" x:Name="tglChangeAdmin" Toggled="tglChangeAdmin_Toggled" MinWidth="100" OffContent="No" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </NoobUI:SettingsCard.Controls>
                         </NoobUI:SettingsCard>
                         <NoobUI:Expander Description="For advanced users" Icon="&#xec7a;" Margin="0,5,0,0" Title="JVM Argumentss">

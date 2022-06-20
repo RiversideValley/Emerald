@@ -459,5 +459,25 @@ namespace SDLauncher_UWP.Views
         {
             vars.AutoClose = tglAutoClose.IsOn;
         }
+
+        private async void tglChangeAdmin_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (tglChangeAdmin.IsOn)
+            {
+                vars.AdminLaunch = true;
+            }
+            else
+            {
+                if(await MessageBox.Show("Warning", "You are trying to do a thing that we never recommended.Are you sure to continue ?\n(This setting will revert after next time launch of the app.)", MessageBoxButtons.YesNo) == MessageBoxResults.Yes)
+                {
+                    vars.AdminLaunch = false;
+                }
+                else
+                {
+                    tglChangeAdmin.IsOn = true;
+                    vars.AdminLaunch = true;
+                }
+            }
+        }
     }
 }
