@@ -157,6 +157,9 @@
     <Compile Include="UserControls\ArgumentsListView.xaml.cs">
       <DependentUpon>ArgumentsListView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UserControls\ModrinthDownloadsListView.xaml.cs">
+      <DependentUpon>ModrinthDownloadsListView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UserControls\SettingsCard.xaml.cs">
       <DependentUpon>SettingsCard.xaml</DependentUpon>
     </Compile>
@@ -284,6 +287,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="UserControls\ModrinthDownloadsListView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UserControls\SettingsCard.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -326,6 +333,9 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="ByteSize">
+      <Version>2.1.1</Version>
+    </PackageReference>
     <PackageReference Include="CmlLib.Core">
       <Version>3.3.5</Version>
     </PackageReference>

@@ -7,6 +7,10 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using Windows.Foundation;
+using Windows.Networking.BackgroundTransfer;
+using Windows.Storage;
+using Windows.UI.Xaml;
 
 namespace SDLauncher_UWP.Helpers
 {
@@ -25,6 +29,8 @@ namespace SDLauncher_UWP.Helpers
     {
         public event EventHandler StatusChanged = delegate { };
         public event EventHandler<SDLauncher.UIChangeRequestedEventArgs> UIChangeRequested = delegate { };
+        public event EventHandler<SDLauncher.UIChangeRequestedEventArgs> MainUIChangeRequested = delegate { };
+        public event EventHandler<SDLauncher.ProgressChangedEventArgs> ProgressChanged = delegate { };
         public HttpClient Client = new HttpClient();
         //ModrinthClient c = new ModrinthClient();
         public void Test()
@@ -38,19 +44,96 @@ namespace SDLauncher_UWP.Helpers
         {
             UIChangeRequested(this, new SDLauncher.UIChangeRequestedEventArgs(UI));
         }
-        public async Task<LabrinthResults.SearchResult> Search(string name, int? limit = null)
+        int DownloadTaskID;
+        public async void DownloadMod(LabrinthResults.DownloadManager.File file,CmlLib.Core.MinecraftPath mcPath)
+        {
+            DownloadTaskID = LittleHelp.AddTask("Download " + file.filename);
+            MainUIChangeRequested(this, new SDLauncher.UIChangeRequestedEventArgs(false));
+                StorageFolder f = await StorageFolder.GetFolderFromPathAsync(mcPath.BasePath);
+               var m =  await f.CreateFolderAsync("mods", CreationCollisionOption.OpenIfExists);
+            try
+            {
+                var mfile = await m.CreateFileAsync(file.filename, CreationCollisionOption.FailIfExists);
+                await mfile.DeleteAsync();
+                ModrinthDownload(file.url, mcPath.BasePath + @"\mods\", file.filename);
+            }
+            catch
+            {
+                var r = await MessageBox.Show("Information", "The file \"" + file.filename + "\" already exists in the mod folder.\nDo you want to download and replace it ?", MessageBoxButtons.YesNo);
+                if (r == MessageBoxResults.Yes)
+                {
+                    ModrinthDownload(file.url, m.Path, file.filename);
+                }
+                else
+                {
+                    this.MainUIChangeRequested(this, new SDLauncher.UIChangeRequestedEventArgs(true));
+                    LittleHelp.CompleteTask(DownloadTaskID);
+                }
+            }
+        }
+        private async void ModrinthDownload(string link,string folderdir, string fileName)
+        {
+            try
+            {
+                Uri source = new Uri(link);
+
+                var folder = await StorageFolder.GetFolderFromPathAsync(folderdir);
+                 var file = await folder.CreateFileAsync(
+                    fileName,
+                    CreationCollisionOption.ReplaceExisting);
+                string path = file.Path;
+                file = null;
+                using (var client = new HttpClientDownloadWithProgress(link, path))
+                {
+                    client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) => {
+                        StatusChanged("Download " + fileName, new EventArgs());
+                        this.ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage)));
+                        if(progressPercentage == 100)
+                        {
+                            this.DownloadFileCompleted();
+                            client.Dispose();
+                        }
+                    };
+
+                    await client.StartDownload();
+                }
+
+            }
+            catch
+            {
+
+            }
+        }
+        private void DownloadFileCompleted()
+        {
+            StatusChanged("Ready", new EventArgs());
+            ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg:0));
+            LittleHelp.CompleteTask(DownloadTaskID);
+            MainUIChangeRequested(this, new SDLauncher.UIChangeRequestedEventArgs(true));
+        }
+        public async Task<LabrinthResults.SearchResult> Search(string name, int? limit = null, LabrinthResults.SearchSortOptions sortOptions = LabrinthResults.SearchSortOptions.Relevance, LabrinthResults.SearchCategories[] categories = null)
         {
             int taskID = 0;
             UI(false);
             if (name == "")
             {
                 StatusChanged("Getting Mods",new EventArgs());
-               taskID = LittleHelp.AddTask("Getting Mods");
+               taskID = LittleHelp.AddTask("Get Mods");
             }
             else
             {
-               taskID = LittleHelp.AddTask("Searcging Store");
-               StatusChanged("Searcging Store", new EventArgs());
+               taskID = LittleHelp.AddTask("Search Store");
+               StatusChanged("Searching Store", new EventArgs());
+            }
+            string categouriesString = "";
+            if(categories != null)
+            {
+                if (categories.Count() > 0)
+                {
+                    categouriesString = string.Join("\"],[\"categories:", categories);
+                    categouriesString = ",[\"categories:" + categouriesString + "\"]";
+                    categouriesString = categouriesString.ToLower();
+                }
             }
             LabrinthResults.SearchResult s = null;
             try
@@ -65,7 +148,7 @@ namespace SDLauncher_UWP.Helpers
                 {
                     l = "limit=";
                 }
-                var json = await Util.DownloadText("https://api.modrinth.com/v2/search?query=" + q + "&facets=[[%22categories:fabric%22],[%22project_type:mod%22]]&" + l);
+                var json = await Util.DownloadText("https://api.modrinth.com/v2/search?query=" + q + "&index=" + sortOptions.ToString().ToLower() + "&facets=[[\"categories:fabric\"]" + categouriesString + ",[\"project_type:mod\"]]&" + l);
                 s = JSONConverter.ConvertToLabrinthSearchResult(json);
                 StatusChanged("Ready", new EventArgs());
                 UI(true);
@@ -80,16 +163,49 @@ namespace SDLauncher_UWP.Helpers
                 return null;
             }
         }
-        public async Task<LabrinthResults.ModrinthProject> GetProject(string id)
+        public async Task<LabrinthResults.ModrinthProject> GetProject(string id,bool UIChange = true)
         {
-            int taskID = LittleHelp.AddTask("Loading Mod");
-            UI(false);
+            int taskID = LittleHelp.AddTask("Load Mod");
+            if (UIChange)
+            {
+                UI(false);
+            }
             StatusChanged("Loading Mod",new EventArgs());
             LabrinthResults.ModrinthProject s = null;
             try
             {
                 var json = await Util.DownloadText("https://api.modrinth.com/v2/project/" + id);
                 s = JSONConverter.ConvertToLabrinthProject(json);
+                StatusChanged("Ready", new EventArgs());
+                if (UIChange)
+                {
+                    UI(true);
+                }
+                LittleHelp.CompleteTask(taskID);
+                return s;
+            }
+            catch
+            {
+                StatusChanged("Ready", new EventArgs());
+                if (UIChange)
+                {
+                    UI(true);
+                }
+                LittleHelp.CompleteTask(taskID);
+                return null;
+            }
+        }
+        public async Task<List<LabrinthResults.DownloadManager.DownloadLink>> GetVersions(string id)
+        {
+            int taskID = LittleHelp.AddTask("Load Download versionss");
+            UI(false);
+            StatusChanged("Loading Mod downloads", new EventArgs());
+            List<LabrinthResults.DownloadManager.DownloadLink> s = null;
+            try
+            {
+                string link = "https://api.modrinth.com/v2/project/" + id + "/version";
+                var json = await Util.DownloadText(link);
+                s = JSONConverter.ConvertDownloadLinksToCS(json);
                 StatusChanged("Ready", new EventArgs());
                 UI(true);
                 LittleHelp.CompleteTask(taskID);
@@ -107,12 +223,47 @@ namespace SDLauncher_UWP.Helpers
 
     public class LabrinthResults
     {
+        public class DownloadManager
+        {
+            public class File
+            {
+                public Hashes hashes { get; set; }
+                public string url { get; set; }
+                public string filename { get; set; }
+                public bool primary { get; set; }
+                public int size { get; set; }
+            }
+            public class DownloadLink
+            {
+                public string id { get; set; }
+                public string project_id { get; set; }
+                public string author_id { get; set; }
+                public bool featured { get; set; }
+                public string name { get; set; }
+                public string version_number { get; set; }
+                public string changelog { get; set; }
+                public object changelog_url { get; set; }
+                public DateTime date_published { get; set; }
+                public int downloads { get; set; }
+                public string version_type { get; set; }
+                public List<File> files { get; set; }
+                public List<object> dependencies { get; set; }
+                public List<string> game_versions { get; set; }
+                public List<string> loaders { get; set; }
+            }
+            public class Hashes
+            {
+                public string sha512 { get; set; }
+                public string sha1 { get; set; }
+            }
+        }
         public enum SearchSortOptions
         {
             Relevance,
             Downloads,
             Follows,
-            Updated
+            Updated,
+            Newest
         }
 
         public enum SearchCategories

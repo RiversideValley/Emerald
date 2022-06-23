@@ -106,10 +106,22 @@ namespace SDLauncher_UWP.Helpers
             StoreManager = new StoreManager();
             Labrinth = new Labrinth();
             Labrinth.StatusChanged += Labrinth_StatusChanged;
+            Labrinth.MainUIChangeRequested += Labrinth_MainUIChangeRequested;
+            Labrinth.ProgressChanged += Labrinth_ProgressChanged;
 
             this.TasksHelper = new TasksHelper();
 
             this.FileOrProgressChanged += SDLauncher_FileOrProgressChanged;
+        }
+
+        private void Labrinth_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            this.FileOrProgressChanged(sender, e);
+        }
+
+        private void Labrinth_MainUIChangeRequested(object sender, UIChangeRequestedEventArgs e)
+        {
+            UI(e.UI);
         }
 
         private void SDLauncher_FileOrProgressChanged(object sender, ProgressChangedEventArgs e)

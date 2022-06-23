@@ -25,13 +25,7 @@ namespace SDLauncher_UWP.UserControls
         {
             this.InitializeComponent();
         }
-        public string SearchText
-        {
-            get
-            {
-                return txtSearch.Text.ToString();
-            }
-        }
+        public string SearchText => txtSearch.Text.ToString();
         public List<StoreItem> ItemsSource
         {
             get { return (List<StoreItem>)GetValue(ItemsSourceProperty); }
@@ -54,17 +48,67 @@ namespace SDLauncher_UWP.UserControls
         {
             if (txtSearch.Text.Length > 0)
             {
-                SearchRequested(this, new SearchRequestedEventArgs(txtSearch.Text));
+                SearchRequested(this, new SearchRequestedEventArgs(txtSearch.Text,this.SortOptions,this.SearchCategories.ToArray()));
             }
             else
             {
-                SearchRequested(this, new SearchRequestedEventArgs(""));
+                SearchRequested(this, new SearchRequestedEventArgs("", this.SortOptions, this.SearchCategories.ToArray()));
             }
         }
 
         private void txtSearch_KeyDown(object sender, KeyRoutedEventArgs e)
         {
 
+        }
+        private LabrinthResults.SearchSortOptions SortOptions = LabrinthResults.SearchSortOptions.Relevance;
+        private List<LabrinthResults.SearchCategories> SearchCategories = new List<LabrinthResults.SearchCategories>();
+        private void SortOptions_Click(object sender, RoutedEventArgs e)
+        {
+           SortOptions = (LabrinthResults.SearchSortOptions)Enum.Parse(typeof(LabrinthResults.SearchSortOptions), (sender as Microsoft.UI.Xaml.Controls.RadioMenuFlyoutItem).Text);
+            txtSearch_TextChanged(null, null);
+        }
+
+        private void Categories_Click(object sender, RoutedEventArgs e)
+        {
+            try {
+                string name = (sender as ToggleMenuFlyoutItem).Text;
+                ToggleMenuFlyoutItem btn = (sender as ToggleMenuFlyoutItem);
+                if (name == "All")
+                {
+                    SearchCategories = new List<LabrinthResults.SearchCategories>();
+                    tglAll.IsChecked = true;
+                    tglAdv.IsChecked = false;
+                    tglCursed.IsChecked = false;
+                    tglDeco.IsChecked = false;
+                    tglEqu.IsChecked = false;
+                    tglFood.IsChecked = false;
+                    tglLib.IsChecked = false;
+                    tglMagic.IsChecked = false;
+                    tglMisc.IsChecked = false;
+                    tglOptimi.IsChecked = false;
+                    tglStore.IsChecked = false;
+                    tglTech.IsChecked = false;
+                    tglUtil.IsChecked = false;
+                    tglWorld.IsChecked = false;
+                }
+                else
+                {
+                    if (btn.IsChecked)
+                    {
+                        tglAll.IsChecked = false;
+                        SearchCategories.Add((LabrinthResults.SearchCategories)Enum.Parse(typeof(LabrinthResults.SearchCategories), name));
+                    }
+                    else
+                    {
+                        SearchCategories.Remove((LabrinthResults.SearchCategories)Enum.Parse(typeof(LabrinthResults.SearchCategories), name));
+                        if (SearchCategories.Count < 1)
+                        {
+                            tglAll.IsChecked = true;
+                        }
+                    }
+                }
+            }
+            catch { }txtSearch_TextChanged(null, null);
         }
     }
     public class StoreItemSelectedEventArgs : EventArgs
@@ -78,9 +122,13 @@ namespace SDLauncher_UWP.UserControls
     public class SearchRequestedEventArgs : EventArgs
     {
         public string Name { get; private set; }
-        public SearchRequestedEventArgs(string itm)
+        public LabrinthResults.SearchSortOptions SortOptions { get; private set; }
+        public LabrinthResults.SearchCategories[] SearchCategories { get; private set; }
+        public SearchRequestedEventArgs(string itm, LabrinthResults.SearchSortOptions sortBy, LabrinthResults.SearchCategories[] categories)
         {
             Name = itm;
+            SortOptions = sortBy;
+            SearchCategories = categories;
         }
     }
 }

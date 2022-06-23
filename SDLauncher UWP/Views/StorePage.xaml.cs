@@ -28,7 +28,13 @@ namespace SDLauncher_UWP.Views
         {
             this.InitializeComponent();
             vars.Launcher.Labrinth.UIChangeRequested += Labrinth_UIChangeRequested;
+            vars.Launcher.Labrinth.MainUIChangeRequested += Labrinth_MainUIChangeRequested;
             LoadData();
+        }
+
+        private void Labrinth_MainUIChangeRequested(object sender, SDLauncher.UIChangeRequestedEventArgs e)
+        {
+            this.IsEnabled = e.UI;
         }
 
         private void Labrinth_UIChangeRequested(object sender, SDLauncher.UIChangeRequestedEventArgs e)
@@ -46,11 +52,12 @@ namespace SDLauncher_UWP.Views
             ItemsCollection.ItemsSource = null;
             ItemsCollection.ItemsSource = Items;
         }
-        public async Task Search(string name,bool AddExists)
+        public async Task Search(string name, bool AddExists,LabrinthResults.SearchSortOptions sortBy = LabrinthResults.SearchSortOptions.Relevance, LabrinthResults.SearchCategories[] categories = null)
         {
             try
             {
-                var r = await vars.Launcher.Labrinth.Search(name, 30);
+                var r = await vars.Launcher.Labrinth.Search(name, 30, sortBy, categories);
+
                 var itms = new List<StoreManager.StoreMod>();
                 if (AddExists)
                 {
@@ -66,12 +73,13 @@ namespace SDLauncher_UWP.Views
                     {
                         Items.Add(new StoreItem(hit, Items.Count + 1));
                     }
-                    
+
                 }
+
             }
             catch
             {
-                
+
             }
             UpdateSource();
             ItemsCollection.FocusSearch();
@@ -106,31 +114,22 @@ namespace SDLauncher_UWP.Views
             icVers.ItemsSource = null;
             icVers.ItemsSource = itm.SupportedVers;
             flipSamples.ItemsSource = null;
+            if (itm.SampleImages.Count < 1)
+            {
+                flipSamples.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                flipSamples.Visibility = Visibility.Visible;
+            }
             flipSamples.ItemsSource = itm.SampleImages;
             imgIcon.Source = itm.Icon;
-            var f = new MenuFlyout();
-            f.Placement = FlyoutPlacementMode.Bottom;
-            if (itm.Type == StoreManager.Type.Mod)
-            {
-                foreach (var item in itm.ModDownloadLinks)
-                {
-                    var x = new MenuFlyoutItem { Text = item.Version.ToString(), Tag = item.Url };
-                    ToolTipService.SetToolTip(x, item.SupportedVer);
-                    x.Click += X_Click;
-                    f.Items.Add(x);
-                }
-            }
-            else if (itm.Type == StoreManager.Type.Shader)
-            {
-                foreach (var item in itm.ShaderDownloadLinks)
-                {
-                    var x = new MenuFlyoutItem { Text = item.Version.ToString(), Tag = item.Url };
-                    ToolTipService.SetToolTip(x, item.SupportedVer);
-                    x.Click += X_Click;
-                    f.Items.Add(x);
-                }
-            }
-            btnDownload.Flyout = f;
+            expdDownloads.IsExpanded = false;
+            expdGallery.IsExpanded = false;
+            expdVers.IsExpanded = false;
+            var alldVers = await vars.Launcher.Labrinth.GetVersions(itm.ProjectID);
+            ModdownloadView.ItemsSource = alldVers;
+            itm.DownloadLinks = alldVers;
             this.IsEnabled = true;
             ItemView.IsPaneOpen = true;
         }
@@ -151,15 +150,35 @@ namespace SDLauncher_UWP.Views
             //Canvas.SetZIndex(ItemsCollection, 0);
             //Canvas.SetZIndex(ItemView, 1);
         }
-
-        private async void ItemsCollection_SearchRequested(object sender, UserControls.SearchRequestedEventArgs e)
+        private static void ScrollToElement(ScrollViewer scrollViewer, UIElement element, bool isVerticalScrolling = true, bool smoothScrolling = true, float? zoomFactor = null)
         {
-            var txt = e.Name;
-            await Task.Delay(new TimeSpan(0, 0, 0, 2));
-            if (ItemsCollection.SearchText == txt)
+            var transform = element.TransformToVisual((UIElement)scrollViewer.Content);
+            var position = transform.TransformPoint(new Point(0, 0));
+
+            if (isVerticalScrolling)
             {
-                Search(e.Name, false);
+                scrollViewer.ChangeView(null, position.Y, zoomFactor, !smoothScrolling);
             }
+            else
+            {
+                scrollViewer.ChangeView(position.X, null, zoomFactor, !smoothScrolling);
+            }
+        }
+        private void ItemsCollection_SearchRequested(object sender, UserControls.SearchRequestedEventArgs e)
+        {
+            Search(e.Name, false,e.SortOptions,e.SearchCategories);
+            
+        }
+
+        private void btnDownload_Click(object sender, RoutedEventArgs e)
+        {
+            expdDownloads.IsExpanded = true;
+            ScrollToElement(scrlView, expdDownloads);
+        }
+
+        private void ModdownloadView_DownloadRequested(UserControls.ModrinthDownloadsListView sender, LabrinthResults.DownloadManager.File args)
+        {
+            vars.Launcher.Labrinth.DownloadMod(args, vars.Launcher.Launcher.MinecraftPath);
         }
     }
 }
