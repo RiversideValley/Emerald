@@ -29,34 +29,35 @@
                 </Grid.ColumnDefinitions>
                 <TextBox KeyDown="txtSearch_KeyDown" VerticalAlignment="Center" Grid.Column="0" PlaceholderText="Search" x:Name="txtSearch" TextChanged="txtSearch_TextChanged" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <winui:DropDownButton Content="Sort By">
+                    <winui:DropDownButton Margin="5,0" Content="Sort By">
                         <winui:DropDownButton.Flyout>
-                            <MenuFlyout>
-                                <winui:RadioMenuFlyoutItem Text="Relevance"/>
-                                <winui:RadioMenuFlyoutItem Text="Downloads"/>
-                                <winui:RadioMenuFlyoutItem Text="Follows"/>
-                                <winui:RadioMenuFlyoutItem Text="Updated"/>
+                            <MenuFlyout Placement="Bottom">
+                                <winui:RadioMenuFlyoutItem Click="SortOptions_Click" IsChecked="True" Text="Relevance"/>
+                                <winui:RadioMenuFlyoutItem Click="SortOptions_Click" Text="Downloads"/>
+                                <winui:RadioMenuFlyoutItem Click="SortOptions_Click" Text="Follows"/>
+                                <winui:RadioMenuFlyoutItem Click="SortOptions_Click" Text="Updated"/>
+                                <winui:RadioMenuFlyoutItem Click="SortOptions_Click" Text="Newest"/>
                             </MenuFlyout>
                         </winui:DropDownButton.Flyout>
                     </winui:DropDownButton>
                     <winui:DropDownButton Content="Categories">
                         <winui:DropDownButton.Flyout>
-                            <MenuFlyout>
-                                <MenuFlyoutItem Text="All"/>
+                            <MenuFlyout Placement="Bottom">
+                                <ToggleMenuFlyoutItem IsChecked="True" x:Name="tglAll" Click="Categories_Click"  Text="All"/>
                                 <MenuFlyoutSeparator/>
-                                <ToggleMenuFlyoutItem Text="Adventure"/>
-                                <ToggleMenuFlyoutItem Text="Cursed"/>
-                                <ToggleMenuFlyoutItem Text="Decoration"/>
-                                <ToggleMenuFlyoutItem Text="Equipment"/>
-                                <ToggleMenuFlyoutItem Text="Food"/>
-                                <ToggleMenuFlyoutItem Text="Library"/>
-                                <ToggleMenuFlyoutItem Text="Magic"/>
-                                <ToggleMenuFlyoutItem Text="Misc"/>
-                                <ToggleMenuFlyoutItem Text="Optimization"/>
-                                <ToggleMenuFlyoutItem Text="Storage"/>
-                                <ToggleMenuFlyoutItem Text="Technology"/>
-                                <ToggleMenuFlyoutItem Text="Utility"/>
-                                <ToggleMenuFlyoutItem Text="Worldgen"/>
+                                <ToggleMenuFlyoutItem Click="Categories_Click" x:Name="tglAdv" Text="Adventure"/>
+                                <ToggleMenuFlyoutItem Click="Categories_Click" x:Name="tglCursed" Text="Cursed"/>
+                                <ToggleMenuFlyoutItem Click="Categories_Click" x:Name="tglDeco" Text="Decoration"/>
+                                <ToggleMenuFlyoutItem Click="Categories_Click" x:Name="tglEqu" Text="Equipment"/>
+                                <ToggleMenuFlyoutItem Click="Categories_Click" x:Name="tglFood" Text="Food"/>
+                                <ToggleMenuFlyoutItem Click="Categories_Click" x:Name="tglLib" Text="Library"/>
+                                <ToggleMenuFlyoutItem Click="Categories_Click" x:Name="tglMagic" Text="Magic"/>
+                                <ToggleMenuFlyoutItem Click="Categories_Click" x:Name="tglMisc" Text="Misc"/>
+                                <ToggleMenuFlyoutItem Click="Categories_Click" x:Name="tglOptimi" Text="Optimization"/>
+                                <ToggleMenuFlyoutItem Click="Categories_Click" x:Name="tglStore" Text="Storage"/>
+                                <ToggleMenuFlyoutItem Click="Categories_Click" x:Name="tglTech" Text="Technology"/>
+                                <ToggleMenuFlyoutItem Click="Categories_Click" x:Name="tglUtil" Text="Utility"/>
+                                <ToggleMenuFlyoutItem Click="Categories_Click" x:Name="tglWorld" Text="Worldgen"/>
                             </MenuFlyout>
                         </winui:DropDownButton.Flyout>
                     </winui:DropDownButton>
@@ -96,13 +97,13 @@
                                         </TextBlock>
                                         <TextBlock VerticalAlignment="Bottom" Style="{ThemeResource CaptionTextBlockStyle}">
                                             <Run Text="&#xe896;" FontFamily="{ThemeResource SymbolThemeFontFamily}"/> 
-                                            <Run Text="{x:Bind TotalDownloads.ToString()}"/> 
+                                            <Run Text="{x:Bind TotalDownloadsString}"/> 
                                             Downloads | 
-                                            <Run Text="{x:Bind Followers.ToString()}"/> 
+                                            <Run Text="{x:Bind FollowersString}"/> 
                                             Followers
                                         </TextBlock>
                                     </StackPanel>
-                                    <TextBlock MaxHeight="65" TextWrapping="WrapWholeWords" TextTrimming="CharacterEllipsis" Style="{ThemeResource CaptionTextBlockStyle}" Grid.Row="1" Text="{x:Bind Description}"/>
+                                    <TextBlock MaxHeight="65" TextWrapping="WrapWholeWords" TextTrimming="CharacterEllipsis" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource ButtonDisabledForegroundThemeBrush}" Grid.Row="1" Text="{x:Bind Description}"/>
                                 </Grid>
                             </Grid>
                         </Grid>

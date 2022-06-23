@@ -19,39 +19,54 @@
         <SplitView x:Name="ItemView" OpenPaneLength="515" PaneBackground="{ThemeResource AcrylicGlass}" Canvas.ZIndex="0" PaneClosed="ItemView_PaneClosed" PaneOpened="ItemView_PaneOpened" PanePlacement="Right" IsPaneOpen="False">
             <NoobUI:StoreItemsCollection SearchRequested="ItemsCollection_SearchRequested" StoreItemSelected="ItemsCollection_StoreItemSelected" Canvas.ZIndex="1" x:Name="ItemsCollection"/>
             <SplitView.Pane>
-                <ScrollViewer>
+                <ScrollViewer x:Name="scrlView">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="auto"/>
-                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
                         </Grid.RowDefinitions>
-                        <StackPanel Padding="15" Grid.Row="0" Margin="5,0,0,0">
+                        <StackPanel Padding="25,0" Grid.Row="0" Margin="5,10,0,0">
                             <Image Width="70" Height="70" x:Name="imgIcon"/>
-                            <TextBlock Margin="-5,10,20,0" Text="Make-UP UltraFst" x:Name="txtName" FontSize="30" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                            <TextBlock Margin="0,10,20,0" Text="Make-UP UltraFst" x:Name="txtName" FontSize="30" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                             <TextBlock Margin="0,0,0,10" Text="Make-UP UltraFst" x:Name="txtType" Style="{ThemeResource CaptionTextBlockStyle}" HorizontalAlignment="Center"/>
-                            <winui:DropDownButton Content="Download" Style="{ThemeResource AccentButtonStyle}" HorizontalAlignment="Center" x:Name="btnDownload"/>
+                            <Button x:Name="btnDownload" Click="btnDownload_Click" Content="Download" Style="{ThemeResource AccentButtonStyle}" HorizontalAlignment="Center"/>
                             <uwpControls:MarkdownTextBlock Margin="5,10" Background="Transparent" x:Name="mddescription"/>
-                            <NoobUI:Expander Margin="5" Title="Supported Versions">
-                                <NoobUI:Expander.Controls>
-                                    <ItemsControl x:Name="icVers">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock FontSize="14" Text="{Binding Converter={StaticResource ListToBlts}}" />
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </NoobUI:Expander.Controls>
-                            </NoobUI:Expander>
                         </StackPanel>
-                        <FlipView Grid.Row="1" Height="200" Width="350" x:Name="flipSamples" HorizontalAlignment="Center" VerticalAlignment="Top" Background="Transparent" BorderThickness="1">
-                            <FlipView.ItemTemplate>
-                                <DataTemplate x:DataType="BitmapImage">
-                                    <Grid>
-                                        <Image Source="{x:Bind}" Height="200" Width="350" Stretch="Fill" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </FlipView.ItemTemplate>
-                        </FlipView>
+                        <NoobUI:Expander x:Name="expdVers" Margin="15,5" Grid.Row="1" Title="Supported Versions" Icon="&#xe777;" Description="Fabric versions that suppors this mod">
+                            <NoobUI:Expander.Controls>
+                                <ItemsControl x:Name="icVers">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock FontSize="14" Text="{Binding Converter={StaticResource ListToBlts}}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </NoobUI:Expander.Controls>
+                        </NoobUI:Expander>
+                        <NoobUI:Expander x:Name="expdGallery" Margin="15,5" Icon="&#xe8b9;" Description="Images uploaded by the owner" Grid.Row="2"  Title="Gallery">
+                            <NoobUI:Expander.Controls>
+                                <Grid Padding="10">
+                                    <FlipView Height="200" Width="350" x:Name="flipSamples" HorizontalAlignment="Center" VerticalAlignment="Top" Background="Transparent" BorderThickness="1">
+                                        <FlipView.ItemTemplate>
+                                            <DataTemplate x:DataType="BitmapImage">
+                                                <Grid>
+                                                    <Image Source="{x:Bind}" Height="200" Width="350" Stretch="Fill" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </FlipView.ItemTemplate>
+                                    </FlipView>
+                                </Grid>
+                            </NoobUI:Expander.Controls>
+                        </NoobUI:Expander>
+                        <NoobUI:Expander x:Name="expdDownloads" Margin="15,5" Icon="&#xe896;" Description="Download it now!" Grid.Row="3"  Title="Downloads">
+                            <NoobUI:Expander.Controls>
+                                <Grid>
+                                    <NoobUI:ModrinthDownloadsListView DownloadRequested="ModdownloadView_DownloadRequested" x:Name="ModdownloadView"/>
+                                </Grid>
+                            </NoobUI:Expander.Controls>
+                        </NoobUI:Expander>
                     </Grid>
                 </ScrollViewer>
             </SplitView.Pane>

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -12,6 +14,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using System.Collections.ObjectModel;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -19,15 +22,15 @@ namespace SDLauncher_UWP.UserControls
 {
     public sealed partial class TaskListView : UserControl
     {
-        public List<Task> TasksCompleted { get;private set; }
-        public List<Task> CurrentTasks { get;private set; }
+        public ObservableCollection<Task> TasksCompleted { get;private set; }
+        public ObservableCollection<Task> CurrentTasks { get;private set; }
         private int WholeTaskCount = 0;
         
         public TaskListView()
         {
             this.InitializeComponent();
-            this.TasksCompleted = new List<Task>();
-            this.CurrentTasks = new List<Task>();
+            this.TasksCompleted = new ObservableCollection<Task>();
+            this.CurrentTasks = new ObservableCollection<Task>();
             RefreshTasks();
         }
         public int AddTask(string name,int? ID = null)
@@ -79,9 +82,6 @@ namespace SDLauncher_UWP.UserControls
         }
         public void RefreshTasks()
         {
-            lvRuning.ItemsSource = null;
-            lvDone.ItemsSource = null;
-            //Remove Before empty tasks
             var emptyTasks = new List<Task>();
             foreach (var item in CurrentTasks)
             {
@@ -110,7 +110,7 @@ namespace SDLauncher_UWP.UserControls
             //Add Empty Tasks
             if (CurrentTasks.Count < 1)
             {
-                CurrentTasks.Add(new Task("Empty", 1000));
+                CurrentTasks.Add(new Task("Empty", 1000) { RingVisibility = Visibility.Collapsed});
             }
             //
             if (TasksCompleted.Count < 1)
@@ -121,9 +121,13 @@ namespace SDLauncher_UWP.UserControls
             lvDone.ItemsSource = TasksCompleted;
         }
     }
-    public class Task
+    public class Task : INotifyPropertyChanged
     {
+
+        public event PropertyChangedEventHandler PropertyChanged = delegate { };
+        private Visibility ringVisibility = Visibility.Visible;
         public string Name { get; set; }
+        public Visibility RingVisibility { get { return ringVisibility; }set { ringVisibility = value;OnPropertyChanged(); } }
         public int ID { get; private set; }
         public DateTime DateAdded { get; set; }
         public Task(string name, int iD)
@@ -131,6 +135,10 @@ namespace SDLauncher_UWP.UserControls
             Name = name;
             DateAdded = DateTime.Now;
             ID = iD;
+        }
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

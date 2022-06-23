@@ -20,13 +20,15 @@ namespace SDLauncher_UWP.Helpers
         public string Description { get; private set; }
         public async Task<string> BigDescription()
         {
-            var mod = await vars.Launcher.Labrinth.GetProject(ProjectID);
+            var mod = await vars.Launcher.Labrinth.GetProject(ProjectID,false);
             return await Util.DownloadText(mod.body_url);
         }
         public string ProjectID { get; set; }
         public string Author { get; set; }
         public int Followers { get; set; }
+        public string FollowersString { get { return Followers.KiloFormat(); } }
         public int TotalDownloads { get; set; }
+        public string TotalDownloadsString { get { return TotalDownloads.KiloFormat(); } }
 
         public string[] SupportedVers { get; set; }
 
@@ -44,60 +46,11 @@ namespace SDLauncher_UWP.Helpers
                 return b;
             }
         }
-        private List<string> features;
-        public List<string> Features
-        {
-            get
-            {
-                return features;
-            }
-        }
         public BitmapImage Icon;
-        public List<StoreManager.StoreModDownloadLink> ModDownloadLinks { get; set; } 
-        public List<StoreManager.StoreShaderDownloadLink> ShaderDownloadLinks { get; set; }
+        public List<LabrinthResults.DownloadManager.DownloadLink> DownloadLinks;
         public StoreItem(object Item, int iD)
         {
-            ModDownloadLinks = new List<StoreManager.StoreModDownloadLink>();
-            ShaderDownloadLinks = new List<StoreManager.StoreShaderDownloadLink>();
-            if (Item.GetType() == typeof(StoreManager.StoreShader))
-            {
-                Type = StoreManager.Type.Shader;
-                var i = (StoreManager.StoreShader)Item;
-                this.Description = i.Description;
-                this.Name = i.Name;
-                this.sampleImages = new List<string>();
-
-                if (i.SampleImages != null)
-                {
-                    foreach (var item in i.SampleImages)
-                    {
-                        this.sampleImages.Add(item.Url);
-                    }
-                }
-                try
-                {
-                    this.Icon = new BitmapImage(new Uri(i.Icon));
-                }
-                catch { }
-
-
-                features = new List<string>();
-                if (i.Features != null)
-                {
-                    foreach (var item in i.Features)
-                    {
-                        features.Add(item.Name);
-                    }
-                }
-                if (i.DownloadLinks != null)
-                {
-                    foreach (var item in i.DownloadLinks)
-                    {
-                        ShaderDownloadLinks.Add(item);
-                    }
-                }
-            }
-            else if(Item.GetType() == typeof(LabrinthResults.Hit))
+            if(Item.GetType() == typeof(LabrinthResults.Hit))
             {
                 var hit = (LabrinthResults.Hit)Item;
                 this.Name = hit.title;
@@ -113,7 +66,7 @@ namespace SDLauncher_UWP.Helpers
                 {
                     sampleImages.Add(item);
                 }
-                
+                DownloadLinks = new List<LabrinthResults.DownloadManager.DownloadLink>();
             }
             ID = iD;
         }

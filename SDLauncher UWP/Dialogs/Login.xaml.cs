@@ -342,15 +342,6 @@ namespace SDLauncher_UWP
         }
         private void btnChooseAcc_Click(object sender, RoutedEventArgs e)
         {
-            for (int i = vars.Accounts.Count - 1; i >= 0; i--)
-            {
-                try
-                {
-                    vars.Accounts[i].PropertyChanged -= Login_PropertyChanged;
-                }
-                catch { }
-                vars.Accounts[i].PropertyChanged += Login_PropertyChanged;
-            }
             ShowSelect(false, false);
             gridChoose.Visibility = Visibility.Visible;
             gridNew.Visibility = Visibility.Collapsed;
@@ -358,10 +349,6 @@ namespace SDLauncher_UWP
             UpdateAccounts();
         }
 
-        private void Login_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            //  UpdateAccounts();
-        }
 
         private void btnBack_Click(object sender, RoutedEventArgs e)
         {

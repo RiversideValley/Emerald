@@ -5,6 +5,7 @@
     xmlns:local="using:SDLauncher_UWP.UserControls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:winui="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d"
     d:DesignHeight="300"
     d:DesignWidth="400">
@@ -42,20 +43,29 @@
         </Grid.RowDefinitions>
         <local:Expander Icon="&#xe9d5;" IsExpanded="True" Title="Current Tasks" Description="Task that going to run or running" Grid.Row="0" VerticalAlignment="Top" Margin="5">
             <local:Expander.Controls>
-                <ListView SelectionMode="Single" x:Name="lvRuning">
+                <ListView MaxHeight="450" SelectionMode="Single" x:Name="lvRuning">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="local:Task">
                             <Grid Padding="10">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="auto"/>
-                                </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0" Text="{x:Bind Name,Mode=OneWay}"/>
-                                <TextBlock Grid.Row="1" Style="{ThemeResource CaptionTextBlockStyle}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="0" Visibility="{x:Bind RingVisibility,Mode=OneWay}" Margin="0,0,5,0">
+                                    <winui:ProgressRing VerticalAlignment="Center" Width="20" Height="20" IsActive="True"/>
+                                </Grid>
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="{x:Bind Name,Mode=OneWay}"/>
+                                    <TextBlock Grid.Row="1" Style="{ThemeResource CaptionTextBlockStyle}">
                                     at
                                     <Run Text="{x:Bind DateAdded.ToShortDateString(),Mode=OneWay}"/> 
                                     <Run Text="{x:Bind DateAdded.ToShortTimeString(),Mode=OneWay}"/>
-                                </TextBlock>
+                                    </TextBlock>
+                                </Grid>
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -64,7 +74,7 @@
         </local:Expander>
         <local:Expander Icon="&#xe930;" Description="Tasks that completed or failed" Title="Tasks Completed" Grid.Row="1" VerticalAlignment="Top" Margin="5">
             <local:Expander.Controls>
-                <ListView SelectionMode="Single" x:Name="lvDone">
+                <ListView  MaxHeight="450" SelectionMode="Single" x:Name="lvDone">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="local:Task">
                             <Grid Padding="10">
