@@ -3,10 +3,10 @@ An open-source custom noob wpf or uwp(still in dev) Minecraft Launcher for Windo
 
 <br>
 The idea of the creation by https://github.com/TurtlzYT
-<br> 
+<br>
 Based on CmlLib (https://github.com/CmlLib/CmlLib.Core)
-<br> 
-<br> 
+<br>
+<br>
 <img src="https://user-images.githubusercontent.com/82730163/170818956-8c32d257-dbec-42d6-bf5d-f34103eeb006.png" />
 
 The image is from version 0.3.6-uwp
@@ -22,7 +22,6 @@ The image is from version 0.3.6-uwp
 <h3> UWP version</h3>
 
 - [x] Microsoft Login
-- [ ] SD Store (still making)
 - [ ] Mojang Login (Expired)
 - [x] Offline Login
 - [x] Save Accounts
@@ -34,6 +33,7 @@ The image is from version 0.3.6-uwp
 - [ ] Forge (trying to make)
 - [x] Fabric
 - [x] Optifine
+- [x] SD Store
 
 <h3> WPF version</h3>
 
