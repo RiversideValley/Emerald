@@ -447,10 +447,10 @@ namespace SDLauncher_UWP
         //
         public string SearchFabric(string ver)
         {
-            var item = from t in vars.Launcher.FabricMCVersions where t.Name.Contains(ver) select t;
+            var item = from t in vars.Launcher.FabricMCVersions where t.Name.EndsWith(ver) select t;
             if (item != null)
             {
-                return item.First().Name;
+                return item.FirstOrDefault().Name;
             }
             else
             {
