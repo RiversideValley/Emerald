@@ -20,7 +20,7 @@ namespace SDLauncher_UWP.Helpers
         {
             return vars.Launcher.TasksHelper.AddTask(name);
         }
-        public static void CompleteTask(int ID)
+        public static void CompleteTask(int ID,bool? IsSuccess = null)
         {
             vars.Launcher.TasksHelper.CompleteTask(ID);
         }
