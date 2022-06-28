@@ -61,7 +61,6 @@ namespace SDLauncher_UWP
                 this.Hide();
                 _ = await MessageBox.Show("Error", "User canceld the login!", MessageBoxButtons.Ok);
                 vars.session = tempsession;
-                vars.UserName = tempsession.Username;
                 _ = this.ShowAsync();
             }
             else if (result == MSLogin.Exceptions.NoAccount)
@@ -69,7 +68,6 @@ namespace SDLauncher_UWP
                 this.Hide();
                 _ = await MessageBox.Show("Error", "You don't have an Minecraft profile on that Microsoft account!", MessageBoxButtons.Ok);
                 vars.session = tempsession;
-                vars.UserName = tempsession.Username;
                 _ = this.ShowAsync();
             }
             else if (result == MSLogin.Exceptions.ConnectFailed)
@@ -79,14 +77,12 @@ namespace SDLauncher_UWP
                 if (tempsession != null)
                 {
                     vars.session = tempsession;
-                    vars.UserName = tempsession.Username;
                 }
                 _ = this.ShowAsync();
                 UpdateAccounts();
             }
             else if (result == MSLogin.Exceptions.Success)
             {
-                vars.UserName = vars.session.Username;
                 this.Hide();
             }
             UI(true);
@@ -100,7 +96,6 @@ namespace SDLauncher_UWP
         private void UpdateSession(MSession session)
         {
             vars.session = session;
-            vars.UserName = session.Username.ToString();
             this.Hide();
         }
 
@@ -193,7 +188,7 @@ namespace SDLauncher_UWP
                     isSelectionMode = false;
                 }
             }
-            if(vars.Accounts.Count == 1)
+            if (vars.Accounts.Count == 1)
             {
                 isSelectionMode = false;
             }
@@ -254,7 +249,6 @@ namespace SDLauncher_UWP
                         if (item.Count == vars.CurrentAccountCount)
                         {
                             vars.session = null;
-                            vars.UserName = "";
                             vars.CurrentAccountCount = null;
                         }
 
@@ -275,7 +269,6 @@ namespace SDLauncher_UWP
                                 if (item.Count == vars.CurrentAccountCount)
                                 {
                                     vars.session = null;
-                                    vars.UserName = "";
                                     vars.CurrentAccountCount = null;
                                 }
                             }
@@ -284,7 +277,6 @@ namespace SDLauncher_UWP
                                 if (item.Count == vars.CurrentAccountCount)
                                 {
                                     vars.session = null;
-                                    vars.UserName = "";
                                     vars.CurrentAccountCount = null;
                                 }
                             }
@@ -318,7 +310,6 @@ namespace SDLauncher_UWP
                 vars.AccountsCount++;
             }
             vars.session = session;
-            vars.UserName = session.Username;
             vars.CurrentAccountCount = vars.AccountsCount;
             this.Hide();
         }
@@ -356,7 +347,7 @@ namespace SDLauncher_UWP
             gridChoose.Visibility = Visibility.Collapsed;
             gridSettingsOnline.Visibility = Visibility.Collapsed;
         }
-
+        public string selectedSkinUUID;
         private void btnSettings_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuFlyoutItem itm)
@@ -368,8 +359,9 @@ namespace SDLauncher_UWP
                         if (item.Type == "Offline")
                         {
                             itmRename.IsEnabled = true;
-                            imgBody.Source = new BitmapImage(new Uri("https://minotar.net/body/noob"));
-                            prpSettings.ProfilePicture = new BitmapImage(new Uri("https://minotar.net/avatar/noob"));
+                            imgBody.Source = new BitmapImage(new Uri("https://minotar.net/body/MHF_Steve"));
+                            prpSettings.ProfilePicture = new BitmapImage(new Uri("https://minotar.net/helm/MHF_Steve"));
+                            selectedSkinUUID = "MHF_Steve";
                             txtTypeSettings.Text = "Offline Account";
                             fnticoAcTypeSettings.Glyph = item.TypeIconGlyph;
                             prpSettings.DisplayName = item.UserName;
@@ -384,8 +376,10 @@ namespace SDLauncher_UWP
                         }
                         else
                         {
-                            bodyImagesorce = "https://minotar.net/" + item.UUID;
+                            imgBody.Source = new BitmapImage(new Uri("https://minotar.net/body/" + item.UUID));
+                            prpSettings.ProfilePicture = new BitmapImage(new Uri("https://minotar.net/helm/" + item.UUID));
                             itmRename.IsEnabled = false;
+                            selectedSkinUUID = item.UUID;
                             txtTypeSettings.Text = "Microsoft Account";
                             fnticoAcTypeSettings.Glyph = item.TypeIconGlyph;
                             prpSettings.DisplayName = item.UserName;
@@ -513,7 +507,6 @@ namespace SDLauncher_UWP
                             if (vars.CurrentAccountCount == item.Count)
                             {
                                 vars.session = MSession.GetOfflineSession(txtbxRename.Text);
-                                vars.UserName = txtbxRename.Text;
                             }
                             item.UserName = txtbxRename.Text;
                             txtSettingsPrpName.Text = txtbxRename.Text;
@@ -747,7 +740,53 @@ namespace SDLauncher_UWP
                 }
             }
         }
+        private async void mitDownloadSkin_Click(object sender, RoutedEventArgs e)
+        {
+            btnDownloadSkin.IsEnabled = false;
+            int taskID = LittleHelp.AddTask("Download image");
+            try
+            {
+                string link = "https://minotar.net/";
+                if (sender is MenuFlyoutItem mit)
+                {
+                    switch (mit.Tag.ToString())
+                    {
+                        case "Head":
+                            link += "helm/" + selectedSkinUUID + "/1000";
+                            break;
+                        case "Head3D":
+                            link += "cube/" + selectedSkinUUID + "/1000";
+                            break;
+                        case "Body":
+                            link += "body/" + selectedSkinUUID + "/1000";
+                            break;
+                        case "Skin":
+                            link += "skin/" + selectedSkinUUID;
+                            break;
+                    }
+                    var f = await Windows.Storage.DownloadsFolder.CreateFileAsync(mit.Tag.ToString() + selectedSkinUUID);
+                    var path = f.Path;
+                    f = null;
+                    using (var client = new HttpClientDownloadWithProgress(link, path))
+                    {
+                        client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
+                        {
+                            if (progressPercentage == 100)
+                            {
+                                LittleHelp.CompleteTask(taskID,true);
+                                client.Dispose();
+                            }
+                        };
 
-
+                        await client.StartDownload();
+                    }
+                }
+            }
+            catch
+            {
+                LittleHelp.CompleteTask(taskID, false);
+            }
+            btnDownloadSkin.IsEnabled = true;
+        }
     }
 }

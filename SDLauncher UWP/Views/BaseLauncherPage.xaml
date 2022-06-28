@@ -9,9 +9,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
     mc:Ignorable="d">
-    <Page.Resources>
-        <ResourceDictionary Source="/Resources/AcrylicButton.xaml"/>
-    </Page.Resources>
     <Grid>
         
         <Grid.ChildrenTransitions>
@@ -31,7 +28,6 @@
             CloseButtonStyle="{ThemeResource ButtonRevealStyle}"
             CloseButtonClick="tip_CloseButtonClick"
             Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
-            Target="{x:Bind cmbxVer}"
             Title="Choose A version"
             Subtitle="There is avaible version 1.15 lower for now">
             <winui:TeachingTip.IconSource>
@@ -54,7 +50,7 @@
                 <winui:SymbolIconSource Symbol="Accept"/>
             </winui:TeachingTip.IconSource>
         </winui:TeachingTip>
-        <TextBlock FontFamily="{StaticResource Pixel}" Text="Welcome!" x:Name="txtWelcome" VerticalAlignment="Center" HorizontalAlignment="Left" Grid.Row="0" FontSize="35" FontWeight="Normal"/>
+        <TextBlock Text="Welcome!" x:Name="txtWelcome" VerticalAlignment="Center" HorizontalAlignment="Left" Grid.Row="0" FontSize="35" FontWeight="Normal"/>
         <winui:NavigationView CornerRadius="10" IsSettingsVisible="False" IsBackButtonVisible="Collapsed" ItemInvoked="navView_ItemInvoked" x:Name="navView" PaneDisplayMode="Top" Grid.Row="1">
             <winui:NavigationView.Resources>
                 <ResourceDictionary>
@@ -94,8 +90,9 @@
         <Grid Grid.Row="2" VerticalAlignment="Bottom" >
             <TextBlock x:Name="txtStatus" VerticalAlignment="Bottom" Text="Ready" HorizontalAlignment="Left"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <ComboBox Margin="0,0,5,0" SelectionChanged="cmbxVer_SelectionChanged" x:Name="cmbxVer"/>
-                <winui:DropDownButton Margin="0,0,5,0" x:Name="btnMCVer" Content="Version">
+                <ComboBox PlaceholderText="Pick a Version" PlaceholderForeground="{ThemeResource ButtonForegroundThemeBrush}" Margin="0,0,5,0" SelectionChanged="cmbxVer_SelectionChanged" x:Name="cmbxVer" Padding="12,5,-5,7"/>
+                <winui:DropDownButton Margin="0,0,5,0" x:Name="btnAdvMCVer" Content="Pick a Version"/>
+                <winui:DropDownButton Margin="0,0,5,0" x:Name="btnMCVer" Content="Pick a Version">
                     <winui:DropDownButton.Flyout>
                         <MenuFlyout x:Name="flyVer">
                             <MenuFlyoutSubItem Text="1.19">

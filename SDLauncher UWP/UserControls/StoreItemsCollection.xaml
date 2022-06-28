@@ -27,7 +27,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBox KeyDown="txtSearch_KeyDown" VerticalAlignment="Center" Grid.Column="0" PlaceholderText="Search" x:Name="txtSearch" TextChanged="txtSearch_TextChanged" />
+                <TextBox KeyDown="txtSearch_KeyDown" VerticalAlignment="Center" Grid.Column="0" PlaceholderText="Search" x:Name="txtSearch" TextChanged="txtSearch_TextChanged" MinWidth="20" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <winui:DropDownButton Margin="5,0" Content="Sort By">
                         <winui:DropDownButton.Flyout>

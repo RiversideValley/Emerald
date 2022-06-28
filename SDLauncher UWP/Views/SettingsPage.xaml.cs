@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -152,7 +153,6 @@ namespace SDLauncher_UWP.Views
             tglLogs.IsOn = vars.GameLogs;
             cbHash.IsChecked = vars.HashCheck;
             switchAutolog.IsOn = vars.autoLog;
-            tglOldVerSelector.IsOn = vars.UseOldVerSeletor;
             pageCount++;
             if (pageCount == 1)
             {
@@ -220,11 +220,6 @@ namespace SDLauncher_UWP.Views
             BackRequested(this, new EventArgs());
         }
 
-        private void tglOldVerSelector_Toggled(object sender, RoutedEventArgs e)
-        {
-            vars.UseOldVerSeletor = tglOldVerSelector.IsOn;
-            BackRequested(this, new EventArgs());
-        }
 
 
         private void nbrbxWidth_ValueChanged(Microsoft.UI.Xaml.Controls.NumberBox sender, Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs args)
@@ -367,18 +362,29 @@ namespace SDLauncher_UWP.Views
 
         public async void GetAndSetBG()
         {
-            var file = await StorageFile.GetFileFromPathAsync(vars.BackgroundImagePath);
-            vars.BackgroundImage = await Util.LoadImage(file);
+            StorageFile file;
+            string name;
+            if(vars.BackgroundImagePath == "null")
+            {
+                name = "None";
+                vars.BackgroundImage = new BitmapImage(new Uri("ms-appx:///Assets/BackDrops/Transparent.png"));
+            }
+            else
+            {
+                file = await StorageFile.GetFileFromPathAsync(vars.BackgroundImagePath);
+                name = file.DisplayName;
+                vars.BackgroundImage = await Util.LoadImage(file);
+            }
             if (vars.CustomBackground)
             {
                 if (cmbxBG.Items[3] == null)
                 {
-                    cmbxBG.Items.Add(file.DisplayName);
+                    cmbxBG.Items.Add(name);
                     cmbxBG.SelectedIndex = 3;
                 }
                 else
                 {
-                    cmbxBG.Items[3] = file.DisplayName;
+                    cmbxBG.Items[3] = name;
                     cmbxBG.SelectedIndex = 3;
                 }
             }
@@ -428,6 +434,7 @@ namespace SDLauncher_UWP.Views
                 {
                     cmbxBG.Items.Remove(cmbxBG.Items[3]);
                 }
+                vars.BackgroundImagePath = "null";
                 vars.BackgroundImage = new BitmapImage(new Uri("ms-appx:///Assets/BackDrops/Transparent.png"));
                 vars.CustomBackground = true;
             }
@@ -479,5 +486,46 @@ namespace SDLauncher_UWP.Views
                 }
             }
         }
+
+        private void cmbxVerSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            vars.VerSelectors = (VerSelectors)Enum.Parse(typeof(VerSelectors), cmbxVerSelector.SelectedItem.ToString());
+        }
+
+        private async void btnExportXML_Click(object sender, RoutedEventArgs e)
+        {
+            FileSavePicker savePicker = new FileSavePicker();
+            savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            savePicker.FileTypeChoices.Add("XML Settings", new List<string>() { ".xml" });
+            savePicker.SuggestedFileName = "New Document";
+
+            StorageFile sfile = await savePicker.PickSaveFileAsync();
+            if (sfile != null)
+            {
+                await new SettingsDataManager().CreateSettingsFile(file: sfile);
+            }
+
+        }
+        private async void btnImportXML_Click(object sender, RoutedEventArgs e)
+        {
+            var picker = new FileOpenPicker();
+            picker.ViewMode = PickerViewMode.Thumbnail;
+            picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+            picker.FileTypeFilter.Add(".xml");
+
+            StorageFile file = await picker.PickSingleFileAsync();
+            if (file != null)
+            {
+                await file.CopyAsync(ApplicationData.Current.RoamingFolder, "settings.xml", NameCollisionOption.ReplaceExisting);
+                await CoreApplication.RequestRestartAsync("");
+            }
+        }
+    }
+
+    public enum VerSelectors
+    {
+        Classic,
+        Normal,
+        Advanced
     }
 }

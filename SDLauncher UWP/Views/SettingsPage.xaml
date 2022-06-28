@@ -49,12 +49,17 @@
                                 </Grid>
                             </NoobUI:Expander.Controls>
                         </NoobUI:Expander>
-                        <NoobUI:SettingsCard Description="Not Recommended. Use the old versions seletor for launch any Minecraft versions" Icon="&#xec7a;" Margin="0,5,0,0" Title="Use old versions selector">
+                        <NoobUI:SettingsCard Icon="&#xec7a;" Margin="0,5,0,0" Title="Versions Selctor" Description="Wait...is that grandpa? Or is that Enderman?">
                             <NoobUI:SettingsCard.Controls>
-                                <ToggleSwitch OnContent="Yes" x:Name="tglOldVerSelector" Toggled="tglOldVerSelector_Toggled" MinWidth="100" OffContent="No" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                <ComboBox SelectedIndex="1" x:Name="cmbxVerSelector" SelectionChanged="cmbxVerSelector_SelectionChanged">
+                                    <ComboBox.Items>
+                                        <x:String>Classic</x:String>
+                                        <x:String>Normal</x:String>
+                                        <x:String>Advanced</x:String>
+                                    </ComboBox.Items>
+                                </ComboBox>
                             </NoobUI:SettingsCard.Controls>
                         </NoobUI:SettingsCard>
-                        
                         <NoobUI:Expander Icon="&#xec7a;" Margin="0,5,0,0" Description="The allocated memory of the minecraft client" Title="RAM">
                             <NoobUI:Expander.HeaderControls>
                                 <StackPanel Orientation="Horizontal">
@@ -106,7 +111,7 @@
                                 <ToggleSwitch OnContent="Yes"  IsOn="True" x:Name="tglChangeAdmin" Toggled="tglChangeAdmin_Toggled" MinWidth="100" OffContent="No" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </NoobUI:SettingsCard.Controls>
                         </NoobUI:SettingsCard>
-                        <NoobUI:Expander Description="For advanced users" Icon="&#xec7a;" Margin="0,5,0,0" Title="JVM Argumentss">
+                        <NoobUI:Expander Description="For Endermans" Icon="&#xec7a;" Margin="0,5,0,0" Title="JVM Argumentss">
                             <NoobUI:Expander.ControlsTransition>
                                 <TransitionCollection>
                                     <AddDeleteThemeTransition/>
@@ -116,7 +121,7 @@
                                 <NoobUI:ArgumentsListView x:Name="args"/>
                             </NoobUI:Expander.Controls>
                         </NoobUI:Expander>
-                        <NoobUI:Expander Description="Width and height" Icon="&#xe7fb;" Margin="0,5,0,0" Title="Minecraft window size">
+                        <NoobUI:Expander Description="Width and height? maybe entire screen?" Icon="&#xe7fb;" Margin="0,5,0,0" Title="Minecraft window size">
                             <NoobUI:Expander.HeaderControls>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock x:Name="txtScreenStatus" Text="Default"/>
@@ -150,7 +155,7 @@
                                 <EntranceThemeTransition IsStaggeringEnabled="True"/>
                             </TransitionCollection>
                         </StackPanel.ChildrenTransitions>
-                        <NoobUI:SettingsCard Icon="&#xe771;" Description="Light, Dark, Default" Title="Theme">
+                        <NoobUI:SettingsCard Icon="&#xe771;" Description="My eyes are burning.Please switch off lights!" Title="Theme">
                             <NoobUI:SettingsCard.Controls>
                                 <ComboBox x:Name="cmbxTheme" SelectionChanged="cmbxTheme_SelectionChanged" HorizontalAlignment="Right" Margin="0,0,35,0" VerticalAlignment="Center">
                                     <x:String>Light</x:String>
@@ -159,7 +164,7 @@
                                 </ComboBox>
                             </NoobUI:SettingsCard.Controls>
                         </NoobUI:SettingsCard>
-                        <NoobUI:SettingsCard Icon="&#xe8b9;" Description="Customize your launcher background" Margin="0,5,0,0" Title="Background Image">
+                        <NoobUI:SettingsCard Icon="&#xe8b9;" Description="This place looks familiar to me" Margin="0,5,0,0" Title="Background Image">
                             <NoobUI:SettingsCard.Controls>
                                 <ComboBox x:Name="cmbxBG" SelectionChanged="cmbxBG_SelectionChanged">
                                     <x:String>Default</x:String>
@@ -201,11 +206,15 @@
                                             Based on <Hyperlink NavigateUri="https://github.com/CmlLib">CMLLib</Hyperlink> by <Hyperlink NavigateUri="https://github.com/AlphaBs">AlphaBs</Hyperlink><LineBreak/>
                                         </TextBlock>
                                         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                                            <HyperlinkButton NavigateUri="https://github.com/Chaniru22/SDLauncher" Content="Github"/>
+                                            <HyperlinkButton NavigateUri="https://github.com/SeaDevTeam" Content="Github"/>
                                             <HyperlinkButton Margin="5,0,0,0" NavigateUri="https://discord.gg/kN7bjt6Ncq" Content="Discord"/>
                                         </StackPanel>
-                                        <HyperlinkButton NavigateUri="https://github.com/Chaniru22/SDLauncher-UWP" HorizontalAlignment="Center" Content="Github source-code"/>
-                                        <Button x:Name="btnXML" Click="btnXML_Click" Margin="0,5,0,0" Content="settings.xml"/>
+                                        <HyperlinkButton NavigateUri="https://docs.modrinth.com/api-spec/" HorizontalAlignment="Center" Content="Labrinth (SDStore)"/>
+                                        <StackPanel  Margin="0,5,0,0" Orientation="Horizontal">
+                                            <Button x:Name="btnXML" Click="btnXML_Click" Margin="0,0,5,0" Content="Settings.xml"/>
+                                            <Button x:Name="btnExportXML" Click="btnExportXML_Click" Margin="0,0,5,0" Content="Export xml"/>
+                                            <Button x:Name="btnImportXML" Click="btnImportXML_Click" Content="Import xml"/>
+                                        </StackPanel>
                                     </StackPanel>
                                 </Grid>
                             </NoobUI:Expander.Controls>

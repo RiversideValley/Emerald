@@ -146,6 +146,7 @@
     <Compile Include="Helpers\GlacierClient.cs" />
     <Compile Include="Helpers\Labrinth.cs" />
     <Compile Include="Helpers\Localizer.cs" />
+    <Compile Include="Helpers\MenuItemsCreator.cs" />
     <Compile Include="Helpers\ModManager.cs" />
     <Compile Include="Helpers\MSLogin.cs" />
     <Compile Include="Helpers\RPCHelper.cs" />
