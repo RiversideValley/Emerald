@@ -49,7 +49,7 @@
                 <Button Style="{ThemeResource AccentButtonStyle}" x:Name="btnChooseAcc" Click="btnChooseAcc_Click" HorizontalAlignment="Center" Margin="0,5,0,0">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Choose an account" VerticalAlignment="Center"/>
-                        <FontIcon Glyph="&#xEBE7;" Margin="2,3,0,0" FontWeight="SemiBold" VerticalAlignment="Bottom"/>
+                        <FontIcon Glyph="&#xE748;" />
                     </StackPanel>
                 </Button>
             </StackPanel>
@@ -83,7 +83,6 @@
                     <TextBlock VerticalAlignment="Center" FontSize="15" FontWeight="SemiBold" Text="Choose an account"/>
                 </StackPanel>
                 <StackPanel VerticalAlignment="Center" Margin="0,0,0,4" Orientation="Horizontal" Grid.Column="1">
-
                     <Button VerticalAlignment="Center" Width="30" Margin="0,0,5,0"  Click="btnDel_Click" x:Name="btnDel" Background="Transparent" BorderThickness="0" Padding="5,7">
                         <FontIcon Glyph="&#xe74d;" FontSize="17"/>
                     </Button>
@@ -243,16 +242,16 @@
                         <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
                     <Image Grid.Row="0" x:Name="imgBody"/>
-                    <winui:DropDownButton Margin="0,5,0,0" Grid.Row="1" HorizontalAlignment="Right">
+                    <winui:DropDownButton Margin="0,5,0,0" Grid.Row="1" x:Name="btnDownloadSkin" HorizontalAlignment="Right">
                         <winui:DropDownButton.Content>
                             <SymbolIcon Symbol="Download"/>
                         </winui:DropDownButton.Content>
                         <winui:DropDownButton.Flyout>
                             <MenuFlyout>
-                                <MenuFlyoutItem Text="Download body"/>
-                                <MenuFlyoutItem Text="Download head"/>
-                                <MenuFlyoutItem Text="Download head 3D"/>
-                                <MenuFlyoutItem Text="Download skin"/>
+                                <MenuFlyoutItem Tag="Body" Click="mitDownloadSkin_Click" Text="Download body"/>
+                                <MenuFlyoutItem Tag="Head" Click="mitDownloadSkin_Click" Text="Download head"/>
+                                <MenuFlyoutItem Tag="Head3D" Click="mitDownloadSkin_Click" Text="Download head 3D"/>
+                                <MenuFlyoutItem Tag="Skin" Click="mitDownloadSkin_Click" Text="Download skin"/>
                             </MenuFlyout>
                         </winui:DropDownButton.Flyout>
                     </winui:DropDownButton>

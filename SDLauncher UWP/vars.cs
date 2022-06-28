@@ -9,24 +9,30 @@ using CmlLib.Core.Auth;
 using SDLauncher_UWP.Helpers;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media.Imaging;
+using SDLauncher_UWP.Views;
 
 namespace SDLauncher_UWP
 {
     public static class vars
     {//some of these are not used (outdated)
+
+
+        //Events for the vars, a noob way 
         public static event EventHandler ThemeUpdated = delegate { };
         public static event EventHandler BackgroundUpdatd = delegate { };
+        public static event EventHandler SessionChanged = delegate { };
+        public static event EventHandler VerSelctorChanged = delegate { };
         //App
         public static bool closing = false;
         public static bool showXMLOnClose = false;
         private static ElementTheme? theme = ElementTheme.Default;
         public static ElementTheme? Theme { get { return theme; } set { theme = value; ThemeUpdated(theme, new EventArgs()); } }
-        public static BitmapImage BackgroundImage;
+        private static BitmapImage bg;
+        public static BitmapImage BackgroundImage { get { return bg; } set { bg = value; BackgroundUpdatd(bg, new EventArgs()); } }
         public static string BackgroundImagePath = "";
-        public static bool ShowLaunchTips = false;
-        public static bool CustomBackground = false;
+        private static bool cusbg = false;
+        public static bool CustomBackground { get { return cusbg; } set { cusbg = value; BackgroundUpdatd(bg, new EventArgs()); } }
         public static bool ShowTips = true;
-        public static bool UseOldVerSeletor = false;
         public static bool AdminLaunch = true;
         public static bool GameLogs = false;
         public static bool autoLog = false;
@@ -34,14 +40,14 @@ namespace SDLauncher_UWP
         public static int LoadedRam = 1024;
         public static SDLauncher Launcher;
         public static RPCHelper SDRPC;
+        private static VerSelectors verSelectors = VerSelectors.Normal;
+        public static VerSelectors VerSelectors { get { return verSelectors; } set { verSelectors = value; VerSelctorChanged(verSelectors, new EventArgs()); } }
         public static ObservableCollection<Account> Accounts;
         public static int AccountsCount;
-        
         public static int? CurrentAccountCount;
 
         //CMLLIB
-        public static MSession session;
-        public static string UserName = "";
+        public static MSession session { get { return ss; } set { ss = value; SessionChanged(ss, new EventArgs()); } }
         public static int MinRam;
         public static int JVMScreenWidth = 0;
         public static int JVMScreenHeight = 0;
@@ -57,5 +63,6 @@ namespace SDLauncher_UWP
         public static bool HashCheck = true;
         //
         public static bool IsFixedDiscord = false;
+        private static MSession ss;
     }
 }

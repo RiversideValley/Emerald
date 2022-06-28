@@ -15,6 +15,7 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using System.Collections.ObjectModel;
+using Windows.UI;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -49,7 +50,7 @@ namespace SDLauncher_UWP.UserControls
                 return (int)ID;
             }
         }
-        public bool CompleteTask(int id)
+        public bool CompleteTask(int id,bool success)
         {
             try
             {
@@ -61,6 +62,14 @@ namespace SDLauncher_UWP.UserControls
                     {
                         CurrentTasks.Remove(itm);
                         itm.DateAdded = DateTime.Now;
+                        if (!success)
+                        {
+                            itm.BorderBrush = new SolidColorBrush(Colors.Red);
+                        }
+                        else
+                        {
+                            itm.BorderBrush = new SolidColorBrush(Colors.Green);
+                        }
                         TasksCompleted.Add(itm);
                         RefreshTasks();
                         return true;
@@ -130,11 +139,16 @@ namespace SDLauncher_UWP.UserControls
         public Visibility RingVisibility { get { return ringVisibility; }set { ringVisibility = value;OnPropertyChanged(); } }
         public int ID { get; private set; }
         public DateTime DateAdded { get; set; }
-        public Task(string name, int iD)
+        public Brush BorderBrush { get { return BBrush; } set { BBrush = value; OnPropertyChanged(); } }
+
+        private Brush BBrush;
+
+        public Task(string name, int iD, Brush borderBrush = null)
         {
             Name = name;
             DateAdded = DateTime.Now;
             ID = iD;
+            BorderBrush = borderBrush;
         }
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {

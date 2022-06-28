@@ -54,15 +54,12 @@ namespace SDLauncher_UWP
     {
         public static string launchVer { get; set; }
         public ChangeLogsPage LogsPage { get; set; }
+        public MenuItemsCreator MCVerManager { get; set; }
         public StorePage StorePage { get; set; }
         public event EventHandler<SDLauncher.UIChangeRequestedEventArgs> UIchanged = delegate { };
         public BaseLauncherPage()
         {
             this.InitializeComponent();
-            var timer = new DispatcherTimer();
-            timer.Interval = new TimeSpan(0, 0, 0, 0, 1);
-            timer.Tick += Timer_Tick;
-            timer.Start();
             vars.ThemeUpdated += Vars_ThemeUpdated;
             var s = new ServerTemplate("mc.hypixel.net", 25565);
         }
@@ -90,7 +87,10 @@ namespace SDLauncher_UWP
         {
             UI(false);
             int taskID = LittleHelp.AddTask("Initialize Launcher Core");
+            Vars_SessionChanged(null, null);
+            Vars_VerSelctorChanged(null, null);
             navitmStore.IsEnabled = false;
+            vars.SessionChanged += Vars_SessionChanged;
             vars.Launcher.UIChangeRequested += Launcher_UIChangeRequested;
             vars.Launcher.VersionsRefreshed += Launcher_VersionsRefreshed;
             vars.Launcher.StatusChanged += Launcher_StatusChanged;
@@ -98,10 +98,14 @@ namespace SDLauncher_UWP
             vars.Launcher.OptiFine.DownloadCompleted += OptiFine_DownloadCompleted;
             vars.Launcher.GlacierClient.DownloadCompleted += GlacierClient_DownloadCompleted;
             vars.Launcher.VersionLoaderChanged += Launcher_VersionLoaderChanged;
+            vars.VerSelctorChanged += Vars_VerSelctorChanged;
+            MCVerManager = new MenuItemsCreator();
+            MCVerManager.ItemInvoked += MCVerManager_ItemInvoked;
             LogsPage = new ChangeLogsPage();
             navViewFrame.Content = LogsPage;
             LittleHelp.CompleteTask(taskID);
             await vars.Launcher.RefreshVersions();
+            btnAdvMCVer.Flyout = MCVerManager.CreateVersions();
             UI(true);
             if (await vars.Launcher.LoadStore() == true)
             {
@@ -110,11 +114,78 @@ namespace SDLauncher_UWP
             await vars.Launcher.LoadChangeLogs();
         }
 
+        private async void MCVerManager_ItemInvoked(object sender, MenuItemsCreator.ItemInvokedArgs e)
+        {
+            if(vars.VerSelectors == VerSelectors.Advanced)
+            {
+                if(e.MCType == MenuItemsCreator.MCType.Vanilla)
+                {
+                    launchVer = e.Ver;
+                    btnAdvMCVer.Content = e.DisplayVer;
+                }
+                else
+                {
+                    int taskID = LittleHelp.AddTask("Get Fabric");
+                    try
+                    {
+                        UI(false);
+                        var fabric = vars.Launcher.FabricMCVersions.GetVersionMetadata(e.Ver);
+                        await fabric.SaveAsync(vars.Launcher.Launcher.MinecraftPath);
+                        UI(true);
+                        btnAdvMCVer.Content = e.DisplayVer;
+                        LittleHelp.CompleteTask(taskID, true);
+                    }
+                    catch
+                    {
+                        launchVer = "";
+                        btnAdvMCVer.Content = "Pick a Version";
+                        LittleHelp.CompleteTask(taskID, false);
+                    }
+                }
+            }
+        }
+
+        private void Vars_VerSelctorChanged(object sender, EventArgs e)
+        {
+            switch (vars.VerSelectors)
+            {
+                case VerSelectors.Normal:
+                    btnAdvMCVer.Visibility = Visibility.Collapsed;
+                    cmbxVer.Visibility = Visibility.Collapsed;
+                    btnMCVer.Visibility = Visibility.Visible;
+                    break;
+                case VerSelectors.Advanced:
+                    btnAdvMCVer.Visibility = Visibility.Visible;
+                    cmbxVer.Visibility = Visibility.Collapsed;
+                    btnMCVer.Visibility = Visibility.Collapsed;
+                    break;
+                case VerSelectors.Classic:
+                    btnAdvMCVer.Visibility = Visibility.Collapsed;
+                    cmbxVer.Visibility = Visibility.Visible;
+                    btnMCVer.Visibility = Visibility.Collapsed;
+                    break;
+            }
+        }
+
+        private void Vars_SessionChanged(object sender, EventArgs e)
+        {
+            if (vars.session != null)
+            {
+                txtWelcome.Text = Localized.Welcome + ", " + vars.session.Username + "!";
+            }
+            else
+            {
+                txtWelcome.Text = Localized.Welcome;
+            }
+        }
+
         private void Launcher_VersionLoaderChanged(object sender, EventArgs e)
         {
             if (vars.Launcher.UseOfflineLoader)
             {
                 btnMCVer.Visibility = Visibility.Collapsed;
+                btnAdvMCVer.Visibility = Visibility.Collapsed;
+                vars.VerSelectors = VerSelectors.Classic;
                 cmbxVer.Visibility = Visibility.Visible;
             }
         }
@@ -186,19 +257,22 @@ namespace SDLauncher_UWP
             UI(e.UI);
         }
 
-        private void Timer_Tick(object sender, object e)
+        public void ShowTips()
         {
-            if (vars.ShowLaunchTips)
+            if(vars.VerSelectors == VerSelectors.Normal)
             {
-                vars.ShowLaunchTips = false;
-                tipVer.IsOpen = true;
+                tipVer.Target = btnMCVer;
             }
-            if (vars.UserName != null)
+            else if (vars.VerSelectors == VerSelectors.Classic)
             {
-                txtWelcome.Text = Localized.Welcome + ", " + vars.UserName + "!";
+                tipVer.Target = cmbxVer;
             }
+            else
+            {
+                tipVer.Target = btnAdvMCVer;
+            }
+            tipVer.IsOpen = true;
         }
-
         private async void BtnLaunch_Click(object sender, RoutedEventArgs e)
         {
             UI(false);
@@ -221,9 +295,13 @@ namespace SDLauncher_UWP
                 {
                     btnMCVer.Focus(FocusState.Keyboard);
                 }
-                else
+                else if(cmbxVer.Visibility == Visibility.Visible)
                 {
                     cmbxVer.Focus(FocusState.Keyboard);
+                }
+                else
+                {
+                    btnAdvMCVer.Focus(FocusState.Keyboard);
                 }
                 return;
             }
@@ -249,9 +327,16 @@ namespace SDLauncher_UWP
                 l.JVMArguments = vars.JVMArgs.ToArray();
                 vars.Launcher.CreateToast();
                 int taskID = LittleHelp.AddTask("Launch Minecraft");
-                var process = await vars.Launcher.Launcher.CreateProcessAsync(launchVer, l);
+                try
+                {
+                    var process = await vars.Launcher.Launcher.CreateProcessAsync(launchVer, l);
                 LittleHelp.CompleteTask(taskID);
                 StartProcess(process);
+                }
+                catch
+                {
+                    LittleHelp.CompleteTask(taskID, false);
+                }
             }
             catch (WebException)
             {
@@ -333,19 +418,7 @@ namespace SDLauncher_UWP
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             LogsPage.UpdateLogs();
-            if (vars.Launcher.UseOfflineLoader)
-                return;
-
-            if (vars.UseOldVerSeletor)
-            {
-                btnMCVer.Visibility = Visibility.Collapsed;
-                cmbxVer.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                cmbxVer.Visibility = Visibility.Collapsed;
-                btnMCVer.Visibility = Visibility.Visible;
-            }
+            Vars_VerSelctorChanged(null, null);
         }
 
         private void tip_CloseButtonClick(TeachingTip sender, object args)
@@ -369,7 +442,7 @@ namespace SDLauncher_UWP
             {
                 flyVer.Hide();
             }
-            if (sender is MenuFlyoutItem mitem && !vars.UseOldVerSeletor && !vars.Launcher.UseOfflineLoader)
+            if (sender is MenuFlyoutItem mitem && vars.VerSelectors == VerSelectors.Normal && !vars.Launcher.UseOfflineLoader)
             {
                 VersionCheck(mitem);
             }
@@ -445,6 +518,7 @@ namespace SDLauncher_UWP
             }
         }
         //
+
         public string SearchFabric(string ver)
         {
             var item = from t in vars.Launcher.FabricMCVersions where t.Name.EndsWith(ver) select t;
@@ -504,7 +578,7 @@ namespace SDLauncher_UWP
 
         private void cmbxVer_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (vars.UseOldVerSeletor || vars.Launcher.UseOfflineLoader)
+            if (vars.VerSelectors == VerSelectors.Classic || vars.Launcher.UseOfflineLoader)
             {
                 launchVer = cmbxVer.SelectedItem.ToString();
             }

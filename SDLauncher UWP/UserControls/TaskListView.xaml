@@ -43,7 +43,7 @@
         </Grid.RowDefinitions>
         <local:Expander Icon="&#xe9d5;" IsExpanded="True" Title="Current Tasks" Description="Task that going to run or running" Grid.Row="0" VerticalAlignment="Top" Margin="5">
             <local:Expander.Controls>
-                <ListView MaxHeight="450" SelectionMode="Single" x:Name="lvRuning">
+                <ListView MaxHeight="400" SelectionMode="Single" x:Name="lvRuning">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="local:Task">
                             <Grid Padding="10">
@@ -74,10 +74,10 @@
         </local:Expander>
         <local:Expander Icon="&#xe930;" Description="Tasks that completed or failed" Title="Tasks Completed" Grid.Row="1" VerticalAlignment="Top" Margin="5">
             <local:Expander.Controls>
-                <ListView  MaxHeight="450" SelectionMode="Single" x:Name="lvDone">
+                <ListView  MaxHeight="400" SelectionMode="Single" x:Name="lvDone">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="local:Task">
-                            <Grid Padding="10">
+                            <Grid Padding="10" BorderBrush="{x:Bind BorderBrush,Mode=OneWay}" Margin="2,5" BorderThickness="15,0,0,0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="auto"/>
                                     <RowDefinition Height="auto"/>

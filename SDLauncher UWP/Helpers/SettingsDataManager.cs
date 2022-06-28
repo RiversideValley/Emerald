@@ -21,10 +21,18 @@ namespace SDLauncher_UWP.Helpers
     public class SettingsDataManager
     {
 
-        public async Task CreateSettingsFile(bool? Exit)
+        public async Task CreateSettingsFile(bool Exit = false,StorageFile file = null)
         {
-            var storagefile = await ApplicationData.Current.RoamingFolder.CreateFileAsync("settings.xml", CreationCollisionOption.ReplaceExisting);
-            using (IRandomAccessStream writestream = await storagefile.OpenAsync(FileAccessMode.ReadWrite))
+            StorageFile storageFile;
+            if (file == null)
+            {
+                storageFile = await ApplicationData.Current.RoamingFolder.CreateFileAsync("settings.xml", CreationCollisionOption.ReplaceExisting);
+            }
+            else
+            {
+                storageFile = file;
+            }
+            using (IRandomAccessStream writestream = await storageFile.OpenAsync(FileAccessMode.ReadWrite))
             {
                 Stream s = writestream.AsStreamForWrite();
                 XmlWriterSettings settings = new XmlWriterSettings();
@@ -119,8 +127,8 @@ namespace SDLauncher_UWP.Helpers
                     writer.WriteStartElement("AutoLogin");
                     writer.WriteAttributeString("value", vars.autoLog.ToString());
                     writer.WriteEndElement();
-                    writer.WriteStartElement("UseOldVersionsSeletor");
-                    writer.WriteAttributeString("value", vars.UseOldVerSeletor.ToString());
+                    writer.WriteStartElement("VersionsSeletor");
+                    writer.WriteAttributeString("value", vars.VerSelectors.ToString());
                     writer.WriteEndElement();
                     writer.WriteStartElement("Discord");
                     writer.WriteAttributeString("IsPinned", vars.IsFixedDiscord.ToString());
@@ -134,7 +142,7 @@ namespace SDLauncher_UWP.Helpers
 
             if (vars.showXMLOnClose)
             {
-                await Windows.System.Launcher.LaunchFileAsync(storagefile);
+                await Windows.System.Launcher.LaunchFileAsync(storageFile);
                 vars.showXMLOnClose = false;
             }
             if (Exit == true)
@@ -157,7 +165,7 @@ namespace SDLauncher_UWP.Helpers
             string hashcheck;
             string assetscheck;
             string autolog;
-            string oldVer;
+            string verselect;
             string fixDiscord;
             string gamelogs;
             string jvmWidth;
@@ -197,8 +205,8 @@ namespace SDLauncher_UWP.Helpers
                     tips = reader.GetAttribute("value");
                     reader.ReadToFollowing("AutoLogin");
                     autolog = reader.GetAttribute("value");
-                    reader.ReadToFollowing("UseOldVersionsSeletor");
-                    oldVer = reader.GetAttribute("value");
+                    reader.ReadToFollowing("VersionsSeletor");
+                    verselect = reader.GetAttribute("value");
                     reader.ReadToFollowing("Discord");
                     fixDiscord = reader.GetAttribute("IsPinned");
 
@@ -323,9 +331,9 @@ namespace SDLauncher_UWP.Helpers
             {
                 fe.RequestedTheme = (ElementTheme)vars.Theme;
             }
+            vars.VerSelectors = (Views.VerSelectors)Enum.Parse(typeof(Views.VerSelectors),verselect);
             vars.ShowTips = tips == "True";
             vars.HashCheck = hashcheck == "True";
-            vars.UseOldVerSeletor = oldVer == "True";
             vars.AutoClose = autoClose == "True";
             vars.CustomBackground = isCustombg == "True";
             vars.GameLogs = gamelogs == "True";
@@ -345,12 +353,11 @@ namespace SDLauncher_UWP.Helpers
                             {
                                 if (item.UserName == "null")
                                 {
-                                    vars.UserName = "";
+                                    vars.session = null;
                                 }
                                 else
                                 {
-                                    vars.UserName = item.UserName;
-                                    vars.session = MSession.GetOfflineSession(vars.UserName);
+                                    vars.session = MSession.GetOfflineSession(item.UserName);
                                 }
                             }
                             else

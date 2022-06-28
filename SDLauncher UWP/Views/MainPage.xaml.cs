@@ -32,7 +32,6 @@ using SDLauncher_UWP.Resources;
 #pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
 #pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
 
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
 namespace SDLauncher_UWP
 {
@@ -50,18 +49,53 @@ namespace SDLauncher_UWP
             settingsPage.UpdateBGRequested += SettingsPage_UpdateBGRequested;
             settingsPage.BackRequested += SettingsPage_BackRequested;
             launcher.UIchanged += Launcher_UIchanged;
-            launcher.InitializeLauncher();
             vars.Launcher.TasksHelper.TaskAddRequested += TasksHelper_TaskAddRequested;
             vars.Launcher.TasksHelper.TaskCompleteRequested += TasksHelper_TaskCompleteRequested; ;
-            if(!string.IsNullOrEmpty(vars.BackgroundImagePath))
+            vars.BackgroundUpdatd += Vars_BackgroundUpdatd;
+            vars.SessionChanged += Vars_SessionChanged;
+            Vars_SessionChanged(null, null);
+            Vars_BackgroundUpdatd(null, null);
+            if (!string.IsNullOrEmpty(vars.BackgroundImagePath))
             {
                 settingsPage.GetAndSetBG();
             }
         }
 
-        private void TasksHelper_TaskCompleteRequested(object sender, int e)
+        private void Vars_SessionChanged(object sender, EventArgs e)
         {
-            tasks.CompleteTask(e);
+            if (vars.session != null)
+            {
+                txtUsername.Text = vars.session.Username;
+                txtLogin.Text = vars.session.Username;
+                prpFly.DisplayName = vars.session.Username;
+                prpLogin.DisplayName = vars.session.Username;
+                btnLogin.Tag = "Change";
+            }
+            else
+            {
+                txtUsername.Text = Localizer.GetLocalizedString("MainPage_Login");
+                txtLogin.Text = Localizer.GetLocalizedString("MainPage_Login");
+                prpFly.DisplayName = "";
+                prpLogin.DisplayName = "";
+                btnLogin.Tag = "Login";
+            }
+        }
+
+        private void Vars_BackgroundUpdatd(object sender, EventArgs e)
+        {
+            if (vars.CustomBackground)
+            {
+                imgBack.ImageSource = vars.BackgroundImage;
+            }
+            else
+            {
+                Page_ActualThemeChanged(this, new EventArgs());
+            }
+        }
+
+        private void TasksHelper_TaskCompleteRequested(object sender, TaskCompletedEventArgs e)
+        {
+            tasks.CompleteTask(e.ID,e.Success);
         }
 
         private void TasksHelper_TaskAddRequested(object sender, UserControls.Task e)
@@ -126,6 +160,7 @@ namespace SDLauncher_UWP
             {
                await MessageBox.Show(Localized.Error, Localized.RamFailed, MessageBoxButtons.Ok);
             }
+            launcher.InitializeLauncher();
         }
 
         private void SettingsPage_BackRequested(object sender, EventArgs e)
@@ -152,43 +187,6 @@ namespace SDLauncher_UWP
             coreTitleBar.LayoutMetricsChanged += CoreTitleBar_LayoutMetricsChanged;
             coreTitleBar.IsVisibleChanged += CoreTitleBar_IsVisibleChanged;
             Window.Current.Activated += Current_Activated;
-            DispatcherTimer timer = new DispatcherTimer();
-            timer.Interval = new TimeSpan(0, 0, 0, 0, 1);
-            timer.Tick += Timer_Tick;
-            timer.Start();
-        }
-        BitmapImage bg;
-        private async void Timer_Tick(object sender, object e)
-        {
-            if (!string.IsNullOrEmpty(vars.UserName))
-            {
-                txtUsername.Text = vars.UserName;
-                txtLogin.Text = vars.UserName;
-                prpFly.DisplayName = vars.UserName;
-                prpLogin.DisplayName = vars.UserName;
-                btnLogin.Tag = "Change";
-            }
-            else
-            {
-                txtUsername.Text = Localizer.GetLocalizedString("MainPage_Login");
-                txtLogin.Text = Localizer.GetLocalizedString("MainPage_Login");
-                prpFly.DisplayName = "";
-                prpLogin.DisplayName = "";
-                btnLogin.Tag = "Login";
-            }
-            if (vars.closing)
-            {
-                vars.closing = false;
-                await settings.CreateSettingsFile(true);
-            }
-            if (vars.CustomBackground)
-            {
-                if (bg != vars.BackgroundImage)
-                {
-                    imgBack.ImageSource = vars.BackgroundImage;
-                    bg = vars.BackgroundImage;
-                }
-            }
         }
 
         private void CoreTitleBar_LayoutMetricsChanged(CoreApplicationViewTitleBar sender, object args)
@@ -227,7 +225,7 @@ namespace SDLauncher_UWP
         {
             loginFly.Hide();
             btnBack.Visibility = Visibility.Visible;
-            pnlTitle.Margin = new Thickness(50, pnlTitle.Margin.Top, pnlTitle.Margin.Right, pnlTitle.Margin.Bottom);
+            pnlTitle.Margin = new Thickness(40, pnlTitle.Margin.Top, pnlTitle.Margin.Right, pnlTitle.Margin.Bottom);
             MainFrame.Content = settingsPage;
             settingsPage.ScrollteToTop();
         }
@@ -257,17 +255,11 @@ namespace SDLauncher_UWP
 
         private void MainFrame_Navigated(object sender, NavigationEventArgs e)
         {
-            if (MainFrame.CanGoBack)
-            {
-            }
-            else
-            {
-            }
         }
 
         private void tipacc_CloseButtonClick(Microsoft.UI.Xaml.Controls.TeachingTip sender, object args)
         {
-            vars.ShowLaunchTips = true;
+            launcher.ShowTips();
         }
 
         private void Page_ActualThemeChanged(FrameworkElement sender, object args)

@@ -20,9 +20,9 @@ namespace SDLauncher_UWP.Helpers
         {
             return vars.Launcher.TasksHelper.AddTask(name);
         }
-        public static void CompleteTask(int ID,bool? IsSuccess = null)
+        public static void CompleteTask(int ID,bool IsSuccess = true)
         {
-            vars.Launcher.TasksHelper.CompleteTask(ID);
+            vars.Launcher.TasksHelper.CompleteTask(ID,IsSuccess);
         }
     }
     public class Labrinth
@@ -67,7 +67,7 @@ namespace SDLauncher_UWP.Helpers
                 else
                 {
                     this.MainUIChangeRequested(this, new SDLauncher.UIChangeRequestedEventArgs(true));
-                    LittleHelp.CompleteTask(DownloadTaskID);
+                    LittleHelp.CompleteTask(DownloadTaskID,true);
                 }
             }
         }
@@ -83,19 +83,29 @@ namespace SDLauncher_UWP.Helpers
                     CreationCollisionOption.ReplaceExisting);
                 string path = file.Path;
                 file = null;
-                using (var client = new HttpClientDownloadWithProgress(link, path))
+                try
                 {
-                    client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) => {
-                        StatusChanged("Download " + fileName, new EventArgs());
-                        this.ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage)));
-                        if(progressPercentage == 100)
+                    using (var client = new HttpClientDownloadWithProgress(link, path))
+                    {
+                        client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
                         {
-                            this.DownloadFileCompleted();
-                            client.Dispose();
-                        }
-                    };
+                            StatusChanged("Download " + fileName, new EventArgs());
+                            this.ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage)));
+                            if (progressPercentage == 100)
+                            {
+                                this.DownloadFileCompleted();
+                                client.Dispose();
+                                LittleHelp.CompleteTask(DownloadTaskID);
+                            }
+                        };
 
-                    await client.StartDownload();
+                        await client.StartDownload();
+                    }
+                }
+                catch
+                {
+                    DownloadFileCompleted();
+                    LittleHelp.CompleteTask(DownloadTaskID,false);
                 }
 
             }
@@ -108,7 +118,6 @@ namespace SDLauncher_UWP.Helpers
         {
             StatusChanged("Ready", new EventArgs());
             ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg:0));
-            LittleHelp.CompleteTask(DownloadTaskID);
             MainUIChangeRequested(this, new SDLauncher.UIChangeRequestedEventArgs(true));
         }
         public async Task<LabrinthResults.SearchResult> Search(string name, int? limit = null, LabrinthResults.SearchSortOptions sortOptions = LabrinthResults.SearchSortOptions.Relevance, LabrinthResults.SearchCategories[] categories = null)
@@ -159,7 +168,7 @@ namespace SDLauncher_UWP.Helpers
             {
                 StatusChanged("Ready", new EventArgs());
                 UI(true);
-                LittleHelp.CompleteTask(taskID);
+                LittleHelp.CompleteTask(taskID, false);
                 return null;
             }
         }
@@ -191,7 +200,7 @@ namespace SDLauncher_UWP.Helpers
                 {
                     UI(true);
                 }
-                LittleHelp.CompleteTask(taskID);
+                LittleHelp.CompleteTask(taskID,false);
                 return null;
             }
         }
@@ -215,7 +224,7 @@ namespace SDLauncher_UWP.Helpers
             {
                 StatusChanged("Ready", new EventArgs());
                 UI(true);
-                LittleHelp.CompleteTask(taskID);
+                LittleHelp.CompleteTask(taskID, false);
                 return null;
             }
         }

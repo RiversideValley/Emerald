@@ -19,7 +19,7 @@ namespace SDLauncher_UWP.Helpers
     public class TasksHelper
     {
         public event EventHandler<UserControls.Task> TaskAddRequested = delegate { };
-        public event EventHandler<int> TaskCompleteRequested = delegate { };
+        public event EventHandler<TaskCompletedEventArgs> TaskCompleteRequested = delegate { };
         public int AllTaksCount { get; private set; } = 0;
         public int AddTask(string name)
         {
@@ -27,9 +27,19 @@ namespace SDLauncher_UWP.Helpers
             TaskAddRequested(this, new UserControls.Task(name, AllTaksCount));
             return AllTaksCount;
         }
-        public void CompleteTask(int ID)
+        public void CompleteTask(int ID,bool success)
         {
-            TaskCompleteRequested(this, ID);
+            TaskCompleteRequested(this, new TaskCompletedEventArgs(ID,success));
+        }
+    }
+    public class TaskCompletedEventArgs
+    {
+        public int ID;
+        public bool Success;
+        public TaskCompletedEventArgs(int iD, bool success)
+        {
+            ID = iD;
+            Success = success;
         }
     }
     public class SDLauncher
@@ -66,10 +76,10 @@ namespace SDLauncher_UWP.Helpers
         {
             get
             {
-                if (MCVersions != null)
+                if (FabricMCVersions != null)
                 {
                     List<string> temp = new List<string>();
-                    foreach (var item in MCVersions)
+                    foreach (var item in FabricMCVersions)
                     {
                         temp.Add(item.Name);
                     }
@@ -123,7 +133,38 @@ namespace SDLauncher_UWP.Helpers
         {
             UI(e.UI);
         }
-
+        public string SearchFabric(string ver)
+        {
+            try
+            {
+                var item = from t in FabricMCVerNames where t.EndsWith(ver) select t;
+                if (item != null)
+                {
+                    return item.FirstOrDefault();
+                }
+                else
+                {
+                    return "";
+                }
+            }
+            catch
+            {
+                return "";
+            }
+        }
+        public string[] GetSubVersions(string ver)
+        {
+            var items = from t in MCVersions where t.Name.StartsWith(ver) select t.Name;
+            if (items != null)
+            {
+                var final = from t in items where t.Replace(ver,"").ToString().StartsWith(".") || t == ver select t;
+                return final.ToArray();
+            }
+            else
+            {
+                return new List<string>().ToArray();
+            }
+        }
         private void SDLauncher_FileOrProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             string stats = "";
@@ -213,20 +254,20 @@ namespace SDLauncher_UWP.Helpers
                 {
                     Status("Ready");
                     var s = await LoadStore();
-                    TasksHelper.CompleteTask(taskID);
+                    TasksHelper.CompleteTask(taskID,true);
                     return s;
                 }
                 else
                 {
                     Status("Ready");
-                    TasksHelper.CompleteTask(taskID);
+                    TasksHelper.CompleteTask(taskID,false);
                     return false;
                 }
             }
             else
             {
                 Status("Ready");
-                TasksHelper.CompleteTask(taskID);
+                TasksHelper.CompleteTask(taskID,true);
                 return true;
             }
         }
@@ -259,10 +300,13 @@ namespace SDLauncher_UWP.Helpers
                 html += await vars.Launcher.GetChangelog("1.18");
                 html += await vars.Launcher.GetChangelog("1.17.1");
                 html += await vars.Launcher.GetChangelog("1.16.5");
+                TasksHelper.CompleteTask(taskID,true);
             }
-            catch { }
+            catch
+            {
+                TasksHelper.CompleteTask(taskID,false);
+            }
             ChangeLogsHTMLBody = html;
-            TasksHelper.CompleteTask(taskID);
         }
         public async Task<string> GetChangelog(string version)
         {
@@ -348,6 +392,7 @@ namespace SDLauncher_UWP.Helpers
                 }
             Status(Localized.Ready);
             VersionsRefreshed(this, new EventArgs());
+                TasksHelper.CompleteTask(taskID,true);
             }
             catch
             {
@@ -366,8 +411,8 @@ namespace SDLauncher_UWP.Helpers
                 {
                     CoreApplication.Exit();
                 }
+                TasksHelper.CompleteTask(taskID,false);
             }
-            TasksHelper.CompleteTask(taskID);
             UI(true);
         }
 
@@ -412,7 +457,7 @@ namespace SDLauncher_UWP.Helpers
                     launchVer = modver;
                     displayVer = displayver;
                Status("Ready");
-                    TasksHelper.CompleteTask(taskID);
+                    TasksHelper.CompleteTask(taskID, true);
                 return new FabricResponsoe(launchVer, displayVer, FabricResponsoe.Responses.ExistsOrCreated);
             }
             else
@@ -421,12 +466,12 @@ namespace SDLauncher_UWP.Helpers
                 {
                     displayVer = mcver;
                     launchVer = mcver;
-                    TasksHelper.CompleteTask(taskID);
+                    TasksHelper.CompleteTask(taskID, true);
                     return new FabricResponsoe(launchVer, displayVer, FabricResponsoe.Responses.NeedMojangVer);
                 }
                 else
                 {
-                    TasksHelper.CompleteTask(taskID);
+                    TasksHelper.CompleteTask(taskID,false);
                     return new FabricResponsoe("", "Version", FabricResponsoe.Responses.NeedMojangVer);
                 }
             }
