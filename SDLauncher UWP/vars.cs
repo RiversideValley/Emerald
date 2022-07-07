@@ -10,7 +10,7 @@ using SDLauncher_UWP.Helpers;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media.Imaging;
 using SDLauncher_UWP.Views;
-
+using Windows.Storage;
 namespace SDLauncher_UWP
 {
     public static class vars
@@ -22,9 +22,28 @@ namespace SDLauncher_UWP
         public static event EventHandler BackgroundUpdatd = delegate { };
         public static event EventHandler SessionChanged = delegate { };
         public static event EventHandler VerSelctorChanged = delegate { };
+
+
+        //Glacier Client
+
+        public static string GlacierClientVersion = "";
+        public static async Task<bool> GlacierExists()
+        {
+            try
+            {
+                var f = await StorageFolder.GetFolderFromPathAsync(Launcher.Launcher.MinecraftPath.Versions);
+                await f.CreateFolderAsync("Glacier Client", CreationCollisionOption.FailIfExists);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         //App
         public static bool closing = false;
-        public static bool showXMLOnClose = false;
         private static ElementTheme? theme = ElementTheme.Default;
         public static ElementTheme? Theme { get { return theme; } set { theme = value; ThemeUpdated(theme, new EventArgs()); } }
         private static BitmapImage bg;
@@ -42,7 +61,7 @@ namespace SDLauncher_UWP
         public static RPCHelper SDRPC;
         private static VerSelectors verSelectors = VerSelectors.Normal;
         public static VerSelectors VerSelectors { get { return verSelectors; } set { verSelectors = value; VerSelctorChanged(verSelectors, new EventArgs()); } }
-        public static ObservableCollection<Account> Accounts;
+        public static ObservableCollection<Account> Accounts = new ObservableCollection<Account>();
         public static int AccountsCount;
         public static int? CurrentAccountCount;
 

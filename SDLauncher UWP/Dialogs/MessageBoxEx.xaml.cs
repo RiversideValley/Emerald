@@ -140,9 +140,15 @@ namespace SDLauncher_UWP
     }
     public class MessageBox
     {
-        public static async Task<MessageBoxResults> Show(string title,string caption, MessageBoxButtons buttons,string customResult1 = null, string customResult2 = null)
+        public static async Task<MessageBoxResults> Show(string title, string caption, MessageBoxButtons buttons, string customResult1 = null, string customResult2 = null)
         {
-            var d = new MessageBoxEx(title, caption, buttons,customResult1,customResult2);
+            var d = new MessageBoxEx(title, caption, buttons, customResult1, customResult2);
+            await d.ShowAsync();
+            return d.Result;
+        }
+        public static async Task<MessageBoxResults> Show(string text)
+        {
+            var d = new MessageBoxEx("Information", text, MessageBoxButtons.Ok);
             await d.ShowAsync();
             return d.Result;
         }

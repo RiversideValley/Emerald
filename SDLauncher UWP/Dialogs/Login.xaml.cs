@@ -290,7 +290,7 @@ namespace SDLauncher_UWP
         }
 
 
-        void AddAccount(MSession session)
+        public void AddAccount(MSession session)
         {
             foreach (var item in vars.Accounts)
             {
@@ -301,7 +301,7 @@ namespace SDLauncher_UWP
             }
             if (session.UserType == "Mojang")
             {
-                vars.Accounts.Add(new Account(session.Username, "Offline", "null", "null", vars.AccountsCount + 1, true));
+                vars.Accounts.Add(new Account(session.Username, "Offline", null, null, vars.AccountsCount + 1, true));
                 vars.AccountsCount++;
             }
             else

@@ -10,276 +10,59 @@ using Windows.Networking.BackgroundTransfer;
 using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using System.Xml.Serialization;
 
 namespace SDLauncher_UWP.Helpers
 {
-    public class OptiFine
+    public class OptiFineManager
     {
-        public event EventHandler StatusChanged = delegate { };
-        public event EventHandler ProgressChanged = delegate { };
-        public event EventHandler ErrorAppeared = delegate { };
-        public event EventHandler UIChangedReqested = delegate { };
-        public event EventHandler DownloadCompleted = delegate { };
-
-        public OptFineVerReturns returns;
-        string optver;
-        public bool UI;
-        public int DownloadProg;
-        public string DownloadStats;
-        public async Task<bool> IsOptiFineFilePresent(string lastFileName, string mcVer, bool isLib)
+        public List<string> GetOptiFine()
         {
-            if (!isLib)
-            {
-                try
+            return new List<string>();
+        }
+        public static class Deserializer
+        {
+			public static OptifineManager Deserialize(string OptiFineString)
+			{
+				XmlSerializer serializer = new XmlSerializer(typeof(OptifineManager));
+				using (StringReader reader = new StringReader(OptiFineString))
                 {
-                    var verFolder = await StorageFolder.GetFolderFromPathAsync(vars.Launcher.Launcher.MinecraftPath.Versions);
-                    var mcVerFolder = await verFolder.GetFolderAsync(mcVer);
-                    var file = await mcVerFolder.GetFileAsync(lastFileName);
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
+                    var test = (OptifineManager)serializer.Deserialize(reader);
+					return test;
                 }
             }
-            else
-            {
-                try
-                {
-                    var LibsFolder = await StorageFolder.GetFolderFromPathAsync(vars.Launcher.Launcher.MinecraftPath.Library);
-                    var LibFolder = await LibsFolder.GetFolderAsync("optifine");
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            }
-        }
-        int taskID;
+			[XmlRoot(ElementName = "Optifine")]
+			public class Optifine
+			{
 
-        public void DownloadOptiFineVer(string mcver, string modVer, string DisplayVer)
-        {
-            taskID = LittleHelp.AddTask("Download OptiFine");
-            MCver = mcver;
-            Modver = modVer;
-            Displayver = DisplayVer;
-            UIChangedReqested(false, new EventArgs());
-            switch (mcver)
-            {
-                case "1.18.2":
-                    returns = new OptFineVerReturns(modVer, mcver, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
-                    optver = ": " + mcver;
-                    OptFineDownload("https://github.com/SeaDevTeam/SDLauncher/raw/main/OptiFine-1.18.2.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
-                    break;
-                case "1.18.1":
-                    returns = new OptFineVerReturns(modVer, mcver, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
-                    optver = ": " + mcver;
-                    OptFineDownload("https://github.com/SeaDevTeam/SDLauncher/raw/main/OptiFine-1.18.1.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
-                    break;
-                case "1.17.1":
-                    returns = new OptFineVerReturns(modVer, mcver, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
-                    optver = ": " + mcver;
-                    OptFineDownload("https://github.com/SeaDevTeam/SDLauncher/raw/main/OptiFine-1.17.1.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
-                    break;
-                case "1.16.5":
-                    returns = new OptFineVerReturns(modVer, mcver, DisplayVer, OptFineVerReturns.Results.DownloadOptiFineVer);
-                    optver = ": " + mcver;
-                    OptFineDownload("https://github.com/SeaDevTeam/SDLauncher/raw/main/OptiFine-1.16.5.zip", "OptiFine-" + mcver + ".zip", ModType.ver);
-                    break;
-            }
-        }
-        public string MCver { get; set; }
-        public string Modver { get; set; }
-        public string Displayver { get; set; }
-        public async Task<OptFineVerReturns> CheckOptiFine(string mcver, string modVer, string DisplayVer)
-        {
-            await vars.Launcher.RefreshVersions();
-            UIChangedReqested(false, new EventArgs());
-            bool exists = false;
-            if (vars.Launcher.MCVersions != null)
-            {
-                foreach (var veritem in vars.Launcher.MCVersions)
-                {
-                    if (veritem.Name == modVer)
-                    {
-                        exists = true;
-                    }
-                }
-                if (exists)
-                {
-                    returns = new OptFineVerReturns(modVer, mcver, DisplayVer, OptFineVerReturns.Results.Exists);
-                    UIChangedReqested(true, new EventArgs());
-                    return returns;
-                }
-                else
-                {
-                    var r = await MessageBox.Show("Error", "Couldn't find OptiFine installed on this minecraft. Do you want to download and install from our servers ?", MessageBoxButtons.YesNo);
-                  
-                    if (r == MessageBoxResults.Yes)
-                    {
-                        if (await IsOptiFineFilePresent(mcver + ".jar", mcver, false))
-                        {
-                            if (await IsOptiFineFilePresent(null, null, true))
-                            {
-                                returns = new OptFineVerReturns(modVer, mcver, "Version", OptFineVerReturns.Results.DownloadOptiFineVer);
-                                UIChangedReqested(true, new EventArgs());
-                                return returns;
-                            }
-                            else
-                            {
-                                await MessageBox.Show("Information", "This will download main OptiFine library, Please click again " + DisplayVer + " (after download and extract the main OptiFine) to install optifine of that version !", MessageBoxButtons.Ok);
-                                optver = " Lib";
-                                returns = new OptFineVerReturns(modVer, mcver, "Version", OptFineVerReturns.Results.DownloadOptiFineLib);
-                                OptFineDownload("https://github.com/SeaDevTeam/SDLauncher/raw/main/optifine.zip", "OptiFine.zip", ModType.lib);
-                                UIChangedReqested(true, new EventArgs());
-                                return returns;
-                            }
-                        }
-                        else
-                        {
-                            await MessageBox.Show("Error", "You have to install & run minecraft version " + mcver + " one time to install OptiFine", MessageBoxButtons.Ok);
-                            returns = new OptFineVerReturns(mcver, mcver,mcver, OptFineVerReturns.Results.DownloadMCVer);
-                            UIChangedReqested(true, new EventArgs());
-                            return returns;
-                        }
-                    }
-                    else
-                    {
-                        returns = new OptFineVerReturns(modVer, mcver, "Version", OptFineVerReturns.Results.Failed);
-                        UIChangedReqested(true, new EventArgs());
-                        return returns;
-                    }
-                }
-            }
-            else
-            {
-                returns = new OptFineVerReturns(modVer, mcver, "Version", OptFineVerReturns.Results.Failed);
-                UIChangedReqested(true, new EventArgs());
-                return returns;
-            }
-        }
-        //
+				[XmlAttribute(AttributeName = "VersionName")]
+				public string VersionName { get; set; }
 
-        private enum ModType
-        {
-            lib,
-            ver
-        }
-        string optDir;
-        ModType dwnOptiType;
-        private async void OptFineDownload(string link, string dir, ModType m)
-        {
-            try
-            {
-                Uri source = new Uri(link.Trim());
-                string destination = dir.Trim();
+				[XmlAttribute(AttributeName = "BasedOn")]
+				public DateTime BasedOn { get; set; }
 
-                StorageFile destinationFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(
-                    destination,
-                    CreationCollisionOption.ReplaceExisting);
+				[XmlAttribute(AttributeName = "DownloadUrl")]
+				public string DownloadUrl { get; set; }
+			}
 
-                BackgroundDownloader downloader = new BackgroundDownloader();
-                DownloadOperation download = downloader.CreateDownload(source, destinationFile);
-                StartDownloadWithProgress(download);
-            }
-            catch
-            {
+			[XmlRoot(ElementName = "OptifineManager")]
+			public class OptifineManager
+			{
 
-            }
-            optDir = dir;
-            dwnOptiType = m;
-            UIChangedReqested(false, new EventArgs());
-        }
-        DownloadOperation operation;
-        DispatcherTimer downloadprog = new DispatcherTimer();
-        private async void StartDownloadWithProgress(DownloadOperation operation)
-        {
-            StatusChanged("Downloading: OptiFine" + optver, new EventArgs());
-            this.operation = operation;
-            await this.operation.StartAsync();
-            downloadprog.Interval = new TimeSpan(0, 0, 0, 0, 1);
-            downloadprog.Tick += Downloadprog_Tick;
-            downloadprog.Start();
-        }
+				[XmlElement(ElementName = "Optifine")]
+				public List<Optifine> Optifine { get; set; }
 
+				[XmlAttribute(AttributeName = "APIVersion")]
+				public double APIVersion { get; set; }
 
-        private void Downloadprog_Tick(object sender, object e)
-        {
-            if (operation.Progress.Status == BackgroundTransferStatus.Completed)
-            {
-                DownloadFileCompleted();
-                downloadprog.Stop();
-                ProgressChanged(0, new EventArgs());
-            }
-            else if (operation.Progress.Status == BackgroundTransferStatus.Running)
-            {
-                try
-                {
-                    double bytesIn = operation.Progress.BytesReceived;
-                    double totalBytes = operation.Progress.TotalBytesToReceive;
-                    double percentage = bytesIn / totalBytes * 100;
-                    ProgressChanged(int.Parse(Math.Floor(percentage).ToString()), new EventArgs());
-                }
-                catch { }
-                StatusChanged("Downloading: OptiFine" + optver, new EventArgs());
-            }
-            else if (operation.Progress.Status == BackgroundTransferStatus.Error)
-            {
-                ErrorAppeared("Failed to download the file",new EventArgs());
-                DownloadCompleted(false, new EventArgs());
-                downloadprog.Stop();
-            }
-        }
+				[XmlAttribute(AttributeName = "Version")]
+				public double Version { get; set; }
 
-        private async void DownloadFileCompleted()
-        {
-            UIChangedReqested(false, new EventArgs());
-            StatusChanged("Extracting", new EventArgs());
+				[XmlAttribute(AttributeName = "LibraryUrl")]
+				public string LibraryUrl { get; set; }
+			}
 
-            //Read the file stream
-            var a = await ApplicationData.Current.TemporaryFolder.GetFileAsync(optDir);
-            Stream b = await a.OpenStreamForReadAsync();
-            //unzip
-            ZipArchive archive = new ZipArchive(b);
-            if (dwnOptiType == ModType.lib)
-            {
-                archive.ExtractToDirectory(vars.Launcher.Launcher.MinecraftPath.Library, true);
-            }
-            else if (dwnOptiType == ModType.ver)
-            {
+		}
+	}
 
-                archive.ExtractToDirectory(vars.Launcher.Launcher.MinecraftPath.Versions, true);
-            }
-            ProgressChanged(100, new EventArgs());
-            StatusChanged(Localized.Ready, new EventArgs());
-            UIChangedReqested(true, new EventArgs());
-            DownloadCompleted(true, new EventArgs());
-            LittleHelp.CompleteTask(taskID);
-        }
-        
-
-    }
-    public class OptFineVerReturns
-    {
-        public enum Results
-        {
-            Failed,
-            DownloadOptiFineLib,
-            DownloadOptiFineVer,
-            DownloadMCVer,
-            Exists
-        }
-        public string MCVer { get; set; }
-        public string ModVer { get; set; }
-        public string DisplayVer { get; set; }
-        public Results Result { get; set; }
-        public OptFineVerReturns(string modver, string mcver, string displayver, Results result)
-        {
-            this.ModVer = modver;
-            this.MCVer = mcver;
-            DisplayVer = displayver;
-            Result = result;
-        }
-    }
 }

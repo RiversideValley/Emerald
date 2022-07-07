@@ -95,7 +95,6 @@ namespace SDLauncher_UWP
             vars.Launcher.VersionsRefreshed += Launcher_VersionsRefreshed;
             vars.Launcher.StatusChanged += Launcher_StatusChanged;
             vars.Launcher.FileOrProgressChanged += Launcher_FileOrProgressChanged;
-            vars.Launcher.OptiFine.DownloadCompleted += OptiFine_DownloadCompleted;
             vars.Launcher.GlacierClient.DownloadCompleted += GlacierClient_DownloadCompleted;
             vars.Launcher.VersionLoaderChanged += Launcher_VersionLoaderChanged;
             vars.VerSelctorChanged += Vars_VerSelctorChanged;
@@ -165,6 +164,12 @@ namespace SDLauncher_UWP
                     btnMCVer.Visibility = Visibility.Collapsed;
                     break;
             }
+            if (vars.Launcher.UseOfflineLoader)
+            {
+                btnAdvMCVer.Visibility = Visibility.Collapsed;
+                cmbxVer.Visibility = Visibility.Visible;
+                btnMCVer.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void Vars_SessionChanged(object sender, EventArgs e)
@@ -219,19 +224,6 @@ namespace SDLauncher_UWP
             cmbxVer.ItemsSource = vars.Launcher.MCVerNames;
         }
 
-        private async void OptiFine_DownloadCompleted(object sender, EventArgs e)
-        {
-            if (!(bool)sender)
-            {
-                launchVer = "";
-                btnMCVer.Content = "Version";
-            }
-            else
-            {
-                await vars.Launcher.RefreshVersions();
-                OptiFineFinish(await vars.Launcher.OptiFine.CheckOptiFine(vars.Launcher.OptiFine.MCver, vars.Launcher.OptiFine.Modver, vars.Launcher.OptiFine.Displayver));
-            }
-        }
 
         private void Launcher_FileOrProgressChanged(object sender, SDLauncher.ProgressChangedEventArgs e)
         {
@@ -363,6 +355,9 @@ namespace SDLauncher_UWP
         }
         private async void StartProcess(Process process)
         {
+            pb_File.Value = 0;
+            pb_Prog.Value = 0;
+            txtStatus.Text = Localized.Ready;
             await ProcessToXmlConverter.Convert(process, ApplicationData.Current.LocalFolder, "StartInfo.xml");
             if (ApiInformation.IsApiContractPresent("Windows.ApplicationModel.FullTrustAppContract", 1, 0))
             {
@@ -375,9 +370,10 @@ namespace SDLauncher_UWP
                     await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync("User");
                 }
             }
-            CreateToast("Done!", "Successfully launcher minecraft version \"" + launchVer + "\"", true);
+            CreateToast("Done!", "Successfully launched minecraft version \"" + launchVer + "\"", true);
             if (vars.AutoClose)
             {
+                await SettingsManager.SaveSettings();
                 Application.Current.Exit();
             }
         }
@@ -417,6 +413,7 @@ namespace SDLauncher_UWP
         }
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
+
             LogsPage.UpdateLogs();
             Vars_VerSelctorChanged(null, null);
         }
@@ -483,19 +480,6 @@ namespace SDLauncher_UWP
                     launchVer = vars.Launcher.Launcher.Versions?.LatestSnapshotVersion?.Name;
                     btnMCVer.Content = launchVer;
                     break;
-                case "OptiFine 1.18.2":
-                    OptiFineFinish(await vars.Launcher.OptiFine.CheckOptiFine("1.18.2", "1.18.2-OptiFine_HD_U_H6_pre1", displayName));
-                    break;
-                case "OptiFine 1.18.1":
-                    OptiFineFinish(await vars.Launcher.OptiFine.CheckOptiFine("1.18.1", "1.18.1-OptiFine_HD_U_H4", displayName));
-                    break;
-                case "OptiFine 1.17.1":
-                    OptiFineFinish(await vars.Launcher.OptiFine.CheckOptiFine("1.17.1", "1.17.1-OptiFine_HD_U_H1", displayName));
-                    break;
-                case "OptiFine 1.16.5":
-                    OptiFineFinish(await vars.Launcher.OptiFine.CheckOptiFine("1.16.5", "OptiFine 1.16.5", displayName));
-                    break;
-
                 case "Fabric 1.19":
                     FabricResponse(await vars.Launcher.CheckFabric("1.19", SearchFabric("1.19"), item.Text));
                     break;
@@ -544,38 +528,6 @@ namespace SDLauncher_UWP
             btnServer.IsEnabled = value;
             cmbxVer.IsEnabled = value;
         }
-        private void OptiFineFinish(OptFineVerReturns returned)
-        {
-            txtStatus.Text = "Ready";
-            UI(true);
-            switch (returned.Result)
-            {
-                case OptFineVerReturns.Results.DownloadOptiFineLib:
-                    btnMCVer.Content = "Version";
-                    launchVer = "";
-                    break;
-                case OptFineVerReturns.Results.DownloadOptiFineVer:
-                    pb_File.Value = 0;
-                    pb_Prog.Maximum = 100;
-                    vars.Launcher.OptiFine.DownloadOptiFineVer(returned.MCVer, returned.ModVer, returned.DisplayVer);
-                    break;
-                case OptFineVerReturns.Results.Failed:
-                    btnMCVer.Content = "Version";
-                    launchVer = "";
-                    break;
-                case OptFineVerReturns.Results.Exists:
-                    btnMCVer.Content = returned.DisplayVer;
-                    launchVer = returned.ModVer;
-                    break;
-                case OptFineVerReturns.Results.DownloadMCVer:
-                    btnMCVer.Content = returned.DisplayVer;
-                    launchVer = returned.MCVer;
-                    break;
-            }
-        }
-
-        
-
         private void cmbxVer_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (vars.VerSelectors == VerSelectors.Classic || vars.Launcher.UseOfflineLoader)

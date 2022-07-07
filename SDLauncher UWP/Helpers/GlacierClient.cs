@@ -33,68 +33,53 @@ namespace SDLauncher_UWP.Helpers
         }
         public async void DownloadClient()
         {
-            UIChangedReqested(false, new EventArgs());
-            try
+            var ver = await Util.DownloadText("https://www.slashonline.net/glacier/c.txt");
+            if (ver != vars.GlacierClientVersion)
             {
-                Uri source = new Uri("https://slashonline.net/glacier/get/release/Glacier.zip".Trim());
-                string destination = "Glacier.zip";
-
-                StorageFile destinationFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(
-                    destination,
-                    CreationCollisionOption.ReplaceExisting);
-
-                BackgroundDownloader downloader = new BackgroundDownloader();
-                DownloadOperation download = downloader.CreateDownload(source, destinationFile);
-                StartDownloadWithProgress(download);
-            }
-            catch
-            {
-
-            }
-        }
-        DownloadOperation operation;
-        DispatcherTimer downloadprog = new DispatcherTimer();
-        private async void StartDownloadWithProgress(DownloadOperation operation)
-        {
-            StatusChanged("Downloading Glacier Client", new EventArgs());
-            this.operation = operation;
-            await this.operation.StartAsync();
-            downloadprog.Interval = new TimeSpan(0, 0, 0, 0, 1);
-            downloadprog.Tick += Downloadprog_Tick;
-            downloadprog.Start();
-        }
-
-
-        private void Downloadprog_Tick(object sender, object e)
-        {
-            if (operation.Progress.Status == BackgroundTransferStatus.Completed)
-            {
-                DownloadFileCompleted();
-                downloadprog.Stop();
-                ProgressChanged(0, new SDLauncher.ProgressChangedEventArgs(currentfile:0));
-            }
-            else if (operation.Progress.Status == BackgroundTransferStatus.Running)
-            {
+                int taskID = LittleHelp.AddTask("Download Glacier Client");
+                UIChangedReqested(false, new EventArgs());
                 try
                 {
-                    double bytesIn = operation.Progress.BytesReceived;
-                    double totalBytes = operation.Progress.TotalBytesToReceive;
-                    ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentfile: unchecked((int)bytesIn), maxfiles: unchecked((int)totalBytes)));
+                    StorageFile destinationFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(
+                        "Glacier.zip",
+                        CreationCollisionOption.ReplaceExisting);
+                    using (var client = new HttpClientDownloadWithProgress("https://slashonline.net/glacier/get/release/Glacier.zip", destinationFile.Path))
+                    {
+                        client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
+                        {
+                            StatusChanged("Downloading Glacier Client", new EventArgs());
+                            try
+                            {
+                                this.ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
+                            }
+                            catch { }
+                            if (progressPercentage == 100)
+                            {
+                                StatusChanged("Ready", new EventArgs());
+                                this.Extract();
+                                client.Dispose();
+                                vars.GlacierClientVersion = ver;
+                                this.ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg: 0, maxfiles: 100, currentfile: 00));
+                                LittleHelp.CompleteTask(taskID, true);
+                            }
+                        };
+
+                        await client.StartDownload();
+                    }
                 }
-                catch { }
-                StatusChanged("Downloading Glacier Client", new EventArgs());
-            }
-            else if (operation.Progress.Status == BackgroundTransferStatus.Error)
-            {
-                DownloadCompleted(false, new EventArgs());
-                downloadprog.Stop();
+                catch
+                {
+                    LittleHelp.CompleteTask(taskID, false);
+                }
             }
         }
 
-        private async void DownloadFileCompleted()
+
+            private async void Extract()
         {
+            int TaskID = LittleHelp.AddTask("Extract Glacier Client");
             UIChangedReqested(false, new EventArgs());
-            StatusChanged("Extracting", new EventArgs());
+            StatusChanged("Extracting Glacier Client", new EventArgs());
 
             //Read the file stream
             var wf = await StorageFolder.GetFolderFromPathAsync(vars.Launcher.Launcher.MinecraftPath.Versions);
@@ -109,6 +94,8 @@ namespace SDLauncher_UWP.Helpers
             StatusChanged(Localized.Ready, new EventArgs());
             UIChangedReqested(true, new EventArgs());
             DownloadCompleted(true, new EventArgs());
+            LittleHelp.CompleteTask(TaskID, true);
+            vars.GlacierClientVersion = await Util.DownloadText("https://www.slashonline.net/glacier/c.txt");
         }
 
     }

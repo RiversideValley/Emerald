@@ -210,13 +210,20 @@
                                             <HyperlinkButton Margin="5,0,0,0" NavigateUri="https://discord.gg/kN7bjt6Ncq" Content="Discord"/>
                                         </StackPanel>
                                         <HyperlinkButton NavigateUri="https://docs.modrinth.com/api-spec/" HorizontalAlignment="Center" Content="Labrinth (SDStore)"/>
-                                        <StackPanel  Margin="0,5,0,0" Orientation="Horizontal">
-                                            <Button x:Name="btnXML" Click="btnXML_Click" Margin="0,0,5,0" Content="Settings.xml"/>
-                                            <Button x:Name="btnExportXML" Click="btnExportXML_Click" Margin="0,0,5,0" Content="Export xml"/>
-                                            <Button x:Name="btnImportXML" Click="btnImportXML_Click" Content="Import xml"/>
-                                        </StackPanel>
                                     </StackPanel>
                                 </Grid>
+                            </NoobUI:Expander.Controls>
+                        </NoobUI:Expander>
+                        <NoobUI:Expander Margin="0,5,0,0" Title="Encrypt Settings" Icon="&#xe713;" Description="Do you really think this app is not secured ?">
+                            <NoobUI:Expander.HeaderControls>
+                                <ToggleSwitch Toggled="tglEncryptSettings_Toggled" x:Name="tglEncryptSettings" MinWidth="0"/>
+                            </NoobUI:Expander.HeaderControls>
+                            <NoobUI:Expander.Controls>
+                                <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
+                                    <Button x:Name="btnXML" Click="btnXML_Click" Margin="0,0,5,0" Content="Settings.json"/>
+                                    <Button x:Name="btnExportXML" Click="btnExportXML_Click" Margin="0,0,5,0" Content="Export json"/>
+                                    <Button x:Name="btnImportXML" Click="btnImportXML_Click" Content="Import json"/>
+                                </StackPanel>
                             </NoobUI:Expander.Controls>
                         </NoobUI:Expander>
                     </StackPanel>

@@ -39,7 +39,6 @@ namespace SDLauncher_UWP
     {
         public BaseLauncherPage launcher;
         public SettingsPage settingsPage;
-        public SettingsDataManager settings = new SettingsDataManager();
         public MainPage()
         {
             this.InitializeComponent();
@@ -69,6 +68,17 @@ namespace SDLauncher_UWP
                 txtLogin.Text = vars.session.Username;
                 prpFly.DisplayName = vars.session.Username;
                 prpLogin.DisplayName = vars.session.Username;
+                prpLogin.DisplayName = vars.session.Username;
+                if(vars.session.UUID == "user_uuid")
+                {
+                    prpFly.ProfilePicture = new BitmapImage(new Uri("https://minotar.net/helm/MHF_Steve"));
+                    prpLogin.ProfilePicture = new BitmapImage(new Uri("https://minotar.net/helm/MHF_Steve"));
+                }
+                else
+                {
+                    prpFly.ProfilePicture = new BitmapImage(new Uri("https://minotar.net/helm/" + vars.session.UUID));
+                    prpLogin.ProfilePicture = new BitmapImage(new Uri("https://minotar.net/helm/" + vars.session.UUID));
+                }
                 btnLogin.Tag = "Change";
             }
             else
@@ -112,10 +122,6 @@ namespace SDLauncher_UWP
         {
             Page_ActualThemeChanged(null, null);
             MainFrame.Content = launcher;
-            foreach (var account in vars.Accounts)
-            {
-                
-            }
             if (vars.ShowTips)
             {
                 tipacc.IsOpen = true;
