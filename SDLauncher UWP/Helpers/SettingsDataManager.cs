@@ -18,362 +18,187 @@ using SDLauncher_UWP.Helpers;
 
 namespace SDLauncher_UWP.Helpers
 {
-    public class SettingsDataManager
+    public static class SettingsManager
     {
-
-        public async Task CreateSettingsFile(bool Exit = false,StorageFile file = null)
+        public static Rootobject SettingsData = Rootobject.CreateNew();
+        public static async Task SaveSettings(StorageFile file = null)
         {
-            StorageFile storageFile;
-            if (file == null)
+            StorageFile final;
+            if (file != null)
             {
-                storageFile = await ApplicationData.Current.RoamingFolder.CreateFileAsync("settings.xml", CreationCollisionOption.ReplaceExisting);
+                final = file;
             }
             else
             {
-                storageFile = file;
+                final = await ApplicationData.Current.RoamingFolder.CreateFileAsync("settings.json", CreationCollisionOption.ReplaceExisting);
             }
-            using (IRandomAccessStream writestream = await storageFile.OpenAsync(FileAccessMode.ReadWrite))
-            {
-                Stream s = writestream.AsStreamForWrite();
-                XmlWriterSettings settings = new XmlWriterSettings();
-                settings.Async = true;
-                settings.NewLineOnAttributes = false;
-                settings.Indent = true;
-                using (XmlWriter writer = XmlWriter.Create(s, settings))
-                {
-                    writer.WriteStartDocument();
-                    writer.WriteStartElement("Settings");
-                    writer.WriteComment("\nThis is the settings of the SDLauncher uwp.Anyone can edit this.\n  For something true you must write \"True\" and something false you must write \"False\".");
-                    writer.WriteStartElement("Minecraft");
-                    writer.WriteComment("\n    The default maximum RAM of Minecraft in MegaByte.\n    The minimum RAM will be automatically decided by the Launcher.\n    ");
-                    writer.WriteStartElement("RAM");
-                    writer.WriteAttributeString("value", vars.CurrentRam.ToString());
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("Accounts");
-                    writer.WriteComment(
-                        "\n      The accounts will be used on the Minecraft." +
-                        "\n      Types         : \"Offline\",\"Microsoft\",\"null\"(not added\")." +
-                        "\n      AcessToken    : This is the token to login with Microsoft, can be get through the Microsoft Login." +
-                        "\n      UUID          : This is the UUID to login with Microsoft,also can be get through the Microsoft Login." +
-                        "\n      AvatarID      : The avatar of your account. Values: \"0\",\"1\",\"2\",\"3\"(microsoft),\"\"(empty)" +
-                        "\n      LastAccessed  : For autologin. Add this to only one account." +
-                        "\n      ");
-                    if (vars.Accounts != null)
-                    {
-                        foreach (var item in vars.Accounts)
-                        {
-                            writer.WriteStartElement("Account");
-                            writer.WriteAttributeString("Type", item.Type);
-                            writer.WriteAttributeString("Username", item.UserName);
-                            writer.WriteAttributeString("AccessToken", item.AccessToken);
-                            writer.WriteAttributeString("UUID", item.UUID);
-                            if (item.Last)
-                            {
-                                writer.WriteAttributeString("LastAccessed", item.Last.ToString());
-                            }
-                            writer.WriteAttributeString("AvatarID", item.ProfileAvatarID.ToString());
-                            writer.WriteEndElement();
-                        }
-                    }
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("Downloader");
-                    writer.WriteAttributeString("HashCheck", vars.HashCheck.ToString());
-                    writer.WriteAttributeString("AssetsCheck", vars.AssestsCheck.ToString());
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("JVM");
-                    if (vars.JVMScreenWidth != 0 && vars.JVMScreenHeight != 0)
-                    {
-                        writer.WriteAttributeString("ScreenWidth", vars.JVMScreenWidth.ToString());
-                        writer.WriteAttributeString("ScreenHeight", vars.JVMScreenHeight.ToString());
-                    }
-                    else
-                    {
-                        writer.WriteAttributeString("ScreenWidth", 0.ToString());
-                        writer.WriteAttributeString("ScreenHeight", 0.ToString());
-                    }
-                    writer.WriteAttributeString("FullScreen", vars.FullScreen.ToString());
-                    writer.WriteAttributeString("GameLogs", vars.GameLogs.ToString());
-                    writer.WriteStartElement("Arguments");
-                    if(vars.JVMArgs != null)
-                    {
-                        foreach (var item in vars.JVMArgs)
-                        {
-                            writer.WriteStartElement("Argument");
-                            writer.WriteAttributeString("Content", item);
-                            writer.WriteEndElement();
-                        }
-                    }
-                    writer.WriteEndElement();
-                    writer.WriteEndElement();
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("App");
-                    writer.WriteAttributeString("AutoClose", vars.AutoClose.ToString());
-                    writer.WriteComment("\n    The theme and background of the app");
-                    writer.WriteStartElement("Appearance");
-                    writer.WriteAttributeString("CustomBackgroundImagePath", vars.BackgroundImagePath.ToString());
-                    writer.WriteAttributeString("UseCustomBackgroundImage", vars.CustomBackground.ToString());
-                    if (vars.Theme.ToString() == "")
-                    {
-                        writer.WriteAttributeString("Theme", "null");
-                    }
-                    else
-                    {
-                        writer.WriteAttributeString("Theme", vars.Theme.ToString());
-                    }
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("Tips");
-                    writer.WriteAttributeString("value", vars.ShowTips.ToString());
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("AutoLogin");
-                    writer.WriteAttributeString("value", vars.autoLog.ToString());
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("VersionsSeletor");
-                    writer.WriteAttributeString("value", vars.VerSelectors.ToString());
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("Discord");
-                    writer.WriteAttributeString("IsPinned", vars.IsFixedDiscord.ToString());
-                    writer.WriteEndElement();
-                    writer.WriteEndElement();
-                    writer.WriteEndElement();
-                    writer.Flush();
-                    await writer.FlushAsync();
-                }
-            }
-
-            if (vars.showXMLOnClose)
-            {
-                await Windows.System.Launcher.LaunchFileAsync(storageFile);
-                vars.showXMLOnClose = false;
-            }
-            if (Exit == true)
-            {
-                Application.Current.Exit();
-            }
+            await FileIO.WriteTextAsync(final, await SerializeSettings());
         }
-        public ObservableCollection<Account> Accounts = new ObservableCollection<Account>();
-        public async Task LoadSettingsFile()
+        public static async Task<string> SerializeSettings()
         {
-            //var doc = await DocumentLoad().AsAsyncOperation();
-            //var settings =  doc.GetElementById("settings");
-            //var app = settings.GetElementsByTagName("value");
-            //app.Contains(settings);
-            var storagefile = await ApplicationData.Current.RoamingFolder.GetFileAsync("settings.xml");
-
-            string theme;
-            string tips;
-            string ram;
-            string hashcheck;
-            string assetscheck;
-            string autolog;
-            string verselect;
-            string fixDiscord;
-            string gamelogs;
-            string jvmWidth;
-            string jvmHeight;
-            string jvmFullScreen;
-            string isCustombg;
-            string BGPath;
-            string autoClose;
-            using (IRandomAccessStream stream = await storagefile.OpenAsync(FileAccessMode.Read))
+            SettingsData = Rootobject.CreateNew();
+            SettingsData.Settings.App.Appearance.Theme = ((ElementTheme)vars.Theme).ToString();
+            SettingsData.Settings.App.Appearance.UseCustomBackgroundImage = vars.CustomBackground;
+            SettingsData.Settings.App.Appearance.CustomBackgroundImagePath = vars.BackgroundImagePath;
+            SettingsData.Settings.App.AutoLogin = vars.autoLog;
+            SettingsData.Settings.App.VersionsSeletor.Style = vars.VerSelectors.ToString();
+            SettingsData.Settings.App.AutoClose = vars.AutoClose;
+            SettingsData.Settings.App.Tips = vars.ShowTips;
+            SettingsData.Settings.App.Discord.IsPinned = vars.IsFixedDiscord;
+            //
+            SettingsData.Settings.Minecraft.RAM = vars.CurrentRam;
+            SettingsData.Settings.Minecraft.GlacierClient.Exists = await vars.GlacierExists();
+            SettingsData.Settings.Minecraft.GlacierClient.Version = vars.GlacierClientVersion;
+            SettingsData.Settings.Minecraft.Downloader.AssetsCheck = vars.AssestsCheck;
+            SettingsData.Settings.Minecraft.Downloader.HashCheck = vars.HashCheck;
+            SettingsData.Settings.Minecraft.JVM.FullScreen = vars.FullScreen;
+            SettingsData.Settings.Minecraft.JVM.ScreenWidth = vars.JVMScreenWidth;
+            SettingsData.Settings.Minecraft.JVM.ScreenHeight = vars.JVMScreenHeight;
+            SettingsData.Settings.Minecraft.JVM.GameLogs = vars.GameLogs;
+            SettingsData.Settings.Minecraft.JVM.Arguments = vars.JVMArgs.ToArray();
+            var accs = new List<Account>();
+            foreach (var item in vars.Accounts)
             {
-                Stream s = stream.AsStreamForRead();
-                XmlReaderSettings settings = new XmlReaderSettings();
-                settings.Async = true;
-                using (XmlReader reader = XmlReader.Create(s, settings))
-                {
-                    await reader.ReadAsync();
-                    reader.ReadStartElement("Settings");
-                    reader.ReadToFollowing("Minecraft");
-                    reader.ReadToFollowing("RAM");
-                    ram = reader.GetAttribute("value");
-                    reader.ReadToFollowing("Accounts");
-                    reader.ReadToFollowing("Downloader");
-                    hashcheck = reader.GetAttribute("HashCheck");
-                    assetscheck = reader.GetAttribute("AssetsCheck");
-                    reader.ReadToFollowing("JVM");
-                    jvmWidth = reader.GetAttribute("ScreenWidth");
-                    jvmHeight = reader.GetAttribute("ScreenHeight");
-                    jvmFullScreen = reader.GetAttribute("FullScreen");
-                    gamelogs = reader.GetAttribute("GameLogs");
-                    reader.ReadToFollowing("App");
-                    autoClose = reader.GetAttribute("AutoClose");
-                    reader.ReadToFollowing("Appearance");
-                    theme = reader.GetAttribute("Theme");
-                    isCustombg = reader.GetAttribute("UseCustomBackgroundImage");
-                    BGPath = reader.GetAttribute("CustomBackgroundImagePath");
-                    reader.ReadToFollowing("Tips");
-                    tips = reader.GetAttribute("value");
-                    reader.ReadToFollowing("AutoLogin");
-                    autolog = reader.GetAttribute("value");
-                    reader.ReadToFollowing("VersionsSeletor");
-                    verselect = reader.GetAttribute("value");
-                    reader.ReadToFollowing("Discord");
-                    fixDiscord = reader.GetAttribute("IsPinned");
-
-                }
-                s = stream.AsStreamForRead();
-                using (StreamReader streamReader = new StreamReader(s))
-                {
-                    string content;
-                    content = await FileIO.ReadTextAsync(storagefile);
-                    System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
-                    doc.LoadXml(content);
-
-                    var list = doc.SelectNodes("//Settings/Minecraft/Accounts/Account");
-                    for (int i = list.Count - 1; i >= 0; i--)
-                    {
-                        if (list[i].Attributes["Type"].Value != "null")
-                        {
-                            string avatarid;
-                            try
-                            {
-                                avatarid = list[i].Attributes["AvatarID"].Value;
-                            }
-                            catch
-                            {
-                                avatarid = null;
-                            }
-                            try
-                            {
-                                var lastv = list[i].Attributes["LastAccessed"];
-                                if (lastv != null)
-                                {
-                                    string last = lastv.Value;
-                                    if (last == "False")
-                                    {
-                                        if (string.IsNullOrEmpty(avatarid))
-                                        {
-                                            Accounts.Add(new Account(list[i].Attributes["Username"].Value, list[i].Attributes["Type"].Value, list[i].Attributes["AccessToken"].Value, list[i].Attributes["UUID"].Value, Accounts.Count + 1, false));
-                                        }
-                                        else
-                                        {
-                                            Accounts.Add(new Account(list[i].Attributes["Username"].Value, list[i].Attributes["Type"].Value, list[i].Attributes["AccessToken"].Value, list[i].Attributes["UUID"].Value, Accounts.Count + 1, false, int.Parse(avatarid)));
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (string.IsNullOrEmpty(avatarid))
-                                        {
-                                            Accounts.Add(new Account(list[i].Attributes["Username"].Value, list[i].Attributes["Type"].Value, list[i].Attributes["AccessToken"].Value, list[i].Attributes["UUID"].Value, Accounts.Count + 1, true));
-                                        }
-                                        else
-                                        {
-                                            Accounts.Add(new Account(list[i].Attributes["Username"].Value, list[i].Attributes["Type"].Value, list[i].Attributes["AccessToken"].Value, list[i].Attributes["UUID"].Value, Accounts.Count + 1, true, int.Parse(avatarid)));
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    throw new Exception();
-                                }
-                            }
-                            catch
-                            {
-
-                                if (string.IsNullOrEmpty(avatarid))
-                                {
-                                    Accounts.Add(new Account(list[i].Attributes["Username"].Value, list[i].Attributes["Type"].Value, list[i].Attributes["AccessToken"].Value, list[i].Attributes["UUID"].Value, Accounts.Count + 1, false));
-                                }
-                                else
-                                {
-                                    Accounts.Add(new Account(list[i].Attributes["Username"].Value, list[i].Attributes["Type"].Value, list[i].Attributes["AccessToken"].Value, list[i].Attributes["UUID"].Value, Accounts.Count + 1, false, int.Parse(avatarid)));
-                                }
-                            }
-                        }
-                    }
-                    vars.Accounts = Accounts;
-                    vars.AccountsCount = Accounts.Count;
-                    list = doc.SelectNodes("//Settings/Minecraft/JVM/Arguments/Argument");
-                    var args = new List<string>();
-                    for (int i = list.Count - 1; i >= 0; i--)
-                    {
-                        args.Add(list[i].Attributes["Content"].Value);
-                    }
-                    vars.JVMArgs = args;
-                }
+                accs.Add(new Account { AccessToken = item.AccessToken, UUID = item.UUID, Type = item.Type, Username = item.UserName, LastAccessed = item.Last });
             }
-            int jvmwidth;
-            int jvmheight;
+            SettingsData.Settings.Minecraft.Accounts = accs.ToArray();
+            return Newtonsoft.Json.JsonConvert.SerializeObject(SettingsData, Newtonsoft.Json.Formatting.Indented);
+        }
+        public static async Task<bool> LoadSettings()
+        {
             try
             {
-                jvmheight = int.Parse(jvmHeight);
-                jvmwidth = int.Parse(jvmWidth);
+                var storagefile = await ApplicationData.Current.RoamingFolder.GetFileAsync("settings.json");
+                var text = await FileIO.ReadTextAsync(storagefile);
+                DeserializeSettings(text);
+                return true;
             }
             catch
             {
-                jvmwidth = 0;
-                jvmheight = 0;
+                return false;
             }
-            vars.JVMScreenWidth = jvmwidth;
-            vars.JVMScreenHeight = jvmheight;
-            if(BGPath != null)
-            {
-                vars.BackgroundImagePath = BGPath;
-            }
-            else
-            {
-                vars.BackgroundImagePath = "";
-            }
-            vars.LoadedRam = int.Parse(ram);
-            if (theme == "Default")
-            {
-                vars.Theme = ElementTheme.Default;
-            }
-            else if (theme == "Light")
-            {
-                vars.Theme = ElementTheme.Light;
-            }
-            else
-            {
-                vars.Theme = theme == "Dark" ? ElementTheme.Dark : ElementTheme.Default;
-            }
-            if (Window.Current.Content is FrameworkElement fe)
-            {
-                fe.RequestedTheme = (ElementTheme)vars.Theme;
-            }
-            vars.VerSelectors = (Views.VerSelectors)Enum.Parse(typeof(Views.VerSelectors),verselect);
-            vars.ShowTips = tips == "True";
-            vars.HashCheck = hashcheck == "True";
-            vars.AutoClose = autoClose == "True";
-            vars.CustomBackground = isCustombg == "True";
-            vars.GameLogs = gamelogs == "True";
-            vars.AssestsCheck = assetscheck == "True";
-            vars.autoLog = autolog == "True";
-            vars.IsFixedDiscord = fixDiscord == "True";
-            vars.FullScreen = jvmFullScreen == "True";
-            if (vars.autoLog)
-            {
-                foreach (var item in vars.Accounts)
-                {
-                    if (item.Last)
-                    {
-                        if (item.Type != "null")
-                        {
-                            if (item.Type == "Offline")
-                            {
-                                if (item.UserName == "null")
-                                {
-                                    vars.session = null;
-                                }
-                                else
-                                {
-                                    vars.session = MSession.GetOfflineSession(item.UserName);
-                                }
-                            }
-                            else
-                            {
-                                if (item.UserName != "null" && item.AccessToken != "null" && item.UUID != "null")
-                                {
-                                    vars.session = new MSession(item.UserName, item.AccessToken, item.UUID);
-                                }
-                            }
-                        }
-                        vars.CurrentAccountCount = item.Count;
-                    }
-                }
-
-            }
-
         }
+        public static void DeserializeSettings(string text)
+        {
+            SettingsData = Newtonsoft.Json.JsonConvert.DeserializeObject<Rootobject>(text);
+
+            //
+            vars.Theme = (ElementTheme)Enum.Parse(typeof(ElementTheme), SettingsData.Settings.App.Appearance.Theme);
+            vars.CustomBackground = SettingsData.Settings.App.Appearance.UseCustomBackgroundImage;
+            vars.BackgroundImagePath = SettingsData.Settings.App.Appearance.CustomBackgroundImagePath;
+            vars.autoLog = SettingsData.Settings.App.AutoLogin;
+            vars.VerSelectors = (Views.VerSelectors)Enum.Parse(typeof(Views.VerSelectors), SettingsData.Settings.App.VersionsSeletor.Style);
+            vars.AutoClose = SettingsData.Settings.App.AutoClose;
+            vars.ShowTips = SettingsData.Settings.App.Tips;
+            vars.IsFixedDiscord = SettingsData.Settings.App.Discord.IsPinned;
+            //
+            vars.GlacierClientVersion = SettingsData.Settings.Minecraft.GlacierClient.Version;
+            vars.CurrentRam = SettingsData.Settings.Minecraft.RAM;
+            vars.AssestsCheck = SettingsData.Settings.Minecraft.Downloader.AssetsCheck;
+            vars.HashCheck = SettingsData.Settings.Minecraft.Downloader.HashCheck;
+            vars.FullScreen = SettingsData.Settings.Minecraft.JVM.FullScreen;
+            vars.JVMScreenWidth = SettingsData.Settings.Minecraft.JVM.ScreenWidth;
+            vars.JVMScreenHeight = SettingsData.Settings.Minecraft.JVM.ScreenHeight;
+            vars.GameLogs = SettingsData.Settings.Minecraft.JVM.GameLogs;
+            if (SettingsData.Settings.Minecraft.JVM.Arguments != null) { vars.JVMArgs = SettingsData.Settings.Minecraft.JVM.Arguments.ToList(); }
+            var accs = new ObservableCollection<Helpers.Account>();
+            foreach (var item in SettingsData.Settings.Minecraft.Accounts)
+            {
+                accs.Add(new Helpers.Account(item.Username, item.Type, item.AccessToken, item.UUID, accs.Count + 1, item.LastAccessed));
+            }
+            vars.Accounts = accs;
+            vars.AccountsCount = accs.Count;
+        }
+        public class Rootobject
+        {
+            public static Rootobject CreateNew()
+            {
+                var s = new Rootobject();
+                s.Settings = new Settings();
+                s.Settings.App = new App();
+                s.Settings.App.Discord = new Discord();
+                s.Settings.App.Appearance = new Appearance();
+                s.Settings.App.VersionsSeletor = new Versionsseletor();
+                s.Settings.Minecraft = new Minecraft();
+                s.Settings.Minecraft.JVM = new JVM();
+                s.Settings.Minecraft.GlacierClient = new GlacierClient();
+                s.Settings.Minecraft.Downloader = new Downloader();
+                return s;
+            }
+            public Settings Settings { get; set; }
+        }
+
+        public class Settings
+        {
+            public Minecraft Minecraft { get; set; }
+            public App App { get; set; }
+        }
+
+        public class Minecraft
+        {
+            public int RAM { get; set; }
+            public Account[] Accounts { get; set; }
+            public Downloader Downloader { get; set; }
+            public GlacierClient GlacierClient { get; set; }
+            public JVM JVM { get; set; }
+        }
+        public class GlacierClient
+        {
+            public string Version { get; set; }
+            public bool Exists { get; set; }
+        }
+        public class Account
+        {
+            public string Type { get; set; }
+            public string Username { get; set; }
+            public string AccessToken { get; set; }
+            public string UUID { get; set; }
+            public bool LastAccessed { get; set; }
+        }
+
+        public class Downloader
+        {
+            public bool HashCheck { get; set; }
+            public bool AssetsCheck { get; set; }
+        }
+
+        public class JVM
+        {
+            public string[] Arguments { get; set; }
+            public int ScreenWidth { get; set; }
+            public int ScreenHeight { get; set; }
+            public bool FullScreen { get; set; }
+            public bool GameLogs { get; set; }
+        }
+
+
+        public class App
+        {
+            public Appearance Appearance { get; set; }
+            public bool Tips { get; set; }
+            public bool AutoLogin { get; set; }
+            public Versionsseletor VersionsSeletor { get; set; }
+            public Discord Discord { get; set; }
+            public bool AutoClose { get; set; }
+        }
+
+        public class Appearance
+        {
+            public string CustomBackgroundImagePath { get; set; }
+            public bool UseCustomBackgroundImage { get; set; }
+            public string Theme { get; set; }
+        }
+
+        public class Versionsseletor
+        {
+            public string Style { get; set; }
+        }
+
+        public class Discord
+        {
+            public bool IsPinned { get; set; }
+        }
+
+
     }
 }

@@ -126,6 +126,10 @@ namespace SDLauncher_UWP.Views
         int pageCount = 0;
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            if (vars.Launcher.UseOfflineLoader)
+            {
+                cmbxVerSelector.IsEnabled = false;
+            }
            
             if (vars.Theme == ElementTheme.Dark)
             {
@@ -139,6 +143,8 @@ namespace SDLauncher_UWP.Views
             {
                 cmbxTheme.SelectedIndex = 2;
             }
+            tglEncryptSettings.IsOn = bool.Parse(ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] as string);
+            btnXML.IsEnabled = !tglEncryptSettings.IsOn;
             cbAsset.IsChecked = vars.AssestsCheck;
             chkbxFullScreen.IsChecked = vars.FullScreen;
             tglAutoClose.IsOn = vars.AutoClose;
@@ -167,10 +173,11 @@ namespace SDLauncher_UWP.Views
         private async void btnXML_Click(object sender, RoutedEventArgs e)
         {
             
-            if (await MessageBox.Show("Information", "You need to close the application before editing the XML file. \nContinue ?", MessageBoxButtons.OkCancel) == MessageBoxResults.Ok)
+            if (await MessageBox.Show("Information", "You need to close the application before editing the JSON file. \nContinue ?", MessageBoxButtons.OkCancel) == MessageBoxResults.Ok)
             {
-                vars.showXMLOnClose = true;
-                await new SettingsDataManager().CreateSettingsFile(true);
+                await SettingsManager.SaveSettings();
+                await Windows.System.Launcher.LaunchFileAsync(await ApplicationData.Current.RoamingFolder.GetFileAsync("settings.json"));
+                Application.Current.Exit();
             }
         }
 
@@ -359,9 +366,10 @@ namespace SDLauncher_UWP.Views
         {
             vars.GameLogs = tglLogs.IsOn;
         }
-
+        private bool BGEdit = true;
         public async void GetAndSetBG()
         {
+            BGEdit = false;
             StorageFile file;
             string name;
             if(vars.BackgroundImagePath == "null")
@@ -388,80 +396,83 @@ namespace SDLauncher_UWP.Views
                     cmbxBG.SelectedIndex = 3;
                 }
             }
+            BGEdit = true;
         }
         private async void cmbxBG_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if ((string)cmbxBG.SelectedItem == "Browse")
+            if (BGEdit)
             {
-                FileOpenPicker fop = new FileOpenPicker();
-                fop.SuggestedStartLocation = PickerLocationId.Desktop;
-                fop.ViewMode = PickerViewMode.Thumbnail;
-                fop.FileTypeFilter.Add(".png");
-                fop.FileTypeFilter.Add(".jpg");
-
-                var file = await fop.PickSingleFileAsync();
-                if(file != null)
+                if ((string)cmbxBG.SelectedItem == "Browse")
                 {
-                    vars.BackgroundImage = await Util.LoadImage(file);
+                    FileOpenPicker fop = new FileOpenPicker();
+                    fop.SuggestedStartLocation = PickerLocationId.Desktop;
+                    fop.ViewMode = PickerViewMode.Thumbnail;
+                    fop.FileTypeFilter.Add(".png");
+                    fop.FileTypeFilter.Add(".jpg");
+
+                    var file = await fop.PickSingleFileAsync();
+                    if (file != null)
+                    {
+                        vars.BackgroundImage = await Util.LoadImage(file);
+                        vars.CustomBackground = true;
+                        vars.BackgroundImagePath = file.Path;
+                        if (cmbxBG.Items[3] == null)
+                        {
+                            cmbxBG.Items.Add(file.DisplayName);
+                            cmbxBG.SelectedIndex = 3;
+                        }
+                        else
+                        {
+                            cmbxBG.Items[3] = file.DisplayName;
+                            cmbxBG.SelectedIndex = 3;
+                        }
+                    }
+                    else
+                    {
+                        if (e.RemovedItems.Count > 0)
+                        {
+                            cmbxBG.SelectedItem = e.RemovedItems[0];
+                        }
+                        else
+                        {
+                            cmbxBG.SelectedIndex = 0;
+                        }
+                    }
+                }
+                else if ((string)cmbxBG.SelectedItem == "None")
+                {
+                    if (cmbxBG.Items[3] != null)
+                    {
+                        cmbxBG.Items.Remove(cmbxBG.Items[3]);
+                    }
+                    vars.BackgroundImagePath = "null";
+                    vars.BackgroundImage = new BitmapImage(new Uri("ms-appx:///Assets/BackDrops/Transparent.png"));
                     vars.CustomBackground = true;
-                    vars.BackgroundImagePath = file.Path;
-                    if(cmbxBG.Items[3] == null)
-                    {
-                        cmbxBG.Items.Add(file.DisplayName);
-                        cmbxBG.SelectedIndex = 3;
-                    }
-                    else
-                    {
-                        cmbxBG.Items[3] = file.DisplayName;
-                        cmbxBG.SelectedIndex = 3;
-                    }
                 }
-                else
+                else if ((string)cmbxBG.SelectedItem == "Default")
                 {
-                    if (e.RemovedItems.Count > 0)
+                    if (cmbxBG.Items[3] != null)
                     {
-                        cmbxBG.SelectedItem = e.RemovedItems[0];
+                        cmbxBG.Items.Remove(cmbxBG.Items[3]);
                     }
-                    else
-                    {
-                        cmbxBG.SelectedIndex = 0;
-                    }
-                }
-            }
-            else if ((string)cmbxBG.SelectedItem == "None")
-            {
-                if (cmbxBG.Items[3] != null)
-                {
-                    cmbxBG.Items.Remove(cmbxBG.Items[3]);
-                }
-                vars.BackgroundImagePath = "null";
-                vars.BackgroundImage = new BitmapImage(new Uri("ms-appx:///Assets/BackDrops/Transparent.png"));
-                vars.CustomBackground = true;
-            }
-            else if ((string)cmbxBG.SelectedItem == "Default")
-            {
-                if (cmbxBG.Items[3] != null)
-                {
-                    cmbxBG.Items.Remove(cmbxBG.Items[3]);
-                }
-                vars.CustomBackground = false;
+                    vars.CustomBackground = false;
 
-                if (Window.Current.Content is FrameworkElement fe)
-                {
-                    if(ActualTheme == ElementTheme.Dark)
+                    if (Window.Current.Content is FrameworkElement fe)
                     {
-                        fe.RequestedTheme = ElementTheme.Light;
-                        fe.RequestedTheme = ElementTheme.Dark;
-                    }
-                    else
-                    {
-                        fe.RequestedTheme = ElementTheme.Dark;
-                        fe.RequestedTheme = ElementTheme.Light;
+                        if (ActualTheme == ElementTheme.Dark)
+                        {
+                            fe.RequestedTheme = ElementTheme.Light;
+                            fe.RequestedTheme = ElementTheme.Dark;
+                        }
+                        else
+                        {
+                            fe.RequestedTheme = ElementTheme.Dark;
+                            fe.RequestedTheme = ElementTheme.Light;
+                        }
                     }
                 }
             }
         }
-
         private void tglAutoClose_Toggled(object sender, RoutedEventArgs e)
         {
             vars.AutoClose = tglAutoClose.IsOn;
@@ -494,15 +505,18 @@ namespace SDLauncher_UWP.Views
 
         private async void btnExportXML_Click(object sender, RoutedEventArgs e)
         {
-            FileSavePicker savePicker = new FileSavePicker();
-            savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-            savePicker.FileTypeChoices.Add("XML Settings", new List<string>() { ".xml" });
-            savePicker.SuggestedFileName = "New Document";
-
-            StorageFile sfile = await savePicker.PickSaveFileAsync();
-            if (sfile != null)
+            if (await MessageBox.Show("Information", "A restart is required to load the settings correctly.\nContinue ?", MessageBoxButtons.YesNo) == MessageBoxResults.Yes)
             {
-                await new SettingsDataManager().CreateSettingsFile(file: sfile);
+                FileSavePicker savePicker = new FileSavePicker();
+                savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+                savePicker.FileTypeChoices.Add("SDL Settings", new List<string>() { ".json" });
+                savePicker.SuggestedFileName = "New Document";
+
+                StorageFile sfile = await savePicker.PickSaveFileAsync();
+                if (sfile != null)
+                {
+                    await SettingsManager.SaveSettings(sfile);
+                }
             }
 
         }
@@ -516,8 +530,37 @@ namespace SDLauncher_UWP.Views
             StorageFile file = await picker.PickSingleFileAsync();
             if (file != null)
             {
-                await file.CopyAsync(ApplicationData.Current.RoamingFolder, "settings.xml", NameCollisionOption.ReplaceExisting);
+                if (tglEncryptSettings.IsOn)
+                {
+                    var text = await FileIO.ReadTextAsync(file);
+                    ApplicationData.Current.RoamingSettings.Values["InAppSettings"] = text;
+                }
+                else
+                {
+                    await file.CopyAsync(ApplicationData.Current.RoamingFolder, "settings.json", NameCollisionOption.ReplaceExisting);
+                }
                 await CoreApplication.RequestRestartAsync("");
+            }
+        }
+
+        private async void tglEncryptSettings_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (tglEncryptSettings.IsOn)
+            {
+                try
+                {
+                    var file = await ApplicationData.Current.RoamingFolder.GetFileAsync("settings.json");
+                    await file.DeleteAsync();
+                }
+                catch { }
+                ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = true.ToString();
+                btnXML.IsEnabled = false;
+            }
+            else
+            {
+                btnXML.IsEnabled = true;
+                ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = false.ToString();
+                await SettingsManager.SaveSettings();
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Toolkit.Uwp.Helpers;
+﻿using CmlLib.Core.Auth;
+using Microsoft.Toolkit.Uwp.Helpers;
 using SDLauncher_UWP.Helpers;
 using System;
 using System.Collections.Generic;
@@ -37,9 +38,9 @@ namespace SDLauncher_UWP
             this.InitializeComponent();
             this.Suspending += OnSuspending;
         }
-        SettingsDataManager settings = new SettingsDataManager();
         public static event EventHandler<AppServiceTriggerDetails> AppServiceConnected = delegate { };
         public static AppServiceConnection Connection { get; private set; }
+        public bool Loaded = false;
         public BackgroundTaskDeferral AppServiceDeferral { get; private set; }
 
         /// <summary>
@@ -49,43 +50,60 @@ namespace SDLauncher_UWP
         /// <param name="e">Details about the launch request and process.</param>
         protected async override void OnLaunched(LaunchActivatedEventArgs e)
         {
-            if (!SystemInformation.Instance.IsFirstRun)
+            if (SystemInformation.Instance.IsFirstRun)
             {
-                try
-                {
-                    await ApplicationData.Current.RoamingFolder.GetFileAsync("settings.xml");
-                }
-                catch
-                {
-                    await settings.CreateSettingsFile(false);
-                }
-                try
-                {
-                    await settings.LoadSettingsFile();
-                }
-                catch
-                {
-                    vars.CurrentRam = 2048;
-                    try
-                    {
-                        await settings.CreateSettingsFile(false);
-                        await settings.LoadSettingsFile();
-                    }
-                    catch { }
-                }
+                ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = false.ToString();
+            }
+            bool IsInAppSettings = false;
+            try
+            {
+                IsInAppSettings = bool.Parse(ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] as string);
+            }
+            catch
+            {
+                ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = false.ToString();
+            }
+            if (IsInAppSettings == false)
+            {
+                await SettingsManager.LoadSettings();
             }
             else
             {
-                vars.CurrentRam = 2048;
-                try
-                {
-                    await settings.CreateSettingsFile(false);
-                    await settings.LoadSettingsFile();
-                }
-                catch { }
+                SettingsManager.DeserializeSettings(ApplicationData.Current.RoamingSettings.Values["InAppSettings"] as string);
             }
             Frame rootFrame = Window.Current.Content as Frame;
-
+            if (vars.autoLog && vars.Accounts != null)
+            {
+                foreach (var item in vars.Accounts)
+                {
+                    if (item.Last)
+                    {
+                        if (item.Type != null)
+                        {
+                            if (item.Type == "Offline")
+                            {
+                                if (item.UserName == null)
+                                {
+                                    vars.session = null;
+                                }
+                                else
+                                {
+                                    vars.session = MSession.GetOfflineSession(item.UserName);
+                                }
+                            }
+                            else
+                            {
+                                if (item.UserName != null && item.AccessToken != null && item.UUID != null)
+                                {
+                                    vars.session = new MSession(item.UserName, item.AccessToken, item.UUID);
+                                }
+                            }
+                        }
+                        vars.CurrentAccountCount = item.Count;
+                    }
+                }
+                Loaded = true;
+            }
             // Do not repeat app initialization when the Window already has content,
             // just ensure that the window is active
             if (rootFrame == null)
@@ -148,28 +166,7 @@ namespace SDLauncher_UWP
             if (args.Kind == ActivationKind.CommandLineLaunch)
             {
 
-                if (!SystemInformation.Instance.IsFirstRun)
-                {
-                    try
-                    {
-                        await ApplicationData.Current.RoamingFolder.GetFileAsync("settings.xml");
-                    }
-                    catch
-                    {
-                        await settings.CreateSettingsFile(false);
-                    }
-                    await settings.LoadSettingsFile();
-                }
-                else
-                {
-                    vars.CurrentRam = 2048;
-                    try
-                    {
-                        await settings.CreateSettingsFile(false);
-                        await settings.LoadSettingsFile();
-                    }
-                    catch { }
-                }
+                await SettingsManager.LoadSettings();
                 Frame rootFrame = Window.Current.Content as Frame;
 
                 // Do not repeat app initialization when the Window already has content,  
@@ -192,7 +189,20 @@ namespace SDLauncher_UWP
         }
         private async void App_CloseRequested(object sender, SystemNavigationCloseRequestedPreviewEventArgs e)
         {
-           await settings.CreateSettingsFile(false);
+            e.Handled = true;
+            if (!vars.closing && Loaded)
+            {
+                vars.closing = true;
+                if (bool.Parse(ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] as string) == false)
+                {
+                    await SettingsManager.SaveSettings();
+                }
+                else
+                {
+                    ApplicationData.Current.RoamingSettings.Values["InAppSettings"] = await SettingsManager.SerializeSettings();
+                }
+            }
+            Application.Current.Exit();
         }
 
         /// <summary>

@@ -21,7 +21,6 @@ namespace SDLauncher_UWP.Helpers
         public string AccessToken { get; set; }
         public string UUID { get; set; }
         public int Count { get; set; }
-        public int ProfileAvatarID { get; set; }
         public bool Last { get; set; }
         // For app UI
         private Visibility isCheckboxVsible;
@@ -33,35 +32,23 @@ namespace SDLauncher_UWP.Helpers
         {
             this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
         }
-        public Account(string username, string type, string accesstoken, string uuid, int count, bool last, int? pic = null)
+        public Account(string username, string type, string accesstoken, string uuid, int count, bool last)
         {
             IsCheckboxVsible = Visibility.Collapsed;
             IsChecked = false;
-            PicList.Add("https://github.com/SeaDevTeam/SDLauncher/raw/main/Pictures/steve.png");
-            PicList.Add("https://github.com/SeaDevTeam/SDLauncher/raw/main/Pictures/NoobSteve.png");
-            PicList.Add("https://github.com/SeaDevTeam/SDLauncher/raw/main/Pictures/alex.png");
-            if (pic == null)
-            {
-                Random r = new Random();
-                int index = r.Next(PicList.Count);
-                ProfilePicture = PicList[index];
-                ProfileAvatarID = index;
-            }
-            else
-            {
-                ProfilePicture = PicList[(int)pic];
-                ProfileAvatarID = (int)pic;
-            }
             UserName = username;
             Type = type;
             AccessToken = accesstoken;
             UUID = uuid;
             Count = count;
             Last = last;
-            if (UUID != "null")
+            if (UUID != null)
             {
                 ProfilePicture = "https://minotar.net/avatar/" + UUID;
-                ProfileAvatarID = 3;
+            }
+            else
+            {
+                ProfilePicture = "https://minotar.net/avatar/MHF_Steve" + UUID;
             }
             TypeIconGlyph = Type == "Offline" ? "\xF384" : "\xEC05";
         }

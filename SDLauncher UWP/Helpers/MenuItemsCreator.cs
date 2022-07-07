@@ -16,44 +16,60 @@ namespace SDLauncher_UWP.Helpers
             Fabric
         }
         public event EventHandler<ItemInvokedArgs> ItemInvoked = delegate { };
+        public  MenuFlyout Flyout;
         public MenuFlyout CreateVersions()
         {
-            var f = new MenuFlyout();
-            f.Items.Add(GetFromStrings("1.19"));
-            f.Items.Add(GetFromStrings("1.18"));
-            f.Items.Add(GetFromStrings("1.17"));
-            f.Items.Add(GetFromStrings("1.16"));
-            f.Items.Add(GetFromStrings("1.15"));
-            f.Items.Add(GetFromStrings("1.12"));
-            f.Items.Add(GetFromStrings("1.11"));
-            f.Items.Add(GetFromStrings("1.10"));
-            f.Items.Add(GetFromStrings("1.9"));
-            f.Items.Add(GetFromStrings("1.8"));
-            f.Items.Add(GetFromStrings("1.7"));
-            f.Items.Add(GetFromStrings("1.6"));
-            f.Items.Add(GetFromStrings("1.5"));
-            f.Items.Add(GetFromStrings("1.4"));
-            f.Items.Add(GetFromStrings("1.3"));
-            f.Items.Add(GetFromStrings("1.2"));
-            f.Items.Add(GetFromStrings("1.1"));
-            return f;
+            Flyout = new MenuFlyout();
+            AddItem("1.19");
+            AddItem("1.18");
+            AddItem("1.17");
+            AddItem("1.16");
+            AddItem("1.15");
+            AddItem("1.12");
+            AddItem("1.11");
+            AddItem("1.10");
+            AddItem("1.9");
+            AddItem("1.8");
+            AddItem("1.7");
+            AddItem("1.6");
+            AddItem("1.5");
+            AddItem("1.4");
+            AddItem("1.3");
+            AddItem("1.2");
+            AddItem("1.1");
+            return Flyout;
+        }
+        public void AddItem(string ver)
+        {
+            var m = GetFromStrings(ver);
+            if (m != null) 
+            {
+                Flyout.Items.Add(m);
+            }
         }
         public MenuFlyoutItemBase GetFromStrings(string ver)
         {
-            var subVers = vars.Launcher.GetSubVersions(ver);
-            if (subVers.Count() > 1)
+            if (vars.Launcher.MCVerNames.Contains(ver))
             {
-                MenuFlyoutSubItem f = new MenuFlyoutSubItem();
-                f.Text = ver;
-                foreach (var item in subVers)
+                var subVers = vars.Launcher.GetSubVersions(ver);
+                if (subVers.Count() > 1)
                 {
-                    f.Items.Add(ReturnMCWithFabric(item));
+                    MenuFlyoutSubItem f = new MenuFlyoutSubItem();
+                    f.Text = ver;
+                    foreach (var item in subVers)
+                    {
+                        f.Items.Add(ReturnMCWithFabric(item));
+                    }
+                    return f;
                 }
-                return f;
+                else
+                {
+                    return CreateItem(ver, "vaniila-" + ver);
+                }
             }
             else
             {
-                return CreateItem(ver, "vaniila-" + ver);
+                return null;
             }
         }
         public MenuFlyoutItemBase ReturnMCWithFabric(string ver)

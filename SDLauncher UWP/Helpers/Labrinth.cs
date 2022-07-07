@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SDLauncher_UWP.Resources;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -89,8 +90,8 @@ namespace SDLauncher_UWP.Helpers
                     {
                         client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
                         {
-                            StatusChanged("Download " + fileName, new EventArgs());
-                            this.ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage)));
+                            StatusChanged("Downloading : " + fileName, new EventArgs());
+                            this.ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
                             if (progressPercentage == 100)
                             {
                                 this.DownloadFileCompleted();
@@ -116,8 +117,8 @@ namespace SDLauncher_UWP.Helpers
         }
         private void DownloadFileCompleted()
         {
-            StatusChanged("Ready", new EventArgs());
-            ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg:0));
+            StatusChanged(Localized.Ready, new EventArgs());
+            ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg:0,currentfile:0));
             MainUIChangeRequested(this, new SDLauncher.UIChangeRequestedEventArgs(true));
         }
         public async Task<LabrinthResults.SearchResult> Search(string name, int? limit = null, LabrinthResults.SearchSortOptions sortOptions = LabrinthResults.SearchSortOptions.Relevance, LabrinthResults.SearchCategories[] categories = null)
@@ -159,14 +160,14 @@ namespace SDLauncher_UWP.Helpers
                 }
                 var json = await Util.DownloadText("https://api.modrinth.com/v2/search?query=" + q + "&index=" + sortOptions.ToString().ToLower() + "&facets=[[\"categories:fabric\"]" + categouriesString + ",[\"project_type:mod\"]]&" + l);
                 s = JSONConverter.ConvertToLabrinthSearchResult(json);
-                StatusChanged("Ready", new EventArgs());
+                StatusChanged(Localized.Ready, new EventArgs());
                 UI(true);
                 LittleHelp.CompleteTask(taskID);
                 return s;
             }
             catch
             {
-                StatusChanged("Ready", new EventArgs());
+                StatusChanged(Localized.Ready, new EventArgs());
                 UI(true);
                 LittleHelp.CompleteTask(taskID, false);
                 return null;
@@ -185,7 +186,7 @@ namespace SDLauncher_UWP.Helpers
             {
                 var json = await Util.DownloadText("https://api.modrinth.com/v2/project/" + id);
                 s = JSONConverter.ConvertToLabrinthProject(json);
-                StatusChanged("Ready", new EventArgs());
+                StatusChanged(Localized.Ready, new EventArgs());
                 if (UIChange)
                 {
                     UI(true);
@@ -195,7 +196,7 @@ namespace SDLauncher_UWP.Helpers
             }
             catch
             {
-                StatusChanged("Ready", new EventArgs());
+                StatusChanged(Localized.Ready, new EventArgs());
                 if (UIChange)
                 {
                     UI(true);
@@ -215,14 +216,14 @@ namespace SDLauncher_UWP.Helpers
                 string link = "https://api.modrinth.com/v2/project/" + id + "/version";
                 var json = await Util.DownloadText(link);
                 s = JSONConverter.ConvertDownloadLinksToCS(json);
-                StatusChanged("Ready", new EventArgs());
+                StatusChanged(Localized.Ready, new EventArgs());
                 UI(true);
                 LittleHelp.CompleteTask(taskID);
                 return s;
             }
             catch
             {
-                StatusChanged("Ready", new EventArgs());
+                StatusChanged(Localized.Ready, new EventArgs());
                 UI(true);
                 LittleHelp.CompleteTask(taskID, false);
                 return null;

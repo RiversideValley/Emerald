@@ -96,17 +96,11 @@ namespace SDLauncher_UWP.Helpers
         public StoreManager StoreManager { get; private set; }
 
         public CMLauncher Launcher { get; set; }
-        public OptiFine OptiFine { get; set; }
         public Labrinth Labrinth { get; set; }
         public TasksHelper TasksHelper { get; set; }
         public GlacierClient GlacierClient { get; set; }
         public SDLauncher()
         {
-            OptiFine = new OptiFine();
-            OptiFine.ProgressChanged += OptiFine_ProgressChanged;
-            OptiFine.StatusChanged += OptiFine_StatusChanged;
-            OptiFine.UIChangedReqested += OptiFine_UIChangedReqested;
-            OptiFine.ErrorAppeared += OptiFine_ErrorAppeared;
 
             GlacierClient = new GlacierClient();
             GlacierClient.StatusChanged += GlacierClient_StatusChanged;
@@ -171,9 +165,10 @@ namespace SDLauncher_UWP.Helpers
             int ProgPrecentage;
             if(e.ProgressPercentage != null && e.DownloadArgs != null)
             {
-                stats = e.CurrentFile + " of " + e.MaxFiles;
+                stats = e.MaxFiles.Value + " of " + e.CurrentFile.Value;
+                int per = e.MaxFiles.Value / e.CurrentFile.Value * 100;
                 ProgPrecentage = e.ProgressPercentage.Value;
-                UpdateToast(e.DownloadArgs.FileKind.ToString(), stats, ProgPrecentage);
+                UpdateToast(e.DownloadArgs.FileKind.ToString(), stats, per);
             }
         }
 
@@ -252,21 +247,21 @@ namespace SDLauncher_UWP.Helpers
                 var result = await MessageBox.Show("Error", "Failed to load the data of the store, Retry", MessageBoxButtons.OkCancel);
                 if(result == MessageBoxResults.Ok)
                 {
-                    Status("Ready");
+                    Status(Localized.Ready);
                     var s = await LoadStore();
                     TasksHelper.CompleteTask(taskID,true);
                     return s;
                 }
                 else
                 {
-                    Status("Ready");
+                    Status(Localized.Ready);
                     TasksHelper.CompleteTask(taskID,false);
                     return false;
                 }
             }
             else
             {
-                Status("Ready");
+                Status(Localized.Ready);
                 TasksHelper.CompleteTask(taskID,true);
                 return true;
             }
@@ -316,7 +311,7 @@ namespace SDLauncher_UWP.Helpers
             var changelogHtml = await changelogs.GetChangelogHtml(version);
 
             var fullbody = "<style>\np,h1,li,span,body,html {\nfont-family:\"Segoe UI\";\n}\n</style>\n" + "<h1>Version " + version + "</h1>" + changelogHtml;
-            Status("Ready");
+            Status(Localized.Ready);
             return fullbody.Replace("h1", "h2").ToString();
         }
         private void GlacierClient_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -340,25 +335,6 @@ namespace SDLauncher_UWP.Helpers
             var l = new SDLauncher();
             l.InitializeLauncher(mcpath);
             return l;
-        }
-        private void OptiFine_ErrorAppeared(object sender, EventArgs e)
-        {
-           _ = MessageBox.Show("Error", sender.ToString(), MessageBoxButtons.Ok);
-        }
-
-        private void OptiFine_UIChangedReqested(object sender, EventArgs e)
-        {
-            UIChangeRequested(this, new UIChangeRequestedEventArgs((bool)sender));
-        }
-
-        private void OptiFine_StatusChanged(object sender, EventArgs e)
-        {
-            StatusChanged(this, new StatusChangedEventArgs(sender.ToString()));
-        }
-
-        private void OptiFine_ProgressChanged(object sender, EventArgs e)
-        {
-            FileOrProgressChanged(this, new ProgressChangedEventArgs(currentProg: int.Parse(sender.ToString())));
         }
 
         private void UI(bool ui)
@@ -399,19 +375,23 @@ namespace SDLauncher_UWP.Helpers
                 var result = await MessageBox.Show("Error", "Couldn't detect a valid internet connecton.Do you want to retry or switch to offfline mode ? (you can switch to online mode again by restarting the app.)", MessageBoxButtons.CustomWithCancel, "Retry", "Switch to offline mode");
                 if (result == MessageBoxResults.CustomResult1)
                 {
+                    TasksHelper.CompleteTask(taskID, false);
                     await RefreshVersions();
                 }
                 else if(result == MessageBoxResults.CustomResult2)
                 {
+                    vars.VerSelectors = Views.VerSelectors.Classic;
+                    TasksHelper.CompleteTask(taskID, false);
+                    int offTask = TasksHelper.AddTask("Switch to offline mode");
                     Launcher.VersionLoader = new LocalVersionLoader(Launcher.MinecraftPath);
                     UseOfflineLoader = true;
+                    TasksHelper.CompleteTask(offTask,true);
                     await RefreshVersions();
                 }
                 else
                 {
                     CoreApplication.Exit();
                 }
-                TasksHelper.CompleteTask(taskID,false);
             }
             UI(true);
         }
@@ -452,11 +432,11 @@ namespace SDLauncher_UWP.Helpers
                     var fabric = FabricMCVersions.GetVersionMetadata(launchVer);
                     await fabric.SaveAsync(Launcher.MinecraftPath);
                     UI(true);
-                    Status("Ready");
+                    Status(Localized.Ready);
                     await RefreshVersions();
                     launchVer = modver;
                     displayVer = displayver;
-               Status("Ready");
+               Status(Localized.Ready);
                     TasksHelper.CompleteTask(taskID, true);
                 return new FabricResponsoe(launchVer, displayVer, FabricResponsoe.Responses.ExistsOrCreated);
             }
