@@ -144,7 +144,7 @@ namespace SDLauncher_UWP.Views
                 cmbxTheme.SelectedIndex = 2;
             }
             tglEncryptSettings.IsOn = bool.Parse(ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] as string);
-            btnXML.IsEnabled = !tglEncryptSettings.IsOn;
+            pnlSettingsData.IsEnabled = !tglEncryptSettings.IsOn;
             cbAsset.IsChecked = vars.AssestsCheck;
             chkbxFullScreen.IsChecked = vars.FullScreen;
             tglAutoClose.IsOn = vars.AutoClose;
@@ -505,44 +505,44 @@ namespace SDLauncher_UWP.Views
 
         private async void btnExportXML_Click(object sender, RoutedEventArgs e)
         {
-            if (await MessageBox.Show("Information", "A restart is required to load the settings correctly.\nContinue ?", MessageBoxButtons.YesNo) == MessageBoxResults.Yes)
+            FileSavePicker savePicker = new FileSavePicker();
+            savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            savePicker.FileTypeChoices.Add("SDL Settings", new List<string>() { ".json" });
+            savePicker.SuggestedFileName = "New Document";
+
+            StorageFile sfile = await savePicker.PickSaveFileAsync();
+            if (sfile != null)
             {
-                FileSavePicker savePicker = new FileSavePicker();
-                savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-                savePicker.FileTypeChoices.Add("SDL Settings", new List<string>() { ".json" });
-                savePicker.SuggestedFileName = "New Document";
-
-                StorageFile sfile = await savePicker.PickSaveFileAsync();
-                if (sfile != null)
-                {
-                    await SettingsManager.SaveSettings(sfile);
-                }
+                await SettingsManager.SaveSettings(sfile);
             }
-
         }
+
+
         private async void btnImportXML_Click(object sender, RoutedEventArgs e)
         {
-            var picker = new FileOpenPicker();
-            picker.ViewMode = PickerViewMode.Thumbnail;
-            picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
-            picker.FileTypeFilter.Add(".xml");
-
-            StorageFile file = await picker.PickSingleFileAsync();
-            if (file != null)
+            if (await MessageBox.Show("Information", "A restart is required to load the settings correctly.\nContinue ?", MessageBoxButtons.YesNo) == MessageBoxResults.Yes)
             {
-                if (tglEncryptSettings.IsOn)
+                var picker = new FileOpenPicker();
+                picker.ViewMode = PickerViewMode.Thumbnail;
+                picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+                picker.FileTypeFilter.Add(".json");
+
+                StorageFile file = await picker.PickSingleFileAsync();
+                if (file != null)
                 {
-                    var text = await FileIO.ReadTextAsync(file);
-                    ApplicationData.Current.RoamingSettings.Values["InAppSettings"] = text;
+                    if (tglEncryptSettings.IsOn)
+                    {
+                        var text = await FileIO.ReadTextAsync(file);
+                        ApplicationData.Current.RoamingSettings.Values["InAppSettings"] = text;
+                    }
+                    else
+                    {
+                        await file.CopyAsync(ApplicationData.Current.RoamingFolder, "settings.json", NameCollisionOption.ReplaceExisting);
+                    }
+                    await CoreApplication.RequestRestartAsync("");
                 }
-                else
-                {
-                    await file.CopyAsync(ApplicationData.Current.RoamingFolder, "settings.json", NameCollisionOption.ReplaceExisting);
-                }
-                await CoreApplication.RequestRestartAsync("");
             }
         }
-
         private async void tglEncryptSettings_Toggled(object sender, RoutedEventArgs e)
         {
             if (tglEncryptSettings.IsOn)
@@ -554,11 +554,11 @@ namespace SDLauncher_UWP.Views
                 }
                 catch { }
                 ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = true.ToString();
-                btnXML.IsEnabled = false;
+                pnlSettingsData.IsEnabled = false;
             }
             else
             {
-                btnXML.IsEnabled = true;
+                pnlSettingsData.IsEnabled = true;
                 ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = false.ToString();
                 await SettingsManager.SaveSettings();
             }

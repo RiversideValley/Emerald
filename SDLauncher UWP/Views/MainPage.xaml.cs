@@ -342,5 +342,24 @@ namespace SDLauncher_UWP
         {
             Canvas.SetZIndex(discordView, 1);
         }
+
+        private void tasks_ErrorTaskRecieved(object sender, EventArgs e)
+        {
+            infbdgErrorTasks.Value = tasks.UnwatchedErrorTasksCount;
+            if(tasks.UnwatchedErrorTasksCount > 0)
+            {
+                infbdgErrorTasks.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                infbdgErrorTasks.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void btnTasks_Click(object sender, RoutedEventArgs e)
+        {
+            tasks.ClearUnwatchedErrorTasks();
+            tasks_ErrorTaskRecieved(null, null);
+        }
     }
 }

@@ -176,14 +176,10 @@ namespace SDLauncher_UWP
 
         private void LoginFromCache(object sender, RoutedEventArgs e)
         {
-            bool isSelectionMode = false;
+            bool isSelectionMode = true;
             foreach (var item in vars.Accounts)
             {
-                if (item.IsCheckboxVsible == Visibility.Visible)
-                {
-                    isSelectionMode = true;
-                }
-                else
+                if (item.IsCheckboxVsible != Visibility.Visible)
                 {
                     isSelectionMode = false;
                 }

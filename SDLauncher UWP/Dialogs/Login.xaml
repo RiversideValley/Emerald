@@ -16,7 +16,7 @@
                     IsStaggeringEnabled="True" />
             </TransitionCollection>
         </Grid.ChildrenTransitions>
-        <!--The New Account Grid-->
+        <!--#region New Account Grid-->
         <Grid
             Visibility="Collapsed"
             x:Name="gridNew">
@@ -107,7 +107,9 @@
                 </Button>
             </StackPanel>
         </Grid>
-        <!--The Choose Account Grid-->
+        <!--#endregion-->
+
+        <!--#region Choose Account Grid-->
         <Grid
             Visibility="Collapsed"
             Height="400"
@@ -333,7 +335,9 @@
                 FontWeight="SemiBold"
                 Text="Empty!" />
         </Grid>
-        <!--The Account Settings Grid-->
+        <!--#endregion-->
+
+        <!--#region Account Settings Grid-->
         <Grid
             Height="345"
             x:Name="gridSettingsOnline">
@@ -585,5 +589,6 @@
                 </Grid>
             </Grid>
         </Grid>
+        <!--#endregion-->
     </Grid>
 </ContentDialog>
