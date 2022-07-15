@@ -552,6 +552,7 @@ namespace SDLauncher_UWP
                 if(itm.Content.ToString() == "ChangeLogs")
                 {
                     navViewFrame.Content = LogsPage;
+                    LogsPage.UpdateLogs();
                 }
                 else
                 {

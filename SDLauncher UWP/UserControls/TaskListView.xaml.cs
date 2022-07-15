@@ -23,10 +23,11 @@ namespace SDLauncher_UWP.UserControls
 {
     public sealed partial class TaskListView : UserControl
     {
+        public event EventHandler ErrorTaskRecieved = delegate { };
         public ObservableCollection<Task> TasksCompleted { get;private set; }
         public ObservableCollection<Task> CurrentTasks { get;private set; }
         private int WholeTaskCount = 0;
-        
+        public int UnwatchedErrorTasksCount { get; private set; } = 0;
         public TaskListView()
         {
             this.InitializeComponent();
@@ -34,6 +35,7 @@ namespace SDLauncher_UWP.UserControls
             this.CurrentTasks = new ObservableCollection<Task>();
             RefreshTasks();
         }
+        public void ClearUnwatchedErrorTasks() => this.UnwatchedErrorTasksCount = 0;
         public int AddTask(string name,int? ID = null)
         {
             if (ID == null)
@@ -64,6 +66,8 @@ namespace SDLauncher_UWP.UserControls
                         itm.DateAdded = DateTime.Now;
                         if (!success)
                         {
+                            this.UnwatchedErrorTasksCount++;
+                            this.ErrorTaskRecieved(this, new EventArgs());
                             itm.BorderBrush = new SolidColorBrush(Colors.Red);
                         }
                         else

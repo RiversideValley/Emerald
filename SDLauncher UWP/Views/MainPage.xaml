@@ -71,8 +71,11 @@
                 <Grid.Resources>
                     <ResourceDictionary Source="/Resources/AcrylicButton.xaml"/>
                 </Grid.Resources>
-                <Button BorderThickness="0" Width="45" Background="Transparent" Height="45"  FocusVisualPrimaryThickness="0" Padding="5" FocusVisualSecondaryThickness="0" CornerRadius="0,0,5,5" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,180,0">
-                    <FontIcon Glyph="&#xe9d5;" FontSize="19"/>
+                <Button BorderThickness="0" Width="45" Background="Transparent" Height="45" x:Name="btnTasks" Click="btnTasks_Click" FocusVisualPrimaryThickness="0" Padding="0" FocusVisualSecondaryThickness="0" CornerRadius="0,0,5,5" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,180,0">
+                    <Grid>
+                        <FontIcon Glyph="&#xe9d5;" Margin="5" FontSize="19"/>
+                        <winui:InfoBadge x:Name="infbdgErrorTasks" Visibility="Collapsed" Background="Red" VerticalAlignment="Top" HorizontalAlignment="Right" Value="1"/>
+                    </Grid>
                     <Button.Flyout>
                         <Flyout>
                             <Grid>
@@ -80,8 +83,8 @@
                                     <RowDefinition Height="auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <TextBlock Text="Tasks" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold"/>
-                                <NoobUI:TaskListView Grid.Row="1" x:Name="tasks"/>
+                                <TextBlock Text="Tasks" Style="{ThemeResource TitleTextBlockStyle}" FontSize="20" FontWeight="SemiBold"/>
+                                <NoobUI:TaskListView Grid.Row="1" ErrorTaskRecieved="tasks_ErrorTaskRecieved" x:Name="tasks"/>
                             </Grid>
                         </Flyout>
                     </Button.Flyout>

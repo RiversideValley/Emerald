@@ -247,9 +247,9 @@ namespace SDLauncher_UWP.Helpers
                 var result = await MessageBox.Show("Error", "Failed to load the data of the store, Retry", MessageBoxButtons.OkCancel);
                 if(result == MessageBoxResults.Ok)
                 {
+                    TasksHelper.CompleteTask(taskID, false);
                     Status(Localized.Ready);
                     var s = await LoadStore();
-                    TasksHelper.CompleteTask(taskID,true);
                     return s;
                 }
                 else
