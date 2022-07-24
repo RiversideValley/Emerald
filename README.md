@@ -16,6 +16,7 @@ The image is from version 0.3.6-uwp
 <li>(February) We changed our luancher name to SDLauncher from Emerald Launcher but in some versions name may be still the same.</li>
 <li>(April) We sarted moving to uwp with a new look an new features</li>
 <li>(May 24) We released UWP version that is ready to use (0.3.1) with some bugs. </li>
+<li>(June 23) We released SDStore. </li>
 
 
 # Features
@@ -35,7 +36,7 @@ The image is from version 0.3.6-uwp
 - [x] Optifine
 - [x] SD Store
 
-<h3> WPF version</h3>
+<h3> WPF version (achieved)</h3>
 
 - [x] Microsoft Login
 - [ ] Mojang Login (Expired)
@@ -46,6 +47,13 @@ The image is from version 0.3.6-uwp
 - [ ] Forge (trying to make)
 - [x] Fabric
 - [x] Optifine
+
+
+<h3> Currently working on.. </h3>
+
+- A new SDLauncher.Core
+- A new Optifine System
+
 # System Requirements
 <li>Windows 11 or Windows 10 version 1809+.</li>
 <li>.net core desktop runtime 3.1.</li>
@@ -54,6 +62,7 @@ The image is from version 0.3.6-uwp
 <h1>Installation </h1>
 Goto https://github.com/Chaniru22/SDLauncher/releases/ and download and run the setup that matches for your PC🖥 (x86,x64)
 <br>
+
 <b>Note: This is in development!</b>
 
 <h2>Source Codes</h2>
