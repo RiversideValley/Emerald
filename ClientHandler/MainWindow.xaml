@@ -6,8 +6,7 @@
         xmlns:local="clr-namespace:ClientHandler"
         mc:Ignorable="d"
         ExtendsContentIntoTitleBar="True"
-             WindowBackdropType="Mica"
-        Title="MainWindow" Height="450" Width="800"
+             WindowBackdropType="Mica" Height="450" Width="800"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
   Style="{StaticResource UiWindow}">
     <Grid>

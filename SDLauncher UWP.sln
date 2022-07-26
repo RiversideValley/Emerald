@@ -7,7 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDLauncher UWP", "SDLaunche
 EndProject
 Project("{C7167F0D-BC9F-4E6E-AFE1-012C56B48DB5}") = "Package", "Package\Package.wapproj", "{817AAF28-3E88-4E8F-99C6-EE0C0B66C013}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientHandler", "ClientHandler\ClientHandler.csproj", "{B7DA8EEE-E5E3-4A2A-B119-3787280A1DDC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClientHandler", "ClientHandler\ClientHandler.csproj", "{B7DA8EEE-E5E3-4A2A-B119-3787280A1DDC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDLauncher.Core", "SDLauncher.Core\SDLauncher.Core.csproj", "{90389A34-9F42-4489-871A-DC726D74854D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -99,6 +101,26 @@ Global
 		{B7DA8EEE-E5E3-4A2A-B119-3787280A1DDC}.Release|x64.Build.0 = Release|Any CPU
 		{B7DA8EEE-E5E3-4A2A-B119-3787280A1DDC}.Release|x86.ActiveCfg = Release|Any CPU
 		{B7DA8EEE-E5E3-4A2A-B119-3787280A1DDC}.Release|x86.Build.0 = Release|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Debug|ARM.Build.0 = Debug|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Debug|x64.Build.0 = Debug|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Debug|x86.Build.0 = Debug|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Release|ARM.ActiveCfg = Release|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Release|ARM.Build.0 = Release|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Release|ARM64.Build.0 = Release|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Release|x64.ActiveCfg = Release|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Release|x64.Build.0 = Release|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Release|x86.ActiveCfg = Release|Any CPU
+		{90389A34-9F42-4489-871A-DC726D74854D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

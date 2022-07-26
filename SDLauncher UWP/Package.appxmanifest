@@ -16,8 +16,8 @@
   <mp:PhoneIdentity PhoneProductId="9b2d8a86-7ce1-4016-bf2c-24e12b903639" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>SDLauncher UWP</DisplayName>
-    <PublisherDisplayName>SeaDev Team</PublisherDisplayName>
+    <DisplayName>SDLaunche</DisplayName>
+    <PublisherDisplayName>SeaDevs</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -34,7 +34,7 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="SDLauncher_UWP.App">
       <uap:VisualElements
-        DisplayName="SDLauncher UWP"
+        DisplayName="SDLauncher"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
         Description="SDLauncher UWP"
