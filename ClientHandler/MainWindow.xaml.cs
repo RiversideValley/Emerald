@@ -17,8 +17,6 @@ using Windows.ApplicationModel.AppService;
 using System.IO;
 using Wpf.Ui.Controls;
 using Microsoft.Win32;
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 namespace ClientHandler
 {
     /// <summary>
@@ -55,7 +53,7 @@ namespace ClientHandler
             x.Add("Log", e);
             try
             {
-                _ = AppServiceHandler.Connection.SendMessageAsync(x);
+                _ = AppServiceHandler.Connection?.SendMessageAsync(x);
             }
             catch { }
             this.Dispatcher.Invoke(delegate
@@ -68,7 +66,7 @@ namespace ClientHandler
 
         private void btnKillGame_Click(object sender, RoutedEventArgs e)
         {
-            Program.ProcessUtil.Process.Kill();
+            Program.ProcessUtil?.Process.Kill();
         }
 
         private void btnSaveLogs_Click(object sender, RoutedEventArgs e)
