@@ -12,13 +12,13 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using SDLauncher_UWP.Helpers;
+using SDLauncher.UWP.Helpers;
 using System.ComponentModel;
 using ByteSizeLib;
 using System.Collections.ObjectModel;
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
-namespace SDLauncher_UWP.UserControls
+namespace SDLauncher.UWP.UserControls
 {
     public sealed partial class ModrinthDownloadsListView : UserControl, INotifyPropertyChanged
     {

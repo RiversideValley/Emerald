@@ -9,7 +9,7 @@ using Windows.ApplicationModel.AppService;
 using Windows.Foundation.Collections;
 using Windows.UI.Popups;
 
-namespace SDLauncher_UWP.Helpers
+namespace SDLauncher.UWP.Helpers
 {
     public class AppServiceHandler : INotifyPropertyChanged
     {

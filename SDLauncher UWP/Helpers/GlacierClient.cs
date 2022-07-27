@@ -1,4 +1,4 @@
-﻿using SDLauncher_UWP.Resources;
+﻿using SDLauncher.UWP.Resources;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,11 +10,11 @@ using Windows.Networking.BackgroundTransfer;
 using Windows.Storage;
 using Windows.UI.Xaml;
 
-namespace SDLauncher_UWP.Helpers
+namespace SDLauncher.UWP.Helpers
 {
     public class GlacierClient
     {
-        public event EventHandler<SDLauncher.ProgressChangedEventArgs> ProgressChanged = delegate { };
+        public event EventHandler<Helpers.SDLauncher.ProgressChangedEventArgs> ProgressChanged = delegate { };
         public event EventHandler StatusChanged = delegate { };
         public event EventHandler DownloadCompleted = delegate { };
         public event EventHandler UIChangedReqested = delegate { };
@@ -50,7 +50,7 @@ namespace SDLauncher_UWP.Helpers
                             StatusChanged("Downloading Glacier Client", new EventArgs());
                             try
                             {
-                                this.ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
+                                this.ProgressChanged(this, new Helpers.SDLauncher.ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
                             }
                             catch { }
                             if (progressPercentage == 100)
@@ -59,7 +59,7 @@ namespace SDLauncher_UWP.Helpers
                                 this.Extract();
                                 client.Dispose();
                                 vars.GlacierClientVersion = ver;
-                                this.ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg: 0, maxfiles: 100, currentfile: 00));
+                                this.ProgressChanged(this, new Helpers.SDLauncher.ProgressChangedEventArgs(currentProg: 0, maxfiles: 100, currentfile: 00));
                                 LittleHelp.CompleteTask(taskID, true);
                             }
                         };
@@ -90,7 +90,7 @@ namespace SDLauncher_UWP.Helpers
             ZipArchive archive = new ZipArchive(b);
                 archive.ExtractToDirectory(f.Path, true);
             
-            ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentfile:0));
+            ProgressChanged(this, new Helpers.SDLauncher.ProgressChangedEventArgs(currentfile:0));
             StatusChanged(Localized.Ready, new EventArgs());
             UIChangedReqested(true, new EventArgs());
             DownloadCompleted(true, new EventArgs());

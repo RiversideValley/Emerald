@@ -12,11 +12,11 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using SDLauncher_UWP.Helpers;
+using SDLauncher.UWP.Helpers;
 using System.Threading.Tasks;
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
-namespace SDLauncher_UWP.Views
+namespace SDLauncher.UWP.Views
 {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
@@ -32,12 +32,12 @@ namespace SDLauncher_UWP.Views
             LoadData();
         }
 
-        private void Labrinth_MainUIChangeRequested(object sender, SDLauncher.UIChangeRequestedEventArgs e)
+        private void Labrinth_MainUIChangeRequested(object sender, Helpers.SDLauncher.UIChangeRequestedEventArgs e)
         {
             this.IsEnabled = e.UI;
         }
 
-        private void Labrinth_UIChangeRequested(object sender, SDLauncher.UIChangeRequestedEventArgs e)
+        private void Labrinth_UIChangeRequested(object sender, Helpers.SDLauncher.UIChangeRequestedEventArgs e)
         {
             this.IsEnabled = e.UI;
         }

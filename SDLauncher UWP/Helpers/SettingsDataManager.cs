@@ -14,9 +14,9 @@ using CmlLib.Core.Auth;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using System.ComponentModel;
-using SDLauncher_UWP.Helpers;
+using SDLauncher.UWP.Helpers;
 
-namespace SDLauncher_UWP.Helpers
+namespace SDLauncher.UWP.Helpers
 {
     public static class SettingsManager
     {

@@ -9,7 +9,7 @@ using Windows.Storage.Streams;
 using System.IO;
 using System.Xml;
 
-namespace SDLauncher_UWP.Converters
+namespace SDLauncher.UWP.Converters
 {
     public class ProcessToXmlConverter
     {

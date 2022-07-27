@@ -7,7 +7,7 @@ using System.Web;
 using DiscordRPC;
 using Windows.Security.Authentication.Web;
 
-namespace SDLauncher_UWP.Helpers
+namespace SDLauncher.UWP.Helpers
 {
     public class RPCHelper
     {

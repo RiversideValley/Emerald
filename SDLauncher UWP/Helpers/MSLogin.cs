@@ -8,8 +8,9 @@ using CmlLib.Core;
 using Microsoft.Identity.Client;
 using CmlLib.Core.Auth.Microsoft;
 using System.Net.Http;
+using CmlLib.Core.Auth.Microsoft.Mojang;
 
-namespace SDLauncher_UWP.Helpers
+namespace SDLauncher.UWP.Helpers
 {
     class MSLogin
     {

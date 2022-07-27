@@ -22,11 +22,11 @@ using Windows.ApplicationModel.DataTransfer;
 using System.Threading.Tasks;
 using Windows.UI.Xaml.Media.Imaging;
 using Microsoft.Toolkit.Uwp.UI;
-using SDLauncher_UWP.Helpers;
+using SDLauncher.UWP.Helpers;
 
 // The Content Dialog item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
-namespace SDLauncher_UWP
+namespace SDLauncher.UWP
 {
     public sealed partial class Login : ContentDialog
     {

@@ -21,19 +21,19 @@ using Windows.UI.ViewManagement;
 using Windows.UI;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
-using SDLauncher_UWP.Views;
+using SDLauncher.UWP.Views;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.Storage;
-using SDLauncher_UWP.Helpers;
+using SDLauncher.UWP.Helpers;
 using CmlLib.Core;
-using SDLauncher_UWP.Resources;
+using SDLauncher.UWP.Resources;
 #pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
 #pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
 #pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
 #pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
 
 
-namespace SDLauncher_UWP
+namespace SDLauncher.UWP
 {
     public sealed partial class MainPage : Page
     {
@@ -42,7 +42,7 @@ namespace SDLauncher_UWP
         public MainPage()
         {
             this.InitializeComponent();
-            vars.Launcher = SDLauncher.CreateLauncher(new MinecraftPath(ApplicationData.Current.LocalFolder.Path));
+            vars.Launcher = Helpers.SDLauncher.CreateLauncher(new MinecraftPath(ApplicationData.Current.LocalFolder.Path));
             launcher = new BaseLauncherPage();
             settingsPage = new SettingsPage();
             settingsPage.UpdateBGRequested += SettingsPage_UpdateBGRequested;
@@ -174,7 +174,7 @@ namespace SDLauncher_UWP
             btnBack_Click(null, null);
         }
 
-        private void Launcher_UIchanged(object sender, SDLauncher.UIChangeRequestedEventArgs e)
+        private void Launcher_UIchanged(object sender, Helpers.SDLauncher.UIChangeRequestedEventArgs e)
         {
             settingsPage.IsEnabled = e.UI;
             btnAccount.IsEnabled = e.UI;

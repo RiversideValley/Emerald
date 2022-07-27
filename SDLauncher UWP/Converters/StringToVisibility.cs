@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
 
-namespace SDLauncher_UWP.Converters
+namespace SDLauncher.UWP.Converters
 {
     public class StringToVisibility : IValueConverter
     {

@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 
-namespace SDLauncher_UWP.Helpers
+namespace SDLauncher.UWP.Helpers
 {
 
     public class StoreItem
