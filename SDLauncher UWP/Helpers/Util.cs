@@ -13,7 +13,7 @@ using Windows.Storage.Streams;
 using Windows.System.Diagnostics;
 using Windows.UI.Xaml.Media.Imaging;
 
-namespace SDLauncher_UWP.Helpers
+namespace SDLauncher.UWP.Helpers
 {
     public static class JSONConverter
     {

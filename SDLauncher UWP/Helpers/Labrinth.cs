@@ -1,4 +1,4 @@
-﻿using SDLauncher_UWP.Resources;
+﻿using SDLauncher.UWP.Resources;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,7 +13,7 @@ using Windows.Networking.BackgroundTransfer;
 using Windows.Storage;
 using Windows.UI.Xaml;
 
-namespace SDLauncher_UWP.Helpers
+namespace SDLauncher.UWP.Helpers
 {
     public static class LittleHelp
     {
@@ -29,9 +29,9 @@ namespace SDLauncher_UWP.Helpers
     public class Labrinth
     {
         public event EventHandler StatusChanged = delegate { };
-        public event EventHandler<SDLauncher.UIChangeRequestedEventArgs> UIChangeRequested = delegate { };
-        public event EventHandler<SDLauncher.UIChangeRequestedEventArgs> MainUIChangeRequested = delegate { };
-        public event EventHandler<SDLauncher.ProgressChangedEventArgs> ProgressChanged = delegate { };
+        public event EventHandler<Helpers.SDLauncher.UIChangeRequestedEventArgs> UIChangeRequested = delegate { };
+        public event EventHandler<Helpers.SDLauncher.UIChangeRequestedEventArgs> MainUIChangeRequested = delegate { };
+        public event EventHandler<Helpers.SDLauncher.ProgressChangedEventArgs> ProgressChanged = delegate { };
         public HttpClient Client = new HttpClient();
         //ModrinthClient c = new ModrinthClient();
         public void Test()
@@ -43,13 +43,13 @@ namespace SDLauncher_UWP.Helpers
         }
         private void UI(bool UI)
         {
-            UIChangeRequested(this, new SDLauncher.UIChangeRequestedEventArgs(UI));
+            UIChangeRequested(this, new Helpers.SDLauncher.UIChangeRequestedEventArgs(UI));
         }
         int DownloadTaskID;
         public async void DownloadMod(LabrinthResults.DownloadManager.File file,CmlLib.Core.MinecraftPath mcPath)
         {
             DownloadTaskID = LittleHelp.AddTask("Download " + file.filename);
-            MainUIChangeRequested(this, new SDLauncher.UIChangeRequestedEventArgs(false));
+            MainUIChangeRequested(this, new Helpers.SDLauncher.UIChangeRequestedEventArgs(false));
                 StorageFolder f = await StorageFolder.GetFolderFromPathAsync(mcPath.BasePath);
                var m =  await f.CreateFolderAsync("mods", CreationCollisionOption.OpenIfExists);
             try
@@ -67,7 +67,7 @@ namespace SDLauncher_UWP.Helpers
                 }
                 else
                 {
-                    this.MainUIChangeRequested(this, new SDLauncher.UIChangeRequestedEventArgs(true));
+                    this.MainUIChangeRequested(this, new Helpers.SDLauncher.UIChangeRequestedEventArgs(true));
                     LittleHelp.CompleteTask(DownloadTaskID,true);
                 }
             }
@@ -91,7 +91,7 @@ namespace SDLauncher_UWP.Helpers
                         client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
                         {
                             StatusChanged("Downloading : " + fileName, new EventArgs());
-                            this.ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
+                            this.ProgressChanged(this, new Helpers.SDLauncher.ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
                             if (progressPercentage == 100)
                             {
                                 this.DownloadFileCompleted();
@@ -118,8 +118,8 @@ namespace SDLauncher_UWP.Helpers
         private void DownloadFileCompleted()
         {
             StatusChanged(Localized.Ready, new EventArgs());
-            ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg:0,currentfile:0));
-            MainUIChangeRequested(this, new SDLauncher.UIChangeRequestedEventArgs(true));
+            ProgressChanged(this, new Helpers.SDLauncher.ProgressChangedEventArgs(currentProg:0,currentfile:0));
+            MainUIChangeRequested(this, new Helpers.SDLauncher.UIChangeRequestedEventArgs(true));
         }
         public async Task<LabrinthResults.SearchResult> Search(string name, int? limit = null, LabrinthResults.SearchSortOptions sortOptions = LabrinthResults.SearchSortOptions.Relevance, LabrinthResults.SearchCategories[] categories = null)
         {

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.UI.Xaml.Data;
 
-namespace SDLauncher_UWP.Converters
+namespace SDLauncher.UWP.Converters
 {
     internal class ListToBulletsConverter : IValueConverter
     {

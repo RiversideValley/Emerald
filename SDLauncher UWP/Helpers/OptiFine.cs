@@ -1,4 +1,4 @@
-﻿using SDLauncher_UWP.Resources;
+﻿using SDLauncher.UWP.Resources;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,7 +12,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using System.Xml.Serialization;
 
-namespace SDLauncher_UWP.Helpers
+namespace SDLauncher.UWP.Helpers
 {
     public class OptiFineManager
     {

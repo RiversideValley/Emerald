@@ -6,9 +6,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.UI.Xaml.Media.Imaging;
-using SDLauncher_UWP.Helpers;
+using SDLauncher.UWP.Helpers;
 
-namespace SDLauncher_UWP.DataTemplates
+namespace SDLauncher.UWP.DataTemplates
 {
     public class ServerTemplate : INotifyPropertyChanged
     {

@@ -1,5 +1,5 @@
 ﻿using Microsoft.Toolkit.Uwp.Helpers;
-using SDLauncher_UWP.Helpers;
+using SDLauncher.UWP.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,7 +25,7 @@ using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
-namespace SDLauncher_UWP.Views
+namespace SDLauncher.UWP.Views
 {
     public sealed partial class SettingsPage : Page
     {

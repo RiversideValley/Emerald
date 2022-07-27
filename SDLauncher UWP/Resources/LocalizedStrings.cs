@@ -1,11 +1,11 @@
-﻿using SDLauncher_UWP.Helpers;
+﻿using SDLauncher.UWP.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SDLauncher_UWP.Resources
+namespace SDLauncher.UWP.Resources
 {
     public static class Localized
     {

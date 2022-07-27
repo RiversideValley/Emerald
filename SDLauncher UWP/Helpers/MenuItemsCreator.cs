@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
-namespace SDLauncher_UWP.Helpers
+namespace SDLauncher.UWP.Helpers
 {
     public class MenuItemsCreator
     {

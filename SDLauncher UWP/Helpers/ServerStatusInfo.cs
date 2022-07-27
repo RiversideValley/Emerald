@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SDLauncher_UWP.Helpers
+namespace SDLauncher.UWP.Helpers
 {
     public class ServerStatusInfo
     {

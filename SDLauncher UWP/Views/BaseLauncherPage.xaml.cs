@@ -24,25 +24,25 @@ using System.Net.NetworkInformation;
 using System.Net;
 using System.IO.Compression;
 using Windows.Networking.BackgroundTransfer;
-using SDLauncher_UWP.Views;
+using SDLauncher.UWP.Views;
 using System.Diagnostics;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
 using Microsoft.Toolkit.Uwp.Helpers;
-using SDLauncher_UWP.Helpers;
+using SDLauncher.UWP.Helpers;
 using Windows.Foundation.Metadata;
 using Windows.ApplicationModel;
-using SDLauncher_UWP.Converters;
-using SDLauncher_UWP.Resources;
+using SDLauncher.UWP.Converters;
+using SDLauncher.UWP.Resources;
 using CmlLib.Utils;
 using MojangAPI;
-using SDLauncher_UWP.Dialogs;
-using SDLauncher_UWP.DataTemplates;
+using SDLauncher.UWP.Dialogs;
+using SDLauncher.UWP.DataTemplates;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Windows.UI.Notifications;
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
-namespace SDLauncher_UWP
+namespace SDLauncher.UWP
 {
     
     /// <summary>
@@ -56,7 +56,7 @@ namespace SDLauncher_UWP
         public ChangeLogsPage LogsPage { get; set; }
         public MenuItemsCreator MCVerManager { get; set; }
         public StorePage StorePage { get; set; }
-        public event EventHandler<SDLauncher.UIChangeRequestedEventArgs> UIchanged = delegate { };
+        public event EventHandler<Helpers.SDLauncher.UIChangeRequestedEventArgs> UIchanged = delegate { };
         public BaseLauncherPage()
         {
             this.InitializeComponent();
@@ -225,7 +225,7 @@ namespace SDLauncher_UWP
         }
 
 
-        private void Launcher_FileOrProgressChanged(object sender, SDLauncher.ProgressChangedEventArgs e)
+        private void Launcher_FileOrProgressChanged(object sender, Helpers.SDLauncher.ProgressChangedEventArgs e)
         {
             if(e.CurrentFile != null && e.MaxFiles != null)
             {
@@ -239,12 +239,12 @@ namespace SDLauncher_UWP
             }
         }
 
-        private void Launcher_StatusChanged(object sender, SDLauncher.StatusChangedEventArgs e)
+        private void Launcher_StatusChanged(object sender, Helpers.SDLauncher.StatusChangedEventArgs e)
         {
             txtStatus.Text = e.Status;
         }
 
-        private void Launcher_UIChangeRequested(object sender, SDLauncher.UIChangeRequestedEventArgs e)
+        private void Launcher_UIChangeRequested(object sender, Helpers.SDLauncher.UIChangeRequestedEventArgs e)
         {
             UI(e.UI);
         }
@@ -515,14 +515,14 @@ namespace SDLauncher_UWP
                 return "";
             }
         }
-        private void FabricResponse(SDLauncher.FabricResponsoe responsoe)
+        private void FabricResponse(Helpers.SDLauncher.FabricResponsoe responsoe)
         {
             launchVer = responsoe.LaunchVer;
             btnMCVer.Content = responsoe.DisplayVer;
         }
         private void UI(bool value)
         {
-            UIchanged(this, new SDLauncher.UIChangeRequestedEventArgs(value));
+            UIchanged(this, new Helpers.SDLauncher.UIChangeRequestedEventArgs(value));
             btnLaunch.IsEnabled = value;
             btnMCVer.IsEnabled = value;
             btnServer.IsEnabled = value;

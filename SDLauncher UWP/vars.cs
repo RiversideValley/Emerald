@@ -6,12 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using CmlLib.Core.VersionLoader;
 using CmlLib.Core.Auth;
-using SDLauncher_UWP.Helpers;
+using SDLauncher.UWP.Helpers;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media.Imaging;
-using SDLauncher_UWP.Views;
+using SDLauncher.UWP.Views;
 using Windows.Storage;
-namespace SDLauncher_UWP
+namespace SDLauncher.UWP
 {
     public static class vars
     {//some of these are not used (outdated)
@@ -57,7 +57,7 @@ namespace SDLauncher_UWP
         public static bool autoLog = false;
         public static bool AutoClose = false;
         public static int LoadedRam = 1024;
-        public static SDLauncher Launcher;
+        public static Helpers.SDLauncher Launcher;
         public static RPCHelper SDRPC;
         private static VerSelectors verSelectors = VerSelectors.Normal;
         public static VerSelectors VerSelectors { get { return verSelectors; } set { verSelectors = value; VerSelctorChanged(verSelectors, new EventArgs()); } }

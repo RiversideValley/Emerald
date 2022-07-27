@@ -8,13 +8,13 @@ using System.Text;
 using System.Threading.Tasks;
 using CmlLib.Core.Version;
 using CmlLib.Core.VersionLoader;
-using SDLauncher_UWP.Resources;
+using SDLauncher.UWP.Resources;
 using CmlLib.Utils;
 using Windows.ApplicationModel.Core;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Windows.UI.Notifications;
 
-namespace SDLauncher_UWP.Helpers
+namespace SDLauncher.UWP.Helpers
 {
     public class TasksHelper
     {

@@ -1,6 +1,6 @@
 ﻿using CmlLib.Core.Auth;
 using Microsoft.Toolkit.Uwp.Helpers;
-using SDLauncher_UWP.Helpers;
+using SDLauncher.UWP.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,7 +22,7 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
-namespace SDLauncher_UWP
+namespace SDLauncher.UWP
 {
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
