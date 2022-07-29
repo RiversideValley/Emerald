@@ -22,18 +22,22 @@ The image is from version 0.3.6-uwp
 # Features
 <h3> UWP version</h3>
 
+- [x] Theming (Backgrounds, Acrylic, Mica)
 - [x] Microsoft Login
 - [ ] Mojang Login (Expired)
 - [x] Offline Login
 - [x] Save Accounts
 - [x] View skins
-- [x] View/edit settings as a xml
+- [x] View/edit settings as a json
+- [x] Hide settings
+- [x] Launch Arguments
 - [ ] Discord RPC (To do)
 - [x] Download/Install Minecraft any versions including snapshots
 - [x] Launch Minecraft
 - [ ] Forge (trying to make)
 - [x] Fabric
-- [x] Optifine
+- [x] Glacier Client
+- [x] Optifine (Outdated for now)
 - [x] SD Store
 
 <h3> WPF version (achieved)</h3>
