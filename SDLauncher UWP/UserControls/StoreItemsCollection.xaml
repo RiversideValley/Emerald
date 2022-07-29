@@ -73,9 +73,6 @@
             <ToolKit:AdaptiveGridView.ItemTemplate>
                 <DataTemplate x:DataType="helpers:StoreItem">
                     <Button Tag="{x:Bind ID}" Click="Button_Click" HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" MinWidth="0" Height="130">
-                        <Button.Resources>
-                            <ResourceDictionary Source="/Resources/AcrylicButton.xaml"/>
-                        </Button.Resources>
                         <Grid HorizontalAlignment="Stretch">
                             <Grid HorizontalAlignment="Left">
                                 <Grid.ColumnDefinitions>

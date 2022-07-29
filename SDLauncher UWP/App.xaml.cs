@@ -29,6 +29,8 @@ namespace SDLauncher.UWP
     /// </summary>
     sealed partial class App : Application
     {
+        public static ResourceDictionary AcrylicStyle { get; private set; } = new ResourceDictionary { Source = new Uri("ms-appx:///Resources/Acrylic.xaml") };
+        public static ResourceDictionary MicaStyle { get; private set; } = new ResourceDictionary { Source = new Uri("ms-appx:///Resources/Mica.xaml") };
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -52,24 +54,32 @@ namespace SDLauncher.UWP
         {
             if (SystemInformation.Instance.IsFirstRun)
             {
-                ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = false.ToString();
-            }
-            bool IsInAppSettings = false;
-            try
-            {
-                IsInAppSettings = bool.Parse(ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] as string);
-            }
-            catch
-            {
-                ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = false.ToString();
-            }
-            if (IsInAppSettings == false)
-            {
-                await SettingsManager.LoadSettings();
+                ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = false;
+                UIResourceHelper.SetResource(ResourceStyle.Acrylic);
             }
             else
             {
-                SettingsManager.DeserializeSettings(ApplicationData.Current.RoamingSettings.Values["InAppSettings"] as string);
+                bool IsInAppSettings = false;
+                try
+                {
+                    IsInAppSettings = (bool)ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"];
+                }
+                catch
+                {
+                    ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = false;
+                }
+                if (IsInAppSettings == false)
+                {
+                    await SettingsManager.LoadSettings();
+                }
+                else
+                {
+                    SettingsManager.DeserializeSettings(ApplicationData.Current.RoamingSettings.Values["InAppSettings"] as string);
+                }
+            }
+            if(UIResourceHelper.CurrentStyle == null)
+            {
+                UIResourceHelper.SetResource(ResourceStyle.Acrylic);
             }
             Frame rootFrame = Window.Current.Content as Frame;
             if (vars.autoLog && vars.Accounts != null)
@@ -102,8 +112,9 @@ namespace SDLauncher.UWP
                         vars.CurrentAccountCount = item.Count;
                     }
                 }
-                Loaded = true;
             }
+                Loaded = true;
+
             // Do not repeat app initialization when the Window already has content,
             // just ensure that the window is active
             if (rootFrame == null)
@@ -190,10 +201,9 @@ namespace SDLauncher.UWP
         private async void App_CloseRequested(object sender, SystemNavigationCloseRequestedPreviewEventArgs e)
         {
             e.Handled = true;
-            if (!vars.closing && Loaded)
+            if (Loaded)
             {
-                vars.closing = true;
-                if (bool.Parse(ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] as string) == false)
+                if ((bool)ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] == false)
                 {
                     await SettingsManager.SaveSettings();
                 }
@@ -201,8 +211,9 @@ namespace SDLauncher.UWP
                 {
                     ApplicationData.Current.RoamingSettings.Values["InAppSettings"] = await SettingsManager.SerializeSettings();
                 }
+
+                Application.Current.Exit();
             }
-            Application.Current.Exit();
         }
 
         /// <summary>

@@ -156,6 +156,7 @@
     <Compile Include="Helpers\SDLauncher.cs" />
     <Compile Include="Helpers\ServerStatusInfo.cs" />
     <Compile Include="Helpers\SettingsDataManager.cs" />
+    <Compile Include="Helpers\UIResourceHelper.cs" />
     <Compile Include="Helpers\Util.cs" />
     <Compile Include="Resources\LocalizedStrings.cs" />
     <Compile Include="UserControls\ArgumentsListView.xaml.cs">
@@ -283,11 +284,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Resources\AcrylicButton.xaml">
+    <Page Include="Resources\Acrylic.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Resources\ExpanderStyle.xaml">
+    <Page Include="Resources\AcrylicExpanderStyle.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Resources\Mica.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Resources\MicaExpanderStyle.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

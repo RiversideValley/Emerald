@@ -24,8 +24,6 @@
                         <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
                     </Style>
                 </ResourceDictionary>
-                <ResourceDictionary Source="/Resources/ExpanderStyle.xaml"/>
-                <ResourceDictionary Source="/Resources/AcrylicButton.xaml"/>
             </winui:XamlControlsResources.MergedDictionaries>
         </winui:XamlControlsResources>
     </Application.Resources>

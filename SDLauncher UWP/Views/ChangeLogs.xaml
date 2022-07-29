@@ -8,7 +8,7 @@
     mc:Ignorable="d"
     CornerRadius="10"
     ActualThemeChanged="Page_ActualThemeChanged"
-    Background="{ThemeResource AcrylicGlass}">
+    Background="{ThemeResource AppControlBackgroundBrush}">
 
     <Grid>
         <WebView DefaultBackgroundColor="Transparent" x:Name="wvLogs"/>
