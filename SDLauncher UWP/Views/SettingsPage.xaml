@@ -7,6 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     d:Height="2000"
+    Margin="10,10,0,0"
     Loaded="Page_Loaded"
     xmlns:NoobUI="using:SDLauncher.UWP.UserControls"
     xmlns:winui="using:Microsoft.UI.Xaml.Controls" xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals" xmlns:Windows10version1903="http://schemas.microsoft.com/winfx/2006/xaml/presentation?IsApiContractPresent(Windows.Foundation.UniversalApiContract, 8)">
@@ -150,12 +151,20 @@
                                 <EntranceThemeTransition IsStaggeringEnabled="True"/>
                             </TransitionCollection>
                         </StackPanel.ChildrenTransitions>
-                        <NoobUI:SettingsCard Icon="&#xe771;" Description="My eyes are burning.Please switch off lights!" Title="Theme">
+                        <NoobUI:SettingsCard Icon="&#xe771;" Description="My eyes are burning. Please switch off lights!" Title="Theme">
                             <NoobUI:SettingsCard.Controls>
                                 <ComboBox x:Name="cmbxTheme" SelectionChanged="cmbxTheme_SelectionChanged" HorizontalAlignment="Right" Margin="0,0,35,0" VerticalAlignment="Center">
                                     <x:String>Light</x:String>
                                     <x:String>Dark</x:String>
                                     <x:String>System</x:String>
+                                </ComboBox>
+                            </NoobUI:SettingsCard.Controls>
+                        </NoobUI:SettingsCard>
+                        <NoobUI:SettingsCard Margin="0,5,0,0" Icon="&#xe771;" Description="Windows 11 ? or 10 ?" Title="UI Style">
+                            <NoobUI:SettingsCard.Controls>
+                                <ComboBox x:Name="cmbxUIStyle" SelectionChanged="cmbxUIStyle_SelectionChanged" HorizontalAlignment="Right" Margin="0,0,35,0" VerticalAlignment="Center">
+                                    <x:String>Mica</x:String>
+                                    <x:String>Acrylic</x:String>
                                 </ComboBox>
                             </NoobUI:SettingsCard.Controls>
                         </NoobUI:SettingsCard>
@@ -209,7 +218,7 @@
                                 </Grid>
                             </NoobUI:Expander.Controls>
                         </NoobUI:Expander>
-                        <NoobUI:Expander Margin="0,5,0,0" Title="Hide settings.json" Icon="&#xe713;" Description="Do you really think this app is not secured ?">
+                        <NoobUI:Expander Margin="0,5,0,0" Title="Hide settings.json" Icon="&#xe713;" Description="Save the settings.json inside the settings.dat ?">
                             <NoobUI:Expander.HeaderControls>
                                 <ToggleSwitch Toggled="tglEncryptSettings_Toggled" x:Name="tglEncryptSettings" MinWidth="0"/>
                             </NoobUI:Expander.HeaderControls>

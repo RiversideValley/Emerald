@@ -15,22 +15,22 @@
             <ResourceDictionary>
                 <ResourceDictionary.ThemeDictionaries>
                     <ResourceDictionary x:Key="Dark">
-                        <AcrylicBrush x:Key="AcrylicInAppHoverBrush" TintColor="Black" TintOpacity="0.3" BackgroundSource="Backdrop"/>
-                        <StaticResource x:Key="CardBackgroundBrush" ResourceKey="AcrylicInAppHoverBrush" />
+                        <AcrylicBrush x:Key="AppControlBackgroundBrush" TintColor="Black" TintOpacity="0.3" BackgroundSource="Backdrop"/>
+                        <StaticResource x:Key="CardBackgroundBrush" ResourceKey="AppControlBackgroundBrush" />
                         <StaticResource x:Key="CardBorderBrush" ResourceKey="CardBackgroundBrush" />
                         <StaticResource x:Key="CardBackgroundHoverBrush" ResourceKey="AcrylicInAppFillColorDefaultBrush" />
                         <StaticResource x:Key="CardBorderHoverBrush" ResourceKey="ControlStrokeColorDefault" />
-                        <StaticResource x:Key="CardBackgroundPressedBrush" ResourceKey="AcrylicInAppHoverBrush" />
+                        <StaticResource x:Key="CardBackgroundPressedBrush" ResourceKey="AppControlBackgroundBrush" />
                         <StaticResource x:Key="CardBorderPressedBrush" ResourceKey="CardBackgroundBrush" />
                         <Thickness x:Key="ExpanderContentDownBorderThickness">0</Thickness>
                     </ResourceDictionary>
                     <ResourceDictionary x:Key="Light">
-                        <AcrylicBrush x:Key="AcrylicInAppHoverBrush" TintColor="White" TintOpacity="0.3" BackgroundSource="Backdrop"/>
+                        <AcrylicBrush x:Key="AppControlBackgroundBrush" TintColor="White" TintOpacity="0.3" BackgroundSource="Backdrop"/>
                         <StaticResource x:Key="CardBackgroundBrush" ResourceKey="AcrylicInAppFillColorDefaultBrush" />
                         <StaticResource x:Key="CardBorderBrush" ResourceKey="CardBackgroundBrush" />
-                        <StaticResource x:Key="CardBackgroundHoverBrush" ResourceKey="AcrylicInAppHoverBrush" />
+                        <StaticResource x:Key="CardBackgroundHoverBrush" ResourceKey="AppControlBackgroundBrush" />
                         <StaticResource x:Key="CardBorderHoverBrush" ResourceKey="ControlStrokeColorDefault" />
-                        <StaticResource x:Key="CardBackgroundPressedBrush" ResourceKey="AcrylicInAppHoverBrush" />
+                        <StaticResource x:Key="CardBackgroundPressedBrush" ResourceKey="AppControlBackgroundBrush" />
                         <StaticResource x:Key="CardBorderPressedBrush" ResourceKey="CardBackgroundBrush" />
                         <Thickness x:Key="ExpanderContentDownBorderThickness">0</Thickness>
                     </ResourceDictionary>

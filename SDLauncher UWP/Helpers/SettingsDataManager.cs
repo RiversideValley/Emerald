@@ -38,6 +38,7 @@ namespace SDLauncher.UWP.Helpers
         {
             SettingsData = Rootobject.CreateNew();
             SettingsData.Settings.App.Appearance.Theme = ((ElementTheme)vars.Theme).ToString();
+            SettingsData.Settings.App.Appearance.UIResourceSyle = UIResourceHelper.CurrentStyle.ToString();
             SettingsData.Settings.App.Appearance.UseCustomBackgroundImage = vars.CustomBackground;
             SettingsData.Settings.App.Appearance.CustomBackgroundImagePath = vars.BackgroundImagePath;
             SettingsData.Settings.App.AutoLogin = vars.autoLog;
@@ -83,6 +84,7 @@ namespace SDLauncher.UWP.Helpers
             SettingsData = Newtonsoft.Json.JsonConvert.DeserializeObject<Rootobject>(text);
 
             //
+            UIResourceHelper.SetResource((ResourceStyle)Enum.Parse(typeof(ResourceStyle), SettingsData.Settings.App.Appearance.UIResourceSyle));
             vars.Theme = (ElementTheme)Enum.Parse(typeof(ElementTheme), SettingsData.Settings.App.Appearance.Theme);
             vars.CustomBackground = SettingsData.Settings.App.Appearance.UseCustomBackgroundImage;
             vars.BackgroundImagePath = SettingsData.Settings.App.Appearance.CustomBackgroundImagePath;
@@ -186,6 +188,7 @@ namespace SDLauncher.UWP.Helpers
         {
             public string CustomBackgroundImagePath { get; set; }
             public bool UseCustomBackgroundImage { get; set; }
+            public string UIResourceSyle { get; set; }
             public string Theme { get; set; }
         }
 

@@ -31,6 +31,7 @@ namespace SDLauncher.UWP.Views
     {
         public event EventHandler BackRequested = delegate { };
         public event EventHandler UpdateBGRequested = delegate { };
+        public new bool Loaded { get; set; }
         public SettingsPage()
         {
             this.InitializeComponent();
@@ -122,6 +123,7 @@ namespace SDLauncher.UWP.Views
         int pageCount = 0;
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            Loaded = false;
             if (vars.Launcher.UseOfflineLoader)
             {
                 cmbxVerSelector.IsEnabled = false;
@@ -139,11 +141,12 @@ namespace SDLauncher.UWP.Views
             {
                 cmbxTheme.SelectedIndex = 2;
             }
-            tglEncryptSettings.IsOn = bool.Parse(ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] as string);
+            tglEncryptSettings.IsOn = (bool)ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"];
             pnlSettingsData.IsEnabled = !tglEncryptSettings.IsOn;
             cbAsset.IsChecked = vars.AssestsCheck;
             chkbxFullScreen.IsChecked = vars.FullScreen;
             tglAutoClose.IsOn = vars.AutoClose;
+            cmbxUIStyle.SelectedItem = UIResourceHelper.CurrentStyle.ToString();
             if(vars.JVMScreenWidth != 0 && vars.JVMScreenHeight != 0)
             {
                 nbrbxHeight.Value = vars.JVMScreenHeight;
@@ -164,6 +167,7 @@ namespace SDLauncher.UWP.Views
             {
                 txtGamePath.Text = vars.Launcher.Launcher.MinecraftPath.BasePath;
             }
+            Loaded = true;
         }
 
         private async void btnXML_Click(object sender, RoutedEventArgs e)
@@ -549,14 +553,39 @@ namespace SDLauncher.UWP.Views
                     await file.DeleteAsync();
                 }
                 catch { }
-                ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = true.ToString();
+                ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = true;
                 pnlSettingsData.IsEnabled = false;
             }
             else
             {
                 pnlSettingsData.IsEnabled = true;
-                ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = false.ToString();
+                ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = false;
                 await SettingsManager.SaveSettings();
+            }
+        }
+
+        private async void cmbxUIStyle_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (Loaded)
+            {
+                UIResourceHelper.CurrentStyle = (ResourceStyle)Enum.Parse(typeof(ResourceStyle), cmbxUIStyle.SelectedItem.ToString());
+                var msg = await MessageBox.Show("Information", "Take a restart to see the change. Restart now ?", MessageBoxButtons.Custom,"Yes","Not now");
+                if (msg == MessageBoxResults.Yes)
+                {
+                    if ((bool)ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] == false)
+                    {
+                        await SettingsManager.SaveSettings();
+                    }
+                    else
+                    {
+                        ApplicationData.Current.RoamingSettings.Values["InAppSettings"] = await SettingsManager.SerializeSettings();
+                    }
+                    await CoreApplication.RequestRestartAsync("");
+                }
+                else
+                {
+
+                }
             }
         }
     }

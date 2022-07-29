@@ -53,7 +53,7 @@
             </winui:Expander.Header>
 
             <winui:Expander.Content>
-                <Grid CornerRadius="0,0,5,5" Padding="15" VerticalAlignment="Stretch" Background="{ThemeResource AcrylicInAppHoverBrush}">
+                <Grid CornerRadius="0,0,5,5" Padding="15" VerticalAlignment="Stretch" Background="{ThemeResource AppControlBackgroundBrush}">
                     <ContentPresenter Content="{Binding Controls, ElementName=userControl}" />
                 </Grid>
             </winui:Expander.Content>

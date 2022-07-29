@@ -68,9 +68,6 @@
             </StackPanel>
             </Border>
             <Grid>
-                <Grid.Resources>
-                    <ResourceDictionary Source="/Resources/AcrylicButton.xaml"/>
-                </Grid.Resources>
                 <Button BorderThickness="0" Width="45" Background="Transparent" Height="45" x:Name="btnTasks" Click="btnTasks_Click" FocusVisualPrimaryThickness="0" Padding="0" FocusVisualSecondaryThickness="0" CornerRadius="0,0,5,5" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,180,0">
                     <Grid>
                         <FontIcon Glyph="&#xe9d5;" Margin="5" FontSize="19"/>
@@ -216,7 +213,7 @@
                 <winui:WebView2 Grid.Row="1" x:Name="wv2DiscordSticked" Source="https://e.widgetbot.io/channels/949252950772027412/950032703418433537"/>
                
             </Grid>
-            <Frame Grid.Column="0" Navigated="MainFrame_Navigated" Canvas.ZIndex="0" Margin="10,48,10,15" x:Name="MainFrame">
+            <Frame Background="{ThemeResource LayerFillIFMica}" Grid.Column="0" Navigated="MainFrame_Navigated" Canvas.ZIndex="0" Margin="0,48,0,0" x:Name="MainFrame">
                 <Frame.ContentTransitions>
                     <TransitionCollection>
                         <EntranceThemeTransition IsStaggeringEnabled="True"/>
