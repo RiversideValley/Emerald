@@ -30,7 +30,7 @@ namespace SDLauncher.Core.Store
         {
             try
             {
-                HttpResponseMessage response = await Client.GetAsync("api/Department/1");
+                HttpResponseMessage response = await Client.GetAsync(code);
                 if (response.IsSuccessStatusCode)
                 {
                     return await response.Content.ReadAsStringAsync();
@@ -52,12 +52,11 @@ namespace SDLauncher.Core.Store
         int DownloadTaskID;
         public void DownloadMod(LabrinthResults.DownloadManager.File file, CmlLib.Core.MinecraftPath mcPath)
         {
+            this.MainUIChangeRequested(this, new UIChangeRequestedEventArgs(false));
             DownloadTaskID = Tasks.TasksHelper.AddTask("Download " + file.filename);
             MainUIChangeRequested(this, new UIChangeRequestedEventArgs(false));
             var mods = System.IO.Directory.CreateDirectory(mcPath.BasePath + "\\mods").FullName;
             ModrinthDownload(file.url, mods, file.filename);
-            this.MainUIChangeRequested(this, new UIChangeRequestedEventArgs(true));
-            Tasks.TasksHelper.CompleteTask(DownloadTaskID, true);
         }
         private async void ModrinthDownload(string link, string folderdir, string fileName)
         {
@@ -65,19 +64,20 @@ namespace SDLauncher.Core.Store
             {
                 client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
                 {
+                    this.MainUIChangeRequested(this, new UIChangeRequestedEventArgs(false));
                     StatusChanged("Downloading : " + fileName, new EventArgs());
                     this.ProgressChanged(this, new ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
                     if (progressPercentage == 100)
                     {
                         this.DownloadFileCompleted();
                         client.Dispose();
+                        this.MainUIChangeRequested(this, new UIChangeRequestedEventArgs(true));
                         Tasks.TasksHelper.CompleteTask(DownloadTaskID, true);
                     }
                 };
 
                 await client.StartDownload();
             }
-            Tasks.TasksHelper.CompleteTask(DownloadTaskID, false);
         }
         private void DownloadFileCompleted()
         {
@@ -88,7 +88,6 @@ namespace SDLauncher.Core.Store
         public async Task<LabrinthResults.SearchResult> Search(string name, int? limit = null, LabrinthResults.SearchSortOptions sortOptions = LabrinthResults.SearchSortOptions.Relevance, LabrinthResults.SearchCategories[] categories = null)
         {
             int taskID = 0;
-            UI(false);
             if (name == "")
             {
                 StatusChanged("Getting Mods", new EventArgs());
@@ -125,14 +124,12 @@ namespace SDLauncher.Core.Store
                 var json = await Get("v2/search?query=" + q + "&index=" + sortOptions.ToString().ToLower() + "&facets=[[\"categories:fabric\"]" + categouriesString + ",[\"project_type:mod\"]]&" + l);
                 s = JSONConverter.ConvertToLabrinthSearchResult(json);
                 StatusChanged(Localized.Ready, new EventArgs());
-                UI(true);
                 Tasks.TasksHelper.CompleteTask(taskID,true);
                 return s;
             }
             catch
             {
                 StatusChanged(Localized.Ready, new EventArgs());
-                UI(true);
                 Tasks.TasksHelper.CompleteTask(taskID, false);
                 return null;
             }

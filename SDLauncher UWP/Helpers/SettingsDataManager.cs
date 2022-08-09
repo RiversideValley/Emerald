@@ -33,6 +33,9 @@ namespace SDLauncher.UWP.Helpers
                 final = await ApplicationData.Current.RoamingFolder.CreateFileAsync("settings.json", CreationCollisionOption.ReplaceExisting);
             }
             await FileIO.WriteTextAsync(final, await SerializeSettings());
+            final = null;
+            final = await ApplicationData.Current.RoamingFolder.CreateFileAsync("Changelogs.html", CreationCollisionOption.ReplaceExisting);
+            await FileIO.WriteTextAsync(final, Core.MainCore.Launcher.ChangeLogsHTMLBody);
         }
         public static async Task<string> SerializeSettings()
         {
@@ -47,6 +50,7 @@ namespace SDLauncher.UWP.Helpers
             SettingsData.Settings.App.Tips = vars.ShowTips;
             SettingsData.Settings.App.Discord.IsPinned = vars.IsFixedDiscord;
             //
+            
             SettingsData.Settings.Minecraft.RAM = vars.CurrentRam;
             SettingsData.Settings.Minecraft.GlacierClient.Exists = await vars.GlacierExists();
             SettingsData.Settings.Minecraft.GlacierClient.Version = vars.GlacierClientVersion;
@@ -72,6 +76,15 @@ namespace SDLauncher.UWP.Helpers
                 var storagefile = await ApplicationData.Current.RoamingFolder.GetFileAsync("settings.json");
                 var text = await FileIO.ReadTextAsync(storagefile);
                 DeserializeSettings(text);
+                try
+                {
+                    storagefile = await ApplicationData.Current.RoamingFolder.GetFileAsync("Changelogs.html");
+                    Core.MainCore.Launcher.ChangeLogsHTMLBody = await FileIO.ReadTextAsync(storagefile);
+                }
+                catch
+                {
+
+                }
                 return true;
             }
             catch

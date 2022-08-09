@@ -64,50 +64,56 @@
                 </StackPanel>
             </Grid>
         </Grid>
-        <ToolKit:AdaptiveGridView Padding="0,0,15,0" Grid.Row="1" BorderThickness="0" Background="Transparent" x:Name="storeItemsGrid" StretchContentForSingleRow="False"
+
+        <Grid Grid.Row="1">
+            <ToolKit:AdaptiveGridView Padding="0,0,15,0" BorderThickness="0" Background="Transparent" x:Name="storeItemsGrid" StretchContentForSingleRow="False"
                                    OneRowModeEnabled="False"
                                    DesiredWidth="400"
                                    SelectionMode="None"
                                    IsItemClickEnabled="False"
                   animations:ItemsReorderAnimation.Duration="00:00:00.5000000">
-            <ToolKit:AdaptiveGridView.ItemTemplate>
-                <DataTemplate x:DataType="helpers:StoreItem">
-                    <Button Tag="{x:Bind ID}" Click="Button_Click" HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" MinWidth="0" Height="130">
-                        <Grid HorizontalAlignment="Stretch">
-                            <Grid HorizontalAlignment="Left">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="85"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid Grid.Column="0" Width="85" CornerRadius="10">
-                                    <Image Stretch="UniformToFill" Margin="0,10" HorizontalAlignment="Left" Source="{x:Bind Icon}" Width="75" Height="75"/>
-                                </Grid>
-                                <Grid Grid.Column="1">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="auto"/>
-                                        <RowDefinition Height="auto"/>
-                                    </Grid.RowDefinitions>
-                                    <StackPanel Orientation="Vertical" Grid.Row="0">
-                                        <TextBlock FontWeight="SemiBold" FontSize="20" TextTrimming="CharacterEllipsis" Text="{x:Bind Name}"/>
-                                        <TextBlock VerticalAlignment="Bottom" Style="{ThemeResource CaptionTextBlockStyle}">
+                <ToolKit:AdaptiveGridView.ItemTemplate>
+                    <DataTemplate x:DataType="helpers:StoreItem">
+                        <Button Tag="{x:Bind ID}" Click="Button_Click" HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" MinWidth="0" Height="130">
+                            <Grid HorizontalAlignment="Stretch">
+                                <Grid HorizontalAlignment="Left">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="85"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid Grid.Column="0" Width="85" CornerRadius="10">
+                                        <Image Stretch="UniformToFill" Margin="0,10" HorizontalAlignment="Left" Source="{x:Bind Icon}" Width="75" Height="75"/>
+                                    </Grid>
+                                    <Grid Grid.Column="1">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="auto"/>
+                                            <RowDefinition Height="auto"/>
+                                        </Grid.RowDefinitions>
+                                        <StackPanel Orientation="Vertical" Grid.Row="0">
+                                            <TextBlock FontWeight="SemiBold" FontSize="20" TextTrimming="CharacterEllipsis" Text="{x:Bind Name}"/>
+                                            <TextBlock VerticalAlignment="Bottom" Style="{ThemeResource CaptionTextBlockStyle}">
                                             By <Run  Text="{x:Bind Author}" />
-                                        </TextBlock>
-                                        <TextBlock VerticalAlignment="Bottom" Style="{ThemeResource CaptionTextBlockStyle}">
+                                            </TextBlock>
+                                            <TextBlock VerticalAlignment="Bottom" Style="{ThemeResource CaptionTextBlockStyle}">
                                             <Run Text="&#xe896;" FontFamily="{ThemeResource SymbolThemeFontFamily}"/> 
                                             <Run Text="{x:Bind TotalDownloadsString}"/> 
                                             Downloads | 
                                             <Run Text="{x:Bind FollowersString}"/> 
                                             Followers
-                                        </TextBlock>
-                                    </StackPanel>
-                                    <TextBlock MaxHeight="65" TextWrapping="WrapWholeWords" TextTrimming="CharacterEllipsis" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource ButtonDisabledForegroundThemeBrush}" Grid.Row="1" Text="{x:Bind Description}"/>
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <TextBlock MaxHeight="65" TextWrapping="WrapWholeWords" TextTrimming="CharacterEllipsis" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource ButtonDisabledForegroundThemeBrush}" Grid.Row="1" Text="{x:Bind Description}"/>
+                                    </Grid>
                                 </Grid>
                             </Grid>
-                        </Grid>
-                    </Button>
-                </DataTemplate>
-            </ToolKit:AdaptiveGridView.ItemTemplate>
-        </ToolKit:AdaptiveGridView>
-
+                        </Button>
+                    </DataTemplate>
+                </ToolKit:AdaptiveGridView.ItemTemplate>
+            </ToolKit:AdaptiveGridView>
+            <StackPanel x:Name="pnlEmpty" Background="{ThemeResource AppControlBackgroundBrush}" CornerRadius="8" Padding="15" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock HorizontalAlignment="Center" Text="Whoops!" FontSize="25" FontWeight="SemiBold"/>
+                <TextBlock TextAlignment="Center" TextWrapping="WrapWholeWords" Text="Did you make a wrong typo ? or did someone stole your router ?"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

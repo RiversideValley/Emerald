@@ -146,14 +146,11 @@
     </Compile>
     <Compile Include="Helpers\Account.cs" />
     <Compile Include="Helpers\AppServiceHandler.cs" />
-    <Compile Include="Helpers\GlacierClient.cs" />
-    <Compile Include="Helpers\Labrinth.cs" />
     <Compile Include="Helpers\Localizer.cs" />
     <Compile Include="Helpers\MenuItemsCreator.cs" />
     <Compile Include="Helpers\ModManager.cs" />
     <Compile Include="Helpers\MSLogin.cs" />
     <Compile Include="Helpers\RPCHelper.cs" />
-    <Compile Include="Helpers\SDLauncher.cs" />
     <Compile Include="Helpers\ServerStatusInfo.cs" />
     <Compile Include="Helpers\SettingsDataManager.cs" />
     <Compile Include="Helpers\UIResourceHelper.cs" />
@@ -398,6 +395,12 @@
     <SDKReference Include="WindowsDesktop, Version=10.0.22000.0">
       <Name>Windows Desktop Extensions for the UWP</Name>
     </SDKReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SDLauncher.Core\SDLauncher.Core.csproj">
+      <Project>{90389a34-9f42-4489-871a-dc726d74854d}</Project>
+      <Name>SDLauncher.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

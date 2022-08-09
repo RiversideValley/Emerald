@@ -24,9 +24,12 @@ using Windows.UI.Core;
 using SDLauncher.UWP.Views;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.Storage;
-using SDLauncher.UWP.Helpers;
 using CmlLib.Core;
+using SDLauncher.Core;
+using SDLauncher.Core.Tasks;
 using SDLauncher.UWP.Resources;
+using SDLauncher.Core.Args;
+using SDLauncher.UWP.Helpers;
 #pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
 #pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
 #pragma warning disable CS8305 // Type is for evaluation purposes only and is subject to change or removal in future updates.
@@ -37,19 +40,21 @@ namespace SDLauncher.UWP
 {
     public sealed partial class MainPage : Page
     {
-        public BaseLauncherPage launcher;
+        public BaseLauncherPage LauncherPage;
         public SettingsPage settingsPage;
         public MainPage()
         {
             this.InitializeComponent();
-            vars.Launcher = Helpers.SDLauncher.CreateLauncher(new MinecraftPath(ApplicationData.Current.LocalFolder.Path));
-            launcher = new BaseLauncherPage();
+            MainCore.Intialize();
+            MainCore.UIChanged += Core_UIChanged;
+            LauncherPage = new BaseLauncherPage();
             settingsPage = new SettingsPage();
+            MainCore.Launcher.InitializeLauncher(new MinecraftPath(ApplicationData.Current.LocalFolder.Path));
+            TasksHelper.TaskAddRequested += (s, e) => tasks.AddTask(Localizer.GetLocalizedString( e.Name), e.TaskID);
+            TasksHelper.TaskCompleteRequested += (s, e) => tasks.CompleteTask(e.ID,e.Success);
+
             settingsPage.UpdateBGRequested += SettingsPage_UpdateBGRequested;
             settingsPage.BackRequested += SettingsPage_BackRequested;
-            launcher.UIchanged += Launcher_UIchanged;
-            vars.Launcher.TasksHelper.TaskAddRequested += TasksHelper_TaskAddRequested;
-            vars.Launcher.TasksHelper.TaskCompleteRequested += TasksHelper_TaskCompleteRequested; ;
             vars.BackgroundUpdatd += Vars_BackgroundUpdatd;
             vars.SessionChanged += Vars_SessionChanged;
             Vars_SessionChanged(null, null);
@@ -58,6 +63,12 @@ namespace SDLauncher.UWP
             {
                 settingsPage.GetAndSetBG();
             }
+        }
+
+        private void Core_UIChanged(object sender, Core.Args.UIChangeRequestedEventArgs e)
+        {
+            settingsPage.IsEnabled = e.UI;
+            btnAccount.IsEnabled = e.UI;
         }
 
         private void Vars_SessionChanged(object sender, EventArgs e)
@@ -83,8 +94,8 @@ namespace SDLauncher.UWP
             }
             else
             {
-                txtUsername.Text = Localizer.GetLocalizedString("MainPage_Login");
-                txtLogin.Text = Localizer.GetLocalizedString("MainPage_Login");
+                txtUsername.Text = Helpers.Localizer.GetLocalizedString("MainPage_Login");
+                txtLogin.Text = Helpers.Localizer.GetLocalizedString("MainPage_Login");
                 prpFly.DisplayName = "";
                 prpLogin.DisplayName = "";
                 btnLogin.Tag = "Login";
@@ -108,9 +119,9 @@ namespace SDLauncher.UWP
             tasks.CompleteTask(e.ID,e.Success);
         }
 
-        private void TasksHelper_TaskAddRequested(object sender, UserControls.Task e)
+        private void TasksHelper_TaskAddRequested(object sender, Core.Tasks.TaskAddRequestedEventArgs e)
         {
-            tasks.AddTask(e.Name, e.ID);
+            tasks.AddTask(e.Name, e.TaskID);
         }
 
         private void SettingsPage_UpdateBGRequested(object sender, EventArgs e)
@@ -121,7 +132,7 @@ namespace SDLauncher.UWP
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
             Page_ActualThemeChanged(null, null);
-            MainFrame.Content = launcher;
+            MainFrame.Content = LauncherPage;
             if (vars.ShowTips)
             {
                 tipacc.IsOpen = true;
@@ -130,7 +141,7 @@ namespace SDLauncher.UWP
             {
                 btnPinDiscord_Click(null, null);
             }
-            var computerMemory = Util.GetMemoryMb() * 1024;
+            var computerMemory = Helpers.Util.GetMemoryMb() * 1024;
             if (computerMemory != null)
             {
                 int max = (int)computerMemory;
@@ -166,7 +177,8 @@ namespace SDLauncher.UWP
             {
                await MessageBox.Show(Localized.Error, Localized.RamFailed, MessageBoxButtons.Ok);
             }
-            launcher.InitializeLauncher();
+            LauncherPage.InitializeLauncher();
+            this.Loaded -= Page_Loaded;
         }
 
         private void SettingsPage_BackRequested(object sender, EventArgs e)
@@ -174,15 +186,10 @@ namespace SDLauncher.UWP
             btnBack_Click(null, null);
         }
 
-        private void Launcher_UIchanged(object sender, Helpers.SDLauncher.UIChangeRequestedEventArgs e)
-        {
-            settingsPage.IsEnabled = e.UI;
-            btnAccount.IsEnabled = e.UI;
-        }
 
         public string localize(string key)
         {
-            return Localizer.GetLocalizedString(key);
+            return Helpers.Localizer.GetLocalizedString(key);
         }
         private void Page_Loading(FrameworkElement sender, object args)
         { 
@@ -256,7 +263,7 @@ namespace SDLauncher.UWP
         {
             btnBack.Visibility = Visibility.Collapsed;
             pnlTitle.Margin = new Thickness(0, pnlTitle.Margin.Top, pnlTitle.Margin.Right, pnlTitle.Margin.Bottom);
-            MainFrame.Content = launcher;        
+            MainFrame.Content = LauncherPage;        
         }
 
         private void MainFrame_Navigated(object sender, NavigationEventArgs e)
@@ -265,7 +272,7 @@ namespace SDLauncher.UWP
 
         private void tipacc_CloseButtonClick(Microsoft.UI.Xaml.Controls.TeachingTip sender, object args)
         {
-            launcher.ShowTips();
+            LauncherPage.ShowTips();
         }
 
         private void Page_ActualThemeChanged(FrameworkElement sender, object args)

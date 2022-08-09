@@ -21,18 +21,6 @@ namespace SDLauncher.UWP.Helpers
         {
             return JsonConvert.DeserializeObject<ServerStatusInfo.Root>(json);
         }
-        public static LabrinthResults.SearchResult ConvertToLabrinthSearchResult(string json)
-        {
-            return JsonConvert.DeserializeObject<LabrinthResults.SearchResult>(json);
-        }
-        public static LabrinthResults.ModrinthProject ConvertToLabrinthProject(string json)
-        {
-            return JsonConvert.DeserializeObject<LabrinthResults.ModrinthProject>(json);
-        }
-        public static List<LabrinthResults.DownloadManager.DownloadLink> ConvertDownloadLinksToCS(string json)
-        {
-            return JsonConvert.DeserializeObject<List<LabrinthResults.DownloadManager.DownloadLink>>(json);
-        }
     }
     public class HttpClientDownloadWithProgress : IDisposable
     {

@@ -13,6 +13,7 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using SDLauncher.UWP.Helpers;
+using SDLauncher.Core.Store;
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace SDLauncher.UWP.UserControls
@@ -26,16 +27,28 @@ namespace SDLauncher.UWP.UserControls
             this.InitializeComponent();
         }
         public string SearchText => txtSearch.Text.ToString();
+        private  List<StoreItem> _ItemsSource;
         public List<StoreItem> ItemsSource
         {
-            get { return (List<StoreItem>)GetValue(ItemsSourceProperty); }
-            set { SetValue(ItemsSourceProperty, value); storeItemsGrid.ItemsSource = value; }
+            get { return _ItemsSource; }
+            set { _ItemsSource = value; UpdateItems(); }
         }
-
-        // Using a DependencyProperty as the backing store for ItemsSource.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty ItemsSourceProperty =
-            DependencyProperty.Register("ItemsSource", typeof(List<StoreItem>), typeof(StoreItemsCollection), new PropertyMetadata(null));
-
+        private void UpdateItems()
+        {
+            if(_ItemsSource != null)
+            {
+                storeItemsGrid.ItemsSource = null;
+                storeItemsGrid.ItemsSource = ItemsSource;
+                if(_ItemsSource.Count < 1)
+                {
+                    pnlEmpty.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    pnlEmpty.Visibility = Visibility.Collapsed;
+                }
+            }
+        }
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             StoreItemSelected(this, new StoreItemSelectedEventArgs(int.Parse((sender as Button).Tag.ToString())));

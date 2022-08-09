@@ -6,13 +6,14 @@ using System.Text;
 
 namespace SDLauncher.Core
 {
-    public static class Core
+    public static class MainCore
     {
         public static event EventHandler<StatusChangedEventArgs> StatusChanged = delegate { };
         public static event EventHandler<UIChangeRequestedEventArgs> UIChanged = delegate { };
         public static event EventHandler<ProgressChangedEventArgs> ProgressChanged = delegate { };
         public static SDLauncher Launcher { get; set; }
         public static Labrinth Labrinth { get; set; }
+        public static string GlacierClientVersion { get; set; } = "";
         public static void Intialize()
         {
             Launcher = new SDLauncher();
@@ -21,7 +22,6 @@ namespace SDLauncher.Core
             Launcher.UIChangeRequested += UIChangedEvent;
             //
             Labrinth = new Labrinth();
-            Labrinth.StatusChanged += (s, e) => { StatusChanged(Labrinth, new StatusChangedEventArgs(s.ToString())); };
             Labrinth.ProgressChanged += ProgressChangedEvent;
             Labrinth.MainUIChangeRequested += UIChangedEvent;
             Labrinth.StatusChanged += (s, e) => StatusChanged(Labrinth, new StatusChangedEventArgs(s.ToString()));

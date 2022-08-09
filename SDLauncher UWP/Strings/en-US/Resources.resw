@@ -126,6 +126,12 @@
   <data name="Error" xml:space="preserve">
     <value>Error</value>
   </data>
+  <data name="GetFabric" xml:space="preserve">
+    <value>Get Fabric</value>
+  </data>
+  <data name="GettingFabric" xml:space="preserve">
+    <value>Getting Fabric</value>
+  </data>
   <data name="GettingVers" xml:space="preserve">
     <value>Getting available versions...</value>
   </data>
@@ -141,6 +147,15 @@
   <data name="GoodMorning" xml:space="preserve">
     <value>Good Morning</value>
   </data>
+  <data name="LaunchMC" xml:space="preserve">
+    <value>Launch Minecraft</value>
+  </data>
+  <data name="LoadChangeLogs" xml:space="preserve">
+    <value>Load ChangeLogs</value>
+  </data>
+  <data name="LoadingChangeLog" xml:space="preserve">
+    <value>Loading ChangeLog</value>
+  </data>
   <data name="MainPage_Login" xml:space="preserve">
     <value>Login</value>
   </data>
@@ -153,6 +168,9 @@
   <data name="NoNetwork" xml:space="preserve">
     <value>Seems like you don't have good internet...</value>
   </data>
+  <data name="PickVer" xml:space="preserve">
+    <value>Pick a version</value>
+  </data>
   <data name="RamFailed" xml:space="preserve">
     <value>Failed to get the RAM of the device.</value>
     <comment>Rarely Used</comment>
@@ -160,8 +178,20 @@
   <data name="Ready" xml:space="preserve">
     <value>Ready</value>
   </data>
+  <data name="RefreshVerFailed" xml:space="preserve">
+    <value>Failed to refresh the Minecraft versions</value>
+  </data>
+  <data name="RefreshVers" xml:space="preserve">
+    <value>Refresh Versions</value>
+  </data>
   <data name="SettingsPage_txtSettings.Text" xml:space="preserve">
     <value>Settings</value>
+  </data>
+  <data name="SwitchOffline" xml:space="preserve">
+    <value>Switch to offline mode</value>
+  </data>
+  <data name="UnexpectedRestart" xml:space="preserve">
+    <value>Some unexpected thing happend. Please restart the app!</value>
   </data>
   <data name="Welcome" xml:space="preserve">
     <value>Welcome</value>

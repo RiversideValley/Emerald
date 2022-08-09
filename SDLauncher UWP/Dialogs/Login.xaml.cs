@@ -739,7 +739,7 @@ namespace SDLauncher.UWP
         private async void mitDownloadSkin_Click(object sender, RoutedEventArgs e)
         {
             btnDownloadSkin.IsEnabled = false;
-            int taskID = LittleHelp.AddTask("Download image");
+            int taskID = Core.Tasks.TasksHelper.AddTask("Download image");
             try
             {
                 string link = "https://minotar.net/";
@@ -769,7 +769,7 @@ namespace SDLauncher.UWP
                         {
                             if (progressPercentage == 100)
                             {
-                                LittleHelp.CompleteTask(taskID,true);
+                                Core.Tasks.TasksHelper.CompleteTask(taskID,true);
                                 client.Dispose();
                             }
                         };
@@ -780,7 +780,7 @@ namespace SDLauncher.UWP
             }
             catch
             {
-                LittleHelp.CompleteTask(taskID, false);
+                Core.Tasks.TasksHelper.CompleteTask(taskID, false);
             }
             btnDownloadSkin.IsEnabled = true;
         }

@@ -21,7 +21,7 @@ namespace SDLauncher.Core
         public event EventHandler<StatusChangedEventArgs> StatusChanged = delegate { };
         public event EventHandler<ProgressChangedEventArgs> FileOrProgressChanged = delegate { };
         public event EventHandler VersionLoaderChanged = delegate { };
-        public event EventHandler VersionsRefreshed = delegate { };
+        public event EventHandler<VersionsRefreshedEventArgs> VersionsRefreshed = delegate { };
         public event EventHandler LogsUpdated = delegate { };
         private bool offlineloader = false;
         public bool UseOfflineLoader { get { return offlineloader; } set { offlineloader = value; VersionLoaderChanged(this, new EventArgs()); } }
@@ -41,7 +41,7 @@ namespace SDLauncher.Core
                 }
                 else
                 {
-                    return null;
+                    return new List<string>();
                 }
             }
         }
@@ -60,14 +60,13 @@ namespace SDLauncher.Core
                 }
                 else
                 {
-                    return null;
+                    return new List<string>();
                 }
             }
         }
         public MVersionCollection MCVersions { get; private set; }
         public MVersionCollection FabricMCVersions { get; private set; }
         public CMLauncher Launcher { get; set; }
-        public Labrinth Labrinth { get; set; }
         public GlacierClient GlacierClient { get; set; }
         public SDLauncher()
         {
@@ -77,15 +76,23 @@ namespace SDLauncher.Core
             GlacierClient.ProgressChanged += GlacierClient_ProgressChanged;
             GlacierClient.UIChangedReqested += GlacierClient_UIChangedReqested;
             
-            Labrinth = new Labrinth();
-            Labrinth.StatusChanged += Labrinth_StatusChanged;
-            Labrinth.MainUIChangeRequested += Labrinth_MainUIChangeRequested;
-            Labrinth.ProgressChanged += Labrinth_ProgressChanged;
-
-
-            this.FileOrProgressChanged += SDLauncher_FileOrProgressChanged;
         }
-
+        public async Task<System.Diagnostics.Process> CreateProcessAsync(string ver, MLaunchOption launchOption)
+        {
+            var id = TasksHelper.AddTask(Localized.LaunchMC);
+            try
+            {
+                var p = await Launcher.CreateProcessAsync(ver, launchOption);
+                TasksHelper.CompleteTask(id, true);
+                return p;
+                    }
+            catch
+            {
+                TasksHelper.CompleteTask(id, false);
+                return null;
+            }
+            
+        }
         private void Labrinth_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             this.FileOrProgressChanged(sender, e);
@@ -127,62 +134,68 @@ namespace SDLauncher.Core
                 return new List<string>().ToArray();
             }
         }
-        private void SDLauncher_FileOrProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            string stats = "";
-            int ProgPrecentage;
-            if (e.ProgressPercentage != null && e.DownloadArgs != null)
-            {
-                stats = e.MaxFiles.Value + " of " + e.CurrentFile.Value;
-                int per = e.MaxFiles.Value / e.CurrentFile.Value * 100;
-                ProgPrecentage = e.ProgressPercentage.Value;
-            }
-        }
 
         private void Labrinth_StatusChanged(object sender, EventArgs e)
         {
             Status((string)sender);
         }
 
-        private string changeLogsHTMLBody;
+        private string changeLogsHTMLBody = "";
         public string ChangeLogsHTMLBody
         {
-            get { return changeLogsHTMLBody; }
-            private set { changeLogsHTMLBody = value; LogsUpdated(this, new EventArgs()); }
+            get { return string.IsNullOrEmpty(changeLogsHTMLBody) ? "" : changeLogsHTMLBody; }
+            set { changeLogsHTMLBody = value; LogsUpdated(this, new EventArgs()); }
         }
 
         public async Task LoadChangeLogs()
         {
-            var taskID = TasksHelper.AddTask("Load ChangeLogs");
+            var taskID = TasksHelper.AddTask(Localized.LoadChangeLogs);
             string html = "";
             try
             {
-                html += await GetChangelog(Launcher.Versions.LatestSnapshotVersion.Name);
-                if (Launcher.Versions.LatestReleaseVersion.Name != "1.19")
+                if (Launcher.Versions.LatestSnapshotVersion.Name != Launcher.Versions.LatestReleaseVersion.Name)
+                {
+                    html += await GetChangelog(Launcher.Versions.LatestSnapshotVersion.Name);
+                    UpdateLogs(html);
+                }
+                if (Launcher.Versions.LatestReleaseVersion.Name != "1.19.1")
                 {
                     html += await GetChangelog(Launcher.Versions.LatestReleaseVersion.Name);
+                    UpdateLogs(html);
                 }
             }
             catch { }
             try
             {
                 html += await GetChangelog("1.19");
+                UpdateLogs(html);
                 html += await GetChangelog("1.18.2");
+                UpdateLogs(html);
                 html += await GetChangelog("1.18.1");
+                UpdateLogs(html);
                 html += await GetChangelog("1.18");
+                UpdateLogs(html);
                 html += await GetChangelog("1.17.1");
+                UpdateLogs(html);
                 html += await GetChangelog("1.16.5");
+                UpdateLogs(html);
                 TasksHelper.CompleteTask(taskID, true);
             }
             catch
             {
                 TasksHelper.CompleteTask(taskID, false);
             }
-            ChangeLogsHTMLBody = html;
+        }
+        private void UpdateLogs(string html)
+        {
+            if (!string.IsNullOrEmpty(html.Replace(" ", "")))
+            {
+                ChangeLogsHTMLBody = html;
+            }
         }
         public async Task<string> GetChangelog(string version)
         {
-            Status("Loading changelog v:" + version);
+            Status($"{Localized.LoadingChangeLogs} v:" + version);
             Changelogs changelogs = await Changelogs.GetChangelogs(); // get changelog informations
             string[] versions = changelogs.GetAvailableVersions(); // get all available versions
             var changelogHtml = await changelogs.GetChangelogHtml(version);
@@ -190,6 +203,7 @@ namespace SDLauncher.Core
             var fullbody = "<style>\np,h1,li,span,body,html {\nfont-family:\"Segoe UI\";\n}\n</style>\n" + "<h1>Version " + version + "</h1>" + changelogHtml;
             Status(Localized.Ready);
             return fullbody.Replace("h1", "h2").ToString();
+
         }
         private void GlacierClient_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
@@ -234,7 +248,7 @@ namespace SDLauncher.Core
         public async Task<bool> RefreshVersions()
         {
             UI(false);
-            int taskID = TasksHelper.AddTask("Refresh Versions");
+            int taskID = TasksHelper.AddTask(Localized.RefreshVers);
             try
             {
                 Status(Localized.GettingVers);
@@ -245,7 +259,7 @@ namespace SDLauncher.Core
                     FabricMCVersions = await fabricVersionLoader.GetVersionMetadatasAsync();
                 }
                 Status(Localized.Ready);
-                VersionsRefreshed(this, new EventArgs());
+                VersionsRefreshed(this, new VersionsRefreshedEventArgs(true));
                 TasksHelper.CompleteTask(taskID, true);
                 UI(true);
                 return true;
@@ -255,12 +269,13 @@ namespace SDLauncher.Core
                 TasksHelper.CompleteTask(taskID, false);
                 Status(Localized.Ready);
                 UI(true);
+                VersionsRefreshed(this, new VersionsRefreshedEventArgs(false));
                 return false;
             }
         }
         public void SwitchToOffilineMode()
         {
-            int offTask = TasksHelper.AddTask("Switch to offline mode");
+            int offTask = TasksHelper.AddTask(Localized.SwitchOffline);
             Launcher.VersionLoader = new LocalVersionLoader(Launcher.MinecraftPath);
             UseOfflineLoader = true;
             TasksHelper.CompleteTask(offTask, true);
@@ -276,14 +291,14 @@ namespace SDLauncher.Core
         private void Launcher_FileChanged(DownloadFileChangedEventArgs e)
         {
             Status($"{e.FileKind} : {e.FileName} ({e.ProgressedFileCount}/{e.TotalFileCount})");
-            FileOrProgressChanged(this, new ProgressChangedEventArgs(maxfiles: e.ProgressedFileCount, currentfile: e.TotalFileCount, args: e, currentProg: CurrentProg));
+            FileOrProgressChanged(this, new ProgressChangedEventArgs(maxfiles: e.TotalFileCount, currentfile: e.ProgressedFileCount, args: e, currentProg: CurrentProg));
         }
 
         public async Task<FabricResponsoe> CheckFabric(string mcver, string modver, string displayver)
         {
-            int taskID = TasksHelper.AddTask("Get Fabric " + mcver);
+            int taskID = TasksHelper.AddTask($"{Localized.GetFabric} " + mcver);
             string launchVer = "";
-            string displayVer = "";
+            string displayVer = Localized.PickVer;
             bool exists = false;
             await RefreshVersions();
             foreach (var veritem in FabricMCVersions)
@@ -296,14 +311,13 @@ namespace SDLauncher.Core
             if (exists)
             {
                 launchVer = modver;
-                displayVer = displayver;
-                Status("Getting Fabric");
+                Status(Localized.GettingFabric);
                 UI(false);
                 var fabric = FabricMCVersions.GetVersionMetadata(launchVer);
                 await fabric.SaveAsync(Launcher.MinecraftPath);
+                await RefreshVersions();
                 UI(true);
                 Status(Localized.Ready);
-                await RefreshVersions();
                 launchVer = modver;
                 displayVer = displayver;
                 Status(Localized.Ready);

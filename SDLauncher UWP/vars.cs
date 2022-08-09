@@ -31,7 +31,7 @@ namespace SDLauncher.UWP
         {
             try
             {
-                var f = await StorageFolder.GetFolderFromPathAsync(Launcher.Launcher.MinecraftPath.Versions);
+                var f = await StorageFolder.GetFolderFromPathAsync(Core.MainCore.Launcher.Launcher.MinecraftPath.Versions);
                 await f.CreateFolderAsync("Glacier Client", CreationCollisionOption.FailIfExists);
 
                 return true;
@@ -57,7 +57,6 @@ namespace SDLauncher.UWP
         public static bool autoLog = false;
         public static bool AutoClose = false;
         public static int LoadedRam = 1024;
-        public static Helpers.SDLauncher Launcher;
         public static RPCHelper SDRPC;
         private static VerSelectors verSelectors = VerSelectors.Normal;
         public static VerSelectors VerSelectors { get { return verSelectors; } set { verSelectors = value; VerSelctorChanged(verSelectors, new EventArgs()); } }

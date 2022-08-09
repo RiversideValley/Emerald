@@ -124,7 +124,7 @@ namespace SDLauncher.UWP.Views
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             Loaded = false;
-            if (vars.Launcher.UseOfflineLoader)
+            if (Core.MainCore.Launcher.UseOfflineLoader)
             {
                 cmbxVerSelector.IsEnabled = false;
             }
@@ -163,9 +163,9 @@ namespace SDLauncher.UWP.Views
             {
                 SetRam(vars.LoadedRam);
             }
-            if(vars.Launcher.Launcher != null)
+            if(Core.MainCore.Launcher.Launcher != null)
             {
-                txtGamePath.Text = vars.Launcher.Launcher.MinecraftPath.BasePath;
+                txtGamePath.Text = Core.MainCore.Launcher.Launcher.MinecraftPath.BasePath;
             }
             Loaded = true;
         }
@@ -218,12 +218,12 @@ namespace SDLauncher.UWP.Views
             //var dataPackage = new DataPackage();
             // dataPackage.SetText(txtGamePath.Text);
             // Clipboard.SetContent(dataPackage);
-            _ = Launcher.LaunchFolderPathAsync(vars.Launcher.Launcher.MinecraftPath.BasePath);
+            _ = Launcher.LaunchFolderPathAsync(Core.MainCore.Launcher.Launcher.MinecraftPath.BasePath);
         }
 
         private void btnRefreshVers_Click(object sender, RoutedEventArgs e)
         {
-            _ = vars.Launcher.RefreshVersions();
+            _ = Core.MainCore.Launcher.RefreshVersions();
             BackRequested(this, new EventArgs());
         }
 

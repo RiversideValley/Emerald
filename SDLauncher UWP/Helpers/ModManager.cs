@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SDLauncher.Core.Store;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace SDLauncher.UWP.Helpers
         public string Description { get; private set; }
         public async Task<string> BigDescription()
         {
-            var mod = await vars.Launcher.Labrinth.GetProject(ProjectID,false);
+            var mod = await Core.MainCore.Labrinth.GetProject(ProjectID,false);
             return await Util.DownloadText(mod.body_url);
         }
         public string ProjectID { get; set; }

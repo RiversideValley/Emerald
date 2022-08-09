@@ -23,5 +23,7 @@ namespace SDLauncher.UWP.Resources
         public static string NoNetwork => Localizer.GetLocalizedString("NoNetwork");
         public static string Win32Error => Localizer.GetLocalizedString("Win32Error");
         public static string GetVerFailed => Localizer.GetLocalizedString("GetVerFailed");
+        public static string RefreshVerFailed => Localizer.GetLocalizedString("RefreshVerFailed");
+        public static string UnexpectedRestart => Localizer.GetLocalizedString("UnexpectedRestart");
     }
 }

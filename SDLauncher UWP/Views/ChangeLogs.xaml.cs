@@ -26,8 +26,7 @@ namespace SDLauncher.UWP.Views
         public ChangeLogsPage()
         {
             this.InitializeComponent();
-            UpdateLogs();
-            vars.Launcher.LogsUpdated += Launcher_LogsUpdated;
+            Core.MainCore.Launcher.LogsUpdated += Launcher_LogsUpdated;
         }
 
         private void Launcher_LogsUpdated(object sender, EventArgs e)
@@ -41,16 +40,21 @@ namespace SDLauncher.UWP.Views
             string finalHTML;
             if (this.ActualTheme == ElementTheme.Dark)
             {
-                finalHTML = "<html>\n<head>\n<style>\np,h1,li,span,body,html {\ncolor: white;\n}\n</style>\n</head><body>" + vars.Launcher.ChangeLogsHTMLBody + "</body></html>";
+                finalHTML = "<html>\n<head>\n<style>\np,h1,li,span,body,html {\ncolor: white;\n}\n</style>\n</head><body>" + Core.MainCore.Launcher.ChangeLogsHTMLBody + "</body></html>";
             }
             else
             {
-                finalHTML = "<html>\n<head>\n<style>\np,h1,li,span,body,html {\ncolor: black;\n}\n</style>\n</head><body>" + vars.Launcher.ChangeLogsHTMLBody + "</body></html>";
+                finalHTML = "<html>\n<head>\n<style>\np,h1,li,span,body,html {\ncolor: black;\n}\n</style>\n</head><body>" + Core.MainCore.Launcher.ChangeLogsHTMLBody + "</body></html>";
             }
             wvLogs.NavigateToString(finalHTML);
         }
 
         private void Page_ActualThemeChanged(FrameworkElement sender, object args)
+        {
+            UpdateLogs();
+        }
+
+        private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             UpdateLogs();
         }

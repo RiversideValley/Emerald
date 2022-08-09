@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.ApplicationModel.AppService;
@@ -14,6 +15,7 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.UI.Core.Preview;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -44,13 +46,7 @@ namespace SDLauncher.UWP
         public static AppServiceConnection Connection { get; private set; }
         public bool Loaded = false;
         public BackgroundTaskDeferral AppServiceDeferral { get; private set; }
-
-        /// <summary>
-        /// Invoked when the application is launched normally by the end user.  Other entry points
-        /// will be used such as when the application is launched to open a specific file.
-        /// </summary>
-        /// <param name="e">Details about the launch request and process.</param>
-        protected async override void OnLaunched(LaunchActivatedEventArgs e)
+        public async Task Initialize()
         {
             if (SystemInformation.Instance.IsFirstRun)
             {
@@ -67,6 +63,8 @@ namespace SDLauncher.UWP
                 catch
                 {
                     ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = false;
+                    ApplicationData.Current.RoamingSettings.Values["MCChangelogs"] = "";
+                    ApplicationData.Current.RoamingSettings.Values["MCChangelogs"] = "";
                 }
                 if (IsInAppSettings == false)
                 {
@@ -74,14 +72,18 @@ namespace SDLauncher.UWP
                 }
                 else
                 {
+                    try
+                    {
+                        Core.MainCore.Launcher.ChangeLogsHTMLBody = ApplicationData.Current.RoamingSettings.Values["MCChangelogs"] as string;
+                    }
+                    catch { }
                     SettingsManager.DeserializeSettings(ApplicationData.Current.RoamingSettings.Values["InAppSettings"] as string);
                 }
             }
-            if(UIResourceHelper.CurrentStyle == null)
+            if (UIResourceHelper.CurrentStyle == null)
             {
                 UIResourceHelper.SetResource(ResourceStyle.Acrylic);
             }
-            Frame rootFrame = Window.Current.Content as Frame;
             if (vars.autoLog && vars.Accounts != null)
             {
                 foreach (var item in vars.Accounts)
@@ -113,8 +115,18 @@ namespace SDLauncher.UWP
                     }
                 }
             }
-                Loaded = true;
+        }
+        /// <summary>
+        /// Invoked when the application is launched normally by the end user.  Other entry points
+        /// will be used such as when the application is launched to open a specific file.
+        /// </summary>
+        /// <param name="e">Details about the launch request and process.</param>
+        protected async override void OnLaunched(LaunchActivatedEventArgs e)
+        {
+            await Initialize();
+            Loaded = true;
 
+            Frame rootFrame = Window.Current.Content as Frame;
             // Do not repeat app initialization when the Window already has content,
             // just ensure that the window is active
             if (rootFrame == null)
@@ -176,6 +188,8 @@ namespace SDLauncher.UWP
 
             if (args.Kind == ActivationKind.CommandLineLaunch)
             {
+                await Initialize();
+                Loaded = true;
 
                 await SettingsManager.LoadSettings();
                 Frame rootFrame = Window.Current.Content as Frame;
@@ -188,13 +202,11 @@ namespace SDLauncher.UWP
                     rootFrame = new Frame();
 
                     rootFrame.NavigationFailed += OnNavigationFailed;
-                    rootFrame.RequestedTheme = (ElementTheme)vars.Theme;
                     // Place the frame in the current Window
                     Window.Current.Content = rootFrame;
+                    rootFrame.Navigate(typeof(MainPage));
+                    SystemNavigationManagerPreview.GetForCurrentView().CloseRequested += App_CloseRequested;
                 }
-
-                rootFrame.Navigate(typeof(MainPage));
-                SystemNavigationManagerPreview.GetForCurrentView().CloseRequested += App_CloseRequested;
                 Window.Current.Activate();
             }
         }
@@ -210,8 +222,11 @@ namespace SDLauncher.UWP
                 else
                 {
                     ApplicationData.Current.RoamingSettings.Values["InAppSettings"] = await SettingsManager.SerializeSettings();
+                    ApplicationData.Current.RoamingSettings.Values["MCChangelogs"] = Core.MainCore.Launcher.ChangeLogsHTMLBody;
                 }
-
+            }
+            if (!await ApplicationView.GetForCurrentView().TryConsolidateAsync())
+            {
                 Application.Current.Exit();
             }
         }

@@ -15,6 +15,9 @@ using Windows.UI.Xaml.Navigation;
 using SDLauncher.UWP.Helpers;
 using System.Threading.Tasks;
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
+using SDLauncher.Core;
+using SDLauncher.Core.Args;
+using SDLauncher.Core.Store;
 
 namespace SDLauncher.UWP.Views
 {
@@ -27,17 +30,17 @@ namespace SDLauncher.UWP.Views
         public StorePage()
         {
             this.InitializeComponent();
-            vars.Launcher.Labrinth.UIChangeRequested += Labrinth_UIChangeRequested;
-            vars.Launcher.Labrinth.MainUIChangeRequested += Labrinth_MainUIChangeRequested;
+            MainCore.Labrinth.UIChangeRequested += Labrinth_UIChangeRequested;
+            MainCore.Labrinth.MainUIChangeRequested += Labrinth_MainUIChangeRequested;
             LoadData();
         }
 
-        private void Labrinth_MainUIChangeRequested(object sender, Helpers.SDLauncher.UIChangeRequestedEventArgs e)
+        private void Labrinth_MainUIChangeRequested(object sender, UIChangeRequestedEventArgs e)
         {
             this.IsEnabled = e.UI;
         }
 
-        private void Labrinth_UIChangeRequested(object sender, Helpers.SDLauncher.UIChangeRequestedEventArgs e)
+        private void Labrinth_UIChangeRequested(object sender, UIChangeRequestedEventArgs e)
         {
             this.IsEnabled = e.UI;
         }
@@ -56,7 +59,7 @@ namespace SDLauncher.UWP.Views
         {
             try
             {
-                var r = await vars.Launcher.Labrinth.Search(name, 30, sortBy, categories);
+                var r = await MainCore.Labrinth.Search(name, 30, sortBy, categories);
 
                 var itms = new List<StoreManager.StoreMod>();
                 if (AddExists)
@@ -127,7 +130,7 @@ namespace SDLauncher.UWP.Views
             expdDownloads.IsExpanded = false;
             expdGallery.IsExpanded = false;
             expdVers.IsExpanded = false;
-            var alldVers = await vars.Launcher.Labrinth.GetVersions(itm.ProjectID);
+            var alldVers = await MainCore.Labrinth.GetVersions(itm.ProjectID);
             ModdownloadView.ItemsSource = alldVers;
             itm.DownloadLinks = alldVers;
             this.IsEnabled = true;
@@ -178,7 +181,7 @@ namespace SDLauncher.UWP.Views
 
         private void ModdownloadView_DownloadRequested(UserControls.ModrinthDownloadsListView sender, LabrinthResults.DownloadManager.File args)
         {
-            vars.Launcher.Labrinth.DownloadMod(args, vars.Launcher.Launcher.MinecraftPath);
+            MainCore.Labrinth.DownloadMod(args, MainCore.Launcher.Launcher.MinecraftPath);
         }
     }
 }

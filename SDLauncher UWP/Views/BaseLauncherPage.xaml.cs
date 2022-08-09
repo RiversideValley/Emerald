@@ -40,6 +40,8 @@ using SDLauncher.UWP.Dialogs;
 using SDLauncher.UWP.DataTemplates;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Windows.UI.Notifications;
+using SDLauncher.Core;
+using SDLauncher.Core.Args;
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace SDLauncher.UWP
@@ -56,12 +58,29 @@ namespace SDLauncher.UWP
         public ChangeLogsPage LogsPage { get; set; }
         public MenuItemsCreator MCVerManager { get; set; }
         public StorePage StorePage { get; set; }
-        public event EventHandler<Helpers.SDLauncher.UIChangeRequestedEventArgs> UIchanged = delegate { };
         public BaseLauncherPage()
         {
             this.InitializeComponent();
             vars.ThemeUpdated += Vars_ThemeUpdated;
-            var s = new ServerTemplate("mc.hypixel.net", 25565);
+            MainCore.ProgressChanged += Core_ProgressChanged;
+            MainCore.UIChanged += (s,e) => UI(e.UI);
+           
+            MainCore.StatusChanged += (s,e) => txtStatus.Text = Localizer.GetLocalizedString(e.Status);
+        }
+
+        private void Core_ProgressChanged(object sender, Core.Args.ProgressChangedEventArgs e)
+        {
+
+            if (e.CurrentFile != null && e.MaxFiles != null)
+            {
+                pb_File.Value = (int)e.CurrentFile;
+                pb_File.Maximum = (int)e.MaxFiles;
+            }
+            if (e.MainProgressPercentage != null)
+            {
+                pb_Prog.Maximum = 100;
+                pb_Prog.Value = (int)e.MainProgressPercentage;
+            }
         }
 
         private void Vars_ThemeUpdated(object sender, EventArgs e)
@@ -86,31 +105,25 @@ namespace SDLauncher.UWP
         public async void InitializeLauncher()
         {
             UI(false);
-            int taskID = LittleHelp.AddTask("Initialize Launcher Core");
+            int taskID = Core.Tasks.TasksHelper.AddTask("Initialize Launcher Core");
             Vars_SessionChanged(null, null);
             Vars_VerSelctorChanged(null, null);
-            navitmStore.IsEnabled = false;
             vars.SessionChanged += Vars_SessionChanged;
-            vars.Launcher.UIChangeRequested += Launcher_UIChangeRequested;
-            vars.Launcher.VersionsRefreshed += Launcher_VersionsRefreshed;
-            vars.Launcher.StatusChanged += Launcher_StatusChanged;
-            vars.Launcher.FileOrProgressChanged += Launcher_FileOrProgressChanged;
-            vars.Launcher.GlacierClient.DownloadCompleted += GlacierClient_DownloadCompleted;
-            vars.Launcher.VersionLoaderChanged += Launcher_VersionLoaderChanged;
+
+            MainCore.Launcher.VersionsRefreshed += Launcher_VersionsRefreshed;
+            MainCore.Launcher.GlacierClient.DownloadCompleted += GlacierClient_DownloadCompleted;
+            MainCore.Launcher.VersionLoaderChanged += Launcher_VersionLoaderChanged;
             vars.VerSelctorChanged += Vars_VerSelctorChanged;
+
+
             MCVerManager = new MenuItemsCreator();
             MCVerManager.ItemInvoked += MCVerManager_ItemInvoked;
             LogsPage = new ChangeLogsPage();
             navViewFrame.Content = LogsPage;
-            LittleHelp.CompleteTask(taskID);
-            await vars.Launcher.RefreshVersions();
-            btnAdvMCVer.Flyout = MCVerManager.CreateVersions();
+            Core.Tasks.TasksHelper.CompleteTask(taskID);
+            await MainCore.Launcher.RefreshVersions();
             UI(true);
-            if (await vars.Launcher.LoadStore() == true)
-            {
-                navitmStore.IsEnabled = true;
-            }
-            await vars.Launcher.LoadChangeLogs();
+            await MainCore.Launcher.LoadChangeLogs();
         }
 
         private async void MCVerManager_ItemInvoked(object sender, MenuItemsCreator.ItemInvokedArgs e)
@@ -124,21 +137,21 @@ namespace SDLauncher.UWP
                 }
                 else
                 {
-                    int taskID = LittleHelp.AddTask("Get Fabric");
+                    int taskID = Core.Tasks.TasksHelper.AddTask("Get Fabric");
                     try
                     {
                         UI(false);
-                        var fabric = vars.Launcher.FabricMCVersions.GetVersionMetadata(e.Ver);
-                        await fabric.SaveAsync(vars.Launcher.Launcher.MinecraftPath);
+                        var fabric = MainCore.Launcher.FabricMCVersions.GetVersionMetadata(e.Ver);
+                        await fabric.SaveAsync(MainCore.Launcher.Launcher.MinecraftPath);
                         UI(true);
                         btnAdvMCVer.Content = e.DisplayVer;
-                        LittleHelp.CompleteTask(taskID, true);
+                        Core.Tasks.TasksHelper.CompleteTask(taskID, true);
                     }
                     catch
                     {
                         launchVer = "";
                         btnAdvMCVer.Content = "Pick a Version";
-                        LittleHelp.CompleteTask(taskID, false);
+                        Core.Tasks.TasksHelper.CompleteTask(taskID, false);
                     }
                 }
             }
@@ -164,7 +177,7 @@ namespace SDLauncher.UWP
                     btnMCVer.Visibility = Visibility.Collapsed;
                     break;
             }
-            if (vars.Launcher.UseOfflineLoader)
+            if (MainCore.Launcher.UseOfflineLoader)
             {
                 btnAdvMCVer.Visibility = Visibility.Collapsed;
                 cmbxVer.Visibility = Visibility.Visible;
@@ -186,7 +199,7 @@ namespace SDLauncher.UWP
 
         private void Launcher_VersionLoaderChanged(object sender, EventArgs e)
         {
-            if (vars.Launcher.UseOfflineLoader)
+            if (MainCore.Launcher.UseOfflineLoader)
             {
                 btnMCVer.Visibility = Visibility.Collapsed;
                 btnAdvMCVer.Visibility = Visibility.Collapsed;
@@ -197,9 +210,9 @@ namespace SDLauncher.UWP
 
         private async void GlacierClient_DownloadCompleted(object sender, EventArgs e)
         {
-            await vars.Launcher.RefreshVersions();
+            await MainCore.Launcher.RefreshVersions();
             bool exists = false;
-            foreach(var item in vars.Launcher.MCVersions)
+            foreach(var item in MainCore.Launcher.MCVersions)
             {
                 if(item.Name == "Glacier Client")
                 {
@@ -218,36 +231,39 @@ namespace SDLauncher.UWP
             }
         }
 
-        private void Launcher_VersionsRefreshed(object sender, EventArgs e)
+        private async void Launcher_VersionsRefreshed(object sender, VersionsRefreshedEventArgs e)
         {
-            cmbxVer.ItemsSource = null;
-            cmbxVer.ItemsSource = vars.Launcher.MCVerNames;
-        }
-
-
-        private void Launcher_FileOrProgressChanged(object sender, Helpers.SDLauncher.ProgressChangedEventArgs e)
-        {
-            if(e.CurrentFile != null && e.MaxFiles != null)
+            if (e.Success)
             {
-                pb_File.Value = (int)e.CurrentFile;
-                pb_File.Value = (int)e.MaxFiles;
+                btnAdvMCVer.Flyout = MCVerManager.CreateVersions();
+                cmbxVer.ItemsSource = null;
+                cmbxVer.ItemsSource = MainCore.Launcher.MCVerNames;
             }
-            if(e.ProgressPercentage != null)
+            else
             {
-                pb_Prog.Maximum = 100;
-                pb_Prog.Value = (int)e.ProgressPercentage;
+                if (!MainCore.Launcher.UseOfflineLoader)
+                {
+                    var r = await MessageBox.Show(Localized.Error, Localized.RefreshVerFailed, MessageBoxButtons.Custom, "Retry", "Switch to offline mode");
+                    if (r == MessageBoxResults.CustomResult1)
+                    {
+                        _ = MainCore.Launcher.RefreshVersions();
+                    }
+                    else
+                    {
+                        MainCore.Launcher.SwitchToOffilineMode();
+                        _ = MainCore.Launcher.RefreshVersions();
+                    }
+                }
+                else
+                {
+                    await MessageBox.Show(Localized.Error, Localized.UnexpectedRestart, MessageBoxButtons.Ok);
+                    await CoreApplication.RequestRestartAsync("");
+                }
             }
         }
 
-        private void Launcher_StatusChanged(object sender, Helpers.SDLauncher.StatusChangedEventArgs e)
-        {
-            txtStatus.Text = e.Status;
-        }
 
-        private void Launcher_UIChangeRequested(object sender, Helpers.SDLauncher.UIChangeRequestedEventArgs e)
-        {
-            UI(e.UI);
-        }
+        
 
         public void ShowTips()
         {
@@ -300,7 +316,7 @@ namespace SDLauncher.UWP
             if (vars.MinRam == 0) { _ = await MessageBox.Show(Localized.Error, Localized.WrongRAM, MessageBoxButtons.Ok); return; }
             if (vars.CurrentRam == 0) { _ = await MessageBox.Show(Localized.Error, Localized.WrongRAM, MessageBoxButtons.Ok); return; }
             System.Net.ServicePointManager.DefaultConnectionLimit = 256;
-            vars.Launcher.Launcher.FileDownloader = new AsyncParallelDownloader();
+            MainCore.Launcher.Launcher.FileDownloader = new AsyncParallelDownloader();
             try
             {
                 var l = new MLaunchOption
@@ -317,17 +333,10 @@ namespace SDLauncher.UWP
                 }
                 l.FullScreen = vars.FullScreen;
                 l.JVMArguments = vars.JVMArgs.ToArray();
-                vars.Launcher.CreateToast();
-                int taskID = LittleHelp.AddTask("Launch Minecraft");
-                try
+                    var process = await MainCore.Launcher.CreateProcessAsync(launchVer, l);
+                if (process != null)
                 {
-                    var process = await vars.Launcher.Launcher.CreateProcessAsync(launchVer, l);
-                LittleHelp.CompleteTask(taskID);
-                StartProcess(process);
-                }
-                catch
-                {
-                    LittleHelp.CompleteTask(taskID, false);
+                    StartProcess(process);
                 }
             }
             catch (WebException)
@@ -439,9 +448,12 @@ namespace SDLauncher.UWP
             {
                 flyVer.Hide();
             }
-            if (sender is MenuFlyoutItem mitem && vars.VerSelectors == VerSelectors.Normal && !vars.Launcher.UseOfflineLoader)
+            if (sender is MenuFlyoutItem mitem && vars.VerSelectors == VerSelectors.Normal && !MainCore.Launcher.UseOfflineLoader)
             {
-                VersionCheck(mitem);
+                if (mitem != null)
+                {
+                    VersionCheck(mitem);
+                }
             }
         }
         private async void VersionCheck(MenuFlyoutItem item)
@@ -450,7 +462,7 @@ namespace SDLauncher.UWP
             switch (displayName)
             {
                 case "Glacier Client":
-                    if (await vars.Launcher.GlacierClient.ClientExists())
+                    if (MainCore.Launcher.GlacierClient.ClientExists())
                     {
                         btnMCVer.Content = item.Text;
                         launchVer = btnMCVer.Content.ToString();
@@ -459,7 +471,7 @@ namespace SDLauncher.UWP
                     {
                         if(await MessageBox.Show("Information","Glacier client needs to be downloaded from their servers.Do you want to download it now",MessageBoxButtons.YesNo) == MessageBoxResults.Yes)
                         {
-                            vars.Launcher.GlacierClient.DownloadClient();
+                            MainCore.Launcher.GlacierClient.DownloadClient();
                         }
                         else
                         {
@@ -469,31 +481,31 @@ namespace SDLauncher.UWP
                     }
                     break;
                 case "Latest":
-                    launchVer = vars.Launcher.Launcher.Versions.LatestReleaseVersion.Name;
+                    launchVer = MainCore.Launcher.Launcher.Versions.LatestReleaseVersion.Name;
                     btnMCVer.Content = launchVer;
                     break;
                 case "Latest Fabric":
-                    FabricResponse(await vars.Launcher.CheckFabric(vars.Launcher.Launcher.Versions.LatestReleaseVersion.Name, SearchFabric(vars.Launcher.Launcher.Versions.LatestReleaseVersion.Name), item.Text));
-                    btnMCVer.Content = "Fabric " + vars.Launcher.Launcher.Versions.LatestReleaseVersion.Name;
+                    FabricResponse(await MainCore.Launcher.CheckFabric(MainCore.Launcher.Launcher.Versions.LatestReleaseVersion.Name, MainCore.Launcher.SearchFabric(MainCore.Launcher.Launcher.Versions.LatestReleaseVersion.Name), item.Text));
+                    btnMCVer.Content = "Fabric " + MainCore.Launcher.Launcher.Versions.LatestReleaseVersion.Name;
                     break;
                 case "Latest Snapshot":
-                    launchVer = vars.Launcher.Launcher.Versions?.LatestSnapshotVersion?.Name;
+                    launchVer = MainCore.Launcher.Launcher.Versions?.LatestSnapshotVersion?.Name;
                     btnMCVer.Content = launchVer;
                     break;
                 case "Fabric 1.19":
-                    FabricResponse(await vars.Launcher.CheckFabric("1.19", SearchFabric("1.19"), item.Text));
+                    FabricResponse(await MainCore.Launcher.CheckFabric("1.19", MainCore.Launcher.SearchFabric("1.19"), item.Text));
                     break;
                 case "Fabric 1.18.2":
-                    FabricResponse(await vars.Launcher.CheckFabric("1.18.2", SearchFabric("1.18.2"), item.Text));
+                    FabricResponse(await MainCore.Launcher.CheckFabric("1.18.2", MainCore.Launcher.SearchFabric("1.18.2"), item.Text));
                     break;
                 case "Fabric 1.18.1":
-                    FabricResponse(await vars.Launcher.CheckFabric("1.18.1", SearchFabric("1.18.1"), item.Text));
+                    FabricResponse(await MainCore.Launcher.CheckFabric("1.18.1", MainCore.Launcher.SearchFabric("1.18.1"), item.Text));
                     break;
                 case "Fabric 1.17.1":
-                    FabricResponse(await vars.Launcher.CheckFabric("1.17.1", SearchFabric("1.17.1"), item.Text));
+                    FabricResponse(await MainCore.Launcher.CheckFabric("1.17.1", MainCore.Launcher.SearchFabric("1.17.1"), item.Text));
                     break;
                 case "Fabric 1.16.5":
-                    FabricResponse(await vars.Launcher.CheckFabric("1.16.5", SearchFabric("1.16.5"), item.Text));
+                    FabricResponse(await MainCore.Launcher.CheckFabric("1.16.5", MainCore.Launcher.SearchFabric("1.16.5"), item.Text));
                     break;
                 default:
                     btnMCVer.Content = item.Text;
@@ -502,27 +514,14 @@ namespace SDLauncher.UWP
             }
         }
         //
-
-        public string SearchFabric(string ver)
-        {
-            var item = from t in vars.Launcher.FabricMCVersions where t.Name.EndsWith(ver) select t;
-            if (item != null)
-            {
-                return item.FirstOrDefault().Name;
-            }
-            else
-            {
-                return "";
-            }
-        }
-        private void FabricResponse(Helpers.SDLauncher.FabricResponsoe responsoe)
+        
+        private void FabricResponse(Core.SDLauncher.FabricResponsoe responsoe)
         {
             launchVer = responsoe.LaunchVer;
             btnMCVer.Content = responsoe.DisplayVer;
         }
         private void UI(bool value)
         {
-            UIchanged(this, new Helpers.SDLauncher.UIChangeRequestedEventArgs(value));
             btnLaunch.IsEnabled = value;
             btnMCVer.IsEnabled = value;
             btnServer.IsEnabled = value;
@@ -530,7 +529,7 @@ namespace SDLauncher.UWP
         }
         private void cmbxVer_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (vars.VerSelectors == VerSelectors.Classic || vars.Launcher.UseOfflineLoader)
+            if (vars.VerSelectors == VerSelectors.Classic || MainCore.Launcher.UseOfflineLoader)
             {
                 launchVer = cmbxVer.SelectedItem.ToString();
             }

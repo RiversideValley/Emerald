@@ -16,6 +16,7 @@ using SDLauncher.UWP.Helpers;
 using System.ComponentModel;
 using ByteSizeLib;
 using System.Collections.ObjectModel;
+using SDLauncher.Core.Store;
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace SDLauncher.UWP.UserControls

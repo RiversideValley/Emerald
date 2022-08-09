@@ -7,6 +7,14 @@ namespace SDLauncher.Core
     internal class Localized
     {
         public const string Welcome = "Welcome";
+        public const string LaunchMC = "Welcome";
+        public const string GetFabric = "Welcome";
+        public const string GettingFabric = "GettingFabric";
+        public const string PickVer = "PickVer";
+        public const string SwitchOffline = "Welcome";
+        public const string LoadChangeLogs = "LoadChangeLogs";
+        public const string LoadingChangeLogs = "LoadingChangeLog";
+        public const string RefreshVers = "RefreshVers";
         public const string GoodLuck = "GoodLuck";
         public const string GoodEvening = "GoodEvening";
         public const string GettingVers = "GettingVers";

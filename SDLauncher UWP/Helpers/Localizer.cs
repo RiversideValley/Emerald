@@ -14,7 +14,8 @@ namespace SDLauncher.UWP.Helpers
 
         public static string GetLocalizedString(string resourceKey)
         {
-            return _resLoader.GetString(resourceKey);
+            var s = _resLoader.GetString(resourceKey);
+            return string.IsNullOrEmpty(s) ? resourceKey : s;
         }
     }
 }

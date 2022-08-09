@@ -49,9 +49,9 @@ namespace SDLauncher.UWP.Helpers
         }
         public MenuFlyoutItemBase GetFromStrings(string ver)
         {
-            if (vars.Launcher.MCVerNames.Contains(ver))
+            if (Core.MainCore.Launcher.MCVerNames.Contains(ver))
             {
-                var subVers = vars.Launcher.GetSubVersions(ver);
+                var subVers = Core.MainCore.Launcher.GetSubVersions(ver);
                 if (subVers.Count() > 1)
                 {
                     MenuFlyoutSubItem f = new MenuFlyoutSubItem();
@@ -74,7 +74,7 @@ namespace SDLauncher.UWP.Helpers
         }
         public MenuFlyoutItemBase ReturnMCWithFabric(string ver)
         {
-            string fabricVer = vars.Launcher.SearchFabric(ver);
+            string fabricVer = Core.MainCore.Launcher.SearchFabric(ver);
             if (string.IsNullOrEmpty(fabricVer))
             {
                 return CreateItem(ver, "vaniila-" + ver);

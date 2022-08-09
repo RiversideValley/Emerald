@@ -18,25 +18,25 @@ namespace SDLauncher.Core.Clients
         public event EventHandler UIChangedReqested = delegate { };
         public bool ClientExists()
         {
-            return Util.FolderExists(Core.Launcher.Launcher.MinecraftPath.Versions + "/Glacier Client");
+            return Util.FolderExists(MainCore.Launcher.Launcher.MinecraftPath.Versions + "/Glacier Client");
         }
         public async void DownloadClient()
         {
             var ver = await Util.DownloadText("https://www.slashonline.net/glacier/c.txt");
-            if (ver != Core.GlacierClientVersion)
+            if (ver != MainCore.GlacierClientVersion)
             {
                 int taskID = TasksHelper.AddTask("Download Glacier Client");
                 UIChangedReqested(false, new EventArgs());
                 try
                 {
-                    using (var client = new FileDownloader("https://slashonline.net/glacier/get/release/Glacier.zip", Core.Launcher.Launcher.MinecraftPath.Versions + "/Glacier.zip"))
+                    using (var client = new FileDownloader("https://slashonline.net/glacier/get/release/Glacier.zip", MainCore.Launcher.Launcher.MinecraftPath.Versions + "/Glacier.zip"))
                     {
                         client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
                         {
                             StatusChanged("Downloading Glacier Client", new EventArgs());
                             try
                             {
-                                this.ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
+                                this.ProgressChanged(this, new ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
                             }
                             catch { }
                             if (progressPercentage == 100)
@@ -44,7 +44,7 @@ namespace SDLauncher.Core.Clients
                                 StatusChanged("Ready", new EventArgs());
                                 this.Extract();
                                 client.Dispose();
-                                Core.GlacierClientVersion = ver;
+                                MainCore.GlacierClientVersion = ver;
                                 this.ProgressChanged(this, new ProgressChangedEventArgs(currentProg: 0, maxfiles: 100, currentfile: 00));
                                 TasksHelper.CompleteTask(taskID, true);
                             }
@@ -68,17 +68,17 @@ namespace SDLauncher.Core.Clients
             StatusChanged("Extracting Glacier Client", new EventArgs());
 
             //Read the file stream
-            Stream b = File.OpenRead(Core.Launcher.Launcher.MinecraftPath.Versions + "/Glacier.zip");
+            Stream b = File.OpenRead(MainCore.Launcher.Launcher.MinecraftPath.Versions + "/Glacier.zip");
             //unzip
             ZipArchive archive = new ZipArchive(b);
-            archive.ExtractToDirectory(Directory.CreateDirectory(Core.Launcher.Launcher.MinecraftPath.Versions + "/Glacier Client").FullName, true);
+            archive.ExtractToDirectory(Directory.CreateDirectory(MainCore.Launcher.Launcher.MinecraftPath.Versions + "/Glacier Client").FullName);
 
-            ProgressChanged(this, new SDLauncher.ProgressChangedEventArgs(currentfile: 0));
+            ProgressChanged(this, new ProgressChangedEventArgs(currentfile: 0));
             StatusChanged("Ready", new EventArgs());
             UIChangedReqested(true, new EventArgs());
             DownloadCompleted(true, new EventArgs());
             TasksHelper.CompleteTask(TaskID, true);
-            Core.GlacierClientVersion = await Util.DownloadText("https://www.slashonline.net/glacier/c.txt");
+            MainCore.GlacierClientVersion = await Util.DownloadText("https://www.slashonline.net/glacier/c.txt");
         }
 
     }

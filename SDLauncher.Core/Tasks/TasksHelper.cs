@@ -16,7 +16,7 @@ namespace SDLauncher.Core.Tasks
             TaskAddRequested(null, new TaskAddRequestedEventArgs(name, AllTaksCount));
             return AllTaksCount;
         }
-        public static void CompleteTask(int ID, bool success)
+        public static void CompleteTask(int ID, bool success = true)
         {
             TaskCompleteRequested(null, new TaskCompletedEventArgs(ID, success));
         }
