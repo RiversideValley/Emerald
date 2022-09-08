@@ -23,7 +23,6 @@ using System.Threading.Tasks;
 using Windows.UI.Xaml.Media.Imaging;
 using Microsoft.Toolkit.Uwp.UI;
 using SDLauncher.UWP.Helpers;
-
 // The Content Dialog item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace SDLauncher.UWP
@@ -126,15 +125,13 @@ namespace SDLauncher.UWP
                         _ = this.ShowAsync();
                         if (await MessageBox.Show("Infomation", msg, MessageBoxButtons.YesNo) == MessageBoxResults.No)
                         {
-                            goAhead = false;
+                            return;
                         }
                         else
                         {
-                            goAhead = true;
+                            AddAccount(MSession.GetOfflineSession(txtbxOffUsername.Text.Replace(" ", "").ToString()));
                         }
                     }
-                    if (goAhead)
-                        AddAccount(MSession.GetOfflineSession(txtbxOffUsername.Text.Replace(" ", "").ToString()));
 
                 }
                 else
@@ -146,7 +143,7 @@ namespace SDLauncher.UWP
             }
             else
             {
-                txtOffSats.Text = "Enter a username! ";
+                txtOffSats.Text = "Enter an username! ";
                 txtOffSats.Visibility = Visibility.Visible;
             }
         }
