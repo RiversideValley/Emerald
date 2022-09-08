@@ -4,8 +4,12 @@ An open-source custom noob wpf or uwp(still in dev) Minecraft Launcher for Windo
 ![size](https://img.shields.io/github/repo-size/SeaDevTeam/SDLauncher-UWP?color=%23cc0000&label=Repo%20Size)
 ![stars](https://img.shields.io/github/stars/SeaDevTeam/SDLauncher-UWP?color=%23eeab00&label=Stars)
 ![downloads](https://img.shields.io/github/downloads/SeaDevTeam/SDLauncher/total?label=Downloads)
+<a href="https://github.com/SeaDevTeam/SDLauncher/releases/latest/download/package.7z" target="_blank">
 ![latest](https://img.shields.io/github/v/release/SeaDevTeam/SDLauncher-UWP?label=Latest%20Stable)
+</a>
+<a href="https://discord.gg/kN7bjt6Ncq" target="_blank">
 ![Discord](https://img.shields.io/discord/949252950772027412)
+</a>
 
 The idea of the creation by https://github.com/TurtlzYT
 <br>
