@@ -233,7 +233,6 @@ namespace SDLauncher.UWP
             Thickness currMargin = AppTitleBar.Margin;
         }
 
-        [Obsolete]
         private void btnSettings_Click(object sender, RoutedEventArgs e)
         {
             loginFly.Hide();
@@ -313,8 +312,8 @@ namespace SDLauncher.UWP
         private void btnPinDiscord_Click(object sender, RoutedEventArgs e)
         {
             // await ApplicationView.GetForCurrentView().TryEnterViewModeAsync(ApplicationViewMode.CompactOverlay);
-            Canvas.SetZIndex(discordView, 1);
-            Canvas.SetZIndex(discordFixed, 9);
+            Canvas.SetZIndex(discordView, 0);
+            Canvas.SetZIndex(discordFixed, 10);
             vars.IsFixedDiscord = true;
             discordView.IsPaneOpen = false;
             btnUnPinDiscord.IsChecked = true;
@@ -334,7 +333,7 @@ namespace SDLauncher.UWP
 
         private void btnUnPinDiscord_Click(object sender, RoutedEventArgs e)
         {
-            Canvas.SetZIndex(discordView, 9);
+            Canvas.SetZIndex(discordView, 10);
             if (wv2Discord.Source.ToString() != wv2DiscordSticked.Source.ToString())
             {
                 wv2DiscordSticked.CoreWebView2.Navigate(wv2DiscordSticked.Source.ToString());
@@ -347,7 +346,7 @@ namespace SDLauncher.UWP
 
         private void discordView_PaneClosed(SplitView sender, object args)
         {
-            Canvas.SetZIndex(discordView, 1);
+            Canvas.SetZIndex(discordView, 0);
         }
 
         private void tasks_ErrorTaskRecieved(object sender, EventArgs e)
@@ -367,6 +366,13 @@ namespace SDLauncher.UWP
         {
             tasks.ClearUnwatchedErrorTasks();
             tasks_ErrorTaskRecieved(null, null);
+            taskView.IsPaneOpen = true;
+            Canvas.SetZIndex(taskView, 10);
+        }
+
+        private void taskView_PaneClosed(SplitView sender, object args)
+        {
+            Canvas.SetZIndex(taskView, 0);
         }
     }
 }

@@ -123,14 +123,26 @@
   <data name="BegVer" xml:space="preserve">
     <value>Please enter a version</value>
   </data>
+  <data name="Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="Downloading" xml:space="preserve">
+    <value>Downloading</value>
+  </data>
   <data name="Error" xml:space="preserve">
     <value>Error</value>
   </data>
   <data name="GetFabric" xml:space="preserve">
     <value>Get Fabric</value>
   </data>
+  <data name="GetMods" xml:space="preserve">
+    <value>Get Mods</value>
+  </data>
   <data name="GettingFabric" xml:space="preserve">
     <value>Getting Fabric</value>
+  </data>
+  <data name="GettingMods" xml:space="preserve">
+    <value>Getting Mods</value>
   </data>
   <data name="GettingVers" xml:space="preserve">
     <value>Getting available versions...</value>
@@ -153,8 +165,20 @@
   <data name="LoadChangeLogs" xml:space="preserve">
     <value>Load ChangeLogs</value>
   </data>
+  <data name="LoadDownloadVers" xml:space="preserve">
+    <value>Load Download Versions</value>
+  </data>
   <data name="LoadingChangeLog" xml:space="preserve">
     <value>Loading ChangeLog</value>
+  </data>
+  <data name="LoadingDownloadVers" xml:space="preserve">
+    <value>Loading Download Versions</value>
+  </data>
+  <data name="LoadingMod" xml:space="preserve">
+    <value>Loading Mod</value>
+  </data>
+  <data name="LoadMod" xml:space="preserve">
+    <value>Load Mod</value>
   </data>
   <data name="MainPage_Login" xml:space="preserve">
     <value>Login</value>
@@ -179,10 +203,19 @@
     <value>Ready</value>
   </data>
   <data name="RefreshVerFailed" xml:space="preserve">
-    <value>Failed to refresh the Minecraft versions</value>
+    <value>Failed to get the Minecraft versions</value>
   </data>
   <data name="RefreshVers" xml:space="preserve">
     <value>Refresh Versions</value>
+  </data>
+  <data name="Retry" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="SearchingStore" xml:space="preserve">
+    <value>Searching Store</value>
+  </data>
+  <data name="SearchStore" xml:space="preserve">
+    <value>Search Store</value>
   </data>
   <data name="SettingsPage_txtSettings.Text" xml:space="preserve">
     <value>Settings</value>

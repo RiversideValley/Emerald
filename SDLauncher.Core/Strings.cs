@@ -7,20 +7,29 @@ namespace SDLauncher.Core
     internal class Localized
     {
         public const string Welcome = "Welcome";
-        public const string LaunchMC = "Welcome";
-        public const string GetFabric = "Welcome";
+        public const string LaunchMC = "LaunchMC";
+        public const string GetFabric = "GetFabric";
+
+        public const string GetMods = "GetMods";
+        public const string GettingMods = "GettingMods";
+        public const string SearchStore = "SearchStore";
+        public const string SearchingStore = "SearchingStore";
+        public const string Download = "Download";
+        public const string Downloading = "Downloading";
+        public const string LoadMod = "LoadMod";
+        public const string LoadingMod = "LoadingMod";
+        public const string LoadDownloadVers = "LoadDownloadVers";
+        public const string LoadingDownloadVers = "LoadingDownloadVers";
+
         public const string GettingFabric = "GettingFabric";
         public const string PickVer = "PickVer";
-        public const string SwitchOffline = "Welcome";
+        public const string SwitchOffline = "SwitchOffline";
         public const string LoadChangeLogs = "LoadChangeLogs";
         public const string LoadingChangeLogs = "LoadingChangeLog";
         public const string RefreshVers = "RefreshVers";
-        public const string GoodLuck = "GoodLuck";
-        public const string GoodEvening = "GoodEvening";
         public const string GettingVers = "GettingVers";
         public const string Ready = "Ready";
         public const string RamFailed = "RamFailed";
-        public const string GoodMorning = "GoodMorning";
         public const string BegLogIn = "BegLogIn";
         public const string Error = "Error";
         public const string BegVer = "BegVer";

@@ -73,18 +73,6 @@
                         <FontIcon Glyph="&#xe9d5;" Margin="5" FontSize="19"/>
                         <winui:InfoBadge x:Name="infbdgErrorTasks" Visibility="Collapsed" Background="Red" VerticalAlignment="Top" HorizontalAlignment="Right" Value="1"/>
                     </Grid>
-                    <Button.Flyout>
-                        <Flyout>
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="auto"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                <TextBlock Text="Tasks" Style="{ThemeResource TitleTextBlockStyle}" FontSize="20" FontWeight="SemiBold"/>
-                                <NoobUI:TaskListView Grid.Row="1" ErrorTaskRecieved="tasks_ErrorTaskRecieved" x:Name="tasks"/>
-                            </Grid>
-                        </Flyout>
-                    </Button.Flyout>
                 </Button>
                 <Button BorderThickness="0" FocusVisualPrimaryThickness="0" FocusVisualSecondaryThickness="0" CornerRadius="0,0,5,5" MaxWidth="200" x:Name="btnAccount" VerticalAlignment="Top" Background="Transparent" HorizontalAlignment="Right" Padding="10,5,30,5" Margin="0,0,230,0">
                     <StackPanel Orientation="Horizontal">
@@ -175,12 +163,24 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <StackPanel Margin="10" Grid.Row="0" VerticalAlignment="Top" Orientation="Horizontal">
-                            <ToggleButton x:Name="btnPinDiscord" Click="btnPinDiscord_Click" Margin="0,0,5,0" BorderThickness="0" Background="Transparent">
-                                <SymbolIcon Foreground="White" Symbol="Pin"/>
-                            </ToggleButton>
-                            <TextBlock Text="Chat" Foreground="White" VerticalAlignment="Center" FontSize="20" FontWeight="SemiBold"/>
-                        </StackPanel>
+                        <ToggleButton x:Name="btnPinDiscord" Click="btnPinDiscord_Click" Margin="0,0,5,0" BorderThickness="0" Background="Transparent">
+                            <SymbolIcon Foreground="White" Symbol="Pin"/>
+                        </ToggleButton>
+                        <TextBlock Text="Chat" Foreground="White" VerticalAlignment="Center" FontSize="20" FontWeight="SemiBold"/>
+                    </StackPanel>
                     <winui:WebView2 Grid.Row="1" x:Name="wv2Discord" Source="https://e.widgetbot.io/channels/949252950772027412/950032703418433537"/>
+                </Grid>
+            </SplitView.Pane>
+        </SplitView>
+        <SplitView PaneClosed="taskView_PaneClosed" Canvas.ZIndex="0" PanePlacement="Right" OpenPaneLength="350" PaneBackground="{ThemeResource SystemControlAcrylicElementBrush}" CornerRadius="5" Margin="0,50,-5,0" x:Name="taskView">
+            <SplitView.Pane>
+                <Grid Padding="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Tasks" Margin="10,10,0,10" Style="{ThemeResource TitleTextBlockStyle}" FontSize="24" FontWeight="SemiBold"/>
+                    <NoobUI:TaskListView Grid.Row="1" ErrorTaskRecieved="tasks_ErrorTaskRecieved" x:Name="tasks"/>
                 </Grid>
             </SplitView.Pane>
         </SplitView>

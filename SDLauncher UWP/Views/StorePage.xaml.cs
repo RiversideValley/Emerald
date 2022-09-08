@@ -61,7 +61,6 @@ namespace SDLauncher.UWP.Views
             {
                 var r = await MainCore.Labrinth.Search(name, 30, sortBy, categories);
 
-                var itms = new List<StoreManager.StoreMod>();
                 if (AddExists)
                 {
                     foreach (var hit in r.hits)
@@ -169,7 +168,7 @@ namespace SDLauncher.UWP.Views
         }
         private void ItemsCollection_SearchRequested(object sender, UserControls.SearchRequestedEventArgs e)
         {
-            Search(e.Name, false,e.SortOptions,e.SearchCategories);
+            _ = Search(e.Name, false,e.SortOptions,e.SearchCategories);
             
         }
 

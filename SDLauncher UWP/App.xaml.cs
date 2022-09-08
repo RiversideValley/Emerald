@@ -64,7 +64,6 @@ namespace SDLauncher.UWP
                 {
                     ApplicationData.Current.RoamingSettings.Values["IsInAppSettings"] = false;
                     ApplicationData.Current.RoamingSettings.Values["MCChangelogs"] = "";
-                    ApplicationData.Current.RoamingSettings.Values["MCChangelogs"] = "";
                 }
                 if (IsInAppSettings == false)
                 {

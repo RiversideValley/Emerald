@@ -24,7 +24,7 @@ namespace SDLauncher.Core
             Labrinth = new Labrinth();
             Labrinth.ProgressChanged += ProgressChangedEvent;
             Labrinth.MainUIChangeRequested += UIChangedEvent;
-            Labrinth.StatusChanged += (s, e) => StatusChanged(Labrinth, new StatusChangedEventArgs(s.ToString()));
+            Labrinth.StatusChanged += (s, _) => StatusChanged(Labrinth, new StatusChangedEventArgs(s.ToString()));
             
         }
 

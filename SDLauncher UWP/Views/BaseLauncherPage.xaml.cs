@@ -64,8 +64,13 @@ namespace SDLauncher.UWP
             vars.ThemeUpdated += Vars_ThemeUpdated;
             MainCore.ProgressChanged += Core_ProgressChanged;
             MainCore.UIChanged += (s,e) => UI(e.UI);
-           
-            MainCore.StatusChanged += (s,e) => txtStatus.Text = Localizer.GetLocalizedString(e.Status);
+
+            MainCore.StatusChanged += (s, e) =>
+            {
+                var strings = e.Status.Split(" ");
+                var lstrings = strings.Select(x => Localizer.GetLocalizedString(x)).ToArray();
+                txtStatus.Text = string.Join(" ", lstrings);
+            };
         }
 
         private void Core_ProgressChanged(object sender, Core.Args.ProgressChangedEventArgs e)
@@ -243,7 +248,7 @@ namespace SDLauncher.UWP
             {
                 if (!MainCore.Launcher.UseOfflineLoader)
                 {
-                    var r = await MessageBox.Show(Localized.Error, Localized.RefreshVerFailed, MessageBoxButtons.Custom, "Retry", "Switch to offline mode");
+                    var r = await MessageBox.Show(Localized.Error, Localized.RefreshVerFailed, MessageBoxButtons.Custom, Localized.Retry, Localized.SwitchOffline);
                     if (r == MessageBoxResults.CustomResult1)
                     {
                         _ = MainCore.Launcher.RefreshVersions();

@@ -10,6 +10,8 @@ namespace SDLauncher.UWP.Resources
     public static class Localized
     {
         public static string Welcome => Localizer.GetLocalizedString("Welcome");
+        public static string Retry => Localizer.GetLocalizedString("Retry");
+        public static string SwitchOffline => Localizer.GetLocalizedString("SwitchOffline");
         public static string GoodLuck => Localizer.GetLocalizedString("GoodLuck");
         public static string GoodEvening => Localizer.GetLocalizedString("GoodEvening");
         public static string GettingVers => Localizer.GetLocalizedString("GettingVers");

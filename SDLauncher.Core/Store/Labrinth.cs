@@ -53,7 +53,7 @@ namespace SDLauncher.Core.Store
         public void DownloadMod(LabrinthResults.DownloadManager.File file, CmlLib.Core.MinecraftPath mcPath)
         {
             this.MainUIChangeRequested(this, new UIChangeRequestedEventArgs(false));
-            DownloadTaskID = Tasks.TasksHelper.AddTask("Download " + file.filename);
+            DownloadTaskID = Tasks.TasksHelper.AddTask($"{Localized.Download} {file.filename}");
             MainUIChangeRequested(this, new UIChangeRequestedEventArgs(false));
             var mods = System.IO.Directory.CreateDirectory(mcPath.BasePath + "\\mods").FullName;
             ModrinthDownload(file.url, mods, file.filename);
@@ -65,7 +65,7 @@ namespace SDLauncher.Core.Store
                 client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
                 {
                     this.MainUIChangeRequested(this, new UIChangeRequestedEventArgs(false));
-                    StatusChanged("Downloading : " + fileName, new EventArgs());
+                    StatusChanged($"{Localized.Downloading} : {fileName}", new EventArgs());
                     this.ProgressChanged(this, new ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
                     if (progressPercentage == 100)
                     {
@@ -90,13 +90,13 @@ namespace SDLauncher.Core.Store
             int taskID = 0;
             if (name == "")
             {
-                StatusChanged("Getting Mods", new EventArgs());
-                taskID = Tasks.TasksHelper.AddTask("Get Mods");
+                StatusChanged(Localized.GettingMods, new EventArgs());
+                taskID = Tasks.TasksHelper.AddTask(Localized.GettingMods);
             }
             else
             {
-                taskID = Tasks.TasksHelper.AddTask("Search Store");
-                StatusChanged("Searching Store", new EventArgs());
+                taskID = Tasks.TasksHelper.AddTask(Localized.SearchStore);
+                StatusChanged(Localized.SearchingStore, new EventArgs());
             }
             string categouriesString = "";
             if (categories != null)
@@ -136,12 +136,12 @@ namespace SDLauncher.Core.Store
         }
         public async Task<LabrinthResults.ModrinthProject> GetProject(string id, bool UIChange = true)
         {
-            int taskID = Tasks.TasksHelper.AddTask("Load Mod");
+            int taskID = Tasks.TasksHelper.AddTask(Localized.LoadMod);
             if (UIChange)
             {
                 UI(false);
             }
-            StatusChanged("Loading Mod", new EventArgs());
+            StatusChanged(Localized.LoadingMod, new EventArgs());
             LabrinthResults.ModrinthProject s = null;
             try
             {
@@ -168,9 +168,9 @@ namespace SDLauncher.Core.Store
         }
         public async Task<List<LabrinthResults.DownloadManager.DownloadLink>> GetVersions(string id)
         {
-            int taskID = Tasks.TasksHelper.AddTask("Load Download versionss");
+            int taskID = Tasks.TasksHelper.AddTask(Localized.LoadDownloadVers);
             UI(false);
-            StatusChanged("Loading Mod downloads", new EventArgs());
+            StatusChanged(Localized.LoadingDownloadVers, new EventArgs());
             List<LabrinthResults.DownloadManager.DownloadLink> s = null;
             try
             {

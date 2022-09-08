@@ -24,8 +24,15 @@ namespace SDLauncher.Core
         public event EventHandler<VersionsRefreshedEventArgs> VersionsRefreshed = delegate { };
         public event EventHandler LogsUpdated = delegate { };
         private bool offlineloader = false;
+
+        /// <summary>
+        /// Checks whether the launcher is in Offline mode
+        /// </summary>
         public bool UseOfflineLoader { get { return offlineloader; } set { offlineloader = value; VersionLoaderChanged(this, new EventArgs()); } }
 
+        /// <summary>
+        /// The stirng list of Available Minecraft versions
+        /// </summary>
         public List<string> MCVerNames
         {
             get
@@ -45,6 +52,11 @@ namespace SDLauncher.Core
                 }
             }
         }
+
+
+        /// <summary>
+        /// The stirng list of Available FabricMC versions
+        /// </summary>
         public List<string> FabricMCVerNames
         {
             get
@@ -77,6 +89,10 @@ namespace SDLauncher.Core
             GlacierClient.UIChangedReqested += GlacierClient_UIChangedReqested;
             
         }
+
+        /// <summary>
+        /// Creates a Minecraft <see cref="System.Diagnostics.Process"/> using the given <paramref name="ver"/> and <paramref name="launchOption"/>
+        /// </summary>
         public async Task<System.Diagnostics.Process> CreateProcessAsync(string ver, MLaunchOption launchOption)
         {
             var id = TasksHelper.AddTask(Localized.LaunchMC);
@@ -102,11 +118,16 @@ namespace SDLauncher.Core
         {
             UI(e.UI);
         }
+
+
+        /// <summary>
+        /// Gets the FabricMC version name using the given Minecraft <paramref name="ver"/>
+        /// </summary>
         public string SearchFabric(string ver)
         {
             try
             {
-                var item = from t in FabricMCVerNames where t.EndsWith(ver) select t;
+                var item = FabricMCVerNames.Where(x => x.EndsWith(ver));
                 if (item != null)
                 {
                     return item.FirstOrDefault();
@@ -121,9 +142,14 @@ namespace SDLauncher.Core
                 return "";
             }
         }
+
+
+        /// <summary>
+        /// Gets the subversions of the given <paramref name="ver"/> as an <see cref="string"/>[]
+        /// </summary>
         public string[] GetSubVersions(string ver)
         {
-            var items = from t in MCVersions where t.Name.StartsWith(ver) select t.Name;
+            var items = MCVersions.Where(x => x.Name.StartsWith(ver)).Select(x => x.Name);
             if (items != null)
             {
                 var final = from t in items where t.Replace(ver, "").ToString().StartsWith(".") || t == ver select t;
@@ -135,18 +161,20 @@ namespace SDLauncher.Core
             }
         }
 
-        private void Labrinth_StatusChanged(object sender, EventArgs e)
-        {
-            Status((string)sender);
-        }
 
         private string changeLogsHTMLBody = "";
+        /// <summary>
+        /// Changelogs HTML
+        /// </summary>
         public string ChangeLogsHTMLBody
         {
             get { return string.IsNullOrEmpty(changeLogsHTMLBody) ? "" : changeLogsHTMLBody; }
             set { changeLogsHTMLBody = value; LogsUpdated(this, new EventArgs()); }
         }
 
+        /// <summary>
+        /// Gets the changelogs HTML
+        /// </summary>
         public async Task LoadChangeLogs()
         {
             var taskID = TasksHelper.AddTask(Localized.LoadChangeLogs);
@@ -193,6 +221,11 @@ namespace SDLauncher.Core
                 ChangeLogsHTMLBody = html;
             }
         }
+
+
+        /// <summary>
+        /// Get the changelog HTML of the given <paramref name="version"/>
+        /// </summary>
         public async Task<string> GetChangelog(string version)
         {
             Status($"{Localized.LoadingChangeLogs} v:" + version);
@@ -245,6 +278,14 @@ namespace SDLauncher.Core
             UI(true);
         }
 
+
+        /// <summary>
+        /// Refreshes the available Minecraft/Fabric Versions
+        /// </summary>
+        /// <returns>
+        /// <see cref="true"/> if succeed,
+        /// <see cref="false"/> if failed
+        /// </returns>
         public async Task<bool> RefreshVersions()
         {
             UI(false);
@@ -273,6 +314,9 @@ namespace SDLauncher.Core
                 return false;
             }
         }
+        /// <summary>
+        /// Switches the launcher to offline mode, can't get back online until restart
+        /// </summary>
         public void SwitchToOffilineMode()
         {
             int offTask = TasksHelper.AddTask(Localized.SwitchOffline);
@@ -294,6 +338,10 @@ namespace SDLauncher.Core
             FileOrProgressChanged(this, new ProgressChangedEventArgs(maxfiles: e.TotalFileCount, currentfile: e.ProgressedFileCount, args: e, currentProg: CurrentProg));
         }
 
+
+        /// <summary>
+        /// Checks fabric whether it exists if not install it
+        /// </summary>
         public async Task<FabricResponsoe> CheckFabric(string mcver, string modver, string displayver)
         {
             int taskID = TasksHelper.AddTask($"{Localized.GetFabric} " + mcver);
