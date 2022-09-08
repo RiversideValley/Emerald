@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using Windows.UI.Xaml.Media.Imaging;
 using Microsoft.Toolkit.Uwp.UI;
 using SDLauncher.UWP.Helpers;
+using SDLauncher.UWP.Enums;
 // The Content Dialog item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace SDLauncher.UWP
@@ -110,7 +111,7 @@ namespace SDLauncher.UWP
                     int count = 0;
                     foreach (var account in vars.Accounts)
                     {
-                        if (account.Type == "Offline")
+                        if (account.Type == AccountType.Offline)
                         {
                             if (account.UserName == txtbxOffUsername.Text.Replace(" ", "").ToString())
                             {
@@ -215,7 +216,7 @@ namespace SDLauncher.UWP
                         if (item.Count == int.Parse(btn.Tag.ToString()))
                         {
                             item.Last = true;
-                            if (item.Type == "Offline")
+                            if (item.Type == AccountType.Offline)
                             {
                                 UpdateSession(MSession.GetOfflineSession(item.UserName));
                             }
@@ -257,7 +258,7 @@ namespace SDLauncher.UWP
                     {
                         if (item.Count == int.Parse(itm.Tag.ToString()))
                         {
-                            if (item.Type == "Offline")
+                            if (item.Type == AccountType.Offline)
                             {
                                 if (item.Count == vars.CurrentAccountCount)
                                 {
@@ -292,14 +293,14 @@ namespace SDLauncher.UWP
                     item.Last = false;
                 }
             }
-            if (session.UserType == "Mojang")
+            if (session.UUID == "user_uuid")
             {
-                vars.Accounts.Add(new Account(session.Username, "Offline", null, null, vars.AccountsCount + 1, true));
+                vars.Accounts.Add(new Account(session.Username, AccountType.Offline , null, null, vars.AccountsCount + 1, true));
                 vars.AccountsCount++;
             }
             else
             {
-                vars.Accounts.Add(new Account(session.Username, session.UserType, session.AccessToken, session.UUID, vars.AccountsCount + 1, true));
+                vars.Accounts.Add(new Account(session.Username, AccountType.Microsoft, session.AccessToken, session.UUID, vars.AccountsCount + 1, true));
                 vars.AccountsCount++;
             }
             vars.session = session;
@@ -349,7 +350,7 @@ namespace SDLauncher.UWP
                 {
                     if (item.Count == int.Parse(itm.Tag.ToString()))
                     {
-                        if (item.Type == "Offline")
+                        if (item.Type == AccountType.Offline)
                         {
                             itmRename.IsEnabled = true;
                             imgBody.Source = new BitmapImage(new Uri("https://minotar.net/body/MHF_Steve"));
@@ -495,7 +496,7 @@ namespace SDLauncher.UWP
                 {
                     if (item.Count == int.Parse(txtbx.Tag.ToString()))
                     {
-                        if (item.Type == "Offline")
+                        if (item.Type == AccountType.Offline)
                         {
                             if (vars.CurrentAccountCount == item.Count)
                             {

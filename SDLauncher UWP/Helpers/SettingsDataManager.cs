@@ -64,7 +64,7 @@ namespace SDLauncher.UWP.Helpers
             var accs = new List<Account>();
             foreach (var item in vars.Accounts)
             {
-                accs.Add(new Account { AccessToken = item.AccessToken, UUID = item.UUID, Type = item.Type, Username = item.UserName, LastAccessed = item.Last });
+                accs.Add(new Account { AccessToken = item.AccessToken, UUID = item.UUID, Type = item.Type.ToString(), Username = item.UserName, LastAccessed = item.Last });
             }
             SettingsData.Settings.Minecraft.Accounts = accs.ToArray();
             return Newtonsoft.Json.JsonConvert.SerializeObject(SettingsData, Newtonsoft.Json.Formatting.Indented);
@@ -119,7 +119,7 @@ namespace SDLauncher.UWP.Helpers
             var accs = new ObservableCollection<Helpers.Account>();
             foreach (var item in SettingsData.Settings.Minecraft.Accounts)
             {
-                accs.Add(new Helpers.Account(item.Username, item.Type, item.AccessToken, item.UUID, accs.Count + 1, item.LastAccessed));
+                accs.Add(new Helpers.Account(item.Username, Enum.Parse<Enums.AccountType>(item.Type), item.AccessToken, item.UUID, accs.Count + 1, item.LastAccessed));
             }
             vars.Accounts = accs;
             vars.AccountsCount = accs.Count;
