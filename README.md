@@ -11,9 +11,9 @@ An open-source custom noob wpf or uwp(still in dev) Minecraft Launcher for Windo
 ![Discord](https://img.shields.io/discord/949252950772027412)
 </a>
 
-Founders <a href="https://gitgub.com/TurtlzYT">TurtlzYT</a>, <a href="https://gitgub.com/NoobNotFound">NoobNotFound</a><br>
-Lead developers  <a href="https://gitgub.com/NoobNotFound">NoobNotFound</a>, <a href="https://gitgub.com/DeveloperWOW64">DeveloperWOW64</a><br>
-Developers <a href="https://gitgub.com/developerx-official">DeveloperX</a>, <a href="https://gitgub.com/Blocsied">Blocsied</a>
+Founders <a href="https://github.com/TurtlzYT">TurtlzYT</a>, <a href="https://github.com/NoobNotFound">NoobNotFound</a><br>
+Lead developers  <a href="https://github.com/NoobNotFound">NoobNotFound</a>, <a href="https://github.com/DeveloperWOW64">DeveloperWOW64</a><br>
+Developers <a href="https://github.com/developerx-official">DeveloperX</a>, <a href="https://github.com/Blocsied">Blocsied</a>
 <br>
 Based on <a href="https://github.com/CmlLib/CmlLib.Core" >CmlLib</a>
 <br>
