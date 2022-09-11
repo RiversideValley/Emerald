@@ -1,0 +1,38 @@
+﻿<ContentDialog
+    x:Class="Emerald.UWP.Dialogs.StoreItemInstallDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Emerald.UWP.Dialogs"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="TITLE"
+    CornerRadius="10"
+    PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
+    SecondaryButtonClick="ContentDialog_SecondaryButtonClick">
+    <Grid Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" x:Name="gridChoosed" Visibility="Collapsed">
+        <Grid>
+            <StackPanel Margin="5,0,0,0">
+                <TextBlock Margin="-5,10,20,0" Text="Make-UP UltraFst" x:Name="txtName" FontSize="30" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                <TextBlock FontSize="16" Text="Make-UP UltraFst" MaxWidth="500" TextWrapping="WrapWholeWords" x:Name="txtDescription" HorizontalAlignment="Left"/>
+                <TextBlock Text="Features" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Left" Margin="0,5"/>
+                <ItemsControl x:Name="imsFeatures">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock FontSize="16" Text="{Binding Converter={StaticResource ListToBlts}}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <FlipView x:Name="flipSamples" HorizontalAlignment="Stretch" Background="Transparent" BorderThickness="1">
+                    <FlipView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Image Height="120" Source="{Binding}" Stretch="UniformToFill" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                            </Grid>
+                        </DataTemplate>
+                    </FlipView.ItemTemplate>
+                </FlipView>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</ContentDialog>

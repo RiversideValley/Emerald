@@ -1,0 +1,27 @@
+﻿<ContentDialog
+    x:Class="Emerald.UWP.MessageBoxEx"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Emerald.UWP"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Loaded="ContentDialog_Loaded"
+    Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+    xmlns:winui="using:Microsoft.UI.Xaml.Controls"
+    PrimaryButtonStyle="{StaticResource AccentButtonStyle}"
+    SecondaryButtonStyle="{StaticResource ButtonRevealStyle}"
+    CloseButtonStyle="{StaticResource ButtonRevealStyle}"
+    PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
+    CornerRadius="10"
+    CloseButtonClick="ContentDialog_CloseButtonClick"
+    SecondaryButtonClick="ContentDialog_SecondaryButtonClick">
+    <Grid>
+        <Grid.ChildrenTransitions>
+            <TransitionCollection>
+                <EntranceThemeTransition IsStaggeringEnabled="True"/>
+            </TransitionCollection>
+        </Grid.ChildrenTransitions>
+        <TextBlock TextWrapping="WrapWholeWords" x:Name="txt"/>
+    </Grid>
+</ContentDialog>

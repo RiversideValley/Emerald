@@ -63,7 +63,7 @@
     <AppxBundlePlatforms>x86|x64|arm|arm64</AppxBundlePlatforms>
     <AppInstallerUri>C:\</AppInstallerUri>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
-    <EntryPointProjectUniqueName>..\SDLauncher UWP\SDLauncher.UWP.csproj</EntryPointProjectUniqueName>
+    <EntryPointProjectUniqueName>..\Emerald UWP\Emerald.UWP.csproj</EntryPointProjectUniqueName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AppxBundle>Always</AppxBundle>
@@ -157,6 +157,6 @@
   <Import Project="$(WapProjPath)\Microsoft.DesktopBridge.targets" />
   <ItemGroup>
     <ProjectReference Include="..\ClientHandler\ClientHandler.csproj" />
-    <ProjectReference Include="..\SDLauncher UWP\SDLauncher.UWP.csproj" />
+    <ProjectReference Include="..\Emerald.UWP\Emerald.UWP.csproj" />
   </ItemGroup>
 </Project>
