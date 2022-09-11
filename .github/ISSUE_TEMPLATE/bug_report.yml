@@ -1,0 +1,51 @@
+name: 🐛 Bug Report
+description: Create a bug report to help improve SDLauncher
+labels: [bug]
+body:
+  - type: checkboxes
+    attributes:
+      label: ⏱️ Before you start...
+      options:
+        - label: I am on the latest version of SDLauncher? You might be using an old version.
+          required: true
+        - label:  I Have checked if a similar issue has not already been reported
+          required: true
+  - type: textarea
+    attributes:
+      label: 🪟 What build of Windows is this issue present? (optional)
+      description: Windows key + R > winver.exe
+      placeholder: build 25174.1010
+  - type: textarea
+    attributes:
+      label: 🔢 What version of SDLauncher are you on?
+      description: Goto SDLauncher > Settings > About
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 📄 Description
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 🪜 Steps To Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '....'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See the error
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: 🤔 Expected behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 📸 Assets
+      description: |
+        A list of assets (errors, screenshots) relevant to the bug.
