@@ -107,7 +107,6 @@ namespace Emerald.UWP
                 if (txtbxOffUsername.Text.Split(delimiters, StringSplitOptions.RemoveEmptyEntries).Length == 1)
                 {
                     txtOffSats.Visibility = Visibility.Collapsed;
-                    bool goAhead = true;
                     int count = 0;
                     foreach (var account in vars.Accounts)
                     {

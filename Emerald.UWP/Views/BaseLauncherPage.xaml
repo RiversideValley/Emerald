@@ -30,7 +30,7 @@
             CloseButtonClick="tip_CloseButtonClick"
             Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
             Title="Choose A version"
-            Subtitle="There is avaible version 1.15 lower for now">
+            Subtitle="Vanilla or Fabric">
             <winui:TeachingTip.IconSource>
                 <winui:SymbolIconSource Symbol="Help" />
             </winui:TeachingTip.IconSource>
