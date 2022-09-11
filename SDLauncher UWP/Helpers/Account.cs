@@ -6,7 +6,16 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.UI.Xaml;
+using SDLauncher.UWP.Enums;
 
+namespace SDLauncher.UWP.Enums
+{
+    public enum AccountType
+    {
+        Offline,
+        Microsoft
+    }
+}
 namespace SDLauncher.UWP.Helpers
 {
     public class Account : INotifyPropertyChanged
@@ -16,7 +25,7 @@ namespace SDLauncher.UWP.Helpers
         private string userName;
         public string UserName { get { return userName; } set { userName = value; OnPropertyChanged(); } }
         public string ProfilePicture { get; set; }
-        public string Type { get; set; }
+        public AccountType Type { get; set; }
         public string TypeIconGlyph { get; set; }
         public string AccessToken { get; set; }
         public string UUID { get; set; }
@@ -32,7 +41,7 @@ namespace SDLauncher.UWP.Helpers
         {
             this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
         }
-        public Account(string username, string type, string accesstoken, string uuid, int count, bool last)
+        public Account(string username, AccountType type, string accesstoken, string uuid, int count, bool last)
         {
             IsCheckboxVsible = Visibility.Collapsed;
             IsChecked = false;
@@ -50,7 +59,7 @@ namespace SDLauncher.UWP.Helpers
             {
                 ProfilePicture = "https://minotar.net/avatar/MHF_Steve" + UUID;
             }
-            TypeIconGlyph = Type == "Offline" ? "\xF384" : "\xEC05";
+            TypeIconGlyph = Type == AccountType.Offline ? "\xF384" : "\xEC05";
         }
     }
 }

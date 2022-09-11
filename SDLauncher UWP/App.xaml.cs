@@ -89,25 +89,22 @@ namespace SDLauncher.UWP
                 {
                     if (item.Last)
                     {
-                        if (item.Type != null)
+                        if (item.Type == Enums.AccountType.Offline)
                         {
-                            if (item.Type == "Offline")
+                            if (item.UserName == null)
                             {
-                                if (item.UserName == null)
-                                {
-                                    vars.session = null;
-                                }
-                                else
-                                {
-                                    vars.session = MSession.GetOfflineSession(item.UserName);
-                                }
+                                vars.session = null;
                             }
                             else
                             {
-                                if (item.UserName != null && item.AccessToken != null && item.UUID != null)
-                                {
-                                    vars.session = new MSession(item.UserName, item.AccessToken, item.UUID);
-                                }
+                                vars.session = MSession.GetOfflineSession(item.UserName);
+                            }
+                        }
+                        else
+                        {
+                            if (item.UserName != null && item.AccessToken != null && item.UUID != null)
+                            {
+                                vars.session = new MSession(item.UserName, item.AccessToken, item.UUID);
                             }
                         }
                         vars.CurrentAccountCount = item.Count;
