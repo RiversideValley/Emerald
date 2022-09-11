@@ -10,7 +10,7 @@
 
   <Identity
     Name="Depth.EmeraldLauncher"
-    Version="0.4.7.0"  Publisher="CN=Depth"/>
+    Version="0.5.3.0"  Publisher="CN=Depth"/>
 
   <mp:PhoneIdentity PhoneProductId="9b2d8a86-7ce1-4016-bf2c-24e12b903639" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
