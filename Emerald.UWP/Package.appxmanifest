@@ -46,6 +46,12 @@
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
 		<Extensions>
+		<uap:Extension Category="windows.protocol">
+		<uap:Protocol Name="gem">
+		<uap:Logo>Assets\StoreLogo.png</uap:Logo>
+		<uap:DisplayName>Emerald</uap:DisplayName>
+		</uap:Protocol>
+		</uap:Extension>
 		</Extensions>
     </Application>
   </Applications>
