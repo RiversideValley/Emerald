@@ -11,12 +11,8 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Assets\icon.ico" />
-    <None Remove="ResourceDictionaries\Expanders.xaml" />
-    <None Remove="ResourceDictionaries\RightAlignedToggleSwitch.xaml" />
-    <None Remove="UserControls\Expander.xaml" />
     <None Remove="UserControls\NavViewItem.xaml" />
     <None Remove="UserControls\TitleBar.xaml" />
-    <None Remove="Views\HomePage.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -43,18 +39,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Update="ResourceDictionaries\Expanders.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="UserControls\Expander.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
     <Page Update="UserControls\NavViewItem.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -64,23 +48,5 @@
     <Page Update="UserControls\TitleBar.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\HomePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="ResourceDictionaries\RightAlignedToggleSwitch.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PRIResource Update="Strings\en-US\Resources.resw">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </PRIResource>
   </ItemGroup>
 </Project>
