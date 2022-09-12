@@ -9,6 +9,7 @@
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <StartupObject>ClientHandler.Program</StartupObject>
     <UseWindowsForms>False</UseWindowsForms>
+	  <RuntimeIdentifiers>win-x86</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>
