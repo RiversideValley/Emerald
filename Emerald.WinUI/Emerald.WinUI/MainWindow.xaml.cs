@@ -13,8 +13,6 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Emerald.WinUI.Models;
-using Emerald.WinUI.UserControls;
-using Emerald.WinUI.Helpers;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -25,8 +23,6 @@ namespace Emerald.WinUI
     /// </summary>
     public sealed partial class MainWindow : Window
     {
-        public static Views.HomePage HomePage { get; set; } = new();
-        public static Frame MainFrame { get; private set; }
         public MainWindow()
         {
             this.InitializeComponent();
@@ -35,18 +31,9 @@ namespace Emerald.WinUI
         }
         public void Initialize()
         {
-            NavView.MenuItems.Add(new NavViewItem() { Content = "Home".ToLocalizedString(), IconGlyph = "\xE71D" });
-            NavView.MenuItems.Add(new NavViewItem() { Content = "Store".ToLocalizedString(), IconGlyph = "\xE71D" });
-            NavView.MenuItems.Add(new NavViewItem() { Content = "Discord".ToLocalizedString(), IconGlyph = "\xE8F2" });
-            NavView.FooterMenuItems.Add(new NavViewItem() { Content = "Tasks".ToLocalizedString(), IconGlyph = "\xe9d5" });
-            NavView.FooterMenuItems.Add(new NavViewItem() { Content = "Logs".ToLocalizedString(), IconGlyph = "\xe756" });
-            NavView.Header = new NavViewHeader() { HeaderText = "Home".ToLocalizedString(), HeaderMargin = GetNavViewHeaderMargin() };
-            NavView.SelectedItem = NavView.MenuItems[0];
+            NavView.Header = new NavViewHeader() { HeaderText = "Deploy", HeaderMargin = GetNavViewHeaderMargin() };
             NavView.DisplayModeChanged += (_, _) => (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
-            MainFrame = frame;
-
             Helpers.WindowManager.SetTitleBar(this, AppTitleBar);
-
         }
         private Thickness GetNavViewHeaderMargin()
         {
@@ -65,26 +52,19 @@ namespace Emerald.WinUI
         {
             if (!args.IsSettingsInvoked)
             {
-                var h = (NavView.SelectedItem as NavViewItem).Content.ToString();
-                if(h == "Home".ToLocalizedString())
+                var h = (NavView.SelectedItem as UserControls.NavViewItem).Content.ToString();
+                switch (h)
                 {
-                    MainFrame.Content = HomePage;
-                }
-                else if (h == "Store".ToLocalizedString())
-                {
-                    
-                }
-                else if (h == "Discord".ToLocalizedString())
-                {
-
-                }
-                else if (h == "Tasks".ToLocalizedString())
-                {
-
-                }
-                else if (h == "Logs".ToLocalizedString())
-                {
-
+                    case "Deploy":
+                        break;
+                    case "Store":
+                        break;
+                    case "Discord":
+                        break;
+                    case "Logs":
+                        break;
+                    default:
+                        break;
                 }
                 (NavView.Header as NavViewHeader).HeaderText = h;
                 (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();

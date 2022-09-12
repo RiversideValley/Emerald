@@ -2,8 +2,7 @@
     x:Class="Emerald.WinUI.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Emerald.WinUI"
-    xmlns:conv="using:Emerald.WinUI.Converters">
+    xmlns:local="using:Emerald.WinUI">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -11,7 +10,6 @@
                 <!-- Other merged dictionaries here -->
             </ResourceDictionary.MergedDictionaries>
             <!-- Other app resources here -->
-            <conv:StringToLocalized x:Key="StringToLocalized"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -15,6 +15,12 @@
             VerticalAlignment="Top" 
             x:Name="AppTitleBar"/>
         <NavigationView AlwaysShowHeader="True" ItemInvoked="NavView_ItemInvoked" Margin="0,45,0,0" IsSettingsVisible="True" IsBackButtonVisible="Collapsed" x:Name="NavView">
+            <NavigationView.MenuItems>
+                <uc:NavViewItem Content="Launch" IconGlyph="&#xe768;"/>
+                <uc:NavViewItem Content="Store" IconGlyph="&#xE71D;"/>
+                <uc:NavViewItem Content="Discord" IconGlyph="&#xE8F2;"/>
+                <uc:NavViewItem Content="Logs" IconGlyph="&#xe756;"/>
+            </NavigationView.MenuItems>
             <NavigationView.HeaderTemplate>
                 <DataTemplate x:DataType="models:NavViewHeader">
                     <Grid x:DefaultBindMode="OneWay" Margin="{x:Bind HeaderMargin}">
@@ -27,7 +33,6 @@
                     </Grid>
                 </DataTemplate>
             </NavigationView.HeaderTemplate>
-            <Frame x:Name="frame"/>
         </NavigationView>
     </Grid>
 </Window>
