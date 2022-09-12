@@ -1,0 +1,38 @@
+﻿<Window
+    x:Class="Emerald.WinUI.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Emerald.WinUI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:uc="using:Emerald.WinUI.UserControls"
+    xmlns:models="using:Emerald.WinUI.Models">
+
+    <Grid>
+        <uc:TitleBar 
+            Margin="12,0,0,0" 
+            VerticalAlignment="Top" 
+            x:Name="AppTitleBar"/>
+        <NavigationView AlwaysShowHeader="True" ItemInvoked="NavView_ItemInvoked" Margin="0,45,0,0" IsSettingsVisible="True" IsBackButtonVisible="Collapsed" x:Name="NavView">
+            <NavigationView.MenuItems>
+                <uc:NavViewItem Content="Launch" IconGlyph="&#xe768;"/>
+                <uc:NavViewItem Content="Store" IconGlyph="&#xE71D;"/>
+                <uc:NavViewItem Content="Discord" IconGlyph="&#xE8F2;"/>
+                <uc:NavViewItem Content="Logs" IconGlyph="&#xe756;"/>
+            </NavigationView.MenuItems>
+            <NavigationView.HeaderTemplate>
+                <DataTemplate x:DataType="models:NavViewHeader">
+                    <Grid x:DefaultBindMode="OneWay" Margin="{x:Bind HeaderMargin}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="txtHeader" Grid.Column="0" Style="{ThemeResource TitleTextBlockStyle}" Text="{x:Bind HeaderText, Mode=OneWay}"/>
+                        <Button Margin="0,0,5,0" Content="{x:Bind CustomButtonText}" Visibility="{x:Bind CustomButtonVisibility}" Grid.Column="1"/>
+                    </Grid>
+                </DataTemplate>
+            </NavigationView.HeaderTemplate>
+        </NavigationView>
+    </Grid>
+</Window>
