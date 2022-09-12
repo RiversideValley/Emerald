@@ -8,7 +8,7 @@
 
   <Identity
     Name="Depth.EmeraldLauncher"
-    Publisher="CN=NooB"
+    Publisher="CN=Depth"
     Version="0.6.0.0" />
 
   <Properties>

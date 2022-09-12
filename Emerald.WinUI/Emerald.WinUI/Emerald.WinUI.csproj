@@ -17,6 +17,11 @@
     <None Remove="UserControls\NavViewItem.xaml" />
     <None Remove="UserControls\TitleBar.xaml" />
     <None Remove="Views\HomePage.xaml" />
+    <None Remove="Views\Settings\AboutPage.xaml" />
+    <None Remove="Views\Settings\AccountPage.xaml" />
+    <None Remove="Views\Settings\AppearancePage.xaml" />
+    <None Remove="Views\Settings\GeneralPage.xaml" />
+    <None Remove="Views\Store\StorePage.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,6 +45,24 @@
     <Content Update="Assets\icon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\Settings\AboutPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\Settings\GeneralPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\Settings\AccountPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <ItemGroup>
@@ -82,5 +105,17 @@
     <PRIResource Update="Strings\en-US\Resources.resw">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </PRIResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\Settings\AppearancePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\Store\StorePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 </Project>

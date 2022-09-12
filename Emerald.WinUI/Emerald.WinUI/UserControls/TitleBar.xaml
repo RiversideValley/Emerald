@@ -24,7 +24,7 @@
                 Margin="8,0,0,0"
                 VerticalAlignment="Center"
                 Style="{ThemeResource CaptionTextBlockStyle}"
-                Text="SDLauncher" />
+                Text="Emerald" />
             <TextBlock
                 x:Name="PreviewTitle"
                 Margin="4,0,0,0"
@@ -32,7 +32,7 @@
                 FontSize="11"
                 FontWeight="SemiBold"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="ALPHA" />
+                Text="DEV" />
         </StackPanel>
     </Grid>
 </UserControl>

@@ -37,7 +37,6 @@ namespace Emerald.WinUI
         {
             NavView.MenuItems.Add(new NavViewItem() { Content = "Home".ToLocalizedString(), IconGlyph = "\xE71D" });
             NavView.MenuItems.Add(new NavViewItem() { Content = "Store".ToLocalizedString(), IconGlyph = "\xE71D" });
-            NavView.MenuItems.Add(new NavViewItem() { Content = "Discord".ToLocalizedString(), IconGlyph = "\xE8F2" });
             NavView.FooterMenuItems.Add(new NavViewItem() { Content = "Tasks".ToLocalizedString(), IconGlyph = "\xe9d5" });
             NavView.FooterMenuItems.Add(new NavViewItem() { Content = "Logs".ToLocalizedString(), IconGlyph = "\xe756" });
             NavView.Header = new NavViewHeader() { HeaderText = "Home".ToLocalizedString(), HeaderMargin = GetNavViewHeaderMargin() };
@@ -73,10 +72,6 @@ namespace Emerald.WinUI
                 else if (h == "Store".ToLocalizedString())
                 {
                     
-                }
-                else if (h == "Discord".ToLocalizedString())
-                {
-
                 }
                 else if (h == "Tasks".ToLocalizedString())
                 {
