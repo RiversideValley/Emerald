@@ -15,6 +15,7 @@ using Windows.Foundation.Collections;
 using Emerald.WinUI.Models;
 using Emerald.WinUI.UserControls;
 using Emerald.WinUI.Helpers;
+using Emerald.WinUI.Views;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -35,17 +36,22 @@ namespace Emerald.WinUI
         }
         public void Initialize()
         {
-            NavView.MenuItems.Add(new NavViewItem() { Content = "Home".ToLocalizedString(), IconGlyph = "\xE71D" });
-            NavView.MenuItems.Add(new NavViewItem() { Content = "Store".ToLocalizedString(), IconGlyph = "\xE71D" });
+            NavView.MenuItems.Add(new NavViewItem() { Content = "Home".ToLocalizedString(), IconGlyph = "\uE10F" });
+            NavView.MenuItems.Add(new NavViewItem() { Content = "Store".ToLocalizedString(), IconGlyph = "\uE14D" });
             NavView.FooterMenuItems.Add(new NavViewItem() { Content = "Tasks".ToLocalizedString(), IconGlyph = "\xe9d5" });
             NavView.FooterMenuItems.Add(new NavViewItem() { Content = "Logs".ToLocalizedString(), IconGlyph = "\xe756" });
             NavView.Header = new NavViewHeader() { HeaderText = "Home".ToLocalizedString(), HeaderMargin = GetNavViewHeaderMargin() };
-            NavView.SelectedItem = NavView.MenuItems[0];
             NavView.DisplayModeChanged += (_, _) => (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
-            MainFrame = frame;
+            MainFrame = new Frame();
+            frame.Content = HomePage;
+            LoadMinecraftVersions();
 
             Helpers.WindowManager.SetTitleBar(this, AppTitleBar);
 
+        }
+        public void LoadMinecraftVersions()
+        {
+            MinecraftVersions.Items.Add(new MinecraftVersions() { Version = "1.17", BlockImageLocation = "/Assets/icon.png" });
         }
         private Thickness GetNavViewHeaderMargin()
         {
@@ -67,7 +73,7 @@ namespace Emerald.WinUI
                 var h = (NavView.SelectedItem as NavViewItem).Content.ToString();
                 if(h == "Home".ToLocalizedString())
                 {
-                    MainFrame.Content = HomePage;
+                    frame.Content = HomePage;
                 }
                 else if (h == "Store".ToLocalizedString())
                 {
