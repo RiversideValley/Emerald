@@ -42,9 +42,9 @@ namespace Emerald.WinUI
             NavView.FooterMenuItems.Add(new NavViewItem() { Content = "Logs".ToLocalizedString(), IconGlyph = "\xe756" });
             NavView.Header = new NavViewHeader() { HeaderText = "Home".ToLocalizedString(), HeaderMargin = GetNavViewHeaderMargin() };
             NavView.DisplayModeChanged += (_, _) => (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
-            MainFrame = new Frame();
-            frame.Content = HomePage;
-            Helpers.WindowManager.SetTitleBar(this, AppTitleBar);
+            MainFrame = frame;
+            MainFrame.Content = HomePage;
+            WindowManager.SetTitleBar(this, AppTitleBar);
 
         }
         private Thickness GetNavViewHeaderMargin()

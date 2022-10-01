@@ -14,7 +14,7 @@
             Margin="12,0,0,0" 
             VerticalAlignment="Top" 
             x:Name="AppTitleBar"/>
-        <NavigationView x:Name="NavView" AlwaysShowHeader="True" ItemInvoked="NavView_ItemInvoked" Margin="0,45,0,0" IsSettingsVisible="True" IsPaneOpen="False">
+        <NavigationView x:Name="NavView" PaneDisplayMode="Auto" IsPaneToggleButtonVisible="True" IsBackButtonVisible="Collapsed" AlwaysShowHeader="True" ItemInvoked="NavView_ItemInvoked" Margin="0,45,0,0" IsSettingsVisible="True">
             <NavigationView.HeaderTemplate>
                 <DataTemplate x:DataType="models:NavViewHeader">
                     <Grid x:DefaultBindMode="OneWay" Margin="{x:Bind HeaderMargin}">
