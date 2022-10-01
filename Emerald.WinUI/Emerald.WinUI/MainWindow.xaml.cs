@@ -44,14 +44,8 @@ namespace Emerald.WinUI
             NavView.DisplayModeChanged += (_, _) => (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
             MainFrame = new Frame();
             frame.Content = HomePage;
-            LoadMinecraftVersions();
-
             Helpers.WindowManager.SetTitleBar(this, AppTitleBar);
 
-        }
-        public void LoadMinecraftVersions()
-        {
-            MinecraftVersions.Items.Add(new MinecraftVersions() { Version = "1.17", BlockImageLocation = "/Assets/icon.png" });
         }
         private Thickness GetNavViewHeaderMargin()
         {

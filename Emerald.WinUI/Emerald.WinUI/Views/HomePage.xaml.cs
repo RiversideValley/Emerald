@@ -13,6 +13,9 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Emerald.Core;
+using System.Threading.Tasks;
+using CmlLib.Core;
+using Windows.Storage;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -27,6 +30,15 @@ namespace Emerald.WinUI.Views
         {
             this.InitializeComponent();
             MainCore.Intialize();
+            MainCore.Launcher.InitializeLauncher(new MinecraftPath(ApplicationData.Current.LocalFolder.Path));
+        }
+
+        private async void btnVersion_Click(object sender, RoutedEventArgs e)
+        {
+            paneVersions.IsPaneOpen = true;
+            await MainCore.Launcher.RefreshVersions();
+            var vers = Helpers.MCVersionsCreator.CreateVersions();
+            treeVer.ItemsSource = vers;
         }
     }
 }
