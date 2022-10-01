@@ -7,26 +7,39 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:models="using:Emerald.WinUI.Models"
     mc:Ignorable="d">
 
-    <SplitView x:Name="paneVersions" PanePlacement="Left" DisplayMode="Overlay" PaneBackground="{ThemeResource AcrylicInAppFillColorDefaultBrush}">
+    <SplitView OpenPaneLength="300" x:Name="paneVersions" PanePlacement="Left" DisplayMode="Overlay" PaneBackground="{ThemeResource AcrylicInAppFillColorDefaultBrush}">
         <SplitView.Pane>
-            <TreeView x:Name="treeVer">
-                <TreeView.ItemTemplate>
-                    <DataTemplate x:DataType="models:MinecraftVersion">
-                        <TreeViewItem x:DefaultBindMode="OneWay" ItemsSource="{x:Bind SubVersions}">
-                            <Grid Width="250">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Image Source="{x:Bind BlockImageLocation}" Height="100" Stretch="Fill" VerticalAlignment="Top"/>
-                                <StackPanel VerticalAlignment="Center" Grid.Column="1" Margin="8,0,0,8">
-                                    <TextBlock Text="{x:Bind DisplayVersion}" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,0,8"/>
-                                </StackPanel>
-                            </Grid>
-                        </TreeViewItem>
-                    </DataTemplate>
-                </TreeView.ItemTemplate>
-            </TreeView>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <AutoSuggestBox Margin="0,0,0,5" FontSize="18" QueryIcon="Find" PlaceholderText="Search for a version" HorizontalAlignment="Stretch"/>
+                </Grid>
+                <TreeView Grid.Row="1" CanReorderItems="False" CanDragItems="False" SelectionMode="None" x:Name="treeVer">
+                    <TreeView.ItemTemplate>
+                        <DataTemplate x:DataType="models:MinecraftVersion">
+                            <TreeViewItem Padding="0" Margin="0,0,5,0" x:DefaultBindMode="OneWay" ItemsSource="{x:Bind SubVersions}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Image Source="{x:Bind BlockImageLocation}" Height="60" Stretch="Fill" VerticalAlignment="Top"/>
+                                    <StackPanel VerticalAlignment="Center" Grid.Column="1" Margin="8,0,0,8">
+                                        <TextBlock Text="{x:Bind DisplayVersion}" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,0,8"/>
+                                        <TextBlock TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,8">
+                                        <Run Text="{x:Bind Type.ToString()}"/> |
+                                        <Run Text="{x:Bind Version}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
+                            </TreeViewItem>
+                        </DataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+            </Grid>
         </SplitView.Pane>
         <Grid>
             <Grid.RowDefinitions>
