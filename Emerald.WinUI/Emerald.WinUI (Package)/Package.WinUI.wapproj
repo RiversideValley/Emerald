@@ -28,6 +28,18 @@
       <Configuration>Release</Configuration>
       <Platform>arm64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="SkipOld|arm64">
+      <Configuration>SkipOld</Configuration>
+      <Platform>arm64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="SkipOld|x64">
+      <Configuration>SkipOld</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="SkipOld|x86">
+      <Configuration>SkipOld</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup>
     <WapProjPath Condition="'$(WapProjPath)'==''">$(MSBuildExtensionsPath)\Microsoft\DesktopBridge\</WapProjPath>

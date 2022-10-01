@@ -3,6 +3,7 @@
   <PropertyGroup>
 	  <TargetFramework>netstandard2.0</TargetFramework>
 	  <RootNamespace>Emerald.Core</RootNamespace>
+	  <Configurations>Debug;Release;SkipOld</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

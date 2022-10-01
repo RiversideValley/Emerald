@@ -9,6 +9,7 @@
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <StartupObject>ClientHandler.Program</StartupObject>
     <UseWindowsForms>False</UseWindowsForms>
+    <Configurations>Debug;Release;SkipOld</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
