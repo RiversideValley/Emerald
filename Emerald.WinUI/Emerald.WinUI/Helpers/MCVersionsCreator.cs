@@ -68,7 +68,7 @@ namespace Emerald.WinUI.Helpers
                     return null;
                 }
                 var subVers = Core.MainCore.Launcher.GetSubVersions(ver);
-                if (subVers.Count() > 1)
+                if (subVers.Length > 1)
                 {
                     MinecraftVersion f = CreateItem(ver, ver);
                     f.SubVersions = new();
@@ -89,22 +89,53 @@ namespace Emerald.WinUI.Helpers
             }
             else
             {
-                return null;
+                var subVers = Core.MainCore.Launcher.GetSubVersions(ver);
+                if (subVers.Length > 1)
+                {
+                    MinecraftVersion f = CreateItem(ver, ver);
+                    f.SubVersions = new();
+                    foreach (var item in subVers)
+                    {
+                        var SverMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == item).FirstOrDefault();
+                        if (ConfigToList().Contains(SverMdata.MType))
+                        {
+                            f.SubVersions.Add(ReturnMCWithFabric(item));
+                        }
+                    }
+                    return f;
+                }
+                else if(subVers.Length == 1)
+                {
+                    var SverMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == subVers.FirstOrDefault()).FirstOrDefault();
+                    if (ConfigToList().Contains(SverMdata.MType))
+                    {
+                        return ReturnMCWithFabric(subVers.FirstOrDefault());
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
         private static MinecraftVersion ReturnMCWithFabric(string ver)
         {
             string fabricVer = Core.MainCore.Launcher.SearchFabric(ver);
+            var verMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
             if (string.IsNullOrEmpty(fabricVer))
             {
-                return CreateItem(ver, "vaniila-" + ver);
+                return CreateItem(ver, "vaniila-" + ver,type:verMdata.MType);
             }
             else
             {
                 var i = CreateItem(ver, ver);
                 i.SubVersions = new();
-                i.SubVersions.Add(CreateItem($"{ver} Vanilla", "vaniila-" + ver));
-                i.SubVersions.Add(CreateItem($"{ver} Fabric", "fabricMC-" + fabricVer));
+                i.SubVersions.Add(CreateItem($"{ver} Vanilla", "vaniila-" + ver, type: verMdata.MType));
+                i.SubVersions.Add(CreateItem($"{ver} Fabric", "fabricMC-" + fabricVer, type: verMdata.MType));
                 return i;
             }
         }

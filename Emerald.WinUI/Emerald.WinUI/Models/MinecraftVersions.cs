@@ -34,6 +34,11 @@ namespace Emerald.WinUI.Models
             set => Set(ref _Block, value);
         }
 
+        public Visibility DescriptionVisibility
+        {
+            get => SubVersions.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
+        }
+
         private CmlLib.Core.Version.MVersionType? _Type;
         public CmlLib.Core.Version.MVersionType? Type { get => _Type; set => Set(ref _Type, value); }
 
