@@ -16,6 +16,7 @@ using Emerald.Core;
 using System.Threading.Tasks;
 using CmlLib.Core;
 using Windows.Storage;
+using Emerald.WinUI.Helpers;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -32,13 +33,58 @@ namespace Emerald.WinUI.Views
             MainCore.Intialize();
             MainCore.Launcher.InitializeLauncher(new MinecraftPath(ApplicationData.Current.LocalFolder.Path));
         }
-
+        public void Initialize()
+        {
+            ToggleMenuFlyoutItem createItm(string name)
+            {
+                var itm = new ToggleMenuFlyoutItem();
+                itm.Text = name;
+                itm.Click += tglMitVerSort_Click;
+                return itm;
+            }
+            var m = new MenuFlyout()
+            {
+                Items =
+                {
+                    createItm("Release".ToLocalizedString()),
+                    createItm("Snapshot".ToLocalizedString()),
+                    createItm("OldBeta".ToLocalizedString()),
+                    createItm("OldAlpha".ToLocalizedString()),
+                    createItm("Custom".ToLocalizedString())
+                }
+            };
+        }
         private async void btnVersion_Click(object sender, RoutedEventArgs e)
         {
             paneVersions.IsPaneOpen = true;
             await MainCore.Launcher.RefreshVersions();
-            var vers = Helpers.MCVersionsCreator.CreateVersions();
-            treeVer.ItemsSource = vers;
+            treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
+        }
+
+        private void tglMitVerSort_Click(object sender, RoutedEventArgs e)
+        {
+            var mit = sender as ToggleMenuFlyoutItem;
+            if(mit.Text == "Release".ToLocalizedString())
+            {
+                MCVersionsCreator.Configuration.Release = mit.IsChecked;
+            }
+            else if (mit.Text == "Snapshot".ToLocalizedString())
+            {
+                MCVersionsCreator.Configuration.Snapshot = mit.IsChecked;
+            }
+            else if (mit.Text == "Oldbeta".ToLocalizedString())
+            {
+                MCVersionsCreator.Configuration.OldBeta = mit.IsChecked;
+            }
+            else if (mit.Text == "OldAlpha".ToLocalizedString())
+            {
+                MCVersionsCreator.Configuration.OldAlpha = mit.IsChecked;
+            }
+            else if (mit.Text == "Custom".ToLocalizedString())
+            {
+                MCVersionsCreator.Configuration.Custom = mit.IsChecked;
+            }
+            treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
         }
     }
 }

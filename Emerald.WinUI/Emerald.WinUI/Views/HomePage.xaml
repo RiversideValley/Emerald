@@ -15,21 +15,37 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0">
-                    <AutoSuggestBox Margin="0,0,0,5" FontSize="18" QueryIcon="Find" PlaceholderText="Search for a version" HorizontalAlignment="Stretch"/>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <AutoSuggestBox Grid.Column="0" Margin="0,0,0,5" QueryIcon="Find" PlaceholderText="Search for a version" HorizontalAlignment="Stretch"/>
+                    <DropDownButton x:Name="btnVerSort" Grid.Column="1">
+                        <FontIcon Glyph="&#xE8CB;"/>
+                        <DropDownButton.Flyout>
+                            <MenuFlyout>
+                                <ToggleMenuFlyoutItem Click="tglMitVerSort_Click" Text="Release"/>
+                                <ToggleMenuFlyoutItem Click="tglMitVerSort_Click" Text="Snapshot"/>
+                                <ToggleMenuFlyoutItem Click="tglMitVerSort_Click" Text="OldBeta"/>
+                                <ToggleMenuFlyoutItem Click="tglMitVerSort_Click" Text="OldAlpha"/>
+                                <ToggleMenuFlyoutItem Click="tglMitVerSort_Click" Text="Custom"/>
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
                 </Grid>
                 <TreeView Grid.Row="1" CanReorderItems="False" CanDragItems="False" SelectionMode="None" x:Name="treeVer">
                     <TreeView.ItemTemplate>
                         <DataTemplate x:DataType="models:MinecraftVersion">
-                            <TreeViewItem Padding="0" Margin="0,0,5,0" x:DefaultBindMode="OneWay" ItemsSource="{x:Bind SubVersions}">
+                            <TreeViewItem MinHeight="0" Padding="0" Margin="0,0,5,0" x:DefaultBindMode="OneWay" ItemsSource="{x:Bind SubVersions}">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <Image Source="{x:Bind BlockImageLocation}" Height="60" Stretch="Fill" VerticalAlignment="Top"/>
-                                    <StackPanel VerticalAlignment="Center" Grid.Column="1" Margin="8,0,0,8">
-                                        <TextBlock Text="{x:Bind DisplayVersion}" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,0,8"/>
-                                        <TextBlock TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,8">
+                                    <Image Source="{x:Bind BlockImageLocation}" Height="40" Stretch="Fill" VerticalAlignment="Top"/>
+                                    <StackPanel Margin="5,0,0,0" VerticalAlignment="Center" Grid.Column="1">
+                                        <TextBlock Text="{x:Bind DisplayVersion}" FontWeight="SemiBold"/>
+                                        <TextBlock FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,8">
                                         <Run Text="{x:Bind Type.Value}"/> |
                                         <Run Text="{x:Bind Version}"/>
                                         </TextBlock>

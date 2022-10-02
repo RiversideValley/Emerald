@@ -12,10 +12,10 @@ namespace Emerald.WinUI.Helpers
         public static class Configuration
         {
             public static bool Release { get; set; } = true;
-            public static bool Custom { get; set; } = true;
+            public static bool Custom { get; set; } = false;
             public static bool OldBeta { get; set; } = false;
             public static bool OldAlpha { get; set; } = false;
-            public static bool SnapShot { get; set; } = false;
+            public static bool Snapshot { get; set; } = false;
         }
         private static ObservableCollection<MinecraftVersion> Collection;
         public static ObservableCollection<MinecraftVersion> CreateVersions()
@@ -48,24 +48,37 @@ namespace Emerald.WinUI.Helpers
                 Collection.Add(m);
             }
         }
+        private static List<CmlLib.Core.Version.MVersionType> ConfigToList()
+        {
+            var list = new List<CmlLib.Core.Version.MVersionType>();
+            if (Configuration.Release) { list.Add(CmlLib.Core.Version.MVersionType.Release); }
+            if (Configuration.OldBeta) { list.Add(CmlLib.Core.Version.MVersionType.OldBeta); }
+            if (Configuration.OldAlpha) { list.Add(CmlLib.Core.Version.MVersionType.OldAlpha); }
+            if (Configuration.Snapshot) { list.Add(CmlLib.Core.Version.MVersionType.Snapshot); }
+            if (Configuration.Custom) { list.Add(CmlLib.Core.Version.MVersionType.Custom); }
+            return list;
+        }
         private static MinecraftVersion GetFromStrings(string ver)
         {
             if (Core.MainCore.Launcher.MCVerNames.Contains(ver))
             {
                 var verMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
-                if(verMdata.MType == CmlLib.Core.Version.MVersionType.OldAlpha && !Configuration.OldAlpha) { return null; }
-                if(verMdata.MType == CmlLib.Core.Version.MVersionType.OldBeta && !Configuration.OldBeta) { return null; }
-                if(verMdata.MType == CmlLib.Core.Version.MVersionType.Release && !Configuration.Release) { return null; }
-                if(verMdata.MType == CmlLib.Core.Version.MVersionType.Snapshot && !Configuration.SnapShot) { return null; }
-                if(verMdata.MType == CmlLib.Core.Version.MVersionType.Custom && !Configuration.Custom) { return null; }
+                if (!ConfigToList().Contains(verMdata.MType))
+                {
+                    return null;
+                }
                 var subVers = Core.MainCore.Launcher.GetSubVersions(ver);
                 if (subVers.Count() > 1)
                 {
-                    MinecraftVersion f = CreateItem(ver,ver);
+                    MinecraftVersion f = CreateItem(ver, ver);
                     f.SubVersions = new();
                     foreach (var item in subVers)
                     {
-                        f.SubVersions.Add(ReturnMCWithFabric(item));
+                        var SverMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == item).FirstOrDefault();
+                        if (ConfigToList().Contains(SverMdata.MType))
+                        {
+                            f.SubVersions.Add(ReturnMCWithFabric(item));
+                        }
                     }
                     return f;
                 }
