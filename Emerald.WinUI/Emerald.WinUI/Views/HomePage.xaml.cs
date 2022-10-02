@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using CmlLib.Core;
 using Windows.Storage;
 using Emerald.WinUI.Helpers;
+using System.Collections.ObjectModel;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -32,6 +33,7 @@ namespace Emerald.WinUI.Views
             this.InitializeComponent();
             MainCore.Intialize();
             MainCore.Launcher.InitializeLauncher(new MinecraftPath(ApplicationData.Current.LocalFolder.Path));
+            Initialize();
         }
         public void Initialize()
         {
@@ -42,7 +44,8 @@ namespace Emerald.WinUI.Views
                 itm.Click += tglMitVerSort_Click;
                 return itm;
             }
-            var m = new MenuFlyout()
+
+            btnVerSort.Flyout = new MenuFlyout()
             {
                 Items =
                 {
@@ -85,6 +88,65 @@ namespace Emerald.WinUI.Views
                 MCVersionsCreator.Configuration.Custom = mit.IsChecked;
             }
             treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
+        }
+
+        private void btnVerSort_Click(object sender, RoutedEventArgs e)
+        {
+            var f = btnVerSort.Flyout as MenuFlyout;
+            f.Items
+                .Where(x => ((ToggleMenuFlyoutItem)x).Text == "Release".ToLocalizedString())
+                .Select(x => (ToggleMenuFlyoutItem)x)
+                .FirstOrDefault()
+                .IsChecked = MCVersionsCreator.Configuration.Release;
+
+            f.Items
+                .Where(x => ((ToggleMenuFlyoutItem)x).Text == "Snapshot".ToLocalizedString())
+                .Select(x => (ToggleMenuFlyoutItem)x)
+                .FirstOrDefault()
+                .IsChecked = MCVersionsCreator.Configuration.Snapshot;
+
+            f.Items
+                .Where(x => ((ToggleMenuFlyoutItem)x).Text == "OldBeta".ToLocalizedString())
+                .Select(x => (ToggleMenuFlyoutItem)x)
+                .FirstOrDefault()
+                .IsChecked = MCVersionsCreator.Configuration.OldBeta;
+
+            f.Items
+                .Where(x => ((ToggleMenuFlyoutItem)x).Text == "OldAlpha".ToLocalizedString())
+                .Select(x => (ToggleMenuFlyoutItem)x)
+                .FirstOrDefault()
+                .IsChecked = MCVersionsCreator.Configuration.OldAlpha;
+
+            f.Items
+                .Where(x => ((ToggleMenuFlyoutItem)x).Text == "Custom".ToLocalizedString())
+                .Select(x => (ToggleMenuFlyoutItem)x)
+                .FirstOrDefault()
+                .IsChecked = MCVersionsCreator.Configuration.Custom;
+        }
+
+        private void txtbxFindVer_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        {
+            var suitableItems = new ObservableCollection<Models.MinecraftVersion>();
+            var splitText = sender.Text.ToLower().Split(" ");
+            foreach (var cat in MCVersionsCreator.CreateAllVersions())
+            {
+                var found = splitText.All((key) =>
+                {
+                    return cat.Version.ToLower().Contains(key);
+                });
+                if (found)
+                {
+                    suitableItems.Add(cat);
+                }
+            }
+            if(string.IsNullOrEmpty(txtbxFindVer.Text))
+            {
+                treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
+            }
+            else
+            {
+                treeVer.ItemsSource = suitableItems;
+            }
         }
     }
 }

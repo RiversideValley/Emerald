@@ -19,18 +19,9 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="auto"/>
                     </Grid.ColumnDefinitions>
-                    <AutoSuggestBox Grid.Column="0" Margin="0,0,0,5" QueryIcon="Find" PlaceholderText="Search for a version" HorizontalAlignment="Stretch"/>
-                    <DropDownButton x:Name="btnVerSort" Grid.Column="1">
-                        <FontIcon Glyph="&#xE8CB;"/>
-                        <DropDownButton.Flyout>
-                            <MenuFlyout>
-                                <ToggleMenuFlyoutItem Click="tglMitVerSort_Click" Text="Release"/>
-                                <ToggleMenuFlyoutItem Click="tglMitVerSort_Click" Text="Snapshot"/>
-                                <ToggleMenuFlyoutItem Click="tglMitVerSort_Click" Text="OldBeta"/>
-                                <ToggleMenuFlyoutItem Click="tglMitVerSort_Click" Text="OldAlpha"/>
-                                <ToggleMenuFlyoutItem Click="tglMitVerSort_Click" Text="Custom"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
+                    <AutoSuggestBox x:Name="txtbxFindVer" TextChanged="txtbxFindVer_TextChanged" Grid.Column="0" Margin="0,0,0,5" QueryIcon="Find" PlaceholderText="Search for a version" HorizontalAlignment="Stretch"/>
+                    <DropDownButton Margin="5,0,0,0" Click="btnVerSort_Click" x:Name="btnVerSort" Grid.Column="1">
+                        <FontIcon Glyph="&#xE16E;"/>
                     </DropDownButton>
                 </Grid>
                 <TreeView Grid.Row="1" CanReorderItems="False" CanDragItems="False" SelectionMode="None" x:Name="treeVer">
@@ -55,6 +46,7 @@
                         </DataTemplate>
                     </TreeView.ItemTemplate>
                 </TreeView>
+                
             </Grid>
         </SplitView.Pane>
         <Grid>
