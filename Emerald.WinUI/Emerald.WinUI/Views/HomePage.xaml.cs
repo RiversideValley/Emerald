@@ -151,7 +151,7 @@ namespace Emerald.WinUI.Views
 
         private void treeVer_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
         {
-            btnVersion.Content = ((Models.MinecraftVersion)args.InvokedItem).SubVersions.Count > 0 ? btnVersion.Content : ((Models.MinecraftVersion)args.InvokedItem);
+            VersionButton.Content = ((Models.MinecraftVersion)args.InvokedItem).SubVersions.Count > 0 ? VersionButton.Content : ((Models.MinecraftVersion)args.InvokedItem);
             if(((Models.MinecraftVersion)args.InvokedItem).SubVersions.Count == 0)
             {
                 paneVersions.IsPaneOpen = false;
