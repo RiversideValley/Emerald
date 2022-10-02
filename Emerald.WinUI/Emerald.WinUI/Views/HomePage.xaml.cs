@@ -35,8 +35,9 @@ namespace Emerald.WinUI.Views
             MainCore.Launcher.InitializeLauncher(new MinecraftPath(ApplicationData.Current.LocalFolder.Path));
             Initialize();
         }
-        public void Initialize()
+        public async void Initialize()
         {
+            await MainCore.Launcher.RefreshVersions();
             ToggleMenuFlyoutItem createItm(string name)
             {
                 var itm = new ToggleMenuFlyoutItem();
@@ -60,7 +61,6 @@ namespace Emerald.WinUI.Views
         private async void btnVersion_Click(object sender, RoutedEventArgs e)
         {
             paneVersions.IsPaneOpen = true;
-            await MainCore.Launcher.RefreshVersions();
             treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
         }
 
@@ -146,6 +146,15 @@ namespace Emerald.WinUI.Views
             else
             {
                 treeVer.ItemsSource = suitableItems;
+            }
+        }
+
+        private void treeVer_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
+        {
+            btnVersion.Content = ((Models.MinecraftVersion)args.InvokedItem).SubVersions.Count > 0 ? btnVersion.Content : ((Models.MinecraftVersion)args.InvokedItem);
+            if(((Models.MinecraftVersion)args.InvokedItem).SubVersions.Count == 0)
+            {
+                paneVersions.IsPaneOpen = false;
             }
         }
     }

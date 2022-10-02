@@ -21,7 +21,20 @@ namespace Emerald.WinUI.Helpers
         public static ObservableCollection<MinecraftVersion> CreateVersions()
         {
             Collection = new();
-            if(Configuration.Custom && LoadCustomVers() != null)
+            var lr = Core.MainCore.Launcher.MCVersions.LatestReleaseVersion?.Name;
+            var ls = Core.MainCore.Launcher.MCVersions.LatestSnapshotVersion;
+            var l = CreateItem("Latest", "latest");
+            l.SubVersions = new();
+            if (lr != null)
+            {
+                l.SubVersions.Add(ReturnMCWithFabric(lr,"Latest Release"));
+            }
+            if (ls != null && ls.MType == CmlLib.Core.Version.MVersionType.Snapshot)
+            {
+                l.SubVersions.Add(ReturnMCWithFabric(ls.Name, "Latest Snapshot"));
+            }
+            Collection.Add(l);
+            if (Configuration.Custom && LoadCustomVers() != null)
             {
                 Collection.Add(LoadCustomVers());
             }
@@ -185,20 +198,20 @@ namespace Emerald.WinUI.Helpers
                 }
             }
         }
-        private static MinecraftVersion ReturnMCWithFabric(string ver)
+        private static MinecraftVersion ReturnMCWithFabric(string ver,string displayVer = null)
         {
             string fabricVer = Core.MainCore.Launcher.SearchFabric(ver);
             var verMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
             if (string.IsNullOrEmpty(fabricVer))
             {
-                return CreateItem(ver, "vaniila-" + ver,type:verMdata.MType);
+                return displayVer == null? CreateItem(ver, "vaniila-" + ver, type: verMdata.MType) : CreateItem(displayVer, "vaniila-" + ver, type: verMdata.MType);
             }
             else
             {
-                var i = CreateItem(ver, ver);
+                var i = CreateItem(displayVer ?? ver, ver);
                 i.SubVersions = new();
-                i.SubVersions.Add(CreateItem($"{ver} Vanilla", "vaniila-" + ver, type: verMdata.MType));
-                i.SubVersions.Add(CreateItem($"{ver} Fabric", "fabricMC-" + fabricVer, type: verMdata.MType));
+                i.SubVersions.Add(displayVer == null ? CreateItem($"{ver} Vanilla", "vaniila-" + ver, type: verMdata.MType) : CreateItem($"{displayVer} Vanilla", "vaniila-" + ver, type: verMdata.MType));
+                i.SubVersions.Add(displayVer == null ? CreateItem($"{ver} Fabric", "fabricMC-" + fabricVer, type: verMdata.MType) : CreateItem($"{displayVer} Fabric", "fabricMC-" + fabricVer, type: verMdata.MType));
                 return i;
             }
         }
