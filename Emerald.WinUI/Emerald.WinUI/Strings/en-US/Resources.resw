@@ -123,6 +123,9 @@
   <data name="BegVer" xml:space="preserve">
     <value>Please enter a version</value>
   </data>
+  <data name="Custom" xml:space="preserve">
+    <value>Custom</value>
+  </data>
   <data name="Discord" xml:space="preserve">
     <value>Discord</value>
   </data>
@@ -201,6 +204,12 @@
   <data name="NoNetwork" xml:space="preserve">
     <value>Seems like you don't have good internet...</value>
   </data>
+  <data name="OldAlpha" xml:space="preserve">
+    <value>OldAlpha</value>
+  </data>
+  <data name="OldBeta" xml:space="preserve">
+    <value>OldBeta</value>
+  </data>
   <data name="PickVer" xml:space="preserve">
     <value>Pick a version</value>
   </data>
@@ -217,6 +226,9 @@
   <data name="RefreshVers" xml:space="preserve">
     <value>Refresh Versions</value>
   </data>
+  <data name="Release" xml:space="preserve">
+    <value>Release</value>
+  </data>
   <data name="Retry" xml:space="preserve">
     <value>Retry</value>
   </data>
@@ -228,6 +240,9 @@
   </data>
   <data name="SettingsPage_txtSettings.Text" xml:space="preserve">
     <value>Settings</value>
+  </data>
+  <data name="Snapshot" xml:space="preserve">
+    <value>Snapshot</value>
   </data>
   <data name="Store" xml:space="preserve">
     <value>Store</value>

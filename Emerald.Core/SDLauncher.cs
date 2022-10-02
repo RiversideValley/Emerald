@@ -152,12 +152,12 @@ namespace Emerald.Core
             var items = MCVersions.Where(x => x.Name.StartsWith(ver)).Select(x => x.Name);
             if (items != null)
             {
-                var final = from t in items where t.Replace(ver, "").ToString().StartsWith(".") || t == ver select t;
+                var final = from t in items where t.Replace(ver, "").StartsWith(".") || t == ver select t;
                 return final.ToArray();
             }
             else
             {
-                return new List<string>().ToArray();
+                return Array.Empty<string>();
             }
         }
 
