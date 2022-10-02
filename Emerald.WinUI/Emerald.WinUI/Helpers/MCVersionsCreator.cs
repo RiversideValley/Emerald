@@ -204,7 +204,7 @@ namespace Emerald.WinUI.Helpers
             var verMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
             if (string.IsNullOrEmpty(fabricVer))
             {
-                return displayVer == null? CreateItem(ver, "vaniila-" + ver, type: verMdata.MType) : CreateItem(displayVer, "vaniila-" + ver, type: verMdata.MType);
+                return displayVer == null? CreateItem($"{ver} Vanilla", "vaniila-" + ver, type: verMdata.MType) : CreateItem($"{displayVer} Vanilla", "vaniila-" + ver, type: verMdata.MType);
             }
             else
             {
