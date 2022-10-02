@@ -33,7 +33,7 @@ namespace Emerald.WinUI.Views
             MainCore.Launcher.InitializeLauncher(new MinecraftPath(ApplicationData.Current.LocalFolder.Path));
         }
 
-        private async void btnVersion_Click(object sender, RoutedEventArgs e)
+        private async void VersionButton_Click(object sender, RoutedEventArgs e)
         {
             paneVersions.IsPaneOpen = true;
             await MainCore.Launcher.RefreshVersions();

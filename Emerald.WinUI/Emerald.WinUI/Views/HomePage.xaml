@@ -135,8 +135,8 @@
                     </StackPanel>
                 </Button>
                 <DropDownButton
-                    x:Name="btnVersion"
-                    Click="btnVersion_Click"
+                    x:Name="VersionButton"
+                    Click="VersionButton_Click"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"/>
             </Grid>
