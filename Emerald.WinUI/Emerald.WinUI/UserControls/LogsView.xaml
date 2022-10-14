@@ -10,10 +10,10 @@
     xmlns:models="using:Emerald.WinUI.Models">
     <UserControl.Resources>
         <converters:InfobarServertyToBackground 
-            ErrorBrush="{StaticResource InfoBarErrorSeverityBackgroundBrush}" 
-            WarningBrush="{StaticResource InfoBarWarningSeverityBackgroundBrush}"
-            SuccessBrush="{StaticResource InfoBarSuccessSeverityBackgroundBrush}"
-            InformationalBrush="{StaticResource InfoBarInformationalSeverityBackgroundBrush}"
+            ErrorBrush="{ThemeResource InfoBarErrorSeverityBackgroundBrush}" 
+            WarningBrush="{ThemeResource InfoBarWarningSeverityBackgroundBrush}"
+            SuccessBrush="{ThemeResource InfoBarSuccessSeverityBackgroundBrush}"
+            InformationalBrush="{ThemeResource InfoBarInformationalSeverityBackgroundBrush}"
             x:Key="ServertyToBackground"/>
         <converters:NotBoolToVisibility x:Key="NotBoolToVisibility"/>
     </UserControl.Resources>
