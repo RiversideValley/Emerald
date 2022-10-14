@@ -37,7 +37,7 @@ namespace Emerald.WinUI.Views
         {
             MainCore.Intialize();
             MainCore.Launcher.InitializeLauncher(new MinecraftPath(ApplicationData.Current.LocalFolder.Path));
-            btnVersion.Content = MCVersionsCreator.GetNotSelectedVersion();
+            VersionButton.Content = MCVersionsCreator.GetNotSelectedVersion();
             await MainCore.Launcher.RefreshVersions();
             ToggleMenuFlyoutItem createItm(string name)
             {
