@@ -21,7 +21,11 @@ namespace Emerald.WinUI.Models
                 }
                 else
                 {
-                    if (_Version.Contains("fabric"))
+                    if(Version == null)
+                    {
+                        return "/Assets/Blocks/Dirt.png";
+                    }
+                    else if (_Version.Contains("fabric"))
                     {
                         return "/Assets/Blocks/Redstone.png";
                     }
@@ -36,7 +40,7 @@ namespace Emerald.WinUI.Models
 
         public Visibility DescriptionVisibility
         {
-            get => SubVersions.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
+            get => SubVersions.Count > 0 || _Version == null ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private CmlLib.Core.Version.MVersionType? _Type;

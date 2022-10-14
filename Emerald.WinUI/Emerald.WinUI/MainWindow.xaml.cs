@@ -45,6 +45,8 @@ namespace Emerald.WinUI
             MainFrame = frame;
             MainFrame.Content = HomePage;
             WindowManager.SetTitleBar(this, AppTitleBar);
+            WinUIEx.WindowManager.Get(this).MinHeight = 400;
+            WinUIEx.WindowManager.Get(this).MinWidth = 500;
 
         }
         private Thickness GetNavViewHeaderMargin()

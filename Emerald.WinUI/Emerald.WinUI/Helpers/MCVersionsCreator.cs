@@ -18,6 +18,10 @@ namespace Emerald.WinUI.Helpers
             public static bool Snapshot { get; set; } = false;
         }
         private static ObservableCollection<MinecraftVersion> Collection;
+        public static MinecraftVersion GetNotSelectedVersion()
+        {
+            return new MinecraftVersion() { DisplayVersion = "Select a version" };
+        }
         public static ObservableCollection<MinecraftVersion> CreateVersions()
         {
             Collection = new();
@@ -216,20 +220,6 @@ namespace Emerald.WinUI.Helpers
             }
         }
         private static MinecraftVersion CreateItem(string DisplayVer, string ver, CmlLib.Core.Version.MVersionType? type = null, string blockPath = "/Assets/icon.png") => new() { Type = type, Version = ver, DisplayVersion = DisplayVer, BlockImageLocation = blockPath };
-
-        //private void MCVerClick(object sender, RoutedEventArgs e)
-        //{
-        //    if (sender is MenuFlyoutItem mit)
-        //    {
-        //        if (mit.Tag.ToString().StartsWith("fabricMC-"))
-        //        {
-        //            this.ItemInvoked(this, new ItemInvokedArgs(mit.Tag.ToString().Replace("fabricMC-", "").ToString(), mit.Text, MCType.Fabric));
-        //        }
-        //        else if (mit.Tag.ToString().StartsWith("vanilla-"))
-        //        {
-        //            this.ItemInvoked(this, new ItemInvokedArgs(mit.Tag.ToString().Replace("vanilla-", "").ToString(), mit.Text, MCType.Vanilla));
-        //        }
-        //    }
-        //}
+        
     }
 }

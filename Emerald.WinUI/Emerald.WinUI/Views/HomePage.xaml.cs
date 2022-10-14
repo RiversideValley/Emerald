@@ -31,12 +31,13 @@ namespace Emerald.WinUI.Views
         public HomePage()
         {
             this.InitializeComponent();
-            MainCore.Intialize();
-            MainCore.Launcher.InitializeLauncher(new MinecraftPath(ApplicationData.Current.LocalFolder.Path));
             Initialize();
         }
         public async void Initialize()
         {
+            MainCore.Intialize();
+            MainCore.Launcher.InitializeLauncher(new MinecraftPath(ApplicationData.Current.LocalFolder.Path));
+            btnVersion.Content = MCVersionsCreator.GetNotSelectedVersion();
             await MainCore.Launcher.RefreshVersions();
             ToggleMenuFlyoutItem createItm(string name)
             {
@@ -45,7 +46,6 @@ namespace Emerald.WinUI.Views
                 itm.Click += tglMitVerSort_Click;
                 return itm;
             }
-
             btnVerSort.Flyout = new MenuFlyout()
             {
                 Items =
@@ -58,7 +58,7 @@ namespace Emerald.WinUI.Views
                 }
             };
         }
-        private async void btnVersion_Click(object sender, RoutedEventArgs e)
+        private void btnVersion_Click(object sender, RoutedEventArgs e)
         {
             paneVersions.IsPaneOpen = true;
             treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
