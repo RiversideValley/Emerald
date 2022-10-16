@@ -19,28 +19,28 @@ using Windows.Foundation.Collections;
 
 namespace Emerald.WinUI.UserControls
 {
-    public sealed partial class LogsView : UserControl
+    public sealed partial class TaskView : UserControl
     {
         private int lastID = 0;
 
-        private ObservableCollection<Models.Log> Logs { get; set; } = new();
-        public List<Models.Log> AllLogs { get => Logs.ToList(); }
+        private ObservableCollection<Models.Task> Tasks { get; set; } = new();
+        public List<Models.Task> AllTasks { get => Tasks.ToList(); }
 
-        public LogsView()
+        public TaskView()
         {
             this.InitializeComponent();
-            lv.ItemsSource = Logs;
+            lv.ItemsSource = Tasks;
         }
-        public int AddProgressLog(string content, int progress = 0, InfoBarSeverity severity = InfoBarSeverity.Informational, bool IsIndeterminate = false, object UniqueThings = null, ObservableCollection<UIElement> customCOntrols = null)
+        public int AddProgressTask(string content, int progress = 0, InfoBarSeverity severity = InfoBarSeverity.Informational, bool IsIndeterminate = false, object UniqueThings = null, ObservableCollection<UIElement> customCOntrols = null)
         {
-            var l = new Models.ProgressLog(content, DateTime.Now, lastID, progress, severity, IsIndeterminate, UniqueThings, customCOntrols);
+            var l = new Models.ProgressTask(content, DateTime.Now, lastID, progress, severity, IsIndeterminate, UniqueThings, customCOntrols);
             lastID++;
-            Logs.Add(l);
+            Tasks.Add(l);
             return l.ID;
         }
         public object GetUniqueThings(int ID)
         {
-            var l = Logs.FirstOrDefault(l => l.ID == ID);
+            var l = Tasks.FirstOrDefault(l => l.ID == ID);
             try
             {
                 return l.UniqueThings;
@@ -55,7 +55,7 @@ namespace Emerald.WinUI.UserControls
         {
             try
             {
-                return Logs.Where(x => x.UniqueThings != null).Where(x => x.UniqueThings.ToString() == uniquethings).Select(x => x.ID).ToArray();
+                return Tasks.Where(x => x.UniqueThings != null).Where(x => x.UniqueThings.ToString() == uniquethings).Select(x => x.ID).ToArray();
             }
             catch (Exception ex)
             {
@@ -63,19 +63,19 @@ namespace Emerald.WinUI.UserControls
                 return Array.Empty<int>();
             }
         }
-        public int AddStringLog(string content, InfoBarSeverity severity = InfoBarSeverity.Informational, object uniquethings = null, ObservableCollection<UIElement> customCOntrols = null)
+        public int AddStringTask(string content, InfoBarSeverity severity = InfoBarSeverity.Informational, object uniquethings = null, ObservableCollection<UIElement> customCOntrols = null)
         {
-            var l = new Models.StringLog(content, DateTime.Now, lastID, severity, uniquethings, customCOntrols);
+            var l = new Models.StringTask(content, DateTime.Now, lastID, severity, uniquethings, customCOntrols);
             lastID++;
-            Logs.Add(l);
+            Tasks.Add(l);
             return l.ID;
         }
-        public bool RemoveLog(int ID)
+        public bool RemoveTask(int ID)
         {
-            var l = Logs.FirstOrDefault(l => l.ID == ID);
+            var l = Tasks.FirstOrDefault(l => l.ID == ID);
             try
             {
-                Logs.Remove(l);
+                Tasks.Remove(l);
                 return true;
             }
             catch (Exception ex)
@@ -88,7 +88,7 @@ namespace Emerald.WinUI.UserControls
         {
             try
             {
-                Logs.FirstOrDefault(l => l.ID == ID).Content = content;
+                Tasks.FirstOrDefault(l => l.ID == ID).Content = content;
                 return true;
             }
             catch (Exception ex)
@@ -101,7 +101,7 @@ namespace Emerald.WinUI.UserControls
         {
             try
             {
-                Logs.FirstOrDefault(l => l.ID == ID).CustomControls = controls;
+                Tasks.FirstOrDefault(l => l.ID == ID).CustomControls = controls;
                 return true;
             }
             catch (Exception ex)
@@ -114,7 +114,7 @@ namespace Emerald.WinUI.UserControls
         {
             try
             {
-                ((Models.ProgressLog)Logs.FirstOrDefault(l => l.ID == ID)).Progress = progress;
+                ((Models.ProgressTask)Tasks.FirstOrDefault(l => l.ID == ID)).Progress = progress;
                 return true;
             }
             catch (Exception ex)
@@ -126,13 +126,13 @@ namespace Emerald.WinUI.UserControls
         public void Refresh()
         {
             lv.ItemsSource = null;
-            lv.ItemsSource = Logs;
+            lv.ItemsSource = Tasks;
         }
         public bool ChangeIndeterminate(int ID, bool isIndeterminate)
         {
             try
             {
-                ((Models.ProgressLog)Logs.FirstOrDefault(l => l.ID == ID)).IsIndeterminate = isIndeterminate;
+                ((Models.ProgressTask)Tasks.FirstOrDefault(l => l.ID == ID)).IsIndeterminate = isIndeterminate;
                 return true;
             }
 
@@ -146,7 +146,7 @@ namespace Emerald.WinUI.UserControls
         {
             try
             {
-                Logs.FirstOrDefault(l => l.ID == ID).Severity = severity;
+                Tasks.FirstOrDefault(l => l.ID == ID).Severity = severity;
                 return true;
             }
             catch (Exception ex)

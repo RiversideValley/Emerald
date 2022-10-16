@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Emerald.WinUI.Converters
 {
-    public class LogsViewTemplateSelector : DataTemplateSelector
+    public class TaskViewTemplateSelector : DataTemplateSelector
     {
 
         public DataTemplate String { get; set; }
@@ -16,12 +16,12 @@ namespace Emerald.WinUI.Converters
 
         protected override DataTemplate SelectTemplateCore(object item)
         {
-            return ((Models.Log)item is Models.StringLog) ? String : Progress;
+            return ((Models.Task)item is Models.StringTask) ? String : Progress;
         }
 
         protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
         {
-            return ((Models.Log)item is Models.StringLog) ? String : Progress;
+            return ((Models.Task)item is Models.StringTask) ? String : Progress;
         }
     }
 }

@@ -15,7 +15,7 @@ using Windows.Foundation.Collections;
 
 namespace Emerald.WinUI.Models
 {
-    public interface Log : INotifyPropertyChanged
+    public interface Task : INotifyPropertyChanged
     {
         public string Content { get; set; }
         public object UniqueThings { get; set; }
@@ -25,7 +25,7 @@ namespace Emerald.WinUI.Models
         public ObservableCollection<UIElement> CustomControls { get; set; }
 
     }
-    public class StringLog : Model, Log 
+    public class StringTask : Model, Task 
     {
         private string _Content;
         public string Content { get => _Content; set => Set(ref _Content, value); }
@@ -42,7 +42,7 @@ namespace Emerald.WinUI.Models
         public ObservableCollection<UIElement> _CustomControls;
         public ObservableCollection<UIElement> CustomControls { get => _CustomControls; set => Set(ref _CustomControls, value); }
 
-        public StringLog(string content, DateTime time, int iD, InfoBarSeverity severity, object uniqueThings = null, ObservableCollection<UIElement> customCOntrols = null)
+        public StringTask(string content, DateTime time, int iD, InfoBarSeverity severity, object uniqueThings = null, ObservableCollection<UIElement> customCOntrols = null)
         {
             Content = content;
             Time = time;
@@ -53,7 +53,7 @@ namespace Emerald.WinUI.Models
         }
     }
 
-    public class ProgressLog : Model, Log
+    public class ProgressTask : Model, Task
     {
         public object UniqueThings { get; set; }
 
@@ -78,7 +78,7 @@ namespace Emerald.WinUI.Models
         public ObservableCollection<UIElement> _CustomControls;
         public ObservableCollection<UIElement> CustomControls { get => _CustomControls; set => Set(ref _CustomControls, value); }
 
-        public ProgressLog(string content, DateTime time, int iD, int progress = 0, InfoBarSeverity severity = InfoBarSeverity.Informational, bool isIndeterminate = false, object uniquethings = null, ObservableCollection<UIElement> customCOntrols = null)
+        public ProgressTask(string content, DateTime time, int iD, int progress = 0, InfoBarSeverity severity = InfoBarSeverity.Informational, bool isIndeterminate = false, object uniquethings = null, ObservableCollection<UIElement> customCOntrols = null)
         {
             Content = content;
             Time = time;

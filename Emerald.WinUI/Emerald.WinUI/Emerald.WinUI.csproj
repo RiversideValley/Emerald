@@ -15,7 +15,6 @@
     <None Remove="ResourceDictionaries\Expanders.xaml" />
     <None Remove="ResourceDictionaries\RightAlignedToggleSwitch.xaml" />
     <None Remove="UserControls\Expander.xaml" />
-    <None Remove="UserControls\LogsView.xaml" />
     <None Remove="UserControls\NavViewItem.xaml" />
     <None Remove="UserControls\TitleBar.xaml" />
     <None Remove="Views\HomePage.xaml" />
@@ -51,7 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Update="UserControls\LogsView.xaml">
+    <Page Update="UserControls\TaskView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
