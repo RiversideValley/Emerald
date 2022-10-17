@@ -9,13 +9,17 @@ namespace Emerald.WinUI.Helpers
 {
     public static class Localizer
     {
-
-        private static ResourceLoader _resLoader = new ResourceLoader();
-
         public static string ToLocalizedString(this string resourceKey)
         {
-            var s = _resLoader.GetString(resourceKey);
-            return string.IsNullOrEmpty(s) ? resourceKey : s;
+            try
+            {
+                var s = new ResourceLoader().GetString(resourceKey);
+                return string.IsNullOrEmpty(s) ? resourceKey : s;
+            }
+            catch
+            {
+                return resourceKey;
+            }
         }
     }
 }

@@ -15,7 +15,7 @@ using Windows.Foundation.Collections;
 
 namespace Emerald.WinUI.Models
 {
-    public interface Task : INotifyPropertyChanged
+    public interface ITask
     {
         public string Content { get; set; }
         public object UniqueThings { get; set; }
@@ -25,7 +25,7 @@ namespace Emerald.WinUI.Models
         public ObservableCollection<UIElement> CustomControls { get; set; }
 
     }
-    public class StringTask : Model, Task 
+    public class StringTask : Model, ITask 
     {
         private string _Content;
         public string Content { get => _Content; set => Set(ref _Content, value); }
@@ -50,10 +50,12 @@ namespace Emerald.WinUI.Models
             this.Severity = severity;
             UniqueThings = uniqueThings;
             CustomControls = customCOntrols;
+            MainWindow.TaskView.ActualThemeChanged += (_, _) => this.InvokePropertyChanged();
         }
+
     }
 
-    public class ProgressTask : Model, Task
+    public class ProgressTask : Model, ITask
     {
         public object UniqueThings { get; set; }
 
@@ -88,6 +90,7 @@ namespace Emerald.WinUI.Models
             UniqueThings = uniquethings;
             Severity = severity;
             CustomControls = customCOntrols;
+            MainWindow.TaskView.ActualThemeChanged += (_, _) => this.InvokePropertyChanged();
         }
     }
 }

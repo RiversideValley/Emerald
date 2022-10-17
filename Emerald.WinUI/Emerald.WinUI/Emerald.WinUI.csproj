@@ -26,6 +26,8 @@
   </ItemGroup>
 
   <ItemGroup>
+	  <PackageReference Include="CommunityToolkit.WinUI.UI.Animations" Version="7.1.2" />
+	  <PackageReference Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
 	  <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.220909.2-experimental2" />
 	  <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.25206-preview" />
 	  <PackageReference Include="PInvoke.User32" Version="0.7.124" />

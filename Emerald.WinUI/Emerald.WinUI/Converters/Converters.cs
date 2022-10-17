@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -82,10 +83,10 @@ namespace Emerald.WinUI.Converters
     }
     public class InfobarServertyToBackground : IValueConverter
     {
-        public object ErrorBrush { get; set; }
-        public object WarningBrush { get; set; }
-        public object SuccessBrush { get; set; }
-        public object InformationalBrush { get; set; }
+        public Brush ErrorBrush { get; set; }
+        public Brush WarningBrush { get; set; }
+        public Brush SuccessBrush { get; set; }
+        public Brush InformationalBrush { get; set; }
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             return (Microsoft.UI.Xaml.Controls.InfoBarSeverity)value switch

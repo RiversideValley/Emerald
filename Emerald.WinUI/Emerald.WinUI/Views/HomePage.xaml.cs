@@ -18,6 +18,8 @@ using CmlLib.Core;
 using Windows.Storage;
 using Emerald.WinUI.Helpers;
 using System.Collections.ObjectModel;
+using Windows.ApplicationModel.Core;
+using Emerald.WinUI.Enums;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -31,14 +33,17 @@ namespace Emerald.WinUI.Views
         public HomePage()
         {
             this.InitializeComponent();
-            Initialize();
+            this.Loaded += InitializeWhenLoad;
         }
-        public async void Initialize()
+
+        private void InitializeWhenLoad(object sender, RoutedEventArgs e) => Initialize();
+
+        public void Initialize()
         {
             MainCore.Intialize();
-            MainCore.Launcher.InitializeLauncher(new MinecraftPath(ApplicationData.Current.LocalFolder.Path));
+            MainCore.Launcher.InitializeLauncher(new MinecraftPath(MinecraftPath.GetOSDefaultPath()));
+            MainCore.Launcher.VersionsRefreshed += Launcher_VersionsRefreshed;
             VersionButton.Content = MCVersionsCreator.GetNotSelectedVersion();
-            await MainCore.Launcher.RefreshVersions();
             ToggleMenuFlyoutItem createItm(string name)
             {
                 var itm = new ToggleMenuFlyoutItem();
@@ -57,11 +62,46 @@ namespace Emerald.WinUI.Views
                     createItm("Custom".ToLocalizedString())
                 }
             };
+            _ = MainCore.Launcher.RefreshVersions();
+            this.Loaded -= InitializeWhenLoad;
         }
+
+        private async void Launcher_VersionsRefreshed(object sender, Core.Args.VersionsRefreshedEventArgs e)
+        {
+            if (e.Success)
+            {
+                treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
+                txtEmptyVers.Visibility = !(treeVer.ItemsSource as IEnumerable<Models.MinecraftVersion>).Any() ? Visibility.Visible : Visibility.Collapsed;
+
+            }
+            else
+            {
+                if (!MainCore.Launcher.UseOfflineLoader)
+                {
+                    var r = await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.RefreshVerFailed.ToLocalizedString(), MessageBoxButtons.Custom, Localized.Retry.ToLocalizedString(), Localized.SwitchOffline.ToLocalizedString());
+                    if (r == MessageBoxResults.CustomResult1)
+                    {
+                        _ = MainCore.Launcher.RefreshVersions();
+                    }
+                    else
+                    {
+                        MainCore.Launcher.SwitchToOffilineMode();
+                        _ = MainCore.Launcher.RefreshVersions();
+                    }
+                }
+                else
+                {
+                    await MessageBox.Show(Localized.Error, Localized.UnexpectedRestart, MessageBoxButtons.Ok);
+                    await CoreApplication.RequestRestartAsync("");
+                }
+            }
+        }
+
         private void VersionButton_Click(object sender, RoutedEventArgs e)
         {
             paneVersions.IsPaneOpen = true;
             treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
+            txtEmptyVers.Visibility = !(treeVer.ItemsSource as IEnumerable<Models.MinecraftVersion>).Any() ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void tglMitVerSort_Click(object sender, RoutedEventArgs e)
@@ -88,6 +128,7 @@ namespace Emerald.WinUI.Views
                 MCVersionsCreator.Configuration.Custom = mit.IsChecked;
             }
             treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
+            txtEmptyVers.Visibility = !(treeVer.ItemsSource as IEnumerable<Models.MinecraftVersion>).Any() ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void btnVerSort_Click(object sender, RoutedEventArgs e)
@@ -147,6 +188,7 @@ namespace Emerald.WinUI.Views
             {
                 treeVer.ItemsSource = suitableItems;
             }
+            txtEmptyVers.Visibility = (treeVer.ItemsSource as IEnumerable<Models.MinecraftVersion>).Count() == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void treeVer_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)

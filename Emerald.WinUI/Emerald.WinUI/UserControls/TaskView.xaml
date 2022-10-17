@@ -9,13 +9,27 @@
     xmlns:converters="using:Emerald.WinUI.Converters"
     xmlns:models="using:Emerald.WinUI.Models">
     <UserControl.Resources>
-        <converters:InfobarServertyToBackground 
-            ErrorBrush="{StaticResource InfoBarErrorSeverityBackgroundBrush}" 
-            WarningBrush="{StaticResource InfoBarWarningSeverityBackgroundBrush}"
-            SuccessBrush="{StaticResource InfoBarSuccessSeverityBackgroundBrush}"
-            InformationalBrush="{StaticResource InfoBarInformationalSeverityBackgroundBrush}"
-            x:Key="ServertyToBackground"/>
-        <converters:NotBoolToVisibility x:Key="NotBoolToVisibility"/>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <converters:InfobarServertyToBackground 
+                        InformationalBrush="#80F6F6F6"
+                        SuccessBrush="#FFDFF6DD"
+                        WarningBrush="#FFFFF4CE"
+                        ErrorBrush="#FFFDE7E9"
+                        x:Key="ServertyToBackground"/>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <converters:InfobarServertyToBackground
+                        InformationalBrush="#08FFFFFF"
+                        SuccessBrush="#FF393D1B"
+                        WarningBrush="#FF433519"
+                        ErrorBrush="#FF442726"
+                        x:Key="ServertyToBackground"/>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+            <converters:NotBoolToVisibility x:Key="NotBoolToVisibility"/>
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <ListView VerticalAlignment="Stretch" SelectionMode="None" x:Name="lv">

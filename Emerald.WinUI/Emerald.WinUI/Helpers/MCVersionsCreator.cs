@@ -25,40 +25,46 @@ namespace Emerald.WinUI.Helpers
         public static ObservableCollection<MinecraftVersion> CreateVersions()
         {
             Collection = new();
-            var lr = Core.MainCore.Launcher.MCVersions.LatestReleaseVersion?.Name;
-            var ls = Core.MainCore.Launcher.MCVersions.LatestSnapshotVersion;
-            var l = CreateItem("Latest", "latest");
-            l.SubVersions = new();
-            if (lr != null)
+            if (Core.MainCore.Launcher.MCVersions != null && Core.MainCore.Launcher.MCVersions.Count() > 0)
             {
-                l.SubVersions.Add(ReturnMCWithFabric(lr,"Latest Release"));
+                var lr = Core.MainCore.Launcher.MCVersions.LatestReleaseVersion?.Name;
+                var ls = Core.MainCore.Launcher.MCVersions.LatestSnapshotVersion;
+                var l = CreateItem("Latest", "latest");
+                l.SubVersions = new();
+                if (lr != null)
+                {
+                    l.SubVersions.Add(ReturnMCWithFabric(lr, "Latest Release"));
+                }
+                if (ls != null && ls.MType == CmlLib.Core.Version.MVersionType.Snapshot)
+                {
+                    l.SubVersions.Add(ReturnMCWithFabric(ls.Name, "Latest Snapshot"));
+                }
+                if (l.SubVersions.Count > 0)
+                {
+                    Collection.Add(l);
+                }
+                if (Configuration.Custom && LoadCustomVers() != null)
+                {
+                    Collection.Add(LoadCustomVers());
+                }
+                AddItem("1.19");
+                AddItem("1.18");
+                AddItem("1.17");
+                AddItem("1.16");
+                AddItem("1.15");
+                AddItem("1.12");
+                AddItem("1.11");
+                AddItem("1.10");
+                AddItem("1.9");
+                AddItem("1.8");
+                AddItem("1.7");
+                AddItem("1.6");
+                AddItem("1.5");
+                AddItem("1.4");
+                AddItem("1.3");
+                AddItem("1.2");
+                AddItem("1.1");
             }
-            if (ls != null && ls.MType == CmlLib.Core.Version.MVersionType.Snapshot)
-            {
-                l.SubVersions.Add(ReturnMCWithFabric(ls.Name, "Latest Snapshot"));
-            }
-            Collection.Add(l);
-            if (Configuration.Custom && LoadCustomVers() != null)
-            {
-                Collection.Add(LoadCustomVers());
-            }
-            AddItem("1.19");
-            AddItem("1.18");
-            AddItem("1.17");
-            AddItem("1.16");
-            AddItem("1.15");
-            AddItem("1.12");
-            AddItem("1.11");
-            AddItem("1.10");
-            AddItem("1.9");
-            AddItem("1.8");
-            AddItem("1.7");
-            AddItem("1.6");
-            AddItem("1.5");
-            AddItem("1.4");
-            AddItem("1.3");
-            AddItem("1.2");
-            AddItem("1.1");
             return Collection;
         }
         public static ObservableCollection<MinecraftVersion> CreateAllVersions()
@@ -102,7 +108,7 @@ namespace Emerald.WinUI.Helpers
         private static void AddItem(string ver)
         {
             var m = GetFromStrings(ver);
-            if (m != null)
+            if (m != null && !(m.Type == null && m.SubVersions.Count == 0))
             {
                 Collection.Add(m);
             }

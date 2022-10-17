@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Emerald.Core
 {
-    internal class Localized
+    public class Localized
     {
         public const string Welcome = "Welcome";
         public const string LaunchMC = "LaunchMC";
@@ -37,5 +37,14 @@ namespace Emerald.Core
         public const string NoNetwork = "NoNetwork";
         public const string Win32Error = "Win32Error";
         public const string GetVerFailed = "GetVerFailed";
+        public const string UnexpectedRestart = "UnexpectedRestart";
+        public const string RefreshVerFailed = "RefreshVerFailed";
+        public const string Retry = "Retry";
+
+        public const string Empty = "Empty";
+        public const string OK = "OK";
+        public const string No = "No";
+        public const string Cancel = "Cancel";
+        public const string Yes = "Yes";
     }
 }

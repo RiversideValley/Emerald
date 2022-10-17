@@ -129,14 +129,6 @@ namespace Emerald.UWP
             }
         }
 
-        private void ContentDialog_Loaded(object sender, RoutedEventArgs e)
-        {
-        }
-
-        private void ContentDialog_CloseButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
-        {
-
-        }
     }
     public class MessageBox
     {

@@ -53,6 +53,6 @@ namespace Emerald.WinUI
             Helpers.WindowManager.IntializeWindow(MainWindow);
         }
 
-        public static Window MainWindow;
+        public static Window MainWindow { get; private set; }
     }
 }

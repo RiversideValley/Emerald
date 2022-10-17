@@ -23,8 +23,8 @@ namespace Emerald.WinUI.UserControls
     {
         private int lastID = 0;
 
-        private ObservableCollection<Models.Task> Tasks { get; set; } = new();
-        public List<Models.Task> AllTasks { get => Tasks.ToList(); }
+        private ObservableCollection<Models.ITask> Tasks { get; set; } = new();
+        public Models.ITask[] AllTasks{ get => Tasks.ToArray(); }
 
         public TaskView()
         {

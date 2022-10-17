@@ -4,7 +4,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:Emerald.WinUI.Views"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:models="using:Emerald.WinUI.Models"
+    xmlns:core="using:Emerald.Core"
+    
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:models="using:Emerald.WinUI.Models" xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations"
     mc:Ignorable="d">
     <Page.Resources>
         <DataTemplate x:DataType="models:MinecraftVersion" x:Key="MCVersionTemplate">
@@ -48,7 +50,17 @@
                         </DataTemplate>
                     </TreeView.ItemTemplate>
                 </TreeView>
-                
+                <TextBlock Grid.Row="1" x:Name="txtEmptyVers" Visibility="Collapsed" Text="{x:Bind core:Localized.Empty,Converter={StaticResource StringToLocalized}}" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <animations:Implicit.ShowAnimations>
+          <animations:TranslationAnimation Duration="0:0:0.5" From="0, 200, 0" To="0"/>
+          <animations:OpacityAnimation Duration="0:0:0.5" From="0" To="1.0"/>
+        </animations:Implicit.ShowAnimations>
+
+        <animations:Implicit.HideAnimations>
+          <animations:TranslationAnimation Duration="0:0:0.5" From="0, 0, 0" To="0, -200,0"/>
+          <animations:OpacityAnimation Duration="0:0:0.5" To="0.0"/>
+        </animations:Implicit.HideAnimations>
+                </TextBlock>
             </Grid>
         </SplitView.Pane>
         <Grid>

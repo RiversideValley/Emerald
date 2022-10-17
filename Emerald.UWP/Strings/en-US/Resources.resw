@@ -123,6 +123,9 @@
   <data name="BegVer" xml:space="preserve">
     <value>Please enter a version</value>
   </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
   <data name="Download" xml:space="preserve">
     <value>Download</value>
   </data>
@@ -189,8 +192,14 @@
   <data name="MainPage_txtStatus.Text" xml:space="preserve">
     <value>Status:</value>
   </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
   <data name="NoNetwork" xml:space="preserve">
     <value>Seems like you don't have good internet...</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
   </data>
   <data name="PickVer" xml:space="preserve">
     <value>Pick a version</value>
@@ -237,5 +246,8 @@
   <data name="WrongRAM" xml:space="preserve">
     <value>Invalid RAM</value>
     <comment>Rarely Used</comment>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
   </data>
 </root>
