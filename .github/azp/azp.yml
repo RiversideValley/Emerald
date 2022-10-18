@@ -10,7 +10,7 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: 'Emerald.App/**/*.sln'
+  solution: '**/*.sln'
   buildPlatform: 'x64'
   buildConfiguration: 'SkipOld'
   appxPackageDir: '$(build.artifactStagingDirectory)\AppxPackages\\'
