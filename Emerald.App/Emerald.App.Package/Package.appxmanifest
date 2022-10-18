@@ -7,13 +7,13 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="Depth.EmeraldLauncher"
+    Name="Andrexial.EmeraldLauncher"
     Publisher="CN=Depth"
     Version="0.6.0.0" />
 
   <Properties>
     <DisplayName>Emerald.WinUI (Package)</DisplayName>
-    <PublisherDisplayName>user</PublisherDisplayName>
+    <PublisherDisplayName>Depth</PublisherDisplayName>
     <Logo>Images\StoreLogo.png</Logo>
   </Properties>
 
@@ -38,6 +38,14 @@
         <uap:DefaultTile Wide310x150Logo="Images\Wide310x150Logo.png"  Square71x71Logo="Images\SmallTile.png" Square310x310Logo="Images\LargeTile.png"/>
         <uap:SplashScreen Image="Images\SplashScreen.png" />
       </uap:VisualElements>
+      <Extensions>
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="cdls.emerald">
+            <uap:Logo>Images\StoreLogo.png</uap:Logo>
+            <uap:DisplayName>Emerald</uap:DisplayName>
+          </uap:Protocol>
+        </uap:Extension>
+      </Extensions>
     </Application>
   </Applications>
 

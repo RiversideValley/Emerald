@@ -43,7 +43,7 @@
   </ItemGroup>
   <PropertyGroup>
     <WapProjPath Condition="'$(WapProjPath)'==''">$(MSBuildExtensionsPath)\Microsoft\DesktopBridge\</WapProjPath>
-    <PathToXAMLWinRTImplementations>Emerald.WinUI\</PathToXAMLWinRTImplementations>
+    <PathToXAMLWinRTImplementations>Emerald.App\</PathToXAMLWinRTImplementations>
   </PropertyGroup>
   <Import Project="$(WapProjPath)\Microsoft.DesktopBridge.props" />
   <PropertyGroup>
@@ -53,7 +53,7 @@
     <AssetTargetFallback>net6.0-windows$(TargetPlatformVersion);$(AssetTargetFallback)</AssetTargetFallback>
     <DefaultLanguage>en-US</DefaultLanguage>
     <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
-    <EntryPointProjectUniqueName>..\Emerald.WinUI\Emerald.WinUI.csproj</EntryPointProjectUniqueName>
+    <EntryPointProjectUniqueName>..\Emerald.App\Emerald.App.csproj</EntryPointProjectUniqueName>
   </PropertyGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -114,7 +114,7 @@
     <Content Include="Images\Wide310x150Logo.scale-400.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Emerald.WinUI\Emerald.WinUI.csproj">
+    <ProjectReference Include="..\Emerald.App\Emerald.App.csproj">
       <SkipGetTargetFrameworkProperties>True</SkipGetTargetFrameworkProperties>
       <PublishProfile>Properties\PublishProfiles\win10-$(Platform).pubxml</PublishProfile>
     </ProjectReference>
