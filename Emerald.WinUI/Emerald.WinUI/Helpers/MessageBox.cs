@@ -125,6 +125,7 @@ namespace Emerald.WinUI.Helpers
         public static async Task<MessageBoxResults> Show(string text)
         {
             var d = new MessageBox("Information", text, MessageBoxButtons.Ok);
+            d.XamlRoot = MainWindow.HomePage.XamlRoot;
             await d.ShowAsync();
             return d.Result;
         }

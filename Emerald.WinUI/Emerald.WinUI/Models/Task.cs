@@ -23,7 +23,8 @@ namespace Emerald.WinUI.Models
         public int ID { get; set; }
         public InfoBarSeverity Severity { get; set; }
         public ObservableCollection<UIElement> CustomControls { get; set; }
-
+        public Visibility RemoveButtonVisibility { get; set; }
+        public Visibility IconVisibility { get; }
     }
     public class StringTask : Model, ITask 
     {
@@ -41,6 +42,11 @@ namespace Emerald.WinUI.Models
 
         public ObservableCollection<UIElement> _CustomControls;
         public ObservableCollection<UIElement> CustomControls { get => _CustomControls; set => Set(ref _CustomControls, value); }
+
+        public Visibility _RemoveButtonVisibility = Visibility.Collapsed;
+        public Visibility RemoveButtonVisibility { get => _RemoveButtonVisibility; set => Set(ref _RemoveButtonVisibility, value); }
+
+        public Visibility IconVisibility { get => RemoveButtonVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible; }
 
         public StringTask(string content, DateTime time, int iD, InfoBarSeverity severity, object uniqueThings = null, ObservableCollection<UIElement> customCOntrols = null)
         {
@@ -79,6 +85,11 @@ namespace Emerald.WinUI.Models
         
         public ObservableCollection<UIElement> _CustomControls;
         public ObservableCollection<UIElement> CustomControls { get => _CustomControls; set => Set(ref _CustomControls, value); }
+
+        public Visibility _RemoveButtonVisibility = Visibility.Collapsed;
+        public Visibility RemoveButtonVisibility { get => _RemoveButtonVisibility; set => Set(ref _RemoveButtonVisibility, value); }
+
+        public Visibility IconVisibility { get => RemoveButtonVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible; }
 
         public ProgressTask(string content, DateTime time, int iD, int progress = 0, InfoBarSeverity severity = InfoBarSeverity.Informational, bool isIndeterminate = false, object uniquethings = null, ObservableCollection<UIElement> customCOntrols = null)
         {

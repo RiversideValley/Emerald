@@ -27,7 +27,7 @@ namespace Emerald.WinUI
     /// </summary>
     public sealed partial class MainWindow : Window
     {
-        public static Views.HomePage HomePage { get; private set; }
+        public static Views.Home.HomePage HomePage { get; private set; }
         public static UserControls.TaskView TaskView { get; private set; } = new();
         private Flyout TaskViewFlyout = new();
         public static Frame MainFrame { get; private set; }
@@ -43,8 +43,8 @@ namespace Emerald.WinUI
             MainFrame = frame;
             NavView.MenuItems.Add(new NavViewItem() { Content = "Home".ToLocalizedString(), IconGlyph = "\uE10F",IsSelected = true });
             NavView.MenuItems.Add(new NavViewItem() { Content = "Store".ToLocalizedString(), IconGlyph = "\uE14D" });
-            NavView.FooterMenuItems.Add(new NavViewItem() { Content = "Tasks".ToLocalizedString(), IconGlyph = "\xe9d5", InfoBadge = TasksInfoBadge });
-            NavView.FooterMenuItems.Add(new NavViewItem() { Content = "Logs".ToLocalizedString(), IconGlyph = "\xe756" });
+            NavView.FooterMenuItems.Add(new NavViewItem() { Content = "Tasks".ToLocalizedString(), IconGlyph = "\xF16A", InfoBadge = TasksInfoBadge });
+            NavView.FooterMenuItems.Add(new NavViewItem() { Content = "Logs".ToLocalizedString(), IconGlyph = "\xE756" });
             NavView.Header = new NavViewHeader() { HeaderText = "Home".ToLocalizedString(), HeaderMargin = GetNavViewHeaderMargin() };
             NavView.DisplayModeChanged += (_, _) => (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
             WindowManager.SetTitleBar(this, AppTitleBar);
@@ -108,22 +108,22 @@ namespace Emerald.WinUI
         /// Item 2 is the source (Menu,Footer,Settings).
         /// </summary>
         private (int,int) SelectedItemIndex;
+        private void UpdateSelectedItem() =>
+            SelectedItemIndex = NavView.SelectedItem is NavViewItem item ?
+            (
+            ((NavView.SelectedItem as NavViewItem).Content.ToString() == "Tasks".ToLocalizedString()) ?
+            SelectedItemIndex
+            : (NavView.MenuItems.IndexOf(
+                NavView.MenuItems
+                .FirstOrDefault(x => (NavViewItem)x == item)) == -1 ?
+                    (1, 1)
+                    :
+                    (NavView.MenuItems.IndexOf(
+                    NavView.MenuItems
+                    .FirstOrDefault(x => (NavViewItem)x == item)), 0))
+                    ) : (1, 2);
         private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
-            void UpdateSelectedItem() =>
-                SelectedItemIndex = NavView.SelectedItem is NavViewItem ?
-                (
-                ((NavView.SelectedItem as NavViewItem).Content.ToString() == "Tasks".ToLocalizedString()) ?
-                SelectedItemIndex
-                : (NavView.MenuItems.IndexOf(
-                    NavView.MenuItems
-                    .FirstOrDefault(x => NavView.SelectedItem is NavViewItem && (NavViewItem)x == (NavViewItem)NavView.SelectedItem)) == -1 ?
-                        (1,1)
-                        :
-                        (NavView.MenuItems.IndexOf(
-                        NavView.MenuItems
-                        .FirstOrDefault(x => NavView.SelectedItem is NavViewItem && (NavViewItem)x == (NavViewItem)NavView.SelectedItem)),0))
-                        ) : (1, 2);
             if (!args.IsSettingsInvoked)
             {
                 var h = (NavView.SelectedItem as NavViewItem).Content.ToString();

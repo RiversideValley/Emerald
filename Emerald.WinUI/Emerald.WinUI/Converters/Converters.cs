@@ -93,4 +93,28 @@ namespace Emerald.WinUI.Converters
         }
 
     }
+    public class InfobarServertyToIconGlyph: IValueConverter
+    {
+        public string ErrorString{ get; set; }
+        public string WarningString { get; set; }
+        public string SuccessString { get; set; }
+        public string InformationalString { get; set; }
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            return (Microsoft.UI.Xaml.Controls.InfoBarSeverity)value switch
+            {
+                Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error => ErrorString,
+                Microsoft.UI.Xaml.Controls.InfoBarSeverity.Warning => WarningString,
+                Microsoft.UI.Xaml.Controls.InfoBarSeverity.Success => SuccessString,
+                Microsoft.UI.Xaml.Controls.InfoBarSeverity.Informational => InformationalString,
+                _ => InformationalString,
+            };
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new InvalidOperationException("Error lol.");
+        }
+
+    }
 }

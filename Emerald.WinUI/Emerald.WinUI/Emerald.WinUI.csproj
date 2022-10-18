@@ -19,6 +19,7 @@
     <None Remove="UserControls\TaskViewGrid.xaml" />
     <None Remove="UserControls\TitleBar.xaml" />
     <None Remove="Views\HomePage.xaml" />
+    <None Remove="Views\Home\AccountsPage.xaml" />
     <None Remove="Views\Settings\AboutPage.xaml" />
     <None Remove="Views\Settings\AccountPage.xaml" />
     <None Remove="Views\Settings\AppearancePage.xaml" />
@@ -50,6 +51,12 @@
     <Content Update="Assets\icon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\Home\AccountsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <ItemGroup>
@@ -110,7 +117,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Update="Views\HomePage.xaml">
+    <Page Update="Views\Home\HomePage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

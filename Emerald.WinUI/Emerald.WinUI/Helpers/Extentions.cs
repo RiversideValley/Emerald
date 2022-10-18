@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Emerald.WinUI.Helpers
 {
-    public static class Localizer
+    public static class Extentions
     {
         public static string ToLocalizedString(this string resourceKey)
         {
@@ -32,6 +32,11 @@ namespace Emerald.WinUI.Helpers
             {
                 return resourceKey.ToString();
             }
+        }
+        public static Models.Account ToAccount(this CmlLib.Core.Auth.MSession session)
+        {
+            bool isOffline = session.UUID == "user_uuid";
+            return new Models.Account(session.Username, isOffline ? Enums.AccountType.Offline : Enums.AccountType.Microsoft, isOffline ? null : session.AccessToken, isOffline ? null : session.UUID, MainWindow.HomePage.AccountsPage.AllCount++, false);
         }
     }
 }

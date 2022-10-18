@@ -20,16 +20,18 @@ using Emerald.WinUI.Helpers;
 using System.Collections.ObjectModel;
 using Windows.ApplicationModel.Core;
 using Emerald.WinUI.Enums;
+using CmlLib.Core.Auth;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-namespace Emerald.WinUI.Views
+namespace Emerald.WinUI.Views.Home
 {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class HomePage : Page
     {
+        public AccountsPage AccountsPage { get; private set; }
         public HomePage()
         {
             this.InitializeComponent();
@@ -64,9 +66,32 @@ namespace Emerald.WinUI.Views
                 }
             };
             _ = MainCore.Launcher.RefreshVersions();
+            AccountsPage = new();
             this.Loaded -= InitializeWhenLoad;
         }
-
+        public string GetLauncVer(bool returntag = false)
+        {
+            var s = (VersionButton.Content as Models.MinecraftVersion).Version;
+            if (string.IsNullOrEmpty(s))
+            {
+                return null;
+            }
+            else
+            {
+                if (!returntag)
+                {
+                    if (s.StartsWith("vanilla-"))
+                    {
+                       s = s.Remove(0, 8);
+                    }
+                    else if(s.StartsWith("fabricMC-"))
+                    {
+                        s = s.Remove(0, 9);
+                    }
+                }
+            }
+            return s;
+        }
         private async void Launcher_VersionsRefreshed(object sender, Core.Args.VersionsRefreshedEventArgs e)
         {
             if (e.Success)
@@ -78,6 +103,7 @@ namespace Emerald.WinUI.Views
                 if (!MainCore.Launcher.UseOfflineLoader)
                 {
                     var r = await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.RefreshVerFailed.ToLocalizedString(), MessageBoxButtons.Custom, Localized.Retry.ToLocalizedString(), Localized.SwitchOffline.ToLocalizedString());
+                    MessageBox.Show(Helpers.Settings.SettingsSystem.Serialize());
                     if (r == MessageBoxResults.CustomResult1)
                     {
                         _ = MainCore.Launcher.RefreshVersions();
@@ -202,6 +228,14 @@ namespace Emerald.WinUI.Views
             {
                 paneVersions.IsPaneOpen = false;
             }
+        }
+
+        private int currentPage = 0;
+        private void AccountButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainWindow.MainFrame.Content = AccountsPage;
+            currentPage = 1;
+            AccountsPage.Accounts.Add(MSession.GetOfflineSession("Noob").ToAccount());
         }
     }
 }

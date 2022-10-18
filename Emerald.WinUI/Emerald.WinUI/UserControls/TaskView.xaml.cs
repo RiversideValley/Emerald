@@ -29,6 +29,8 @@ namespace Emerald.WinUI.UserControls
         public TaskView()
         {
             this.InitializeComponent();
+            Tasks.CollectionChanged += (_, _) =>
+                txtEmpty.Visibility = Tasks.Any() ? Visibility.Collapsed : Visibility.Visible;
             lv.ItemsSource = Tasks;
         }
         public int AddProgressTask(string content, int progress = 0, InfoBarSeverity severity = InfoBarSeverity.Informational, bool IsIndeterminate = false, object UniqueThings = null, ObservableCollection<UIElement> customCOntrols = null)
@@ -51,7 +53,13 @@ namespace Emerald.WinUI.UserControls
                 return null;
             }
         }
-        public void ClearAll() => Tasks.Clear();
+        public void ClearAll()
+        {
+            for(int i = Tasks.Count - 1;i >= 0; i--)
+            {
+                Tasks.RemoveAt(i);
+            }
+        }
         public int[] SearchByUniqueThingsToString(string uniquethings)
         {
             try
@@ -155,6 +163,21 @@ namespace Emerald.WinUI.UserControls
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
                 return false;
             }
+        }
+
+        private void btnIcon_PointerEntered(object sender, PointerRoutedEventArgs e)
+        {
+            ((sender as Grid).DataContext as Models.ITask).RemoveButtonVisibility = Visibility.Visible;
+        }
+
+        private void btnIcon_PointerExited(object sender, PointerRoutedEventArgs e)
+        {
+            ((sender as Grid).DataContext as Models.ITask).RemoveButtonVisibility = Visibility.Collapsed;
+        }
+
+        private void btnRemoveTask_Click(object sender, RoutedEventArgs e)
+        {
+            Tasks.Remove(((sender as Button).DataContext as Models.ITask));
         }
     }
 }
