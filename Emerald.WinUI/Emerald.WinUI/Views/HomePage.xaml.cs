@@ -44,6 +44,7 @@ namespace Emerald.WinUI.Views
             MainCore.Launcher.InitializeLauncher(new MinecraftPath(MinecraftPath.GetOSDefaultPath()));
             MainCore.Launcher.VersionsRefreshed += Launcher_VersionsRefreshed;
             VersionButton.Content = MCVersionsCreator.GetNotSelectedVersion();
+            btnCloseVerPane.Click += (_, _) => paneVersions.IsPaneOpen = false;
             ToggleMenuFlyoutItem createItm(string name)
             {
                 var itm = new ToggleMenuFlyoutItem();
@@ -70,9 +71,7 @@ namespace Emerald.WinUI.Views
         {
             if (e.Success)
             {
-                treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
-                txtEmptyVers.Visibility = !(treeVer.ItemsSource as IEnumerable<Models.MinecraftVersion>).Any() ? Visibility.Visible : Visibility.Collapsed;
-
+                UpdateVerTreeSource();
             }
             else
             {
@@ -91,7 +90,7 @@ namespace Emerald.WinUI.Views
                 }
                 else
                 {
-                    await MessageBox.Show(Localized.Error, Localized.UnexpectedRestart, MessageBoxButtons.Ok);
+                    await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.UnexpectedRestart.ToLocalizedString(), MessageBoxButtons.Ok);
                     await CoreApplication.RequestRestartAsync("");
                 }
             }
@@ -100,8 +99,7 @@ namespace Emerald.WinUI.Views
         private void VersionButton_Click(object sender, RoutedEventArgs e)
         {
             paneVersions.IsPaneOpen = true;
-            treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
-            txtEmptyVers.Visibility = !(treeVer.ItemsSource as IEnumerable<Models.MinecraftVersion>).Any() ? Visibility.Visible : Visibility.Collapsed;
+            UpdateVerTreeSource();
         }
 
         private void tglMitVerSort_Click(object sender, RoutedEventArgs e)
@@ -127,10 +125,16 @@ namespace Emerald.WinUI.Views
             {
                 MCVersionsCreator.Configuration.Custom = mit.IsChecked;
             }
+            UpdateVerTreeSource();
+        }
+        private void UpdateVerTreeSource()
+        {
+            btnVerSort.IsEnabled = !MainCore.Launcher.UseOfflineLoader;
+            txtVerOfflineMode.Visibility = Core.MainCore.Launcher.UseOfflineLoader ? Visibility.Visible : Visibility.Collapsed;
+            treeVer.ItemsSource = null;
             treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
             txtEmptyVers.Visibility = !(treeVer.ItemsSource as IEnumerable<Models.MinecraftVersion>).Any() ? Visibility.Visible : Visibility.Collapsed;
         }
-
         private void btnVerSort_Click(object sender, RoutedEventArgs e)
         {
             var f = btnVerSort.Flyout as MenuFlyout;

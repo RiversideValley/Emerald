@@ -20,90 +20,104 @@ namespace Emerald.WinUI.Helpers
         private static ObservableCollection<MinecraftVersion> Collection;
         public static MinecraftVersion GetNotSelectedVersion()
         {
-            return new MinecraftVersion() { DisplayVersion = "Select a version" };
+            return new MinecraftVersion() { DisplayVersion = Core.Localized.PickVer.ToLocalizedString() };
         }
         public static ObservableCollection<MinecraftVersion> CreateVersions()
         {
             Collection = new();
-            if (Core.MainCore.Launcher.MCVersions != null && Core.MainCore.Launcher.MCVersions.Count() > 0)
+            if (Core.MainCore.Launcher.MCVersions != null && Core.MainCore.Launcher.MCVersions.Any())
             {
-                var lr = Core.MainCore.Launcher.MCVersions.LatestReleaseVersion?.Name;
-                var ls = Core.MainCore.Launcher.MCVersions.LatestSnapshotVersion;
-                var l = CreateItem("Latest", "latest");
-                l.SubVersions = new();
-                if (lr != null)
+                if (Core.MainCore.Launcher.UseOfflineLoader)
                 {
-                    l.SubVersions.Add(ReturnMCWithFabric(lr, "Latest Release"));
+                    Collection = LoadCustomVers().SubVersions;
                 }
-                if (ls != null && ls.MType == CmlLib.Core.Version.MVersionType.Snapshot)
+                else
                 {
-                    l.SubVersions.Add(ReturnMCWithFabric(ls.Name, "Latest Snapshot"));
+                    var lr = Core.MainCore.Launcher.MCVersions.LatestReleaseVersion?.Name;
+                    var ls = Core.MainCore.Launcher.MCVersions.LatestSnapshotVersion;
+                    var l = CreateItem("Latest", "latest");
+                    l.SubVersions = new();
+                    if (lr != null)
+                    {
+                        l.SubVersions.Add(ReturnMCWithFabric(lr, "Latest Release", CmlLib.Core.Version.MVersionType.Release));
+                    }
+                    if (ls != null && ls.MType == CmlLib.Core.Version.MVersionType.Snapshot)
+                    {
+                        l.SubVersions.Add(ReturnMCWithFabric(ls.Name, "Latest Snapshot", CmlLib.Core.Version.MVersionType.Snapshot));
+                    }
+                    if (l.SubVersions.Count > 0)
+                    {
+                        Collection.Add(l);
+                    }
+                    if (Configuration.Custom && LoadCustomVers() != null)
+                    {
+                        Collection.Add(LoadCustomVers());
+                    }
+                    AddItem("1.19");
+                    AddItem("1.18");
+                    AddItem("1.17");
+                    AddItem("1.16");
+                    AddItem("1.15");
+                    AddItem("1.12");
+                    AddItem("1.11");
+                    AddItem("1.10");
+                    AddItem("1.9");
+                    AddItem("1.8");
+                    AddItem("1.7");
+                    AddItem("1.6");
+                    AddItem("1.5");
+                    AddItem("1.4");
+                    AddItem("1.3");
+                    AddItem("1.2");
+                    AddItem("1.1");
                 }
-                if (l.SubVersions.Count > 0)
-                {
-                    Collection.Add(l);
-                }
-                if (Configuration.Custom && LoadCustomVers() != null)
-                {
-                    Collection.Add(LoadCustomVers());
-                }
-                AddItem("1.19");
-                AddItem("1.18");
-                AddItem("1.17");
-                AddItem("1.16");
-                AddItem("1.15");
-                AddItem("1.12");
-                AddItem("1.11");
-                AddItem("1.10");
-                AddItem("1.9");
-                AddItem("1.8");
-                AddItem("1.7");
-                AddItem("1.6");
-                AddItem("1.5");
-                AddItem("1.4");
-                AddItem("1.3");
-                AddItem("1.2");
-                AddItem("1.1");
             }
             return Collection;
         }
         public static ObservableCollection<MinecraftVersion> CreateAllVersions()
         {
-            var l = new List<MinecraftVersion>();
-            MinecraftVersion[] GetVers(string ver)
+            if (Core.MainCore.Launcher.UseOfflineLoader)
             {
-                string fabricVer = Core.MainCore.Launcher.SearchFabric(ver);
-                var verMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
-                if (string.IsNullOrEmpty(fabricVer))
+                return LoadCustomVers().SubVersions;
+            }
+            else
+            {
+                var l = new List<MinecraftVersion>();
+                MinecraftVersion[] GetVers(string ver)
                 {
-                    if (ConfigToList(true).Contains(verMdata.MType))
+                    string fabricVer = Core.MainCore.Launcher.SearchFabric(ver);
+                    var verMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
+                    if (string.IsNullOrEmpty(fabricVer))
                     {
-                        return new MinecraftVersion[] { CreateItem(ver, "vaniila-" + ver, type: verMdata.MType) };
+                        if (ConfigToList(true).Contains(verMdata.MType))
+                        {
+                            return new MinecraftVersion[] { CreateItem(ver, "vaniila-" + ver, type: verMdata.MType) };
+                        }
+                        else
+                        {
+                            return Array.Empty<MinecraftVersion>();
+                        }
                     }
                     else
                     {
-                        return Array.Empty<MinecraftVersion>();
+                        if (ConfigToList(true).Contains(verMdata.MType))
+                        {
+                            return new MinecraftVersion[] { CreateItem($"{ver} Vanilla", "vaniila-" + ver, type: verMdata.MType), CreateItem($"{ver} Fabric", "fabricMC-" + fabricVer, type: verMdata.MType) };
+                        }
+                        else
+                        {
+                            return Array.Empty<MinecraftVersion>();
+                        }
                     }
                 }
-                else
+
+                foreach (var item in Core.MainCore.Launcher.MCVerNames)
                 {
-                    if (ConfigToList(true).Contains(verMdata.MType))
-                    {
-                        return new MinecraftVersion[] { CreateItem($"{ver} Vanilla", "vaniila-" + ver, type: verMdata.MType), CreateItem($"{ver} Fabric", "fabricMC-" + fabricVer, type: verMdata.MType) };
-                    }
-                    else
-                    {
-                        return Array.Empty<MinecraftVersion>();
-                    }
+                    l.AddRange(GetVers(item));
                 }
-            }
+                return new ObservableCollection<MinecraftVersion>(l);
 
-            foreach (var item in Core.MainCore.Launcher.MCVerNames)
-            {
-                l.AddRange(GetVers(item));
             }
-            return new ObservableCollection<MinecraftVersion>(l);
-
         }
         private static void AddItem(string ver)
         {
@@ -208,20 +222,22 @@ namespace Emerald.WinUI.Helpers
                 }
             }
         }
-        private static MinecraftVersion ReturnMCWithFabric(string ver,string displayVer = null)
+        private static MinecraftVersion ReturnMCWithFabric(string ver,string displayVer = null,CmlLib.Core.Version.MVersionType? type = null)
         {
             string fabricVer = Core.MainCore.Launcher.SearchFabric(ver);
             var verMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
             if (string.IsNullOrEmpty(fabricVer))
             {
-                return displayVer == null? CreateItem($"{ver} Vanilla", "vaniila-" + ver, type: verMdata.MType) : CreateItem($"{displayVer} Vanilla", "vaniila-" + ver, type: verMdata.MType);
+                return displayVer == null? CreateItem($"{ver} Vanilla", "vaniila-" + ver, type: type ?? verMdata.MType) : CreateItem($"{displayVer} Vanilla", "vaniila-" + ver, type: type ?? verMdata.MType);
             }
             else
             {
                 var i = CreateItem(displayVer ?? ver, ver);
-                i.SubVersions = new();
-                i.SubVersions.Add(displayVer == null ? CreateItem($"{ver} Vanilla", "vaniila-" + ver, type: verMdata.MType) : CreateItem($"{displayVer} Vanilla", "vaniila-" + ver, type: verMdata.MType));
-                i.SubVersions.Add(displayVer == null ? CreateItem($"{ver} Fabric", "fabricMC-" + fabricVer, type: verMdata.MType) : CreateItem($"{displayVer} Fabric", "fabricMC-" + fabricVer, type: verMdata.MType));
+                i.SubVersions = new()
+                {
+                    displayVer == null ? CreateItem($"{ver} Vanilla", "vaniila-" + ver, type: type ?? verMdata.MType) : CreateItem($"{displayVer} Vanilla", "vaniila-" + ver, type: type ?? verMdata.MType),
+                    displayVer == null ? CreateItem($"{ver} Fabric", "fabricMC-" + fabricVer,  type: type ?? verMdata.MType) : CreateItem($"{displayVer} Fabric", "fabricMC-" + fabricVer, type: type ?? verMdata.MType)
+                };
                 return i;
             }
         }

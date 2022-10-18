@@ -1,0 +1,34 @@
+﻿<Grid Margin="-12"
+    x:Class="Emerald.WinUI.UserControls.TaskViewGrid" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="using:Emerald.WinUI.UserControls" xmlns:helpers="using:Emerald.WinUI.Helpers"
+    Width="330"
+    MinHeight="300"
+    MaxHeight="400" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+    <Grid
+        BorderBrush="{ThemeResource AppBarSeparatorForegroundThemeBrush}"
+        BorderThickness="0,0,0,0.5">
+        <TextBlock
+            Margin="10,13"
+            FontSize="14"
+            FontWeight="SemiBold"
+            Text="{helpers:LocalizeString Name=Tasks}" />
+        <Button
+            x:Name="bntClearAll"
+            Height="32"
+            Margin="0,5,5,5"
+            HorizontalAlignment="Right"
+            Background="Transparent"
+            BorderBrush="Transparent"
+            Click="bntClearAll_Click"
+            Content="{helpers:LocalizeString Name=ClearAll}"
+            ToolTipService.ToolTip="{helpers:LocalizeString Name=ClearAll}" />
+    </Grid>
+    <ContentPresenter
+        Grid.Row="1"
+        Padding="0"
+        Content="{x:Bind TaskView,Mode=OneWay}" />
+</Grid>

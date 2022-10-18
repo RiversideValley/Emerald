@@ -269,6 +269,10 @@ namespace Emerald.Core
         {
             StatusChanged(this, new StatusChangedEventArgs(stats));
         }
+        private void Status(Localized stats)
+        {
+            StatusChanged(this, new StatusChangedEventArgs(stats.ToString()));
+        }
         public void InitializeLauncher(MinecraftPath path)
         {
             UI(false);
@@ -346,7 +350,7 @@ namespace Emerald.Core
         {
             int taskID = TasksHelper.AddTask($"{Localized.GetFabric} " + mcver);
             string launchVer = "";
-            string displayVer = Localized.PickVer;
+            string displayVer = Localized.PickVer.ToString();
             bool exists = false;
             await RefreshVersions();
             foreach (var veritem in FabricMCVersions)

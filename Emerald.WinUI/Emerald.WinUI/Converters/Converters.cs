@@ -9,18 +9,6 @@ using System.Threading.Tasks;
 
 namespace Emerald.WinUI.Converters
 {
-    public class StringToLocalized : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            return Helpers.Localizer.ToLocalizedString(value.ToString());
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            return Helpers.Localizer.ToLocalizedString(value.ToString());
-        }
-    }
     public class StringToVisibility : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)

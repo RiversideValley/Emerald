@@ -12,7 +12,15 @@
                 <!-- Other merged dictionaries here -->
             </ResourceDictionary.MergedDictionaries>
             <!-- Other app resources here -->
-            <conv:StringToLocalized x:Key="StringToLocalized"/>
+            <ResourceDictionary x:Key="TransparentButton">
+                <SolidColorBrush x:Key="ButtonBackground" Color="Transparent"/>
+                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="Transparent"/>
+                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="Transparent"/>
+
+                <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent"/>
+                <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent"/>
+                <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent"/>
+            </ResourceDictionary>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

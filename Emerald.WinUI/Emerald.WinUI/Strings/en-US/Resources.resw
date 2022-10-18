@@ -123,6 +123,9 @@
   <data name="BegVer" xml:space="preserve">
     <value>Please enter a version</value>
   </data>
+  <data name="ClearAll" xml:space="preserve">
+    <value>Clear All</value>
+  </data>
   <data name="Custom" xml:space="preserve">
     <value>Custom</value>
   </data>
@@ -207,6 +210,9 @@
   <data name="NoNetwork" xml:space="preserve">
     <value>Seems like you don't have good internet...</value>
   </data>
+  <data name="OfflineMode" xml:space="preserve">
+    <value>Offline Mode</value>
+  </data>
   <data name="OldAlpha" xml:space="preserve">
     <value>OldAlpha</value>
   </data>
@@ -214,7 +220,7 @@
     <value>OldBeta</value>
   </data>
   <data name="PickVer" xml:space="preserve">
-    <value>Pick a version</value>
+    <value>Pick a Version</value>
   </data>
   <data name="RamFailed" xml:space="preserve">
     <value>Failed to get the RAM of the device.</value>

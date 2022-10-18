@@ -32,7 +32,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <ListView VerticalAlignment="Stretch" SelectionMode="None" x:Name="lv">
+    <ListView VerticalAlignment="Stretch" HorizontalAlignment="Stretch" SelectionMode="None" x:Name="lv">
         <ListView.ItemsPanel>
             <ItemsPanelTemplate>
                 <ItemsStackPanel ItemsUpdatingScrollMode="KeepLastItemInView" VerticalAlignment="Top"/>
@@ -43,11 +43,16 @@
             <converters:TaskViewTemplateSelector>
                 <converters:TaskViewTemplateSelector.Progress>
                     <DataTemplate x:DataType="models:ProgressTask">
-                        <Grid Margin="0,5,5,0" CornerRadius="5" Padding="10" x:DefaultBindMode="OneWay" Background="{x:Bind Severity,Converter={StaticResource ServertyToBackground}}">
+                        <Grid HorizontalAlignment="Stretch" Margin="0,5,0,0" CornerRadius="5" Padding="10" x:DefaultBindMode="OneWay" Background="{x:Bind Severity,Converter={StaticResource ServertyToBackground}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="auto"/>
                             </Grid.ColumnDefinitions>
+                            <Grid.ChildrenTransitions>
+                                <TransitionCollection>
+                                    <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                                </TransitionCollection>
+                            </Grid.ChildrenTransitions>
                             <Grid Grid.Column="0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="auto"/>
@@ -99,11 +104,16 @@
                 </converters:TaskViewTemplateSelector.Progress>
                 <converters:TaskViewTemplateSelector.String>
                     <DataTemplate x:DataType="models:StringTask">
-                        <Grid Margin="0,5,5,0" CornerRadius="5" Padding="10,10,10,0" x:DefaultBindMode="OneWay" Background="{x:Bind Severity,Converter={StaticResource ServertyToBackground}}">
+                        <Grid HorizontalAlignment="Stretch" Margin="0,5,0,0" CornerRadius="5" Padding="10,10,10,0" x:DefaultBindMode="OneWay" Background="{x:Bind Severity,Converter={StaticResource ServertyToBackground}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="auto"/>
                             </Grid.ColumnDefinitions>
+                            <Grid.ChildrenTransitions>
+                                <TransitionCollection>
+                                    <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                                </TransitionCollection>
+                            </Grid.ChildrenTransitions>
                             <Grid Grid.Column="0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="auto"/>

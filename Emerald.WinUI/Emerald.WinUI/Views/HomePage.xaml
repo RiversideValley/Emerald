@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:Emerald.WinUI.Views"
     xmlns:core="using:Emerald.Core"
-    
+    xmlns:helpers="using:Emerald.WinUI.Helpers"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:models="using:Emerald.WinUI.Models" xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations"
     mc:Ignorable="d">
     <Page.Resources>
@@ -26,14 +26,43 @@
             </Grid>
         </DataTemplate>
     </Page.Resources>
-    <SplitView OpenPaneLength="300" x:Name="paneVersions" PanePlacement="Left" DisplayMode="Overlay" PaneBackground="{ThemeResource AcrylicInAppFillColorDefaultBrush}">
+    <SplitView OpenPaneLength="300" x:Name="paneVersions" PanePlacement="Left" DisplayMode="Inline" PaneBackground="{ThemeResource LayerFillColorDefaultBrush}">
         <SplitView.Pane>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Vertical"  Margin="10" Grid.Column="0">
+                        <TextBlock Text="{helpers:LocalizeString Name=PickVer}" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        <TextBlock 
+                        x:Name="txtVerOfflineMode" 
+                        FontWeight="SemiBold"
+                        FontSize="13"
+                        VerticalAlignment="Bottom"
+                        Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}" 
+                        Text="{helpers:LocalizeString Name=OfflineMode}"/>
+                    </StackPanel>
+                    <Button x:Name="btnCloseVerPane" Padding="0" Margin="0,15,15,0" Grid.Column="1" VerticalAlignment="Top">
+                        <Button.Resources>
+                            <SolidColorBrush x:Key="ButtonBackground" Color="Transparent"/>
+                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="Transparent"/>
+                            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="Transparent"/>
+
+                            <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent"/>
+                            <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent"/>
+                            <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent"/>
+                        </Button.Resources>
+                        <FontIcon Glyph="&#xEDAE;"/>
+                    </Button>
+                </Grid>
+                <Grid Margin="5,0" Grid.Row="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="auto"/>
@@ -43,24 +72,14 @@
                         <FontIcon Glyph="&#xE16E;"/>
                     </DropDownButton>
                 </Grid>
-                <TreeView ItemInvoked="treeVer_ItemInvoked" Grid.Row="1" CanReorderItems="False" CanDragItems="False" SelectionMode="None" x:Name="treeVer">
+                <TreeView ItemInvoked="treeVer_ItemInvoked" Grid.Row="2" CanReorderItems="False" CanDragItems="False" SelectionMode="None" x:Name="treeVer">
                     <TreeView.ItemTemplate>
                         <DataTemplate x:DataType="models:MinecraftVersion">
                             <TreeViewItem MinHeight="0" ContentTemplate="{StaticResource MCVersionTemplate}" Content="{x:Bind}" Padding="0" Margin="0,0,5,0" x:DefaultBindMode="OneWay" ItemsSource="{x:Bind SubVersions}"/>
                         </DataTemplate>
                     </TreeView.ItemTemplate>
                 </TreeView>
-                <TextBlock Grid.Row="1" x:Name="txtEmptyVers" Visibility="Collapsed" Text="{x:Bind core:Localized.Empty,Converter={StaticResource StringToLocalized}}" VerticalAlignment="Center" HorizontalAlignment="Center">
-        <animations:Implicit.ShowAnimations>
-          <animations:TranslationAnimation Duration="0:0:0.5" From="0, 200, 0" To="0"/>
-          <animations:OpacityAnimation Duration="0:0:0.5" From="0" To="1.0"/>
-        </animations:Implicit.ShowAnimations>
-
-        <animations:Implicit.HideAnimations>
-          <animations:TranslationAnimation Duration="0:0:0.5" From="0, 0, 0" To="0, -200,0"/>
-          <animations:OpacityAnimation Duration="0:0:0.5" To="0.0"/>
-        </animations:Implicit.HideAnimations>
-                </TextBlock>
+                <TextBlock Grid.Row="2" x:Name="txtEmptyVers" Visibility="Collapsed" Text="{helpers:LocalizeString Name=Empty}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Grid>
         </SplitView.Pane>
         <Grid>

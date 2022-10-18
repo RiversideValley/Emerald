@@ -51,6 +51,7 @@ namespace Emerald.WinUI.UserControls
                 return null;
             }
         }
+        public void ClearAll() => Tasks.Clear();
         public int[] SearchByUniqueThingsToString(string uniquethings)
         {
             try

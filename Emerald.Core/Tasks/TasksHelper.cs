@@ -16,6 +16,12 @@ namespace Emerald.Core.Tasks
             TaskAddRequested(null, new TaskAddRequestedEventArgs(name, AllTaksCount));
             return AllTaksCount;
         }
+        public static int AddTask(Core.Localized name)
+        {
+            AllTaksCount++;
+            TaskAddRequested(null, new TaskAddRequestedEventArgs(name.ToString(), AllTaksCount));
+            return AllTaksCount;
+        }
         public static void CompleteTask(int ID, bool success = true)
         {
             TaskCompleteRequested(null, new TaskCompletedEventArgs(ID, success));

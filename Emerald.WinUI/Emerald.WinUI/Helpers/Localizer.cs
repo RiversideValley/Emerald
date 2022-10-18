@@ -21,5 +21,17 @@ namespace Emerald.WinUI.Helpers
                 return resourceKey;
             }
         }
+        public static string ToLocalizedString(this Core.Localized resourceKey)
+        {
+            try
+            {
+                var s = new ResourceLoader().GetString(resourceKey.ToString());
+                return string.IsNullOrEmpty(s) ? resourceKey.ToString() : s;
+            }
+            catch
+            {
+                return resourceKey.ToString();
+            }
+        }
     }
 }
