@@ -2,84 +2,145 @@
     x:Class="Emerald.WinUI.Views.Home.HomePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="using:Emerald.WinUI.Views.Home"
+    xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations"
     xmlns:core="using:Emerald.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helpers="using:Emerald.WinUI.Helpers"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:models="using:Emerald.WinUI.Models" xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations"
+    xmlns:local="using:Emerald.WinUI.Views.Home"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:Emerald.WinUI.Models"
     mc:Ignorable="d">
     <Page.Resources>
-        <DataTemplate x:DataType="models:MinecraftVersion" x:Key="MCVersionTemplate">
+        <DataTemplate x:Key="MCVersionTemplate" x:DataType="models:MinecraftVersion">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Image Source="{x:Bind BlockImageLocation}" Height="40" Stretch="Fill" VerticalAlignment="Top"/>
-                <StackPanel Margin="5,0,0,0" VerticalAlignment="Center" Grid.Column="1">
-                    <TextBlock TextTrimming="CharacterEllipsis" Text="{x:Bind DisplayVersion}" FontWeight="SemiBold"/>
-                    <TextBlock Visibility="{x:Bind DescriptionVisibility}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,8">
-                                        <Run Text="{x:Bind Type.Value}"/> |
-                                        <Run Text="{x:Bind Version}"/>
+                <Image
+                    Height="40"
+                    VerticalAlignment="Top"
+                    Source="{x:Bind BlockImageLocation}"
+                    Stretch="Fill" />
+                <StackPanel
+                    Grid.Column="1"
+                    Margin="5,0,0,0"
+                    VerticalAlignment="Center">
+                    <TextBlock
+                        FontWeight="SemiBold"
+                        Text="{x:Bind DisplayVersion}"
+                        TextTrimming="CharacterEllipsis" />
+                    <TextBlock
+                        Margin="0,0,0,8"
+                        FontSize="12"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        TextTrimming="CharacterEllipsis"
+                        Visibility="{x:Bind DescriptionVisibility}">
+                        <Run Text="{x:Bind Type.Value}" />
+                        |<Run Text="{x:Bind Version}" />
                     </TextBlock>
                 </StackPanel>
             </Grid>
         </DataTemplate>
     </Page.Resources>
-    <SplitView OpenPaneLength="300" x:Name="paneVersions" PanePlacement="Left" DisplayMode="Inline" PaneBackground="{ThemeResource LayerFillColorDefaultBrush}">
+    <SplitView
+        x:Name="paneVersions"
+        DisplayMode="Inline"
+        OpenPaneLength="300"
+        PaneBackground="{ThemeResource LayerFillColorDefaultBrush}"
+        PanePlacement="Left">
         <SplitView.Pane>
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
                     </Grid.ColumnDefinitions>
-                    <StackPanel Orientation="Vertical"  Margin="10" Grid.Column="0">
-                        <TextBlock Text="{helpers:LocalizeString Name=PickVer}" Style="{ThemeResource SubtitleTextBlockStyle}"/>
-                        <TextBlock 
-                        x:Name="txtVerOfflineMode" 
-                        FontWeight="SemiBold"
-                        FontSize="13"
-                        VerticalAlignment="Bottom"
-                        Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}" 
-                        Text="{helpers:LocalizeString Name=OfflineMode}"/>
+                    <StackPanel
+                        Grid.Column="0"
+                        Margin="10"
+                        Orientation="Vertical">
+                        <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{helpers:LocalizeString Name=PickVer}" />
+                        <TextBlock
+                            x:Name="txtVerOfflineMode"
+                            VerticalAlignment="Bottom"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                            Text="{helpers:LocalizeString Name=OfflineMode}" />
                     </StackPanel>
-                    <Button x:Name="btnCloseVerPane" Padding="0" Margin="0,15,15,0" Grid.Column="1" VerticalAlignment="Top">
+                    <Button
+                        x:Name="btnCloseVerPane"
+                        Grid.Column="1"
+                        Margin="0,15,15,0"
+                        Padding="0"
+                        VerticalAlignment="Top">
                         <Button.Resources>
-                            <SolidColorBrush x:Key="ButtonBackground" Color="Transparent"/>
-                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="Transparent"/>
-                            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="Transparent"/>
+                            <SolidColorBrush x:Key="ButtonBackground" Color="Transparent" />
+                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="Transparent" />
+                            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="Transparent" />
 
-                            <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent"/>
-                            <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent"/>
-                            <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent"/>
+                            <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent" />
+                            <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
+                            <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
                         </Button.Resources>
-                        <FontIcon Glyph="&#xEDAE;"/>
+                        <FontIcon Glyph="&#xEDAE;" />
                     </Button>
                 </Grid>
-                <Grid Margin="5,0" Grid.Row="1">
+                <Grid Grid.Row="1" Margin="5,0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
                     </Grid.ColumnDefinitions>
-                    <AutoSuggestBox VerticalAlignment="Center" x:Name="txtbxFindVer" TextChanged="txtbxFindVer_TextChanged" Grid.Column="0" Margin="0,0,0,5" QueryIcon="Find" PlaceholderText="Search for a version" HorizontalAlignment="Stretch"/>
-                    <DropDownButton Margin="5,0,0,0" Click="btnVerSort_Click" x:Name="btnVerSort" Grid.Column="1">
-                        <FontIcon Glyph="&#xE16E;"/>
+                    <AutoSuggestBox
+                        x:Name="txtbxFindVer"
+                        Grid.Column="0"
+                        Margin="0,0,0,5"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Center"
+                        PlaceholderText="Search for a version"
+                        QueryIcon="Find"
+                        TextChanged="txtbxFindVer_TextChanged" />
+                    <DropDownButton
+                        x:Name="btnVerSort"
+                        Grid.Column="1"
+                        Margin="5,0,0,0"
+                        Click="btnVerSort_Click">
+                        <FontIcon Glyph="&#xE16E;" />
                     </DropDownButton>
                 </Grid>
-                <TreeView ItemInvoked="treeVer_ItemInvoked" Grid.Row="2" CanReorderItems="False" CanDragItems="False" SelectionMode="None" x:Name="treeVer">
+                <TreeView
+                    x:Name="treeVer"
+                    Grid.Row="2"
+                    CanDragItems="False"
+                    CanReorderItems="False"
+                    ItemInvoked="treeVer_ItemInvoked"
+                    SelectionMode="None">
                     <TreeView.ItemTemplate>
                         <DataTemplate x:DataType="models:MinecraftVersion">
-                            <TreeViewItem MinHeight="0" ContentTemplate="{StaticResource MCVersionTemplate}" Content="{x:Bind}" Padding="0" Margin="0,0,5,0" x:DefaultBindMode="OneWay" ItemsSource="{x:Bind SubVersions}"/>
+                            <TreeViewItem
+                                MinHeight="0"
+                                Margin="0,0,5,0"
+                                Padding="0"
+                                x:DefaultBindMode="OneWay"
+                                Content="{x:Bind}"
+                                ContentTemplate="{StaticResource MCVersionTemplate}"
+                                ItemsSource="{x:Bind SubVersions}" />
                         </DataTemplate>
                     </TreeView.ItemTemplate>
                 </TreeView>
-                <TextBlock Grid.Row="2" x:Name="txtEmptyVers" Visibility="Collapsed" Text="{helpers:LocalizeString Name=Empty}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <TextBlock
+                    x:Name="txtEmptyVers"
+                    Grid.Row="2"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Text="{helpers:LocalizeString Name=Empty}"
+                    Visibility="Collapsed" />
             </Grid>
         </SplitView.Pane>
         <Grid>
@@ -89,62 +150,62 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!--TODO: Add click event (to account settings page) and data template for username-->
+            <!--  TODO: Add click event (to account settings page) and data template for username  -->
             <Button
-            x:Name="AccountButton"
-            Grid.Row="0"
-            Margin="30,20,30,30"
+                x:Name="AccountButton"
+                Grid.Row="0"
+                Margin="30,20,30,30"
+                Padding="10,2"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Background="{ThemeResource ButtonBackground}"
                 Click="AccountButton_Click"
-            Padding="10,2"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Background="{ThemeResource ButtonBackground}"
-            Style="{ThemeResource ButtonRevealStyle}">
+                Style="{ThemeResource ButtonRevealStyle}">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock
-                    VerticalAlignment="Center"
-                    FontSize="16"
-                    FontWeight="Bold"
-                    Text="Account name (e.g. Noob)" />
-                    <!--TODO: Add offline visibilty binding for offline accounts-->
+                        VerticalAlignment="Center"
+                        FontSize="16"
+                        FontWeight="Bold"
+                        Text="Account name (e.g. Noob)" />
+                    <!--  TODO: Add offline visibilty binding for offline accounts  -->
                     <TextBlock
-                    x:Name="IsOffline"
-                    Margin="10,0,0,0"
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
-                    Text="Offline"
-                    Visibility="Visible" />
+                        x:Name="IsOffline"
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                        Text="Offline"
+                        Visibility="Visible" />
                 </StackPanel>
             </Button>
 
             <Button
-            Grid.Row="0"
-            Height="27.2"
-            Margin="30,20,30,30"
-            Padding="10,3"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            Background="{ThemeResource ButtonBackground}">
+                Grid.Row="0"
+                Height="27.2"
+                Margin="30,20,30,30"
+                Padding="10,3"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Background="{ThemeResource ButtonBackground}">
                 <StackPanel Orientation="Horizontal">
                     <FontIcon
-                    VerticalAlignment="Center"
-                    FontSize="18"
-                    Glyph="&#xF57F;" />
+                        VerticalAlignment="Center"
+                        FontSize="18"
+                        Glyph="&#xF57F;" />
                     <TextBlock
-                    Margin="10,0,0,0"
-                    VerticalAlignment="Center"
-                    FontSize="14"
-                    Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
-                    Text="News" />
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center"
+                        FontSize="14"
+                        Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                        Text="News" />
                 </StackPanel>
             </Button>
 
             <Grid
-            Grid.Row="2"
-            Height="60"
-            Margin="30,40"
-            VerticalAlignment="Bottom">
+                Grid.Row="2"
+                Height="60"
+                Margin="30,40"
+                VerticalAlignment="Bottom">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*" MaxWidth="230" />
                     <ColumnDefinition Width="0.10*" />
@@ -152,39 +213,38 @@
                 </Grid.ColumnDefinitions>
                 <DropDownButton
                     x:Name="VersionButton"
-                    Click="VersionButton_Click"
-                    Padding="5,0,10,0"
                     Grid.Column="0"
+                    Padding="5,0,10,0"
                     HorizontalAlignment="Stretch"
-                    ContentTemplate="{StaticResource MCVersionTemplate}"
-                    VerticalAlignment="Stretch"/>
+                    VerticalAlignment="Stretch"
+                    Click="VersionButton_Click"
+                    ContentTemplate="{StaticResource MCVersionTemplate}" />
                 <Button
-                x:Name="LaunchButton"
-                Grid.Column="2"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
-                FontSize="16"
-                Style="{ThemeResource AccentButtonStyle}">
+                    x:Name="LaunchButton"
+                    Grid.Column="2"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    FontSize="16"
+                    Style="{ThemeResource AccentButtonStyle}">
                     <TextBlock
                         HorizontalAlignment="Center"
                         FontSize="16"
-                        FontWeight="Bold"/>
+                        FontWeight="Bold" />
                 </Button>
             </Grid>
             <Grid
-            Grid.Row="1"
-            Margin="30,0"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Center"
-            Visibility="Visible">
+                Grid.Row="1"
+                Margin="30,0"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Center"
+                Visibility="Visible">
                 <FlipView
-                x:Name="FlipView"
-                Background="{ThemeResource ButtonBackground}"
-                BorderBrush="{ThemeResource ButtonBorderBrush}"
-                BorderThickness="1"
-                CornerRadius="8"
-                ItemsSource="{Binding NewsViews}">
-                </FlipView>
+                    x:Name="FlipView"
+                    Background="{ThemeResource ButtonBackground}"
+                    BorderBrush="{ThemeResource ButtonBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    ItemsSource="{Binding NewsViews}" />
 
                 <!--<muxc:PipsPager
                 Margin="0,70,0,0"

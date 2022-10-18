@@ -2,8 +2,8 @@
     x:Class="Emerald.WinUI.UserControls.TitleBar"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Emerald.WinUI.UserControls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Emerald.WinUI.UserControls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
@@ -18,7 +18,7 @@
                 Height="24"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
-                    Source="/Assets/icon.png" />
+                Source="/Assets/icon.png" />
             <TextBlock
                 x:Name="AppTitle"
                 Margin="8,0,0,0"

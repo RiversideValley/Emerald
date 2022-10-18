@@ -2,24 +2,24 @@
     x:Class="Emerald.WinUI.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:conv="using:Emerald.WinUI.Converters"
     xmlns:local="using:Emerald.WinUI"
-    xmlns:models="using:Emerald.WinUI.Models"
-    xmlns:conv="using:Emerald.WinUI.Converters">
+    xmlns:models="using:Emerald.WinUI.Models">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
-                <!-- Other merged dictionaries here -->
+                <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
-            <!-- Other app resources here -->
+            <!--  Other app resources here  -->
             <ResourceDictionary x:Key="TransparentButton">
-                <SolidColorBrush x:Key="ButtonBackground" Color="Transparent"/>
-                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="Transparent"/>
-                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="Transparent"/>
+                <SolidColorBrush x:Key="ButtonBackground" Color="Transparent" />
+                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="Transparent" />
+                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="Transparent" />
 
-                <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent"/>
-                <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent"/>
-                <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent"/>
+                <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent" />
+                <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
+                <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
             </ResourceDictionary>
         </ResourceDictionary>
     </Application.Resources>
