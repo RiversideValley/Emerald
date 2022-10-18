@@ -1,4 +1,4 @@
-# SeaDev Launcher
+# Emerald
 An open-source custom noob wpf or uwp(still in dev) Minecraft Launcher for Windows 11,10 written with C#!
 
 ![size](https://img.shields.io/github/repo-size/SeaDevTeam/SDLauncher-UWP?color=%23cc0000&label=Repo%20Size)
@@ -28,6 +28,9 @@ The image is from version ``0.3.6-uwp``
 <li>(April) We sarted moving to uwp with a new look an new features</li>
 <li>(May 24) We released UWP version that is ready to use (0.3.1) with some bugs. </li>
 <li>(June 23) We released SDStore. </li>
+<li>(September 10) <a href="https://github.com/DeveloperWOW64">DeveloperWOW64</a> joined to our team. </li>
+<li>(September 12) Changed name to Emerald again. </li>
+<li>(September 12) We started moving to WinUI. </li>
 
 
 # Features
