@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.UI.Xaml.Controls;
-using System.Threading.Tasks;
+﻿using Emerald.Core;
 using Emerald.WinUI.Enums;
-using Microsoft.UI.Xaml;
-using Emerald.Core;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using System;
+using System.Threading.Tasks;
 
 namespace Emerald.WinUI.Helpers
 {

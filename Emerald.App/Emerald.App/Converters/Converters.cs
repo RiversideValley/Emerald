@@ -2,10 +2,6 @@
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Emerald.WinUI.Converters
 {
@@ -93,9 +89,9 @@ namespace Emerald.WinUI.Converters
         }
 
     }
-    public class InfobarServertyToIconGlyph: IValueConverter
+    public class InfobarServertyToIconGlyph : IValueConverter
     {
-        public string ErrorString{ get; set; }
+        public string ErrorString { get; set; }
         public string WarningString { get; set; }
         public string SuccessString { get; set; }
         public string InformationalString { get; set; }

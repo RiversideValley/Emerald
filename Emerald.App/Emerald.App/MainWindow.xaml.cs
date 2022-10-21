@@ -1,22 +1,11 @@
-﻿using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+﻿using Emerald.Core.Tasks;
+using Emerald.WinUI.Helpers;
 using Emerald.WinUI.Models;
 using Emerald.WinUI.UserControls;
-using Emerald.WinUI.Helpers;
-using Emerald.WinUI.Views;
-using Emerald.Core.Tasks;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using System.Linq;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -41,7 +30,7 @@ namespace Emerald.WinUI
         public void Initialize()
         {
             MainFrame = frame;
-            NavView.MenuItems.Add(new NavViewItem() { Content = "Home".ToLocalizedString(), IconGlyph = "\uE10F",IsSelected = true });
+            NavView.MenuItems.Add(new NavViewItem() { Content = "Home".ToLocalizedString(), IconGlyph = "\uE10F", IsSelected = true });
             NavView.MenuItems.Add(new NavViewItem() { Content = "Store".ToLocalizedString(), IconGlyph = "\uE14D" });
             NavView.FooterMenuItems.Add(new NavViewItem() { Content = "Tasks".ToLocalizedString(), IconGlyph = "\xF16A", InfoBadge = TasksInfoBadge });
             NavView.FooterMenuItems.Add(new NavViewItem() { Content = "Logs".ToLocalizedString(), IconGlyph = "\xE756" });
@@ -84,13 +73,12 @@ namespace Emerald.WinUI
             MainFrame.Content = HomePage;
 
         }
-        private void UpdateTasksInfoBadge() => 
+        private void UpdateTasksInfoBadge() =>
             TasksInfoBadge.Visibility = MainFrame.Content == TaskView || TasksInfoBadge.Value == 0 ? Visibility.Collapsed : Visibility.Visible;
-            
-        
+
+
         private Thickness GetNavViewHeaderMargin()
         {
-            return new(0);
             if (NavView.DisplayMode == NavigationViewDisplayMode.Minimal)
             {
                 NavView.IsPaneToggleButtonVisible = true;
@@ -107,7 +95,7 @@ namespace Emerald.WinUI
         /// Item1 is the Count.   
         /// Item 2 is the source (Menu,Footer,Settings).
         /// </summary>
-        private (int,int) SelectedItemIndex;
+        private (int, int) SelectedItemIndex;
         private void UpdateSelectedItem() =>
             SelectedItemIndex = NavView.SelectedItem is NavViewItem item ?
             (
@@ -127,17 +115,17 @@ namespace Emerald.WinUI
             if (!args.IsSettingsInvoked)
             {
                 var h = (NavView.SelectedItem as NavViewItem).Content.ToString();
-                if(h == "Home".ToLocalizedString())
+                if (h == "Home".ToLocalizedString())
                 {
                     MainFrame.Content = HomePage;
                 }
                 else if (h == "Store".ToLocalizedString())
                 {
-                    
+
                 }
                 else if (h == "Tasks".ToLocalizedString())
                 {
-                    TaskViewFlyout.ShowAt(NavView.SelectedItem as NavViewItem, new() { Placement = FlyoutPlacementMode.Bottom, ShowMode = FlyoutShowMode.Standard});
+                    TaskViewFlyout.ShowAt(NavView.SelectedItem as NavViewItem, new() { Placement = FlyoutPlacementMode.Bottom, ShowMode = FlyoutShowMode.Standard });
                     TasksInfoBadge.Value = 0;
                 }
                 else if (h == "Logs".ToLocalizedString())

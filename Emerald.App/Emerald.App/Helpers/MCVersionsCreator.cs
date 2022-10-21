@@ -1,10 +1,8 @@
-﻿using System;
+﻿using Emerald.WinUI.Models;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Collections.ObjectModel;
-using Emerald.WinUI.Models;
+using System.Linq;
 namespace Emerald.WinUI.Helpers
 {
     public static class MCVersionsCreator
@@ -116,7 +114,6 @@ namespace Emerald.WinUI.Helpers
                     l.AddRange(GetVers(item));
                 }
                 return new ObservableCollection<MinecraftVersion>(l);
-
             }
         }
         private static void AddItem(string ver)
@@ -130,16 +127,16 @@ namespace Emerald.WinUI.Helpers
         private static MinecraftVersion LoadCustomVers()
         {
             var m = CreateItem("Custom", "custom");
-            var sub= Core.MainCore.Launcher.MCVersions.Where(x => x.MType == CmlLib.Core.Version.MVersionType.Custom);
+            var sub = Core.MainCore.Launcher.MCVersions.Where(x => x.MType == CmlLib.Core.Version.MVersionType.Custom);
             m.SubVersions = new();
-            if(sub != null && sub.Count() > 0)
+            if (sub != null && sub.Count() > 0)
             {
                 foreach (var item in sub)
                 {
                     m.SubVersions.Add(CreateItem(item.Name, item.Name, CmlLib.Core.Version.MVersionType.Custom));
                 }
             }
-            if(m.SubVersions.Count > 0)
+            if (m.SubVersions.Count > 0)
             {
                 return m;
             }
@@ -204,7 +201,7 @@ namespace Emerald.WinUI.Helpers
                     }
                     return f;
                 }
-                else if(subVers.Length == 1)
+                else if (subVers.Length == 1)
                 {
                     var SverMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == subVers.FirstOrDefault()).FirstOrDefault();
                     if (ConfigToList().Contains(SverMdata.MType))
@@ -222,13 +219,13 @@ namespace Emerald.WinUI.Helpers
                 }
             }
         }
-        private static MinecraftVersion ReturnMCWithFabric(string ver,string displayVer = null,CmlLib.Core.Version.MVersionType? type = null)
+        private static MinecraftVersion ReturnMCWithFabric(string ver, string displayVer = null, CmlLib.Core.Version.MVersionType? type = null)
         {
             string fabricVer = Core.MainCore.Launcher.SearchFabric(ver);
             var verMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
             if (string.IsNullOrEmpty(fabricVer))
             {
-                return displayVer == null? CreateItem($"{ver} Vanilla", "vaniila-" + ver, type: type ?? verMdata.MType) : CreateItem($"{displayVer} Vanilla", "vaniila-" + ver, type: type ?? verMdata.MType);
+                return displayVer == null ? CreateItem($"{ver} Vanilla", "vaniila-" + ver, type: type ?? verMdata.MType) : CreateItem($"{displayVer} Vanilla", "vaniila-" + ver, type: type ?? verMdata.MType);
             }
             else
             {
@@ -242,6 +239,6 @@ namespace Emerald.WinUI.Helpers
             }
         }
         private static MinecraftVersion CreateItem(string DisplayVer, string ver, CmlLib.Core.Version.MVersionType? type = null, string blockPath = "/Assets/icon.png") => new() { Type = type, Version = ver, DisplayVersion = DisplayVer, BlockImageLocation = blockPath };
-        
+
     }
 }

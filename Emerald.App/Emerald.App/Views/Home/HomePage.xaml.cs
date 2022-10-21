@@ -1,26 +1,15 @@
-﻿using Microsoft.UI.Xaml;
+﻿using CmlLib.Core;
+using CmlLib.Core.Auth;
+using Emerald.Core;
+using Emerald.WinUI.Enums;
+using Emerald.WinUI.Helpers;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Emerald.Core;
-using System.Threading.Tasks;
-using CmlLib.Core;
-using Windows.Storage;
-using Emerald.WinUI.Helpers;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Windows.ApplicationModel.Core;
-using Emerald.WinUI.Enums;
-using CmlLib.Core.Auth;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -82,9 +71,9 @@ namespace Emerald.WinUI.Views.Home
                 {
                     if (s.StartsWith("vanilla-"))
                     {
-                       s = s.Remove(0, 8);
+                        s = s.Remove(0, 8);
                     }
-                    else if(s.StartsWith("fabricMC-"))
+                    else if (s.StartsWith("fabricMC-"))
                     {
                         s = s.Remove(0, 9);
                     }
@@ -131,7 +120,7 @@ namespace Emerald.WinUI.Views.Home
         private void tglMitVerSort_Click(object sender, RoutedEventArgs e)
         {
             var mit = sender as ToggleMenuFlyoutItem;
-            if(mit.Text == "Release".ToLocalizedString())
+            if (mit.Text == "Release".ToLocalizedString())
             {
                 MCVersionsCreator.Configuration.Release = mit.IsChecked;
             }
@@ -210,7 +199,7 @@ namespace Emerald.WinUI.Views.Home
                     suitableItems.Add(cat);
                 }
             }
-            if(string.IsNullOrEmpty(txtbxFindVer.Text))
+            if (string.IsNullOrEmpty(txtbxFindVer.Text))
             {
                 treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
             }
@@ -224,7 +213,7 @@ namespace Emerald.WinUI.Views.Home
         private void treeVer_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
         {
             VersionButton.Content = ((Models.MinecraftVersion)args.InvokedItem).SubVersions.Count > 0 ? VersionButton.Content : ((Models.MinecraftVersion)args.InvokedItem);
-            if(((Models.MinecraftVersion)args.InvokedItem).SubVersions.Count == 0)
+            if (((Models.MinecraftVersion)args.InvokedItem).SubVersions.Count == 0)
             {
                 paneVersions.IsPaneOpen = false;
             }

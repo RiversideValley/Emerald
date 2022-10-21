@@ -1,0 +1,13 @@
+﻿[*.cs]
+
+# CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+dotnet_diagnostic.CS8632.severity = none
+
+# IDE0022: Use block body for methods
+csharp_style_expression_bodied_methods = false
+
+# IDE0022: Use block body for methods
+dotnet_diagnostic.IDE0022.severity = none
+
+# CS0252: Possible unintended reference comparison; left hand side needs cast
+dotnet_diagnostic.CS0252.severity = none

@@ -1,10 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Emerald.WinUI.Models
 {
@@ -15,13 +11,13 @@ namespace Emerald.WinUI.Models
         {
             get
             {
-                if(SubVersions.Count > 0)
+                if (SubVersions.Count > 0)
                 {
                     return SubVersions.Count <= 2 ? (SubVersions.FirstOrDefault().SubVersions.Count > 0 ? "/Assets/Blocks/Furnace_Burn.png" : "/Assets/Blocks/Furnace.png") : "/Assets/Blocks/Furnace_Burn.png";
                 }
                 else
                 {
-                    if(Version == null)
+                    if (Version == null)
                     {
                         return "/Assets/Blocks/Dirt.png";
                     }
