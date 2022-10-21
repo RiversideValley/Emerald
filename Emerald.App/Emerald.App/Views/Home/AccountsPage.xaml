@@ -7,13 +7,18 @@
     xmlns:local="using:Emerald.WinUI.Views.Home"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Emerald.WinUI.Models"
+    xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.UI.Controls"
     mc:Ignorable="d">
     <Grid>
-        <GridView
+        <toolkit:AdaptiveGridView
+            animations:ItemsReorderAnimation.Duration="00:00:00.3150000"
             x:Name="gv"
+            DesiredWidth="160"
+            StretchContentForSingleRow="False"
             IsItemClickEnabled="False"
             SelectionMode="None">
-            <GridView.ItemTemplate>
+            <toolkit:AdaptiveGridView.ItemTemplate>
                 <DataTemplate x:DataType="models:Account">
                     <Grid x:DefaultBindMode="OneWay">
                         <Grid.ChildrenTransitions>
@@ -21,10 +26,11 @@
                                 <AddDeleteThemeTransition />
                             </TransitionCollection>
                         </Grid.ChildrenTransitions>
-                        <Grid Canvas.ZIndex="10" />
                         <Button
-                            Width="160"
-                            Height="200"
+                            PointerEntered="Button_PointerEntered"
+                            PointerExited="Button_PointerExited"
+                            MinWidth="160"
+                            MinHeight="200"
                             Margin="5,0,0,5"
                             Padding="0,0,0,0"
                             HorizontalAlignment="Left">
@@ -40,7 +46,7 @@
                                 <MenuFlyout>
                                     <MenuFlyoutItem Text="Remove" />
                                     <MenuFlyoutItem Text="Settings" />
-                                    <ToggleMenuFlyoutItem IsChecked="{x:Bind IsChecked}" Text="Select" />
+                                    <ToggleMenuFlyoutItem Click="ToggleMenuFlyoutItem_Click" IsChecked="{x:Bind IsChecked}" Text="Select" />
                                     <MenuFlyoutItem Text="Duplicate" />
                                 </MenuFlyout>
                             </Button.ContextFlyout>
@@ -51,6 +57,7 @@
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Top"
                                     Canvas.ZIndex="3"
+                                    Click="CheckBox_Click"
                                     IsChecked="{x:Bind IsChecked}"
                                     Visibility="{x:Bind CheckboxVsibility}" />
                                 <Grid Margin="10" Padding="20,10">
@@ -89,7 +96,7 @@
                                                     <MenuFlyout>
                                                         <MenuFlyoutItem Text="Remove" />
                                                         <MenuFlyoutItem Text="Settings" />
-                                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind IsChecked}" Text="Select" />
+                                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind IsChecked}" Click="ToggleMenuFlyoutItem_Click" Text="Select" />
                                                         <MenuFlyoutItem Text="Duplicate" />
                                                     </MenuFlyout>
                                                 </DropDownButton.Flyout>
@@ -101,7 +108,7 @@
                         </Button>
                     </Grid>
                 </DataTemplate>
-            </GridView.ItemTemplate>
-        </GridView>
+            </toolkit:AdaptiveGridView.ItemTemplate>
+        </toolkit:AdaptiveGridView>
     </Grid>
 </Page>
