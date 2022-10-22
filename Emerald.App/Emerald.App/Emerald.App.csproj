@@ -33,6 +33,8 @@
 	  <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.220909.2-experimental2" />
 	  <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.25206-preview" />
 	  <PackageReference Include="PInvoke.User32" Version="0.7.124" />
+	  <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+	  <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
 	  <PackageReference Include="WinUIEx" Version="1.8.0" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
