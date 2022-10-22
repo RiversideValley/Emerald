@@ -92,7 +92,7 @@ namespace Emerald.WinUI.Views.Home
                 if (!MainCore.Launcher.UseOfflineLoader)
                 {
                     var r = await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.RefreshVerFailed.ToLocalizedString(), MessageBoxButtons.Custom, Localized.Retry.ToLocalizedString(), Localized.SwitchOffline.ToLocalizedString());
-                    MessageBox.Show(Helpers.Settings.SettingsSystem.Serialize());
+                   // MessageBox.Show(Helpers.Settings.SettingsSystem.Serialize());
                     if (r == MessageBoxResults.CustomResult1)
                     {
                         _ = MainCore.Launcher.RefreshVersions();
@@ -113,7 +113,11 @@ namespace Emerald.WinUI.Views.Home
 
         private void VersionButton_Click(object sender, RoutedEventArgs e)
         {
-            paneVersions.IsPaneOpen = true;
+            paneVersions.IsPaneOpen = !paneVersions.IsPaneOpen;
+            if (paneVersions.IsPaneOpen)
+            {
+                txtbxFindVer.Focus(FocusState.Programmatic);
+            }
             UpdateVerTreeSource();
         }
 

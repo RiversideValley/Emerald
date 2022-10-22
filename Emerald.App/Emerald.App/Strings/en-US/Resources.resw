@@ -238,6 +238,9 @@
   <data name="Release" xml:space="preserve">
     <value>Release</value>
   </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
   <data name="Retry" xml:space="preserve">
     <value>Retry</value>
   </data>

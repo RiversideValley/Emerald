@@ -12,9 +12,9 @@
     mc:Ignorable="d">
     <Grid>
         <toolkit:AdaptiveGridView
+            
             animations:ItemsReorderAnimation.Duration="00:00:00.3150000"
             x:Name="gv"
-            DesiredWidth="160"
             StretchContentForSingleRow="False"
             IsItemClickEnabled="False"
             SelectionMode="None">
@@ -27,8 +27,9 @@
                             </TransitionCollection>
                         </Grid.ChildrenTransitions>
                         <Button
-                            PointerEntered="Button_PointerEntered"
-                            PointerExited="Button_PointerExited"
+                            Click="btnAccount_Click"
+                            PointerEntered="btnAccount_PointerEntered"
+                            PointerExited="btnAccount_PointerExited"
                             MinWidth="160"
                             MinHeight="200"
                             Margin="5,0,0,5"
@@ -67,7 +68,7 @@
                                             Height="60"
                                             HorizontalAlignment="Center"
                                             DisplayName="{x:Bind UserName}"
-                                            ProfilePicture="{x:Bind ProfilePicture}" />
+                                            ProfilePicture="{x:Bind ProfilePicture,Mode=OneTime}" />
                                         <TextBlock
                                             MaxWidth="140"
                                             HorizontalAlignment="Center"
@@ -78,10 +79,12 @@
                                             <FontIcon
                                                 Margin="0,0,2,0"
                                                 FontSize="14"
+                                                Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
                                                 Glyph="{x:Bind TypeIconGlyph}" />
                                             <TextBlock
                                                 HorizontalAlignment="Center"
                                                 FontSize="13"
+                                                Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
                                                 FontWeight="SemiBold"
                                                 Text="{x:Bind Type}" />
                                         </StackPanel>

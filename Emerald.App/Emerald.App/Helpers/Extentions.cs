@@ -31,7 +31,7 @@ namespace Emerald.WinUI.Helpers
         public static Models.Account ToAccount(this CmlLib.Core.Auth.MSession session)
         {
             bool isOffline = session.UUID == "user_uuid";
-            return new Models.Account(session.Username, isOffline ? Enums.AccountType.Offline : Enums.AccountType.Microsoft, isOffline ? null : session.AccessToken, isOffline ? null : session.UUID, MainWindow.HomePage.AccountsPage.AllCount++, false);
+            return new Models.Account(session.Username, isOffline ? null : session.AccessToken, isOffline ? null : session.UUID, MainWindow.HomePage.AccountsPage.AllCount++, false);
         }
     }
 }

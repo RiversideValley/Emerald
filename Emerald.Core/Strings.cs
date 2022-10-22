@@ -48,6 +48,7 @@ namespace Emerald.Core
         Cancel,
         Yes,
         Tasks,
-        ClearAll
+        ClearAll,
+        Remove
     }
 }

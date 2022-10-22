@@ -16,8 +16,8 @@ namespace Emerald.WinUI.Models
         private string userName;
         public string UserName { get => userName; set => Set(ref userName, value); }
 
-        public string ProfilePicture { get => UUID != null ? "https://minotar.net/avatar/" + UUID : "https://minotar.net/avatar/MHF_Steve" + UUID; }
-        public AccountType Type { get; set; }
+        public string ProfilePicture { get => Type != AccountType.Offline ? "https://minotar.net/avatar/" + UUID : "https://minotar.net/avatar/MHF_Steve"; }
+        public AccountType Type { get => UUID == null ? AccountType.Offline : AccountType.Microsoft; }
         public string TypeIconGlyph { get => Type == AccountType.Offline ? "\xF384" : "\xEC05"; }
         public string AccessToken { get; set; }
         public string UUID { get; set; }
@@ -30,12 +30,11 @@ namespace Emerald.WinUI.Models
         private bool _IsChecked;
         public bool IsChecked { get => _IsChecked; set => Set(ref _IsChecked, value); }
 
-        public Account(string username, AccountType type, string accesstoken, string uuid, int count, bool last)
+        public Account(string username, string accesstoken, string uuid, int count, bool last)
         {
             CheckboxVsibility = Visibility.Collapsed;
             IsChecked = false;
             UserName = username;
-            Type = type;
             AccessToken = accesstoken;
             UUID = uuid;
             Count = count;

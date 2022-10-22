@@ -15,7 +15,7 @@ namespace Emerald.WinUI.Helpers
     /// </summary>
     public class MessageBox : ContentDialog
     {
-        public MessageBoxResults Result { get; set; }
+        public MessageBoxResults? Result { get; set; } = null;
         public MessageBox(string title, string caption, MessageBoxButtons buttons, string cusbtn1 = null, string cusbtn2 = null)
         {
             Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style;
@@ -115,16 +115,30 @@ namespace Emerald.WinUI.Helpers
         public static async Task<MessageBoxResults> Show(string title, string caption, MessageBoxButtons buttons, string customResult1 = null, string customResult2 = null)
         {
             var d = new MessageBox(title, caption, buttons, customResult1, customResult2);
-            d.XamlRoot = MainWindow.HomePage.XamlRoot;
-            await d.ShowAsync();
-            return d.Result;
+            d.XamlRoot = MainWindow.MainFrame.XamlRoot;
+            try
+            {
+                await d.ShowAsync();
+            }
+            catch
+            {
+                throw new NotSupportedException("Cannot show 2 or more dialogs once");
+            }
+            return d.Result == null ? MessageBoxResults.Cancel : d.Result.Value;
         }
         public static async Task<MessageBoxResults> Show(string text)
         {
             var d = new MessageBox("Information", text, MessageBoxButtons.Ok);
-            d.XamlRoot = MainWindow.HomePage.XamlRoot;
-            await d.ShowAsync();
-            return d.Result;
+            d.XamlRoot = MainWindow.MainFrame.XamlRoot;
+            try
+            {
+                await d.ShowAsync();
+            }
+            catch
+            {
+                throw new NotSupportedException("Cannot show 2 or more dialogs once");
+            }
+            return d.Result == null ? MessageBoxResults.Cancel : d.Result.Value;
         }
     }
 }

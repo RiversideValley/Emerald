@@ -8,6 +8,7 @@
     xmlns:local="using:Emerald.WinUI.UserControls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Emerald.WinUI.Models"
+    xmlns:Controls="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -60,8 +61,19 @@
                 <converters:TaskViewTemplateSelector>
                     <converters:TaskViewTemplateSelector.Progress>
                         <DataTemplate x:DataType="models:ProgressTask">
-                            <Grid
-                                Margin="0,5,0,0"
+
+                            <Grid Margin="0,5,0,0">
+                                <SwipeControl Margin="0,5,0,0">
+                                    <SwipeControl.RightItems>
+                                        <SwipeItems Mode="Execute">
+                                            <SwipeItem Text="{helpers:LocalizeString Name=Remove}" Foreground="{ThemeResource ApplicationForegroundThemeBrush}" Background="{x:Bind Controls:InfoBarSeverity.Error,Converter={StaticResource ServertyToBackground}}" BehaviorOnInvoked="Close" Invoked="delete_Invoked">
+                                                <SwipeItem.IconSource>
+                                                    <FontIconSource Glyph="&#xEDAE;"/>
+                                                </SwipeItem.IconSource>
+                                            </SwipeItem>
+                                        </SwipeItems>
+                                    </SwipeControl.RightItems>
+                                    <Grid
                                 Padding="10"
                                 HorizontalAlignment="Stretch"
                                 x:DefaultBindMode="OneWay"
@@ -69,100 +81,100 @@
                                 CornerRadius="5"
                                 PointerEntered="btnIcon_PointerEntered"
                                 PointerExited="btnIcon_PointerExited">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="auto" />
-                                </Grid.ColumnDefinitions>
-                                <Grid Grid.Column="0">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="*" />
-                                        <RowDefinition Height="auto" />
-                                    </Grid.RowDefinitions>
-                                    <Grid.ChildrenTransitions>
-                                        <TransitionCollection>
-                                            <EntranceThemeTransition IsStaggeringEnabled="True" />
-                                        </TransitionCollection>
-                                    </Grid.ChildrenTransitions>
-                                    <Grid Grid.Row="0">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="auto" />
-                                            <RowDefinition Height="auto" />
-                                            <RowDefinition Height="auto" />
-                                        </Grid.RowDefinitions>
-                                        <TextBlock
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid Grid.Column="0">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="auto" />
+                                            </Grid.RowDefinitions>
+                                            <Grid.ChildrenTransitions>
+                                                <TransitionCollection>
+                                                    <EntranceThemeTransition IsStaggeringEnabled="True" />
+                                                </TransitionCollection>
+                                            </Grid.ChildrenTransitions>
+                                            <Grid Grid.Row="0">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="auto" />
+                                                    <RowDefinition Height="auto" />
+                                                    <RowDefinition Height="auto" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock
                                             Grid.Row="0"
                                             HorizontalAlignment="Left"
                                             FontSize="13"
                                             Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
                                             Text="{x:Bind Time.ToLongTimeString()}" />
-                                        <TextBlock
+                                                <TextBlock
                                             Grid.Row="1"
                                             Margin="0,3,0,0"
                                             Text="{x:Bind Content}"
                                             TextTrimming="CharacterEllipsis" />
 
-                                        <Grid Grid.Row="2" Visibility="{x:Bind ProgressVisibility, Mode=OneWay}">
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="auto" />
-                                                <RowDefinition Height="auto" />
-                                            </Grid.RowDefinitions>
-                                            <TextBlock
+                                                <Grid Grid.Row="2" Visibility="{x:Bind ProgressVisibility, Mode=OneWay}">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="auto" />
+                                                        <RowDefinition Height="auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <TextBlock
                                                 Grid.Row="0"
                                                 HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"
                                                 Visibility="{x:Bind IsIndeterminate, Converter={StaticResource NotBoolToVisibility}}"><Run Text="{x:Bind Progress}" />
                                                 %</TextBlock>
-                                            <Grid Grid.Row="1">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock
+                                                    <Grid Grid.Row="1">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock
                                                     Grid.Column="0"
                                                     Text="0%"
                                                     Visibility="{x:Bind IsIndeterminate, Converter={StaticResource NotBoolToVisibility}}" />
-                                                <ProgressBar
+                                                        <ProgressBar
                                                     Grid.Column="1"
                                                     Margin="5"
                                                     VerticalAlignment="Stretch"
                                                     IsIndeterminate="{x:Bind IsIndeterminate}"
                                                     Maximum="100"
                                                     Value="{x:Bind Progress}" />
-                                                <TextBlock
+                                                        <TextBlock
                                                     Grid.Column="2"
                                                     Text="100%"
                                                     Visibility="{x:Bind IsIndeterminate, Converter={StaticResource NotBoolToVisibility}}" />
-                                            </Grid>
-                                        </Grid>
+                                                    </Grid>
+                                                </Grid>
 
-                                    </Grid>
-                                    <GridView
+                                            </Grid>
+                                            <GridView
                                         Grid.Row="1"
                                         Margin="5,0,0,0"
                                         VerticalAlignment="Center"
                                         IsItemClickEnabled="False"
                                         ItemsSource="{x:Bind CustomControls}"
                                         SelectionMode="None">
-                                        <GridView.ItemContainerStyle>
-                                            <Style TargetType="GridViewItem">
-                                                <Setter Property="Margin" Value="0" />
-                                            </Style>
-                                        </GridView.ItemContainerStyle>
+                                                <GridView.ItemContainerStyle>
+                                                    <Style TargetType="GridViewItem">
+                                                        <Setter Property="Margin" Value="0" />
+                                                    </Style>
+                                                </GridView.ItemContainerStyle>
 
-                                        <GridView.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <ItemsWrapGrid MaximumRowsOrColumns="3" Orientation="Horizontal" />
-                                            </ItemsPanelTemplate>
-                                        </GridView.ItemsPanel>
-                                        <GridView.ItemTemplate>
-                                            <DataTemplate x:DataType="UIElement">
-                                                <ContentPresenter Content="{x:Bind Mode=OneWay}" />
-                                            </DataTemplate>
-                                        </GridView.ItemTemplate>
-                                    </GridView>
-                                </Grid>
-                                <Button
+                                                <GridView.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <ItemsWrapGrid MaximumRowsOrColumns="3" Orientation="Horizontal" />
+                                                    </ItemsPanelTemplate>
+                                                </GridView.ItemsPanel>
+                                                <GridView.ItemTemplate>
+                                                    <DataTemplate x:DataType="UIElement">
+                                                        <ContentPresenter Content="{x:Bind Mode=OneWay}" />
+                                                    </DataTemplate>
+                                                </GridView.ItemTemplate>
+                                            </GridView>
+                                        </Grid>
+                                        <Button
                                     Margin="8,0"
                                     Padding="7"
                                     HorizontalAlignment="Right"
@@ -170,23 +182,35 @@
                                     BorderBrush="Transparent"
                                     Click="btnRemoveTask_Click"
                                     Visibility="{x:Bind RemoveButtonVisibility}">
-                                    <Grid>
-                                        <FontIcon Glyph="&#xEDAE;" />
-                                    </Grid>
-                                </Button>
-                                <FontIcon
+                                            <Grid>
+                                                <FontIcon Glyph="&#xEDAE;" />
+                                            </Grid>
+                                        </Button>
+                                        <FontIcon
                                     Margin="15,0"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Center"
                                     Glyph="{x:Bind Severity, Converter={StaticResource SevertyToGlyph}}"
                                     Visibility="{x:Bind IconVisibility}" />
+                                    </Grid>
+                                </SwipeControl>
                             </Grid>
                         </DataTemplate>
                     </converters:TaskViewTemplateSelector.Progress>
                     <converters:TaskViewTemplateSelector.String>
                         <DataTemplate x:DataType="models:StringTask">
-                            <Grid
-                                Margin="0,5,0,0"
+                            <Grid Margin="0,5,0,0">
+                                <SwipeControl Margin="0,5,0,0">
+                                    <SwipeControl.RightItems>
+                                        <SwipeItems Mode="Execute">
+                                            <SwipeItem Text="{helpers:LocalizeString Name=Remove}"  Foreground="{ThemeResource ApplicationForegroundThemeBrush}" Background="{x:Bind Controls:InfoBarSeverity.Error,Converter={StaticResource ServertyToBackground}}"  BehaviorOnInvoked="Close" Invoked="delete_Invoked">
+                                                <SwipeItem.IconSource>
+                                                    <FontIconSource Glyph="&#xEDAE;"/>
+                                                </SwipeItem.IconSource>
+                                            </SwipeItem>
+                                        </SwipeItems>
+                                    </SwipeControl.RightItems>
+                                    <Grid
                                 Padding="10,10,10,0"
                                 HorizontalAlignment="Stretch"
                                 x:DefaultBindMode="OneWay"
@@ -194,58 +218,58 @@
                                 CornerRadius="5"
                                 PointerEntered="btnIcon_PointerEntered"
                                 PointerExited="btnIcon_PointerExited">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="auto" />
-                                </Grid.ColumnDefinitions>
-                                <Grid Grid.Column="0">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="*" />
-                                        <RowDefinition Height="auto" />
-                                    </Grid.RowDefinitions>
-                                    <Grid.ChildrenTransitions>
-                                        <TransitionCollection>
-                                            <EntranceThemeTransition IsStaggeringEnabled="True" />
-                                        </TransitionCollection>
-                                    </Grid.ChildrenTransitions>
-                                    <Grid Grid.Row="0" Grid.Column="0">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="auto" />
-                                            <RowDefinition Height="auto" />
-                                        </Grid.RowDefinitions>
-                                        <TextBlock
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid Grid.Column="0">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="auto" />
+                                            </Grid.RowDefinitions>
+                                            <Grid.ChildrenTransitions>
+                                                <TransitionCollection>
+                                                    <EntranceThemeTransition IsStaggeringEnabled="True" />
+                                                </TransitionCollection>
+                                            </Grid.ChildrenTransitions>
+                                            <Grid Grid.Row="0" Grid.Column="0">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="auto" />
+                                                    <RowDefinition Height="auto" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock
                                             Grid.Row="0"
                                             HorizontalAlignment="Left"
                                             FontSize="13"
                                             Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
                                             Text="{x:Bind Time.ToLongTimeString()}" />
-                                        <TextBlock
+                                                <TextBlock
                                             Grid.Row="1"
                                             Margin="0,3,0,0"
                                             Text="{x:Bind Content}"
                                             TextTrimming="CharacterEllipsis" />
-                                    </Grid>
-                                    <GridView
+                                            </Grid>
+                                            <GridView
                                         Grid.Row="1"
                                         Margin="5,0,0,0"
                                         VerticalAlignment="Center"
                                         IsItemClickEnabled="False"
                                         ItemsSource="{x:Bind CustomControls}"
                                         SelectionMode="None">
-                                        <GridView.ItemContainerStyle>
-                                            <Style TargetType="GridViewItem">
-                                                <Setter Property="Margin" Value="0" />
-                                            </Style>
-                                        </GridView.ItemContainerStyle>
+                                                <GridView.ItemContainerStyle>
+                                                    <Style TargetType="GridViewItem">
+                                                        <Setter Property="Margin" Value="0" />
+                                                    </Style>
+                                                </GridView.ItemContainerStyle>
 
-                                        <GridView.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <ItemsWrapGrid MaximumRowsOrColumns="3" Orientation="Horizontal" />
-                                            </ItemsPanelTemplate>
-                                        </GridView.ItemsPanel>
-                                    </GridView>
-                                </Grid>
-                                <Button
+                                                <GridView.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <ItemsWrapGrid MaximumRowsOrColumns="3" Orientation="Horizontal" />
+                                                    </ItemsPanelTemplate>
+                                                </GridView.ItemsPanel>
+                                            </GridView>
+                                        </Grid>
+                                        <Button
                                     Margin="8,0"
                                     Padding="7"
                                     HorizontalAlignment="Right"
@@ -253,16 +277,18 @@
                                     BorderBrush="Transparent"
                                     Click="btnRemoveTask_Click"
                                     Visibility="{x:Bind RemoveButtonVisibility}">
-                                    <Grid>
-                                        <FontIcon Glyph="&#xEDAE;" />
-                                    </Grid>
-                                </Button>
-                                <FontIcon
+                                            <Grid>
+                                                <FontIcon Glyph="&#xEDAE;" />
+                                            </Grid>
+                                        </Button>
+                                        <FontIcon
                                     Margin="15,0"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Center"
                                     Glyph="{x:Bind Severity, Converter={StaticResource SevertyToGlyph}}"
                                     Visibility="{x:Bind IconVisibility}" />
+                                    </Grid>
+                                </SwipeControl>
                             </Grid>
                         </DataTemplate>
                     </converters:TaskViewTemplateSelector.String>
