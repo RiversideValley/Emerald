@@ -72,12 +72,9 @@ namespace Emerald.WinUI
             Tasks();
             HomePage = new();
             MainFrame.Content = HomePage;
-
         }
         private void UpdateTasksInfoBadge() =>
             TasksInfoBadge.Visibility = MainFrame.Content == TaskView || TasksInfoBadge.Value == 0 ? Visibility.Collapsed : Visibility.Visible;
-
-
         private Thickness GetNavViewHeaderMargin()
         {
             if (NavView.DisplayMode == NavigationViewDisplayMode.Minimal)
@@ -126,17 +123,14 @@ namespace Emerald.WinUI
                         MainFrame.Content = HomePage;
                     }
                     else if (h == "Store".ToLocalizedString())
-                    {
-                    }
+                    {}
                     else if (h == "Tasks".ToLocalizedString())
                     {
                         TaskViewFlyout.ShowAt(args.InvokedItemContainer, new() { Placement = FlyoutPlacementMode.Right, ShowMode = FlyoutShowMode.Standard });
                         TasksInfoBadge.Value = 0;
                     }
                     else if (h == "Logs".ToLocalizedString())
-                    {
-
-                    }
+                    {}
                     UpdateTasksInfoBadge();
                     (NavView.Header as NavViewHeader).HeaderText = h == "Tasks".ToLocalizedString() ? (NavView.Header as NavViewHeader).HeaderText : h;
                     (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();

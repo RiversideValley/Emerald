@@ -41,7 +41,6 @@ namespace Emerald.WinUI.UserControls
             }
             catch
             {
-
                 return null;
             }
         }
@@ -136,7 +135,6 @@ namespace Emerald.WinUI.UserControls
                 ((Models.ProgressTask)Tasks.FirstOrDefault(l => l.ID == ID)).IsIndeterminate = isIndeterminate;
                 return true;
             }
-
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());

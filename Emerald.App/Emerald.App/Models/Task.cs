@@ -3,7 +3,6 @@ using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.ObjectModel;
 
-
 namespace Emerald.WinUI.Models
 {
     public interface ITask
@@ -49,7 +48,6 @@ namespace Emerald.WinUI.Models
             CustomControls = customCOntrols;
             MainWindow.TaskView.ActualThemeChanged += (_, _) => this.InvokePropertyChanged();
         }
-
     }
 
     public class ProgressTask : Model, ITask

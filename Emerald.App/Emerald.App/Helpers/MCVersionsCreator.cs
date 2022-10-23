@@ -239,6 +239,5 @@ namespace Emerald.WinUI.Helpers
             }
         }
         private static MinecraftVersion CreateItem(string DisplayVer, string ver, CmlLib.Core.Version.MVersionType? type = null, string blockPath = "/Assets/icon.png") => new() { Type = type, Version = ver, DisplayVersion = DisplayVer, BlockImageLocation = blockPath };
-
     }
 }

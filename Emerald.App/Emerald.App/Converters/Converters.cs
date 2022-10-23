@@ -27,20 +27,6 @@ namespace Emerald.WinUI.Converters
                 "A string is very likely unnecessary in this case.");
         }
     }
-
-    public class BindlessStringToVisibility
-    {
-        public static Visibility BindlessConvert(object value)
-        {
-            return (value is string str && str.Length > 0) ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        public static void BindlessConvertBack(object value)
-        {
-            throw new InvalidOperationException("Use the boolean to visibility converter in this situation." +
-                "A string is very likely unnecessary in this case. You tried to convert: " + value.ToString());
-        }
-    }
     public class BoolToVisibility : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
@@ -87,7 +73,6 @@ namespace Emerald.WinUI.Converters
         {
             throw new InvalidOperationException("Error lol.");
         }
-
     }
     public class InfobarServertyToIconGlyph : IValueConverter
     {
@@ -111,6 +96,5 @@ namespace Emerald.WinUI.Converters
         {
             throw new InvalidOperationException("Error lol.");
         }
-
     }
 }

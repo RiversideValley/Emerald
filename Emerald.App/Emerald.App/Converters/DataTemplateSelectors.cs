@@ -7,7 +7,6 @@ namespace Emerald.WinUI.Converters
     #region TaskViewTemplateSelector
     public class TaskViewTemplateSelector : DataTemplateSelector
     {
-
         public DataTemplate String { get; set; }
         public DataTemplate Progress { get; set; }
 

@@ -5,7 +5,6 @@ namespace Emerald.WinUI.Models
 {
     internal class SquareNavigationViewItem : Model
     {
-
         public SquareNavigationViewItem(string name, bool isSelected = false, BitmapImage image = null, InfoBadge infoBadge = null)
         {
             Name = name;
@@ -16,13 +15,6 @@ namespace Emerald.WinUI.Models
 
         private string _name;
         public string Name { get => _name; set => Set(ref _name, value); }
-
-
-        private string _glyphSecondary;
-        public string GlyphSecondary { get => _glyphSecondary; set => Set(ref _glyphSecondary, value); }
-
-        private bool _useOcticon;
-        public bool UseOcticon { get => _useOcticon; set => Set(ref _useOcticon, value); }
 
         private bool _isSelected;
         public bool IsSelected { get => _isSelected; set => Set(ref _isSelected, value); }
