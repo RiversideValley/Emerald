@@ -87,5 +87,4 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
     {
         public ElementTheme Theme { get; set; }
     }
-
 }
