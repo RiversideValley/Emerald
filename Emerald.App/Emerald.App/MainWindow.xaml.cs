@@ -30,10 +30,11 @@ namespace Emerald.WinUI
         public void Initialize()
         {
             MainFrame = frame;
-            NavView.MenuItems.Add(new NavViewItem() { Content = "Home".ToLocalizedString(), IconGlyph = "\uE10F", IsSelected = true });
-            NavView.MenuItems.Add(new NavViewItem() { Content = "Store".ToLocalizedString(), IconGlyph = "\uE14D" });
-            NavView.FooterMenuItems.Add(new NavViewItem() { Content = "Tasks".ToLocalizedString(), IconGlyph = "\xF16A", InfoBadge = TasksInfoBadge });
-            NavView.FooterMenuItems.Add(new NavViewItem() { Content = "Logs".ToLocalizedString(), IconGlyph = "\xE756" });
+            NavView.MenuItems.Add(new SquareNavigationViewItem("Home".ToLocalizedString(), true, new(new("ms-appx:///Assets/NavigationViewIcons/home.png"))));
+            NavView.MenuItems.Add(new SquareNavigationViewItem("Store".ToLocalizedString(), false, new(new("ms-appx:///Assets/NavigationViewIcons/store.png"))));
+            NavView.FooterMenuItems.Add(new SquareNavigationViewItem("Tasks".ToLocalizedString(), false, new(new("ms-appx:///Assets/NavigationViewIcons/tasks.png")), TasksInfoBadge));
+            NavView.FooterMenuItems.Add(new SquareNavigationViewItem("Logs".ToLocalizedString(), false, new(new("ms-appx:///Assets/NavigationViewIcons/logs.png"))));
+            NavView.FooterMenuItems.Add(new SquareNavigationViewItem("Settings".ToLocalizedString(), false, new(new("ms-appx:///Assets/NavigationViewIcons/settings.png"))));
             NavView.Header = new NavViewHeader() { HeaderText = "Home".ToLocalizedString(), HeaderMargin = GetNavViewHeaderMargin() };
             NavView.DisplayModeChanged += (_, _) => (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
             WindowManager.SetTitleBar(this, AppTitleBar);
@@ -50,7 +51,7 @@ namespace Emerald.WinUI
                     NavView.MenuItems[SelectedItemIndex.Item1] :
                     (SelectedItemIndex.Item2 == 1 ?
                         NavView.FooterMenuItems[SelectedItemIndex.Item1] :
-                        NavView.SettingsItem);
+                        NavView.SelectedItem);
                 TasksHelper.TaskAddRequested += (_, e) =>
                         {
                             TaskView.AddProgressTask(e.Name.ToLocalizedString(), 0, InfoBarSeverity.Informational, true, e.TaskID);
@@ -92,51 +93,67 @@ namespace Emerald.WinUI
         }
 
         /// <summary>
-        /// Item1 is the Count.   
-        /// Item 2 is the source (Menu,Footer,Settings).
+        /// <para>Item1 - The Index.<br/>
+        /// Item2 - The source (0-Menu, 1-Footer, 2-Unknown).</para>
         /// </summary>
         private (int, int) SelectedItemIndex;
         private void UpdateSelectedItem() =>
-            SelectedItemIndex = NavView.SelectedItem is NavViewItem item ?
-            (
-            ((NavView.SelectedItem as NavViewItem).Content.ToString() == "Tasks".ToLocalizedString()) ?
-            SelectedItemIndex
-            : (NavView.MenuItems.IndexOf(
-                NavView.MenuItems
-                .FirstOrDefault(x => (NavViewItem)x == item)) == -1 ?
-                    (1, 1)
-                    :
-                    (NavView.MenuItems.IndexOf(
-                    NavView.MenuItems
-                    .FirstOrDefault(x => (NavViewItem)x == item)), 0))
-                    ) : (1, 2);
+            SelectedItemIndex = NavView.SelectedItem is SquareNavigationViewItem item ?
+                (
+                 ((NavView.SelectedItem as SquareNavigationViewItem).Name.ToString() == "Tasks".ToLocalizedString()) ? 
+                    SelectedItemIndex 
+                    : 
+                    (NavView.MenuItems.IndexOf(NavView.MenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)) == -1 ? 
+                        (
+                         NavView.FooterMenuItems.IndexOf(NavView.FooterMenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)) == -1 ?
+                            (1,2) 
+                            :
+                            (NavView.FooterMenuItems.IndexOf(NavView.FooterMenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)),1)
+                         ) 
+                        :
+                        (NavView.MenuItems.IndexOf(NavView.MenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)), 0))
+                ) 
+                : (1, 2);
         private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
-            if (!args.IsSettingsInvoked)
+            if (!args.IsSettingsInvoked && NavView.SelectedItem is SquareNavigationViewItem itm)
             {
-                var h = (NavView.SelectedItem as NavViewItem).Content.ToString();
-                if (h == "Home".ToLocalizedString())
+                try
                 {
-                    MainFrame.Content = HomePage;
+                    var h = itm.Name.ToString();
+                    if (h == "Home".ToLocalizedString())
+                    {
+                        MainFrame.Content = HomePage;
+                    }
+                    else if (h == "Store".ToLocalizedString())
+                    {
+                    }
+                    else if (h == "Tasks".ToLocalizedString())
+                    {
+                        TaskViewFlyout.ShowAt(args.InvokedItemContainer, new() { Placement = FlyoutPlacementMode.Right, ShowMode = FlyoutShowMode.Standard });
+                        TasksInfoBadge.Value = 0;
+                    }
+                    else if (h == "Logs".ToLocalizedString())
+                    {
+
+                    }
+                    UpdateTasksInfoBadge();
+                    (NavView.Header as NavViewHeader).HeaderText = h == "Tasks".ToLocalizedString() ? (NavView.Header as NavViewHeader).HeaderText : h;
+                    (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
                 }
-                else if (h == "Store".ToLocalizedString())
+                catch
                 {
 
                 }
-                else if (h == "Tasks".ToLocalizedString())
-                {
-                    TaskViewFlyout.ShowAt(NavView.SelectedItem as NavViewItem, new() { Placement = FlyoutPlacementMode.Bottom, ShowMode = FlyoutShowMode.Standard });
-                    TasksInfoBadge.Value = 0;
-                }
-                else if (h == "Logs".ToLocalizedString())
-                {
 
-                }
-                UpdateTasksInfoBadge();
-                (NavView.Header as NavViewHeader).HeaderText = h;
-                (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
+                var pitm = ((SquareNavigationViewItem)(SelectedItemIndex.Item2 == 0 ?
+                        NavView.MenuItems[SelectedItemIndex.Item1] :
+                        (SelectedItemIndex.Item2 == 1 ?
+                            NavView.FooterMenuItems[SelectedItemIndex.Item1] :
+                            NavView.SelectedItem)));
+                pitm.IsSelected = pitm == itm;
+                UpdateSelectedItem();
             }
-            UpdateSelectedItem();
         }
     }
 }

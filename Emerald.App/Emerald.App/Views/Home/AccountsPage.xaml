@@ -47,7 +47,7 @@
                                 <MenuFlyout>
                                     <MenuFlyoutItem Text="Remove" />
                                     <MenuFlyoutItem Text="Settings" />
-                                    <ToggleMenuFlyoutItem Click="ToggleMenuFlyoutItem_Click" IsChecked="{x:Bind IsChecked}" Text="Select" />
+                                    <ToggleMenuFlyoutItem Click="ToggleMenuFlyoutItem_Click" IsChecked="{x:Bind IsChecked,Mode=TwoWay}" Text="Select" />
                                     <MenuFlyoutItem Text="Duplicate" />
                                 </MenuFlyout>
                             </Button.ContextFlyout>
@@ -59,7 +59,7 @@
                                     VerticalAlignment="Top"
                                     Canvas.ZIndex="3"
                                     Click="CheckBox_Click"
-                                    IsChecked="{x:Bind IsChecked}"
+                                    IsChecked="{x:Bind IsChecked,Mode=TwoWay}"
                                     Visibility="{x:Bind CheckboxVsibility}" />
                                 <Grid Margin="10" Padding="20,10">
                                     <StackPanel HorizontalAlignment="Center">
@@ -99,7 +99,7 @@
                                                     <MenuFlyout>
                                                         <MenuFlyoutItem Text="Remove" />
                                                         <MenuFlyoutItem Text="Settings" />
-                                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind IsChecked}" Click="ToggleMenuFlyoutItem_Click" Text="Select" />
+                                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind IsChecked,Mode=TwoWay}" Click="ToggleMenuFlyoutItem_Click" Text="Select" />
                                                         <MenuFlyoutItem Text="Duplicate" />
                                                     </MenuFlyout>
                                                 </DropDownButton.Flyout>

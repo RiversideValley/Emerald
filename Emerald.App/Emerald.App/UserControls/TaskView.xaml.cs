@@ -174,7 +174,6 @@ namespace Emerald.WinUI.UserControls
 
         private void delete_Invoked(SwipeItem sender, SwipeItemInvokedEventArgs args)
         {
-
             Tasks.Remove(args.SwipeControl.DataContext as Models.ITask);
         }
     }

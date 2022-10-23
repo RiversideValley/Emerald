@@ -250,6 +250,9 @@
   <data name="SearchStore" xml:space="preserve">
     <value>Search Store</value>
   </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
   <data name="SettingsPage_txtSettings.Text" xml:space="preserve">
     <value>Settings</value>
   </data>

@@ -47,6 +47,7 @@
         x:Name="paneVersions"
         DisplayMode="Inline"
         OpenPaneLength="300"
+        CornerRadius="7"
         PaneBackground="{ThemeResource LayerFillColorDefaultBrush}"
         PanePlacement="Left">
         <SplitView.Pane>
