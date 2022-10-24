@@ -22,7 +22,5 @@ steps:
 
 - task: VSBuild@1
   inputs:
-    platform: 'x64'
     solution: '$(solution)'
-    configuration: 'Debug'
     msbuildArgs: '/p:AppxBundlePlatforms="$(buildPlatform)" /p:AppxPackageDir="$(appxPackageDir)" /p:AppxBundle=Always /p:UapAppxPackageBuildMode=Debug /p:AppxPackageSigningEnabled=false'
