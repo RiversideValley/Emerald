@@ -26,7 +26,7 @@ namespace Emerald.WinUI.UserControls
         }
 
         private TaskView _TaskView;
-        public UserControls.TaskView TaskView { get => _TaskView; set => Set(ref _TaskView, value); }
+        public TaskView TaskView { get => _TaskView; set => Set(ref _TaskView, value); }
         public TaskViewGrid(TaskView taskView)
         {
             this.InitializeComponent();

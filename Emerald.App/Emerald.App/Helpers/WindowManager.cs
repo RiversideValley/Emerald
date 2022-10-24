@@ -37,7 +37,7 @@ namespace Emerald.WinUI.Helpers
         /// <summary>
         /// Sets the customized titlebar if supported
         /// </summary>
-        /// <exception cref="System.NullReferenceException"/>
+        /// <exception cref="NullReferenceException"/>
         public static void SetTitleBar(Window window, UIElement AppTitleBar)
         {
 

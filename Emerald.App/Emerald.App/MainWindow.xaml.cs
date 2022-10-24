@@ -17,7 +17,7 @@ namespace Emerald.WinUI
     public sealed partial class MainWindow : Window
     {
         public static Views.Home.HomePage HomePage { get; private set; }
-        public static UserControls.TaskView TaskView { get; private set; } = new();
+        public static TaskView TaskView { get; private set; } = new();
         private Flyout TaskViewFlyout = new();
         public static Frame MainFrame { get; private set; }
         private InfoBadge TasksInfoBadge = new() { Value = 0 };

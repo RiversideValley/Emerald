@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Emerald.WinUI.Helpers
 {
     /// <summary>
-    /// A <see cref="Microsoft.UI.Xaml.Controls.ContentDialog"/> as a MessageBox...  
+    /// A <see cref="ContentDialog"/> as a MessageBox...  
     /// Copied From the Emerald.UWP
     /// </summary>
     public class MessageBox : ContentDialog

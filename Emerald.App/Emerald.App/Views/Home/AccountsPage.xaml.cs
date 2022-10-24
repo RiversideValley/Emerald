@@ -19,7 +19,7 @@ namespace Emerald.WinUI.Views.Home
             gv.ItemsSource = Accounts;
         }
 
-        private void ToggleMenuFlyoutItem_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        private void ToggleMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
         {
             //Accounts.Where(x => ((sender as ToggleMenuFlyoutItem).DataContext as Account).Count == x.Count).FirstOrDefault().IsChecked = (sender as ToggleMenuFlyoutItem).IsChecked;
             UpdateAll();
@@ -48,7 +48,7 @@ namespace Emerald.WinUI.Views.Home
                 CheckAndHideCheckBox(i);
             }
         }
-        private void CheckBox_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        private void CheckBox_Click(object sender, RoutedEventArgs e)
         {
             //Accounts.Where(x => ((sender as CheckBox).DataContext as Account).Count == x.Count).FirstOrDefault().IsChecked = (sender as CheckBox).IsChecked.Value;
             UpdateAll();
