@@ -101,10 +101,10 @@ namespace Emerald.Core
                 var p = await Launcher.CreateProcessAsync(ver, launchOption);
                 TasksHelper.CompleteTask(id, true);
                 return p;
-                    }
-            catch
+            }
+            catch (Exception ex)
             {
-                TasksHelper.CompleteTask(id, false);
+                TasksHelper.CompleteTask(id, false, ex.Message);
                 return null;
             }
             
@@ -209,9 +209,9 @@ namespace Emerald.Core
                 UpdateLogs(html);
                 TasksHelper.CompleteTask(taskID, true);
             }
-            catch
+            catch (Exception ex)
             {
-                TasksHelper.CompleteTask(taskID, false);
+                TasksHelper.CompleteTask(taskID, false,ex.Message);
             }
         }
         private void UpdateLogs(string html)
@@ -309,9 +309,9 @@ namespace Emerald.Core
                 UI(true);
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
-                TasksHelper.CompleteTask(taskID, false);
+                TasksHelper.CompleteTask(taskID, false, ex.Message);
                 Status(Localized.Ready);
                 UI(true);
                 VersionsRefreshed(this, new VersionsRefreshedEventArgs(false));

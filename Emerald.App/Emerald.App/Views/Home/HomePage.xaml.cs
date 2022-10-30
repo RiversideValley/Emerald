@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Windows.ApplicationModel.Core;
+using Emerald.Core;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -229,6 +230,12 @@ namespace Emerald.WinUI.Views.Home
             MainWindow.MainFrame.Content = AccountsPage;
             currentPage = 1;
             AccountsPage.Accounts.Add(MSession.GetOfflineSession("Noob").ToAccount());
+        }
+
+        private async void LaunchButton_Click(object sender, RoutedEventArgs e)
+        {
+            var ver = (VersionButton.Content as Models.MinecraftVersion).GetLaunchVersion();
+            (await MainCore.Launcher.CreateProcessAsync(ver, new() { Session = MSession.GetOfflineSession("Noob"),MaximumRamMb = 4096,MinimumRamMb = 1024 })).Start();
         }
     }
 }

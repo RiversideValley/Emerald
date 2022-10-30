@@ -26,15 +26,21 @@ namespace Emerald.Core.Tasks
         {
             TaskCompleteRequested(null, new TaskCompletedEventArgs(ID, success));
         }
+        public static void CompleteTask(int ID, bool success = true,string message = null)
+        {
+            TaskCompleteRequested(null, new TaskCompletedEventArgs(ID, success,message));
+        }
     }
     public class TaskCompletedEventArgs : EventArgs
     {
         public int ID { get; private set; }
         public bool Success { get; private set; }
-        public TaskCompletedEventArgs(int iD, bool success)
+        public string Message { get; private set; }
+        public TaskCompletedEventArgs(int iD, bool success,string message = null)
         {
             ID = iD;
             Success = success;
+            Message = message;
         }
     }
     public class TaskAddRequestedEventArgs : EventArgs

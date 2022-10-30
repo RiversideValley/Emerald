@@ -1,7 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using System.Collections.ObjectModel;
 using System.Linq;
-
+using System.Text;
 namespace Emerald.WinUI.Models
 {
     public class MinecraftVersion : Model
@@ -50,5 +50,15 @@ namespace Emerald.WinUI.Models
 
         private ObservableCollection<MinecraftVersion> _SubVersions;
         public ObservableCollection<MinecraftVersion> SubVersions { get => _SubVersions ?? new(); set => Set(ref _SubVersions, value); }
+
+        public string GetLaunchVersion()
+        {
+            return string.IsNullOrEmpty(Version) ? null :
+                (Version.StartsWith("fabricMC-") ? Version.Replace("fabricMC-", "") :
+                (Version.StartsWith("vanilla-") ? Version.Replace("vanilla-","") :
+                Version
+                )
+                );
+        }
     }
 }

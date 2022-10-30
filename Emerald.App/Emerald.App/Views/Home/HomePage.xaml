@@ -223,11 +223,13 @@
                 <Button
                     x:Name="LaunchButton"
                     Grid.Column="2"
+                    Click="LaunchButton_Click"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
                     FontSize="16"
                     Style="{ThemeResource AccentButtonStyle}">
                     <TextBlock
+                        Text="{helpers:LocalizeString Name=LaunchMC}"
                         HorizontalAlignment="Center"
                         FontSize="16"
                         FontWeight="Bold" />

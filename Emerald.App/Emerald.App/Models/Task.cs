@@ -8,6 +8,7 @@ namespace Emerald.WinUI.Models
     public interface ITask
     {
         public string Content { get; set; }
+        public string Description { get; set; }
         public object UniqueThings { get; set; }
         public DateTime Time { get; set; }
         public int ID { get; set; }
@@ -20,6 +21,9 @@ namespace Emerald.WinUI.Models
     {
         private string _Content;
         public string Content { get => _Content; set => Set(ref _Content, value); }
+
+        private string _Description;
+        public string Description { get => _Description; set => Set(ref _Description, value); }
 
         public DateTime Time { get; set; }
 
@@ -56,6 +60,9 @@ namespace Emerald.WinUI.Models
 
         private string _Content;
         public string Content { get => _Content; set => Set(ref _Content, value); }
+
+        private string _Description;
+        public string Description { get => _Description; set => Set(ref _Description, value); }
 
         public DateTime Time { get; set; }
 
