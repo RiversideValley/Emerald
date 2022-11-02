@@ -12,7 +12,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
 namespace Emerald.Core
 {
     public class Emerald
@@ -93,8 +92,8 @@ namespace Emerald.Core
         /// <summary>
         /// Creates a Minecraft <see cref="System.Diagnostics.Process"/> using the given <paramref name="ver"/> and <paramref name="launchOption"/>
         /// </summary>
-        public async Task<System.Diagnostics.Process> CreateProcessAsync(string ver, MLaunchOption launchOption)
-        {
+        public async Task<System.Diagnostics.Process?> CreateProcessAsync(string ver, MLaunchOption launchOption)
+        { 
             var id = TasksHelper.AddTask(Localized.LaunchMC);
             try
             {
@@ -130,7 +129,7 @@ namespace Emerald.Core
                 var item = FabricMCVerNames.Where(x => x.EndsWith(ver));
                 if (item != null)
                 {
-                    return item.FirstOrDefault();
+                    return item.FirstOrDefault() ?? "";
                 }
                 else
                 {
@@ -181,14 +180,14 @@ namespace Emerald.Core
             string html = "";
             try
             {
-                if (Launcher.Versions.LatestSnapshotVersion.Name != Launcher.Versions.LatestReleaseVersion.Name)
+                if (Launcher.Versions?.LatestSnapshotVersion?.Name != Launcher.Versions?.LatestReleaseVersion?.Name)
                 {
-                    html += await GetChangelog(Launcher.Versions.LatestSnapshotVersion.Name);
+                    html += await GetChangelog(Launcher.Versions?.LatestSnapshotVersion?.Name);
                     UpdateLogs(html);
                 }
-                if (Launcher.Versions.LatestReleaseVersion.Name != "1.19.1")
+                if (Launcher.Versions?.LatestReleaseVersion?.Name != "1.19.1")
                 {
-                    html += await GetChangelog(Launcher.Versions.LatestReleaseVersion.Name);
+                    html += await GetChangelog(Launcher.Versions?.LatestReleaseVersion?.Name);
                     UpdateLogs(html);
                 }
             }

@@ -21,6 +21,9 @@
                 <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
                 <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
             </ResourceDictionary>
+            <TransitionCollection x:Key="EntranceThemeTransitionStaggeringEnabled">
+                <EntranceThemeTransition IsStaggeringEnabled="True"/>
+            </TransitionCollection>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

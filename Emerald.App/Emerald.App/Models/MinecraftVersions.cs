@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
+using Emerald.WinUI.Helpers;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
@@ -53,7 +54,7 @@ namespace Emerald.WinUI.Models
 
         public string GetLaunchVersion()
         {
-            return string.IsNullOrEmpty(Version) ? null :
+            return Version.IsNullEmptyOrWhiteSpace() ? null :
                 (Version.StartsWith("fabricMC-") ? Version.Replace("fabricMC-", "") :
                 (Version.StartsWith("vanilla-") ? Version.Replace("vanilla-","") :
                 Version

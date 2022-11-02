@@ -19,7 +19,7 @@ namespace Emerald.WinUI.Helpers
             // and figure out what template should be used with it based on the structure of the template selector.
             if (ContentTemplateSelector is DataTemplateSelector dataTemplateSelector)
             {
-                ContentTemplate = dataTemplateSelector.SelectTemplate(newContent, null);
+                ContentTemplate = dataTemplateSelector.SelectTemplate(newContent);
             }
 
             // Allow the base class to handle the rest of the call.

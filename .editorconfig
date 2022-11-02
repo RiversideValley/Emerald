@@ -11,3 +11,12 @@ dotnet_diagnostic.IDE0022.severity = none
 
 # CS0252: Possible unintended reference comparison; left hand side needs cast
 dotnet_diagnostic.CS0252.severity = none
+
+# CS8622: Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).
+dotnet_diagnostic.CS8622.severity = none
+
+# CS8618: Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+dotnet_diagnostic.CS8618.severity = none
+
+# CS8604: Possible null reference argument.
+dotnet_diagnostic.CS8604.severity = none

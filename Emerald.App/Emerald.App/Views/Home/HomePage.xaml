@@ -13,6 +13,11 @@
     <Page.Resources>
         <DataTemplate x:Key="MCVersionTemplate" x:DataType="models:MinecraftVersion">
             <Grid>
+                <Grid.ChildrenTransitions>
+                    <TransitionCollection>
+                        <AddDeleteThemeTransition/>
+                    </TransitionCollection>
+                </Grid.ChildrenTransitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -51,7 +56,7 @@
         PaneBackground="{ThemeResource LayerFillColorDefaultBrush}"
         PanePlacement="Left">
         <SplitView.Pane>
-            <Grid>
+            <Grid ChildrenTransitions="{StaticResource EntranceThemeTransitionStaggeringEnabled}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />

@@ -31,11 +31,14 @@ namespace Emerald.WinUI
         /// will be used such as when the application is launched to open a specific file.
         /// </summary>
         /// <param name="args">Details about the launch request and process.</param>
-        protected override void OnLaunched(LaunchActivatedEventArgs args)
+        protected override async void OnLaunched(LaunchActivatedEventArgs args)
         {
+            await Helpers.Settings.SettingsSystem.LoadData();
+            System.Net.ServicePointManager.DefaultConnectionLimit = 256;
             MainWindow = new MainWindow();
             MainWindow.Activate();
             Helpers.WindowManager.IntializeWindow(MainWindow);
+            MainWindow.Closed += (_, _) => Helpers.Settings.SettingsSystem.SaveData();
         }
 
         public static Window MainWindow { get; private set; }

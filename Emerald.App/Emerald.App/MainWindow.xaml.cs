@@ -2,10 +2,13 @@
 using Emerald.WinUI.Helpers;
 using Emerald.WinUI.Models;
 using Emerald.WinUI.UserControls;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using System.Linq;
+using Windows.UI;
+using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -17,6 +20,7 @@ namespace Emerald.WinUI
     public sealed partial class MainWindow : Window
     {
         public static Views.Home.HomePage HomePage { get; private set; }
+        public static Color BGTintColor { get; private set; }
         public static TaskView TaskView { get; private set; } = new();
         private Flyout TaskViewFlyout = new();
         public static Frame MainFrame { get; private set; }
@@ -65,11 +69,42 @@ namespace Emerald.WinUI
                     {
                         TaskView.ChangeProgress(ID.Value, 100);
                         TaskView.ChangeIndeterminate(ID.Value, false);
+                        TaskView.ChangeDescription(ID.Value,e.Message);
                         TaskView.ChangeSeverty(ID.Value, e.Success ? InfoBarSeverity.Success : InfoBarSeverity.Error);
                     }
                 };
             }
             Tasks();
+            void Settings()
+            {
+                void TintColor() {
+                    switch ((Helpers.Settings.Enums.MicaTintColor)SS.Settings.App.Appearance.MicaTintColor)
+                    {
+                        case Helpers.Settings.Enums.MicaTintColor.NoColor:
+                            MicaTintColorBrush.Color = Colors.Transparent;
+                            BGTintColor = Colors.Transparent;
+                            break;
+                        case Helpers.Settings.Enums.MicaTintColor.AccentColor:
+                            MicaTintColorBrush.Color = (Color)App.Current.Resources["SystemAccentColor"];
+                            BGTintColor = (Color)App.Current.Resources["SystemAccentColor"];
+                            break;
+                        case Helpers.Settings.Enums.MicaTintColor.CustomColor:
+                            var c = SS.Settings.App.Appearance.CustomMicaTintColor;
+                            MicaTintColorBrush.Color = c == null ? Color.FromArgb(255, 234, 0, 94) : Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B);
+                            BGTintColor = c == null ? Color.FromArgb(255, 234, 0, 94) : Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B);
+                            break;
+                    }
+                }
+                SS.Settings.App.Appearance.PropertyChanged += (s, e) =>
+                {
+                    TintColor();
+                    (this.Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
+                    
+                };
+                TintColor();
+                (this.Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
+            }
+            Settings();
             HomePage = new();
             MainFrame.Content = HomePage;
         }
@@ -130,7 +165,11 @@ namespace Emerald.WinUI
                         TasksInfoBadge.Value = 0;
                     }
                     else if (h == "Logs".ToLocalizedString())
-                    {}
+                    { }
+                    else if (h == "Settings".ToLocalizedString())
+                    {
+                        MainFrame.Navigate(typeof(Views.Settings.SettingsPage));
+                    }
                     UpdateTasksInfoBadge();
                     (NavView.Header as NavViewHeader).HeaderText = h == "Tasks".ToLocalizedString() ? (NavView.Header as NavViewHeader).HeaderText : h;
                     (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();

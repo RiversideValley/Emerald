@@ -5,6 +5,7 @@
     xmlns:conv="using:Emerald.WinUI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:Emerald.WinUI.UserControls"
+    xmlns:ViewModels="using:Emerald.WinUI.ViewModels"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:local1="using:Emerald.WinUI.Helpers"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -16,9 +17,9 @@
 
             <conv:StringToVisibility x:Key="StrToVis" />
 
-            <conv:ExpanderTemplateSelector x:Key="ExpanderSelector" Style="{x:Bind ExpanderStyle, Mode=OneWay}">
+            <conv:ExpanderTemplateSelector Style="{x:Bind VM.ExpanderStyle,Mode=OneWay}" x:Name="ExpanderSelector">
                 <conv:ExpanderTemplateSelector.Button>
-                    <DataTemplate x:DataType="local:Expander" x:DefaultBindMode="OneWay">
+                    <DataTemplate x:DataType="ViewModels:ExpanderViewModel" x:DefaultBindMode="OneWay">
                         <Button Click="OnButtonClick" Style="{StaticResource ActionCard}">
                             <Grid VerticalAlignment="Center" ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
@@ -60,7 +61,7 @@
                 </conv:ExpanderTemplateSelector.Button>
 
                 <conv:ExpanderTemplateSelector.Static>
-                    <DataTemplate x:DataType="local:Expander" x:DefaultBindMode="OneWay">
+                    <DataTemplate x:DataType="ViewModels:ExpanderViewModel" x:DefaultBindMode="OneWay">
                         <Border Style="{StaticResource SettingsCard}">
                             <Grid VerticalAlignment="Center" ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
@@ -103,7 +104,7 @@
                 </conv:ExpanderTemplateSelector.Static>
 
                 <conv:ExpanderTemplateSelector.Default>
-                    <DataTemplate x:DataType="local:Expander" x:DefaultBindMode="OneWay">
+                    <DataTemplate x:DataType="ViewModels:ExpanderViewModel" x:DefaultBindMode="OneWay">
                         <Expander HorizontalContentAlignment="Stretch" Style="{StaticResource SettingsExpanderStyle}">
                             <Expander.Header>
                                 <Grid VerticalAlignment="Center" ColumnSpacing="12">
@@ -151,7 +152,7 @@
                 </conv:ExpanderTemplateSelector.Default>
 
                 <conv:ExpanderTemplateSelector.Transparent>
-                    <DataTemplate x:DataType="local:Expander" x:DefaultBindMode="OneWay">
+                    <DataTemplate x:DataType="ViewModels:ExpanderViewModel" x:DefaultBindMode="OneWay">
                         <Border Style="{StaticResource TransparentCard}">
                             <Grid VerticalAlignment="Center" ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
@@ -194,7 +195,7 @@
                 </conv:ExpanderTemplateSelector.Transparent>
 
                 <conv:ExpanderTemplateSelector.Disabled>
-                    <DataTemplate x:DataType="local:Expander" x:DefaultBindMode="OneWay">
+                    <DataTemplate x:DataType="ViewModels:ExpanderViewModel" x:DefaultBindMode="OneWay">
                         <Border Style="{StaticResource SettingsCard}">
                             <Grid VerticalAlignment="Center" ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
@@ -234,10 +235,8 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid>
-        <local1:CompositionControl
+    <local1:CompositionControl
             HorizontalContentAlignment="Stretch"
-            Content="{x:Bind}"
+            Content="{x:Bind VM}"
             ContentTemplateSelector="{StaticResource ExpanderSelector}" />
-    </Grid>
 </UserControl>

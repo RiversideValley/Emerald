@@ -1,8 +1,10 @@
 ﻿using Emerald.WinUI.Models;
+using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System;
 
 namespace Emerald.WinUI.Views.Home
 {
@@ -27,7 +29,7 @@ namespace Emerald.WinUI.Views.Home
 
         private void btnAccount_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
-            Accounts.Where(x => ((sender as Button).DataContext as Account).Count == x.Count).FirstOrDefault().CheckboxVsibility = Microsoft.UI.Xaml.Visibility.Visible;
+            Accounts.Where(x => ((sender as Button).DataContext as Account).Count == x.Count).FirstOrDefault().CheckBoxLoaded = true;
         }
 
         private void btnAccount_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
@@ -37,21 +39,27 @@ namespace Emerald.WinUI.Views.Home
         private void CheckAndHideCheckBox(int count)
         {
             var x = Accounts.Where(x => x.Count == count).FirstOrDefault();
-            x.CheckboxVsibility =
-            x.IsChecked ? Visibility.Visible
-            : ((Accounts.Count > 1 && Accounts.Any(x => x.IsChecked)) ? Visibility.Visible : Visibility.Collapsed);
+            x.CheckBoxLoaded =
+            x.IsChecked || (Accounts.Count > 1 && Accounts.Any(x => x.IsChecked));
         }
         private void UpdateAll()
         {
             for (int i = Accounts.Count - 1; i >= 0; i--)
             {
-                CheckAndHideCheckBox(i);
+                try
+                {
+                    CheckAndHideCheckBox(i);
+                }
+                catch { }
             }
         }
-        private void CheckBox_Click(object sender, RoutedEventArgs e)
+        private async void CheckBox_Click(object sender, RoutedEventArgs e)
         {
-            //Accounts.Where(x => ((sender as CheckBox).DataContext as Account).Count == x.Count).FirstOrDefault().IsChecked = (sender as CheckBox).IsChecked.Value;
-            UpdateAll();
+            try
+            {
+                //Accounts.Where(x => ((sender as CheckBox).DataContext as Account).Count == x.Count).FirstOrDefault().IsChecked = (sender as CheckBox).IsChecked.Value;
+                UpdateAll();
+            }catch { }
         }
 
         private void btnAccount_Click(object sender, RoutedEventArgs e)

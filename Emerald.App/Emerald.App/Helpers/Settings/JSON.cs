@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,33 +8,34 @@ using System.Threading.Tasks;
 
 namespace Emerald.WinUI.Helpers.Settings.JSON
 {
-    public class JSON { }
-    public class Root : JSON
+    public class JSON : Models.Model
     {
-        public static Root CreateNew()
+        public string Serialize() => JsonConvert.SerializeObject(this, Formatting.Indented);
+        
+    }
+    public class Settings : JSON
+    {
+        public static Settings CreateNew()
         {
-            var s = new Root
+            var s = new Settings()
             {
-                Settings = new Settings
+                App = new App
                 {
-                    App = new App
+                    Discord = new Discord(),
+                    Appearance = new Appearance()
                     {
-                        Discord = new Discord(),
-                        Appearance = new Appearance()
-                    },
-                    Minecraft = new Minecraft
-                    {
-                        JVM = new JVM(),
-                        Downloader = new Downloader()
+                        MicaTintColor = ((int)Enums.MicaTintColor.NoColor),
+                        Theme = ((int)ElementTheme.Default)
                     }
+                },
+                Minecraft = new Minecraft
+                {
+                    JVM = new JVM(),
+                    Downloader = new Downloader()
                 }
             };
             return s;
         }
-        public Settings Settings { get; set; }
-    }
-    public class Settings : JSON
-    {
         public string APIVersion { get; set; } = "1.0";
         public Minecraft Minecraft { get; set; }
         public App App { get; set; }
@@ -85,6 +87,14 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
 
     public class Appearance : JSON
     {
-        public ElementTheme Theme { get; set; }
+        private int _Theme;
+        public int Theme { get => _Theme; set => Set(ref _Theme, value,nameof(Theme)); }
+
+        private int _MicaTintColor;
+        public int MicaTintColor { get => _MicaTintColor; set => Set(ref _MicaTintColor, value, nameof(MicaTintColor)); }
+
+        private (int A, int R, int G, int B)? _CustomMicaTintColor;
+        public (int A, int R, int G, int B)? CustomMicaTintColor { get => _CustomMicaTintColor; set => Set(ref _CustomMicaTintColor, value, nameof(CustomMicaTintColor)); }
+
     }
 }

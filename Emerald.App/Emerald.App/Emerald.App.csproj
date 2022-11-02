@@ -24,6 +24,7 @@
     <None Remove="Views\Settings\AccountPage.xaml" />
     <None Remove="Views\Settings\AppearancePage.xaml" />
     <None Remove="Views\Settings\GeneralPage.xaml" />
+    <None Remove="Views\Settings\SettingsPage.xaml" />
     <None Remove="Views\Store\StorePage.xaml" />
   </ItemGroup>
 
@@ -51,6 +52,12 @@
     <Content Update="Assets\icon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\Settings\SettingsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <ItemGroup>

@@ -4,29 +4,49 @@ namespace Emerald.WinUI.Helpers
 {
     public static class Extentions
     {
-        public static string ToLocalizedString(this string resourceKey)
+        public static string ToLocalizedString(this string resourceKey, string resw = null)
         {
             try
             {
-                var s = new ResourceLoader().GetString(resourceKey);
+                string s;
+                if (resw == null)
+                {
+                    s = new ResourceLoader().GetString(resourceKey);
+                }
+                else
+                {
+                    s = new Windows.ApplicationModel.Resources. ResourceLoader(resw).GetString(resourceKey);
+                }
                 return string.IsNullOrEmpty(s) ? resourceKey : s;
             }
             catch
             {
-                return resourceKey;
+                return resourceKey.ToString();
             }
         }
-        public static string ToLocalizedString(this Core.Localized resourceKey)
+        public static string ToLocalizedString(this Core.Localized resourceKey, string resw = null)
         {
             try
             {
-                var s = new ResourceLoader().GetString(resourceKey.ToString());
+                string s;
+                if (resw == null)
+                {
+                    s = new ResourceLoader().GetString(resourceKey.ToString());
+                }
+                else
+                {
+                    s = new ResourceLoader(resw).GetString(resourceKey.ToString());
+                }
                 return string.IsNullOrEmpty(s) ? resourceKey.ToString() : s;
             }
             catch
             {
                 return resourceKey.ToString();
             }
+        }
+        public static bool IsNullEmptyOrWhiteSpace(this string str)
+        {
+            return string.IsNullOrEmpty(str) || string.IsNullOrWhiteSpace(str);
         }
         public static Models.Account ToAccount(this CmlLib.Core.Auth.MSession session)
         {

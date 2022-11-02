@@ -16,15 +16,15 @@ namespace Emerald.WinUI.Models
         public int Count { get; set; }
         public bool Last { get; set; }
         // For app UI
-        private Visibility _IsCheckboxVsibility;
-        public Visibility CheckboxVsibility { get => _IsCheckboxVsibility; set => Set(ref _IsCheckboxVsibility, value); }
+        private bool _CheckBoxLoaded;
+        public bool CheckBoxLoaded { get => _CheckBoxLoaded; set => Set(ref _CheckBoxLoaded, value); }
 
         private bool _IsChecked;
         public bool IsChecked { get => _IsChecked; set => Set(ref _IsChecked, value); }
 
         public Account(string username, string accesstoken, string uuid, int count, bool last)
         {
-            CheckboxVsibility = Visibility.Collapsed;
+            CheckBoxLoaded = false;
             IsChecked = false;
             UserName = username;
             AccessToken = accesstoken;

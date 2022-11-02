@@ -97,6 +97,19 @@ namespace Emerald.WinUI.UserControls
                 return false;
             }
         }
+        public bool ChangeDescription(int ID, string description)
+        {
+            try
+            {
+                Tasks.FirstOrDefault(l => l.ID == ID).Description = description;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return false;
+            }
+        }
         public bool ChangeCustomControls(int ID, ObservableCollection<UIElement> controls)
         {
             try

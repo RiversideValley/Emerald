@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Emerald.WinUI.Helpers
 {
     /// <summary>
-    /// A <see cref="ContentDialog"/> as a MessageBox...  
+    /// A <see cref="ContentDialog"/> as a MessageBox...<br/>
     /// Copied From the Emerald.UWP
     /// </summary>
     public class MessageBox : ContentDialog
@@ -116,6 +116,7 @@ namespace Emerald.WinUI.Helpers
         {
             var d = new MessageBox(title, caption, buttons, customResult1, customResult2);
             d.XamlRoot = MainWindow.MainFrame.XamlRoot;
+            d.RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme;
             try
             {
                 await d.ShowAsync();
@@ -130,6 +131,7 @@ namespace Emerald.WinUI.Helpers
         {
             var d = new MessageBox("Information", text, MessageBoxButtons.Ok);
             d.XamlRoot = MainWindow.MainFrame.XamlRoot;
+            d.RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme;
             try
             {
                 await d.ShowAsync();

@@ -1,0 +1,23 @@
+﻿<Page
+    x:Class="Emerald.WinUI.Views.Settings.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Emerald.WinUI.Views.Settings"
+    xmlns:uc="using:Emerald.WinUI.UserControls"
+    xmlns:helpers="using:Emerald.WinUI.Helpers"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <NavigationView IsBackButtonVisible="Collapsed" IsSettingsVisible="False" AlwaysShowHeader="True" ItemInvoked="navView_ItemInvoked" x:Name="navView" PaneDisplayMode="Top">
+            <NavigationView.MenuItems>
+                <uc:NavViewItem Tag="General" IconGlyph="&#xE713;" Content="{helpers:LocalizeString CustomName=General,RESW=Settings}" IsSelected="True"/>
+                <uc:NavViewItem Tag="Appearance" IconGlyph="&#xE771;" Content="{helpers:LocalizeString CustomName=Appearance,RESW=Settings}"/>
+                <uc:NavViewItem Tag="About" IconGlyph="&#xE946;" Content="{helpers:LocalizeString CustomName=About,RESW=Settings}"/>
+            </NavigationView.MenuItems>
+            <Frame x:Name="contentframe"/>
+        </NavigationView>
+    </Grid>
+</Page>
+ 

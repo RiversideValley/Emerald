@@ -2,6 +2,7 @@
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 using System;
+using Windows.UI;
 
 namespace Emerald.WinUI.Converters
 {
@@ -53,19 +54,18 @@ namespace Emerald.WinUI.Converters
     }
     public class InfobarServertyToBackground : IValueConverter
     {
-        public Brush ErrorBrush { get; set; }
-        public Brush WarningBrush { get; set; }
-        public Brush SuccessBrush { get; set; }
-        public Brush InformationalBrush { get; set; }
+        public Models.InfobarBrushSet Dark { get; set; }
+        public Models.InfobarBrushSet Light { get; set; }
         public object Convert(object value, Type targetType, object parameter, string language)
         {
+            var theme = (App.MainWindow.Content as FrameworkElement).ActualTheme;
+            bool isdark = theme == ElementTheme.Dark;
             return (Microsoft.UI.Xaml.Controls.InfoBarSeverity)value switch
             {
-                Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error => ErrorBrush,
-                Microsoft.UI.Xaml.Controls.InfoBarSeverity.Warning => WarningBrush,
-                Microsoft.UI.Xaml.Controls.InfoBarSeverity.Success => SuccessBrush,
-                Microsoft.UI.Xaml.Controls.InfoBarSeverity.Informational => InformationalBrush,
-                _ => InformationalBrush,
+                Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error => isdark ? Dark.ErrorBrush : Light.ErrorBrush,
+                Microsoft.UI.Xaml.Controls.InfoBarSeverity.Warning => isdark ? Dark.WarningBrush : Light.WarningBrush,
+                Microsoft.UI.Xaml.Controls.InfoBarSeverity.Success => isdark ? Dark.SuccessBrush : Light.SuccessBrush,
+                _ => isdark ? Dark.InformationalBrush : Light.InformationalBrush
             };
         }
 

@@ -2,7 +2,7 @@
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.ObjectModel;
-
+using Emerald.WinUI.Helpers;
 namespace Emerald.WinUI.Models
 {
     public interface ITask
@@ -16,6 +16,7 @@ namespace Emerald.WinUI.Models
         public ObservableCollection<UIElement> CustomControls { get; set; }
         public Visibility RemoveButtonVisibility { get; set; }
         public Visibility IconVisibility { get; }
+        public bool HasDescription();
     }
     public class StringTask : Model, ITask
     {
@@ -41,6 +42,7 @@ namespace Emerald.WinUI.Models
         public Visibility RemoveButtonVisibility { get => _RemoveButtonVisibility; set => Set(ref _RemoveButtonVisibility, value); }
 
         public Visibility IconVisibility { get => RemoveButtonVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible; }
+        public bool HasDescription() => !Description.IsNullEmptyOrWhiteSpace();
 
         public StringTask(string content, DateTime time, int iD, InfoBarSeverity severity, object uniqueThings = null, ObservableCollection<UIElement> customCOntrols = null)
         {
@@ -50,8 +52,9 @@ namespace Emerald.WinUI.Models
             this.Severity = severity;
             UniqueThings = uniqueThings;
             CustomControls = customCOntrols;
-            MainWindow.TaskView.ActualThemeChanged += (_, _) => this.InvokePropertyChanged();
+            (App.MainWindow.Content as FrameworkElement).ActualThemeChanged += (_, _) => this.InvokePropertyChanged();
         }
+
     }
 
     public class ProgressTask : Model, ITask
@@ -87,6 +90,7 @@ namespace Emerald.WinUI.Models
 
         public Visibility IconVisibility { get => RemoveButtonVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible; }
 
+        public bool HasDescription() => !Description.IsNullEmptyOrWhiteSpace();
         public ProgressTask(string content, DateTime time, int iD, int progress = 0, InfoBarSeverity severity = InfoBarSeverity.Informational, bool isIndeterminate = false, object uniquethings = null, ObservableCollection<UIElement> customCOntrols = null)
         {
             Content = content;
@@ -97,7 +101,7 @@ namespace Emerald.WinUI.Models
             UniqueThings = uniquethings;
             Severity = severity;
             CustomControls = customCOntrols;
-            MainWindow.TaskView.ActualThemeChanged += (_, _) => this.InvokePropertyChanged();
+            (App.MainWindow.Content as FrameworkElement).ActualThemeChanged += (_, _) => this.InvokePropertyChanged();
         }
     }
 }

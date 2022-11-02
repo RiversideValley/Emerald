@@ -11,33 +11,30 @@
     xmlns:Controls="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d">
     <UserControl.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.ThemeDictionaries>
-                <ResourceDictionary x:Key="Light">
-                    <converters:InfobarServertyToBackground
-                        x:Key="ServertyToBackground"
+        <converters:InfobarServertyToBackground
+                        x:Key="ServertyToBackground">
+            <converters:InfobarServertyToBackground.Light>
+                <models:InfobarBrushSet
                         ErrorBrush="#FFFDE7E9"
                         InformationalBrush="#80F6F6F6"
                         SuccessBrush="#FFDFF6DD"
-                        WarningBrush="#FFFFF4CE" />
-                </ResourceDictionary>
-                <ResourceDictionary x:Key="Dark">
-                    <converters:InfobarServertyToBackground
-                        x:Key="ServertyToBackground"
+                        WarningBrush="#FFFFF4CE"/>
+            </converters:InfobarServertyToBackground.Light>
+            <converters:InfobarServertyToBackground.Dark>
+                <models:InfobarBrushSet
                         ErrorBrush="#FF442726"
                         InformationalBrush="#08FFFFFF"
                         SuccessBrush="#FF393D1B"
-                        WarningBrush="#FF433519" />
-                </ResourceDictionary>
-            </ResourceDictionary.ThemeDictionaries>
-            <converters:InfobarServertyToIconGlyph
+                        WarningBrush="#FF433519"/>
+            </converters:InfobarServertyToBackground.Dark>
+        </converters:InfobarServertyToBackground>
+        <converters:InfobarServertyToIconGlyph
                 x:Key="SevertyToGlyph"
                 ErrorString="&#xEA39;"
                 InformationalString="&#xE946;"
                 SuccessString="&#xE73E;"
                 WarningString="&#xE783;" />
-            <converters:NotBoolToVisibility x:Key="NotBoolToVisibility" />
-        </ResourceDictionary>
+        <converters:NotBoolToVisibility x:Key="NotBoolToVisibility" />
     </UserControl.Resources>
     <Grid>
         <TextBlock
@@ -63,7 +60,7 @@
                         <DataTemplate x:DataType="models:ProgressTask">
 
                             <Grid Margin="0,5,0,0">
-                                <SwipeControl Margin="0,5,0,0">
+                                <SwipeControl Margin="0">
                                     <SwipeControl.RightItems>
                                         <SwipeItems Mode="Execute">
                                             <SwipeItem Text="{helpers:LocalizeString Name=Remove}" Foreground="{ThemeResource ApplicationForegroundThemeBrush}" Background="{x:Bind Controls:InfoBarSeverity.Error,Converter={StaticResource ServertyToBackground}}" BehaviorOnInvoked="Close" Invoked="delete_Invoked">
@@ -100,6 +97,7 @@
                                                     <RowDefinition Height="auto" />
                                                     <RowDefinition Height="auto" />
                                                     <RowDefinition Height="auto" />
+                                                    <RowDefinition Height="auto" />
                                                 </Grid.RowDefinitions>
                                                 <TextBlock
                                             Grid.Row="0"
@@ -112,8 +110,16 @@
                                             Margin="0,3,0,0"
                                             Text="{x:Bind Content}"
                                             TextTrimming="CharacterEllipsis" />
-
-                                                <Grid Grid.Row="2" Visibility="{x:Bind ProgressVisibility, Mode=OneWay}">
+                                                <TextBlock
+                                            Grid.Row="2"
+                                            HorizontalAlignment="Left"
+                                                    TextWrapping="WrapWholeWords"
+                                                    x:Name="txtDescription"
+                                                    x:Load="{x:Bind HasDescription()}"
+                                            FontSize="13"
+                                            Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                            Text="{x:Bind Description}" />
+                                                <Grid Grid.Row="3" Margin="0,5,0,0" Visibility="{x:Bind ProgressVisibility}">
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="auto" />
                                                         <RowDefinition Height="auto" />
@@ -200,7 +206,7 @@
                     <converters:TaskViewTemplateSelector.String>
                         <DataTemplate x:DataType="models:StringTask">
                             <Grid Margin="0,5,0,0">
-                                <SwipeControl Margin="0,5,0,0">
+                                <SwipeControl Margin="0">
                                     <SwipeControl.RightItems>
                                         <SwipeItems Mode="Execute">
                                             <SwipeItem Text="{helpers:LocalizeString Name=Remove}"  Foreground="{ThemeResource ApplicationForegroundThemeBrush}" Background="{x:Bind Controls:InfoBarSeverity.Error,Converter={StaticResource ServertyToBackground}}"  BehaviorOnInvoked="Close" Invoked="delete_Invoked">
@@ -236,6 +242,7 @@
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="auto" />
                                                     <RowDefinition Height="auto" />
+                                                    <RowDefinition Height="auto" />
                                                 </Grid.RowDefinitions>
                                                 <TextBlock
                                             Grid.Row="0"
@@ -248,6 +255,15 @@
                                             Margin="0,3,0,0"
                                             Text="{x:Bind Content}"
                                             TextTrimming="CharacterEllipsis" />
+                                                <TextBlock
+                                            Grid.Row="2"
+                                            HorizontalAlignment="Left"
+                                            FontSize="13"
+                                                    x:Name="txtDescription"
+                                                    x:Load="{x:Bind HasDescription()}"
+                                                    TextWrapping="WrapWholeWords"
+                                            Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                            Text="{x:Bind Description}" />
                                             </Grid>
                                             <GridView
                                         Grid.Row="1"

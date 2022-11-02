@@ -5,7 +5,7 @@ namespace Emerald.WinUI.Models
     public class Model : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
-        public void Set<T>(ref T obj, T value, string name = null)
+        internal void Set<T>(ref T obj, T value, string name = null)
         {
             obj = value;
             InvokePropertyChanged(name);
