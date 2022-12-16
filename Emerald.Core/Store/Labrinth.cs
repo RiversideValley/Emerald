@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using System.Web;
 using Emerald.Core;
 using Emerald.Core.Args;
-
 namespace Emerald.Core.Store
 {
     public class Labrinth

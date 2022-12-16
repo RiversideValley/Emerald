@@ -16,7 +16,7 @@
                 <uc:NavViewItem Tag="Appearance" IconGlyph="&#xE771;" Content="{helpers:LocalizeString CustomName=Appearance,RESW=Settings}"/>
                 <uc:NavViewItem Tag="About" IconGlyph="&#xE946;" Content="{helpers:LocalizeString CustomName=About,RESW=Settings}"/>
             </NavigationView.MenuItems>
-            <Frame x:Name="contentframe"/>
+            <Frame Margin="10" x:Name="contentframe"/>
         </NavigationView>
     </Grid>
 </Page>

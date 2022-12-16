@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
   <data name="BegLogIn" xml:space="preserve">
     <value>Please Login</value>
   </data>
@@ -207,8 +210,14 @@
   <data name="MainPage_txtStatus.Text" xml:space="preserve">
     <value>Status:</value>
   </data>
+  <data name="MicrosoftAccount" xml:space="preserve">
+    <value>Microsoft account</value>
+  </data>
   <data name="NoNetwork" xml:space="preserve">
     <value>Seems like you don't have good internet...</value>
+  </data>
+  <data name="OfflineAccount" xml:space="preserve">
+    <value>Offline account</value>
   </data>
   <data name="OfflineMode" xml:space="preserve">
     <value>Offline Mode</value>
@@ -249,6 +258,12 @@
   </data>
   <data name="SearchStore" xml:space="preserve">
     <value>Search Store</value>
+  </data>
+  <data name="SelectAll" xml:space="preserve">
+    <value>Select All</value>
+  </data>
+  <data name="SelectNone" xml:space="preserve">
+    <value>Select None</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Settings</value>

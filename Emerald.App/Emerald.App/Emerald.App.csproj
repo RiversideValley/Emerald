@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>Emerald.WinUI</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -9,13 +9,13 @@
     <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
     <UseWinUI>true</UseWinUI>
     <Configurations>Debug;Release;SkipOld</Configurations>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Assets\icon.ico" />
     <None Remove="ResourceDictionaries\Expanders.xaml" />
     <None Remove="ResourceDictionaries\RightAlignedToggleSwitch.xaml" />
     <None Remove="UserControls\Expander.xaml" />
-    <None Remove="UserControls\NavViewItem.xaml" />
     <None Remove="UserControls\TaskViewGrid.xaml" />
     <None Remove="UserControls\TitleBar.xaml" />
     <None Remove="Views\HomePage.xaml" />
@@ -31,10 +31,10 @@
   <ItemGroup>
 	  <PackageReference Include="CommunityToolkit.WinUI.UI.Animations" Version="7.1.2" />
 	  <PackageReference Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
-	  <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.220909.2-experimental2" />
-	  <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.25206-preview" />
+	  <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.221209.1" />
+	  <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.25267-preview" />
 	  <PackageReference Include="PInvoke.User32" Version="0.7.124" />
-	  <PackageReference Include="WinUIEx" Version="1.8.0" />
+	  <PackageReference Include="WinUIEx" Version="2.0.0" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
@@ -107,12 +107,6 @@
 
   <ItemGroup>
     <Page Update="UserControls\Expander.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="UserControls\NavViewItem.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

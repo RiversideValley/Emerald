@@ -12,7 +12,7 @@
     mc:Ignorable="d">
 
     <Grid>
-        <StackPanel ChildrenTransitions="{StaticResource EntranceThemeTransitionStaggeringEnabled}">
+        <StackPanel Spacing="3" ChildrenTransitions="{StaticResource EntranceThemeTransitionStaggeringEnabled}">
             <uc:Expander 
             Icon="&#xE790;"
             ExpanderStyle="Static" 
@@ -27,6 +27,19 @@
                 </uc:Expander.HeaderControls>
             </uc:Expander>
             <uc:Expander
+            Icon="&#xE790;"
+            ExpanderStyle="Static"
+            Title="{helpers:LocalizeString CustomName=MicaType,RESW=Settings}" 
+            Description="{helpers:LocalizeString CustomName=MicaTypeDescription,RESW=Settings}">
+                <uc:Expander.HeaderControls>
+                    <ComboBox SelectedIndex="{x:Bind SS:SettingsSystem.Settings.App.Appearance.MicaType,Mode=TwoWay}">
+                        <ComboBoxItem Content="Mica"/>
+                        <ComboBoxItem Content="Mica Alt"/>
+                    </ComboBox>
+                </uc:Expander.HeaderControls>
+            </uc:Expander>
+            <uc:Expander
+                Icon="&#xE771;"
                 ExpanderStyle="Default" 
                 Title="{helpers:LocalizeString CustomName=WindowTintColor,RESW=Settings}"
                 Description="{helpers:LocalizeString CustomName=WindowTintColorDescription,RESW=Settings}">

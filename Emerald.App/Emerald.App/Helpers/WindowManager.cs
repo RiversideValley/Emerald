@@ -18,7 +18,7 @@ namespace Emerald.WinUI.Helpers
         /// <summary>
         /// Add mica and the icon to the <paramref name="window"/>
         /// </summary>
-        public static void IntializeWindow(Window window)
+        public static MicaBackground IntializeWindow(Window window)
         {
             var icon = User32.LoadImage(
                 hInst: IntPtr.Zero,
@@ -31,7 +31,9 @@ namespace Emerald.WinUI.Helpers
             var Handle = WindowNative.GetWindowHandle(window);
             User32.SendMessage(Handle, User32.WindowMessage.WM_SETICON, (IntPtr)1, icon);
             User32.SendMessage(Handle, User32.WindowMessage.WM_SETICON, (IntPtr)0, icon);
-            new MicaBackground(window).TrySetMicaBackdrop();
+            var s = new MicaBackground(window);
+            s.TrySetMicaBackdrop();
+            return s;
         }
 
         /// <summary>
@@ -49,18 +51,19 @@ namespace Emerald.WinUI.Helpers
                 titlebar.ExtendsContentIntoTitleBar = true;
                 void SetColor(ElementTheme acualTheme)
                 {
-                    titlebar.ButtonHoverBackgroundColor = App.DirectResoucres.LayerFillColorDefaultColor;
-                    titlebar.ButtonBackgroundColor = titlebar.ButtonInactiveBackgroundColor = Colors.Transparent;
+                    titlebar.ButtonBackgroundColor = titlebar.ButtonInactiveBackgroundColor = titlebar.ButtonPressedBackgroundColor = Colors.Transparent;
                     switch (acualTheme)
                     {
                         case ElementTheme.Dark:
+                            titlebar.ButtonHoverBackgroundColor = Colors.Black;
                             titlebar.ButtonForegroundColor = Colors.White;
-                            titlebar.ButtonHoverForegroundColor = Colors.Silver;
+                            titlebar.ButtonHoverForegroundColor = Colors.White;
                             titlebar.ButtonPressedForegroundColor = Colors.Silver;
                             break;
                         case ElementTheme.Light:
+                            titlebar.ButtonHoverBackgroundColor = Colors.White;
                             titlebar.ButtonForegroundColor = Colors.Black;
-                            titlebar.ButtonHoverForegroundColor = Colors.DarkGray;
+                            titlebar.ButtonHoverForegroundColor = Colors.Black;
                             titlebar.ButtonPressedForegroundColor = Colors.DarkGray;
                             break;
                     }
@@ -113,7 +116,7 @@ namespace Emerald.WinUI.Helpers
     public class MicaBackground
     {
         private readonly Window _window;
-        private MicaController _micaController = new();
+        public readonly MicaController MicaController = new();
         private SystemBackdropConfiguration _backdropConfiguration = new();
         private readonly WindowsSystemDispatcherQueueHelper _dispatcherQueueHelper = new();
 
@@ -139,8 +142,8 @@ namespace Emerald.WinUI.Helpers
                     _ => throw new InvalidOperationException("Unknown theme")
                 };
 
-                _micaController.AddSystemBackdropTarget(_window.As<ICompositionSupportsSystemBackdrop>());
-                _micaController.SetSystemBackdropConfiguration(_backdropConfiguration);
+                MicaController.AddSystemBackdropTarget(_window.As<ICompositionSupportsSystemBackdrop>());
+                MicaController.SetSystemBackdropConfiguration(_backdropConfiguration);
                 return true;
             }
 
@@ -166,8 +169,7 @@ namespace Emerald.WinUI.Helpers
         }
         private void WindowOnClosed(object sender, WindowEventArgs args)
         {
-            _micaController.Dispose();
-            _micaController = null!;
+            MicaController.Dispose();
             _window.Activated -= WindowOnActivated;
             _backdropConfiguration = null!;
         }

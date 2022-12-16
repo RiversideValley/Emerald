@@ -11,8 +11,25 @@
     xmlns:toolkit="using:CommunityToolkit.WinUI.UI.Controls"
     mc:Ignorable="d">
     <Grid>
-        <toolkit:AdaptiveGridView
-            
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <CommandBar Background="Transparent" DefaultLabelPosition="Right">
+            <AppBarButton Icon="Add" Label="{helpers:LocalizeString Name=Add}">
+                <AppBarButton.Flyout>
+                    <MenuFlyout Placement="Bottom">
+                        <MenuFlyoutItem Icon="{helpers:FontIcon Glyph=&#xEC05;}" Text="{helpers:LocalizeString Name=MicrosoftAccount}"/>
+                        <MenuFlyoutItem Icon="{helpers:FontIcon Glyph=&#xF384;}" Text="{helpers:LocalizeString Name=OfflineAccount}"/>
+                    </MenuFlyout>
+                </AppBarButton.Flyout>
+            </AppBarButton>
+            <AppBarButton Click="btnRemove_Click" Icon="Remove" Label="{helpers:LocalizeString Name=Remove}"/>
+            <AppBarButton x:Name="btnSelect" Icon="SelectAll" Click="btnSelectAll_Click" Label="{helpers:LocalizeString Name=SelectAll}"/>
+        </CommandBar>
+            <toolkit:AdaptiveGridView
+            Grid.Row="1"
             animations:ItemsReorderAnimation.Duration="00:00:00.3150000"
             x:Name="gv"
             StretchContentForSingleRow="False"
@@ -40,7 +57,7 @@
                             </Button.Style>
                             <Button.ContextFlyout>
                                 <MenuFlyout>
-                                    <MenuFlyoutItem Text="Remove" />
+                                    <MenuFlyoutItem Click="mitRemove_Click" Text="Remove" />
                                     <MenuFlyoutItem Text="Settings" />
                                     <ToggleMenuFlyoutItem Click="ToggleMenuFlyoutItem_Click" IsChecked="{x:Bind IsChecked,Mode=TwoWay}" Text="Select" />
                                     <MenuFlyoutItem Text="Duplicate" />
@@ -97,7 +114,7 @@
                                                 FontWeight="SemiBold">
                                                 <DropDownButton.Flyout>
                                                     <MenuFlyout>
-                                                        <MenuFlyoutItem Text="Remove" />
+                                                        <MenuFlyoutItem Click="mitRemove_Click" Text="Remove" />
                                                         <MenuFlyoutItem Text="Settings" />
                                                         <ToggleMenuFlyoutItem IsChecked="{x:Bind IsChecked,Mode=TwoWay}" Click="ToggleMenuFlyoutItem_Click" Text="Select" />
                                                         <MenuFlyoutItem Text="Duplicate" />

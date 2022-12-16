@@ -1,9 +1,24 @@
 ﻿using Microsoft.Windows.ApplicationModel.Resources;
+using System.Collections.ObjectModel;
+using System;
+using System.Linq;
 
 namespace Emerald.WinUI.Helpers
 {
     public static class Extentions
     {
+        public static int Remove<T>(
+        this ObservableCollection<T> coll, Func<T, bool> condition)
+        {
+            var itemsToRemove = coll.Where(condition).ToList();
+
+            foreach (var itemToRemove in itemsToRemove)
+            {
+                coll.Remove(itemToRemove);
+            }
+
+            return itemsToRemove.Count;
+        }
         public static string ToLocalizedString(this string resourceKey, string resw = null)
         {
             try

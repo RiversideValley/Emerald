@@ -144,6 +144,12 @@
   <data name="Light" xml:space="preserve">
     <value>Light</value>
   </data>
+  <data name="MicaType" xml:space="preserve">
+    <value>Mica Type</value>
+  </data>
+  <data name="MicaTypeDescription" xml:space="preserve">
+    <value>Normal Mica or Mica Alt (Tabbed)</value>
+  </data>
   <data name="NoColor" xml:space="preserve">
     <value>No color</value>
   </data>

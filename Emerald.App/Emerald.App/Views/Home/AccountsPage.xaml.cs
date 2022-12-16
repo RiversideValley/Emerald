@@ -5,6 +5,9 @@ using Microsoft.UI.Xaml.Controls;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System;
+using ProjBobcat.Class.Model.Version;
+using Emerald.WinUI.Helpers;
+using System.Diagnostics;
 
 namespace Emerald.WinUI.Views.Home
 {
@@ -34,11 +37,11 @@ namespace Emerald.WinUI.Views.Home
 
         private void btnAccount_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
-            CheckAndHideCheckBox(((sender as Button).DataContext as Account).Count);
+            CheckAndHideCheckBox(Accounts.IndexOf((sender as Button).DataContext as Account));
         }
         private void CheckAndHideCheckBox(int count)
         {
-            var x = Accounts.Where(x => x.Count == count).FirstOrDefault();
+            var x = Accounts[count];
             x.CheckBoxLoaded =
             x.IsChecked || (Accounts.Count > 1 && Accounts.Any(x => x.IsChecked));
         }
@@ -52,8 +55,10 @@ namespace Emerald.WinUI.Views.Home
                 }
                 catch { }
             }
+            btnSelect.Label = Accounts.Where(x => x.IsChecked).Any() ? Core.Localized.SelectNone.ToLocalizedString() : Core.Localized.SelectAll.ToLocalizedString();
+            btnSelect.Icon = new SymbolIcon(Accounts.Where(x => x.IsChecked).Any() ? Symbol.ClearSelection : Symbol.SelectAll);
         }
-        private async void CheckBox_Click(object sender, RoutedEventArgs e)
+        private void CheckBox_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -68,6 +73,35 @@ namespace Emerald.WinUI.Views.Home
             {
                 ((sender as Button).DataContext as Account).IsChecked = !((sender as Button).DataContext as Account).IsChecked;
                 UpdateAll();
+            }
+        }
+
+        private void btnSelectAll_Click(object sender, RoutedEventArgs e)
+        {
+            bool val = !Accounts.Where(x => x.IsChecked).Any();
+            foreach (var item in Accounts)
+            {
+                item.IsChecked = val;
+            }
+            UpdateAll();
+
+        }
+        private void RemoveSelected()=>
+            Accounts.Remove(x => x.IsChecked);
+        
+        private void btnRemove_Click(object sender, RoutedEventArgs e)=>
+            RemoveSelected();
+        
+
+        private void mitRemove_Click(object sender, RoutedEventArgs e)
+        {
+            if(Accounts.Where(x => x.IsChecked).Any())
+            {
+                RemoveSelected();
+            }
+            else
+            {
+                Accounts.Remove(((sender as MenuFlyoutItem).DataContext as Account));
             }
         }
     }

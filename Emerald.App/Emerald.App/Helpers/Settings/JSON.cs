@@ -93,6 +93,9 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         private int _MicaTintColor;
         public int MicaTintColor { get => _MicaTintColor; set => Set(ref _MicaTintColor, value, nameof(MicaTintColor)); }
 
+        private int _MicaType = 0;
+        public int MicaType { get => _MicaType; set => Set(ref _MicaType, value, nameof(_MicaType)); }
+
         private (int A, int R, int G, int B)? _CustomMicaTintColor;
         public (int A, int R, int G, int B)? CustomMicaTintColor { get => _CustomMicaTintColor; set => Set(ref _CustomMicaTintColor, value, nameof(CustomMicaTintColor)); }
 

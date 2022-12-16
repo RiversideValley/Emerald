@@ -9,7 +9,7 @@ namespace Emerald.WinUI.Helpers.Settings
     public static class SettingsSystem
     {
         public static JSON.Settings Settings { get; private set; }
-        public static async Task LoadData()
+        public static void LoadData()
         {
             string json;
             try

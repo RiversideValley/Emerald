@@ -49,6 +49,11 @@ namespace Emerald.Core
         Yes,
         Tasks,
         ClearAll,
-        Remove
+        Remove,
+        Add,
+        MicrosoftAccount,
+        OfflineAccount,
+        SelectAll,
+        SelectNone
     }
 }
