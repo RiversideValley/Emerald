@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
@@ -38,13 +39,16 @@ namespace Emerald.WinUI.Views.Settings
             switch (itm.Tag)
             {
                 case "Appearance":
-                    contentframe.Navigate(typeof(AppearancePage));
+                    contentframe.Navigate(typeof(AppearancePage),null, new SuppressNavigationTransitionInfo());
+                    navView.AlwaysShowHeader = true;
                     break;
                 case "About":
-                    contentframe.Navigate(typeof(AboutPage));
+                    contentframe.Navigate(typeof(AboutPage), null, new SuppressNavigationTransitionInfo());
+                    navView.AlwaysShowHeader = false;
                     break;
                 default:
-                    contentframe.Navigate(typeof(GeneralPage));
+                    contentframe.Navigate(typeof(GeneralPage), null, new SuppressNavigationTransitionInfo());
+                    navView.AlwaysShowHeader = true;
                     break;
             }
             navView.Header = itm.Content;

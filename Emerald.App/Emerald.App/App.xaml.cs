@@ -3,6 +3,13 @@ using System.IO;
 using Windows.Storage;
 using Windows.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
+using WinUIEx.Messaging;
+using Emerald.WinUI.Helpers;
+using Emerald.Core;
+using PInvoke;
+using System;
+using Windows.ApplicationModel;
+using CommunityToolkit.WinUI.Helpers;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -13,10 +20,6 @@ namespace Emerald.WinUI
     /// </summary>
     public partial class App : Application
     {
-        public static class DirectResoucres
-        {
-            public static Color LayerFillColorDefaultColor => (Color)Current.Resources["LayerFillColorDefault"];
-        }
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -26,7 +29,6 @@ namespace Emerald.WinUI
         {
             this.InitializeComponent();
         }
-
         /// <summary>
         /// Invoked when the application is launched normally by the end user.  Other entry points
         /// will be used such as when the application is launched to open a specific file.
@@ -34,17 +36,10 @@ namespace Emerald.WinUI
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs args)
         {
-            Helpers.Settings.SettingsSystem.LoadData();
             System.Net.ServicePointManager.DefaultConnectionLimit = 256;
             MainWindow = new MainWindow();
             MainWindow.Activate();
-            Helpers.MicaBackground mica = Helpers.WindowManager.IntializeWindow(MainWindow);
             MainWindow.Closed += (_, _) => Helpers.Settings.SettingsSystem.SaveData();
-            mica.MicaController.Kind = (MicaKind)Helpers.Settings.SettingsSystem.Settings.App.Appearance.MicaType;
-            Helpers.Settings.SettingsSystem.Settings.App.Appearance.PropertyChanged += (s, e) =>
-            {
-                mica.MicaController.Kind = (MicaKind)Helpers.Settings.SettingsSystem.Settings.App.Appearance.MicaType;
-            };
         }
 
         public static Window MainWindow { get; private set; }

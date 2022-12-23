@@ -2,6 +2,8 @@
 using System.Collections.ObjectModel;
 using System;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Emerald.WinUI.Helpers
 {
@@ -18,6 +20,31 @@ namespace Emerald.WinUI.Helpers
             }
 
             return itemsToRemove.Count;
+        }
+        public static string ToBinaryString(this string str)
+        {
+            var binary = "";
+            foreach (char ch in str)
+            {
+                binary += Convert.ToString((int)ch, 2);
+            }
+            return binary;
+        }
+        public static string ToMD5(this string s)
+        {
+            StringBuilder sb = new();
+
+            using (MD5 md5 = MD5.Create())
+            {
+                byte[] hashValue = md5.ComputeHash(Encoding.UTF8.GetBytes(s));
+
+                foreach (byte b in hashValue)
+                {
+                    sb.Append($"{b:X2}");
+                }
+            }
+
+            return sb.ToString();
         }
         public static string ToLocalizedString(this string resourceKey, string resw = null)
         {

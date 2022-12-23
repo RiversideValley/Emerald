@@ -132,6 +132,15 @@
   <data name="ColorModeDescription" xml:space="preserve">
     <value>Choose your color</value>
   </data>
+  <data name="Contribute" xml:space="preserve">
+    <value>Contribute</value>
+  </data>
+  <data name="Credits" xml:space="preserve">
+    <value>Credits</value>
+  </data>
+  <data name="CreditsDescription" xml:space="preserve">
+    <value>Respect...</value>
+  </data>
   <data name="CustomColor" xml:space="preserve">
     <value>Custom color</value>
   </data>
@@ -140,6 +149,9 @@
   </data>
   <data name="General" xml:space="preserve">
     <value>General</value>
+  </data>
+  <data name="Github" xml:space="preserve">
+    <value>Github</value>
   </data>
   <data name="Light" xml:space="preserve">
     <value>Light</value>
@@ -155,6 +167,9 @@
   </data>
   <data name="SystemDefault" xml:space="preserve">
     <value>System Default</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Version</value>
   </data>
   <data name="WindowTintColor" xml:space="preserve">
     <value>Window tint color</value>

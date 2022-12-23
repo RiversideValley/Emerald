@@ -20,7 +20,7 @@
             Margin="10,13"
             FontSize="14"
             FontWeight="SemiBold"
-            Text="{helpers:LocalizeString Name=Tasks}" />
+            Text="{helpers:Localize Name=Tasks}" />
         <Button
             x:Name="bntClearAll"
             Height="32"
@@ -29,8 +29,8 @@
             Background="Transparent"
             BorderBrush="Transparent"
             Click="bntClearAll_Click"
-            Content="{helpers:LocalizeString Name=ClearAll}"
-            ToolTipService.ToolTip="{helpers:LocalizeString Name=ClearAll}" />
+            Content="{helpers:Localize Name=ClearAll}"
+            ToolTipService.ToolTip="{helpers:Localize Name=ClearAll}" />
     </Grid>
     <ContentPresenter
         Grid.Row="1"

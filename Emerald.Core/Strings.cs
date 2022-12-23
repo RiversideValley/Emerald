@@ -54,6 +54,8 @@ namespace Emerald.Core
         MicrosoftAccount,
         OfflineAccount,
         SelectAll,
-        SelectNone
+        SelectNone,
+        LoadSettingsFailed,
+        CreateOldSettingsBackup
     }
 }

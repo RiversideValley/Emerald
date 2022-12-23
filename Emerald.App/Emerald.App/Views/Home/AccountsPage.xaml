@@ -17,16 +17,16 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <CommandBar Background="Transparent" DefaultLabelPosition="Right">
-            <AppBarButton Icon="Add" Label="{helpers:LocalizeString Name=Add}">
+            <AppBarButton Icon="Add" Label="{helpers:Localize Name=Add}">
                 <AppBarButton.Flyout>
                     <MenuFlyout Placement="Bottom">
-                        <MenuFlyoutItem Icon="{helpers:FontIcon Glyph=&#xEC05;}" Text="{helpers:LocalizeString Name=MicrosoftAccount}"/>
-                        <MenuFlyoutItem Icon="{helpers:FontIcon Glyph=&#xF384;}" Text="{helpers:LocalizeString Name=OfflineAccount}"/>
+                        <MenuFlyoutItem Icon="{helpers:FontIcon Glyph=&#xEC05;}" Text="{helpers:Localize Name=MicrosoftAccount}"/>
+                        <MenuFlyoutItem Icon="{helpers:FontIcon Glyph=&#xF384;}" Text="{helpers:Localize Name=OfflineAccount}"/>
                     </MenuFlyout>
                 </AppBarButton.Flyout>
             </AppBarButton>
-            <AppBarButton Click="btnRemove_Click" Icon="Remove" Label="{helpers:LocalizeString Name=Remove}"/>
-            <AppBarButton x:Name="btnSelect" Icon="SelectAll" Click="btnSelectAll_Click" Label="{helpers:LocalizeString Name=SelectAll}"/>
+            <AppBarButton Click="btnRemove_Click" Icon="Remove" Label="{helpers:Localize Name=Remove}"/>
+            <AppBarButton x:Name="btnSelect" Icon="SelectAll" Click="btnSelectAll_Click" Label="{helpers:Localize Name=SelectAll}"/>
         </CommandBar>
             <toolkit:AdaptiveGridView
             Grid.Row="1"

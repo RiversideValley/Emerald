@@ -41,7 +41,7 @@
             x:Name="txtEmpty"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
-            Text="{helpers:LocalizeString Name=Empty}"
+            Text="{helpers:Localize Name=Empty}"
             Visibility="Collapsed" />
         <ListView
             x:Name="lv"
@@ -63,7 +63,7 @@
                                 <SwipeControl Margin="0">
                                     <SwipeControl.RightItems>       
                                         <SwipeItems Mode="Execute">
-                                            <SwipeItem Text="{helpers:LocalizeString Name=Remove}" Foreground="{ThemeResource ApplicationForegroundThemeBrush}" Background="{ThemeResource InfoBarErrorSeverityBackgroundBrush}" BehaviorOnInvoked="Close" Invoked="delete_Invoked">
+                                            <SwipeItem Text="{helpers:Localize Name=Remove}" Foreground="{ThemeResource ApplicationForegroundThemeBrush}" Background="{ThemeResource InfoBarErrorSeverityBackgroundBrush}" BehaviorOnInvoked="Close" Invoked="delete_Invoked">
                                                 <SwipeItem.IconSource>
                                                     <FontIconSource Glyph="&#xEDAE;"/>
                                                 </SwipeItem.IconSource>
@@ -209,7 +209,7 @@
                                 <SwipeControl Margin="0">
                                     <SwipeControl.RightItems>
                                         <SwipeItems Mode="Execute">
-                                            <SwipeItem Text="{helpers:LocalizeString Name=Remove}" Foreground="{ThemeResource ApplicationForegroundThemeBrush}" Background="{ThemeResource InfoBarErrorSeverityBackgroundBrush}" BehaviorOnInvoked="Close" Invoked="delete_Invoked">
+                                            <SwipeItem Text="{helpers:Localize Name=Remove}" Foreground="{ThemeResource ApplicationForegroundThemeBrush}" Background="{ThemeResource InfoBarErrorSeverityBackgroundBrush}" BehaviorOnInvoked="Close" Invoked="delete_Invoked">
                                                 <SwipeItem.IconSource>
                                                     <FontIconSource Glyph="&#xEDAE;"/>
                                                 </SwipeItem.IconSource>

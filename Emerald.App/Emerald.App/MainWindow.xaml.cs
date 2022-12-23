@@ -1,8 +1,10 @@
-﻿using Emerald.Core.Tasks;
+﻿using Emerald.Core;
+using Emerald.Core.Tasks;
 using Emerald.WinUI.Helpers;
 using Emerald.WinUI.Models;
 using Emerald.WinUI.UserControls;
 using Microsoft.UI;
+using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -29,11 +31,31 @@ namespace Emerald.WinUI
         {
             this.InitializeComponent();
             Title = "Emerald";
-            Initialize();
+            (this.Content as FrameworkElement).Loaded += Initialize;
         }
-        public void Initialize()
+        public void Initialize(object s,RoutedEventArgs e)
         {
             MainFrame = frame;
+            SS.APINoMatch += async (_, e) =>
+            {
+                var r = await MessageBox.Show(
+                     Localized.Error.ToLocalizedString(),
+                     Localized.LoadSettingsFailed.ToLocalizedString(),
+                     Enums.MessageBoxButtons.Custom,
+                     Localized.OK.ToLocalizedString(),
+                     Localized.CreateOldSettingsBackup.ToLocalizedString());
+                if (r == Enums.MessageBoxResults.CustomResult2)
+                {
+                    SS.CreateBackup(e);
+                }
+            };
+            SS.LoadData();
+
+            MicaBackground mica = WindowManager.IntializeWindow(this);
+            mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
+            SS.Settings.App.Appearance.PropertyChanged += (s, e) =>
+                mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
+            
             NavView.MenuItems.Add(new SquareNavigationViewItem("Home".ToLocalizedString(), true, new(new("ms-appx:///Assets/NavigationViewIcons/home.png"))));
             NavView.MenuItems.Add(new SquareNavigationViewItem("Store".ToLocalizedString(), false, new(new("ms-appx:///Assets/NavigationViewIcons/store.png"))));
             NavView.FooterMenuItems.Add(new SquareNavigationViewItem("Tasks".ToLocalizedString(), false, new(new("ms-appx:///Assets/NavigationViewIcons/tasks.png")), TasksInfoBadge));
@@ -85,8 +107,8 @@ namespace Emerald.WinUI
                             BGTintColor = Colors.Transparent;
                             break;
                         case Helpers.Settings.Enums.MicaTintColor.AccentColor:
-                            MicaTintColorBrush.Color = (Color)App.Current.Resources["SystemAccentColor"];
-                            BGTintColor = (Color)App.Current.Resources["SystemAccentColor"];
+                            MicaTintColorBrush.Color = (Color)Application.Current.Resources["SystemAccentColor"];
+                            BGTintColor = (Color)Application.Current.Resources["SystemAccentColor"];
                             break;
                         case Helpers.Settings.Enums.MicaTintColor.CustomColor:
                             var c = SS.Settings.App.Appearance.CustomMicaTintColor;
@@ -107,6 +129,7 @@ namespace Emerald.WinUI
             Settings();
             HomePage = new();
             MainFrame.Content = HomePage;
+            (this.Content as FrameworkElement).Loaded -= Initialize;
         }
         private void UpdateTasksInfoBadge() =>
             TasksInfoBadge.Visibility = MainFrame.Content == TaskView || TasksInfoBadge.Value == 0 ? Visibility.Collapsed : Visibility.Visible;

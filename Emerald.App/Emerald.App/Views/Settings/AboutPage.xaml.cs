@@ -14,5 +14,10 @@ namespace Emerald.WinUI.Views.Settings
         {
             this.InitializeComponent();
         }
+
+        private void Version_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+
+        }
     }
 }

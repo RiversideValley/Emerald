@@ -123,7 +123,7 @@ namespace Emerald.WinUI.Helpers
             }
             catch
             {
-                throw new NotSupportedException("Cannot show 2 or more dialogs once");
+                return MessageBoxResults.OpenFailed;
             }
             return d.Result == null ? MessageBoxResults.Cancel : d.Result.Value;
         }
@@ -138,7 +138,7 @@ namespace Emerald.WinUI.Helpers
             }
             catch
             {
-                throw new NotSupportedException("Cannot show 2 or more dialogs once");
+                return MessageBoxResults.OpenFailed;
             }
             return d.Result == null ? MessageBoxResults.Cancel : d.Result.Value;
         }

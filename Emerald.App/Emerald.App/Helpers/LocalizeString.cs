@@ -3,7 +3,7 @@
 namespace Emerald.WinUI.Helpers
 {
     [MarkupExtensionReturnType(ReturnType = typeof(string))]
-    public sealed class LocalizeString : MarkupExtension
+    public sealed class Localize : MarkupExtension
     {
         public enum ResourceFile
         {

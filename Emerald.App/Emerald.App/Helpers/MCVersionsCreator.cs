@@ -3,18 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 namespace Emerald.WinUI.Helpers
 {
     public static class MCVersionsCreator
     {
-        public static class Configuration
-        {
-            public static bool Release { get; set; } = true;
-            public static bool Custom { get; set; } = false;
-            public static bool OldBeta { get; set; } = false;
-            public static bool OldAlpha { get; set; } = false;
-            public static bool Snapshot { get; set; } = false;
-        }
         private static ObservableCollection<MinecraftVersion> Collection;
         public static MinecraftVersion GetNotSelectedVersion()
         {
@@ -47,7 +40,7 @@ namespace Emerald.WinUI.Helpers
                     {
                         Collection.Add(l);
                     }
-                    if (Configuration.Custom && LoadCustomVers() != null)
+                    if (SS.Settings.Minecraft.MCVerionsConfiguration.Custom && LoadCustomVers() != null)
                     {
                         Collection.Add(LoadCustomVers());
                     }
@@ -76,7 +69,8 @@ namespace Emerald.WinUI.Helpers
         {
             if (Core.MainCore.Launcher.UseOfflineLoader)
             {
-                return LoadCustomVers().SubVersions;
+                var c = LoadCustomVers();
+                return c == null ? new() : c.SubVersions;
             }
             else
             {
@@ -89,7 +83,7 @@ namespace Emerald.WinUI.Helpers
                     {
                         if (ConfigToList(true).Contains(verMdata.MType))
                         {
-                            return new MinecraftVersion[] { CreateItem(ver, "vaniila-" + ver, type: verMdata.MType) };
+                            return new MinecraftVersion[] { CreateItem(ver, "vanilla-" + ver, type: verMdata.MType) };
                         }
                         else
                         {
@@ -100,7 +94,7 @@ namespace Emerald.WinUI.Helpers
                     {
                         if (ConfigToList(true).Contains(verMdata.MType))
                         {
-                            return new MinecraftVersion[] { CreateItem($"{ver} Vanilla", "vaniila-" + ver, type: verMdata.MType), CreateItem($"{ver} Fabric", "fabricMC-" + fabricVer, type: verMdata.MType) };
+                            return new MinecraftVersion[] { CreateItem($"{ver} Vanilla", "vanilla-" + ver, type: verMdata.MType), CreateItem($"{ver} Fabric", "fabricMC-" + fabricVer, type: verMdata.MType) };
                         }
                         else
                         {
@@ -148,11 +142,11 @@ namespace Emerald.WinUI.Helpers
         private static List<CmlLib.Core.Version.MVersionType> ConfigToList(bool custom = false)
         {
             var list = new List<CmlLib.Core.Version.MVersionType>();
-            if (Configuration.Release) { list.Add(CmlLib.Core.Version.MVersionType.Release); }
-            if (Configuration.OldBeta) { list.Add(CmlLib.Core.Version.MVersionType.OldBeta); }
-            if (Configuration.OldAlpha) { list.Add(CmlLib.Core.Version.MVersionType.OldAlpha); }
-            if (Configuration.Snapshot) { list.Add(CmlLib.Core.Version.MVersionType.Snapshot); }
-            if (Configuration.Custom && custom) { list.Add(CmlLib.Core.Version.MVersionType.Custom); }
+            if (SS.Settings.Minecraft.MCVerionsConfiguration.Release) { list.Add(CmlLib.Core.Version.MVersionType.Release); }
+            if (SS.Settings.Minecraft.MCVerionsConfiguration.OldBeta) { list.Add(CmlLib.Core.Version.MVersionType.OldBeta); }
+            if (SS.Settings.Minecraft.MCVerionsConfiguration.OldAlpha) { list.Add(CmlLib.Core.Version.MVersionType.OldAlpha); }
+            if (SS.Settings.Minecraft.MCVerionsConfiguration.Snapshot) { list.Add(CmlLib.Core.Version.MVersionType.Snapshot); }
+            if (SS.Settings.Minecraft.MCVerionsConfiguration.Custom && custom) { list.Add(CmlLib.Core.Version.MVersionType.Custom); }
             return list;
         }
         private static MinecraftVersion GetFromStrings(string ver)
@@ -181,7 +175,7 @@ namespace Emerald.WinUI.Helpers
                 }
                 else
                 {
-                    return CreateItem($"{ver} Vanilla", "vaniila-" + ver);
+                    return CreateItem($"{ver} Vanilla", "vanilla-" + ver);
                 }
             }
             else
@@ -225,14 +219,14 @@ namespace Emerald.WinUI.Helpers
             var verMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
             if (string.IsNullOrEmpty(fabricVer))
             {
-                return displayVer == null ? CreateItem($"{ver} Vanilla", "vaniila-" + ver, type: type ?? verMdata.MType) : CreateItem($"{displayVer} Vanilla", "vaniila-" + ver, type: type ?? verMdata.MType);
+                return displayVer == null ? CreateItem($"{ver} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType) : CreateItem($"{displayVer} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType);
             }
             else
             {
                 var i = CreateItem(displayVer ?? ver, ver);
                 i.SubVersions = new()
                 {
-                    displayVer == null ? CreateItem($"{ver} Vanilla", "vaniila-" + ver, type: type ?? verMdata.MType) : CreateItem($"{displayVer} Vanilla", "vaniila-" + ver, type: type ?? verMdata.MType),
+                    displayVer == null ? CreateItem($"{ver} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType) : CreateItem($"{displayVer} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType),
                     displayVer == null ? CreateItem($"{ver} Fabric", "fabricMC-" + fabricVer,  type: type ?? verMdata.MType) : CreateItem($"{displayVer} Fabric", "fabricMC-" + fabricVer, type: type ?? verMdata.MType)
                 };
                 return i;

@@ -36,24 +36,6 @@ namespace Emerald.WinUI.Views.Home
             MainCore.Launcher.VersionsRefreshed += Launcher_VersionsRefreshed;
             VersionButton.Content = MCVersionsCreator.GetNotSelectedVersion();
             btnCloseVerPane.Click += (_, _) => paneVersions.IsPaneOpen = false;
-            ToggleMenuFlyoutItem createItm(string name)
-            {
-                var itm = new ToggleMenuFlyoutItem();
-                itm.Text = name;
-                itm.Click += tglMitVerSort_Click;
-                return itm;
-            }
-            btnVerSort.Flyout = new MenuFlyout()
-            {
-                Items =
-                {
-                    createItm("Release".ToLocalizedString()),
-                    createItm("Snapshot".ToLocalizedString()),
-                    createItm("OldBeta".ToLocalizedString()),
-                    createItm("OldAlpha".ToLocalizedString()),
-                    createItm("Custom".ToLocalizedString())
-                }
-            };
             _ = MainCore.Launcher.RefreshVersions();
             AccountsPage = new();
             this.Loaded -= InitializeWhenLoad;
@@ -121,31 +103,9 @@ namespace Emerald.WinUI.Views.Home
             UpdateVerTreeSource();
         }
 
-        private void tglMitVerSort_Click(object sender, RoutedEventArgs e)
-        {
-            var mit = sender as ToggleMenuFlyoutItem;
-            if (mit.Text == "Release".ToLocalizedString())
-            {
-                MCVersionsCreator.Configuration.Release = mit.IsChecked;
-            }
-            else if (mit.Text == "Snapshot".ToLocalizedString())
-            {
-                MCVersionsCreator.Configuration.Snapshot = mit.IsChecked;
-            }
-            else if (mit.Text == "Oldbeta".ToLocalizedString())
-            {
-                MCVersionsCreator.Configuration.OldBeta = mit.IsChecked;
-            }
-            else if (mit.Text == "OldAlpha".ToLocalizedString())
-            {
-                MCVersionsCreator.Configuration.OldAlpha = mit.IsChecked;
-            }
-            else if (mit.Text == "Custom".ToLocalizedString())
-            {
-                MCVersionsCreator.Configuration.Custom = mit.IsChecked;
-            }
+        private void tglMitVerSort_Click(object sender, RoutedEventArgs e)=>
             UpdateVerTreeSource();
-        }
+        
         private void UpdateVerTreeSource()
         {
             btnVerSort.IsEnabled = !MainCore.Launcher.UseOfflineLoader;
@@ -153,39 +113,6 @@ namespace Emerald.WinUI.Views.Home
             treeVer.ItemsSource = null;
             treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
             txtEmptyVers.Visibility = !(treeVer.ItemsSource as IEnumerable<Models.MinecraftVersion>).Any() ? Visibility.Visible : Visibility.Collapsed;
-        }
-        private void btnVerSort_Click(object sender, RoutedEventArgs e)
-        {
-            var f = btnVerSort.Flyout as MenuFlyout;
-            f.Items
-                .Where(x => ((ToggleMenuFlyoutItem)x).Text == "Release".ToLocalizedString())
-                .Select(x => (ToggleMenuFlyoutItem)x)
-                .FirstOrDefault()
-                .IsChecked = MCVersionsCreator.Configuration.Release;
-
-            f.Items
-                .Where(x => ((ToggleMenuFlyoutItem)x).Text == "Snapshot".ToLocalizedString())
-                .Select(x => (ToggleMenuFlyoutItem)x)
-                .FirstOrDefault()
-                .IsChecked = MCVersionsCreator.Configuration.Snapshot;
-
-            f.Items
-                .Where(x => ((ToggleMenuFlyoutItem)x).Text == "OldBeta".ToLocalizedString())
-                .Select(x => (ToggleMenuFlyoutItem)x)
-                .FirstOrDefault()
-                .IsChecked = MCVersionsCreator.Configuration.OldBeta;
-
-            f.Items
-                .Where(x => ((ToggleMenuFlyoutItem)x).Text == "OldAlpha".ToLocalizedString())
-                .Select(x => (ToggleMenuFlyoutItem)x)
-                .FirstOrDefault()
-                .IsChecked = MCVersionsCreator.Configuration.OldAlpha;
-
-            f.Items
-                .Where(x => ((ToggleMenuFlyoutItem)x).Text == "Custom".ToLocalizedString())
-                .Select(x => (ToggleMenuFlyoutItem)x)
-                .FirstOrDefault()
-                .IsChecked = MCVersionsCreator.Configuration.Custom;
         }
 
         private void txtbxFindVer_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
@@ -234,7 +161,7 @@ namespace Emerald.WinUI.Views.Home
         private async void LaunchButton_Click(object sender, RoutedEventArgs e)
         {
             var ver = (VersionButton.Content as Models.MinecraftVersion).GetLaunchVersion();
-            (await MainCore.Launcher.CreateProcessAsync(ver, new() { Session = MSession.GetOfflineSession("Noob"),MaximumRamMb = 4096,MinimumRamMb = 1024 })).Start();
+            (await MainCore.Launcher.CreateProcessAsync(ver, new() { DockName = "Test", Session = MSession.GetOfflineSession("Noob"),MaximumRamMb = 4096,MinimumRamMb = 1024 })).Start();
         }
     }
 }

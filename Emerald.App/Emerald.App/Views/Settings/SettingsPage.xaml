@@ -11,12 +11,17 @@
 
     <Grid>
         <NavigationView IsBackButtonVisible="Collapsed" IsSettingsVisible="False" AlwaysShowHeader="True" ItemInvoked="navView_ItemInvoked" x:Name="navView" PaneDisplayMode="Top">
+            <NavigationView.HeaderTemplate>
+                <DataTemplate x:DataType="x:String">
+                    <TextBlock Text="{x:Bind}" Margin="-25,-25,0,0"/>
+                </DataTemplate>
+            </NavigationView.HeaderTemplate>
             <NavigationView.MenuItems>
-                <uc:NavViewItem Tag="General" IconGlyph="&#xE713;" Content="{helpers:LocalizeString CustomName=General,RESW=Settings}" IsSelected="True"/>
-                <uc:NavViewItem Tag="Appearance" IconGlyph="&#xE771;" Content="{helpers:LocalizeString CustomName=Appearance,RESW=Settings}"/>
-                <uc:NavViewItem Tag="About" IconGlyph="&#xE946;" Content="{helpers:LocalizeString CustomName=About,RESW=Settings}"/>
+                <uc:NavViewItem Tag="General" IconGlyph="&#xE713;" Content="{helpers:Localize CustomName=General,RESW=Settings}" IsSelected="True"/>
+                <uc:NavViewItem Tag="Appearance" IconGlyph="&#xE771;" Content="{helpers:Localize CustomName=Appearance,RESW=Settings}"/>
+                <uc:NavViewItem Tag="About" IconGlyph="&#xE946;" Content="{helpers:Localize CustomName=About,RESW=Settings}"/>
             </NavigationView.MenuItems>
-            <Frame Margin="10" x:Name="contentframe"/>
+            <Frame Margin="10,-5,10,0" x:Name="contentframe"/>
         </NavigationView>
     </Grid>
 </Page>

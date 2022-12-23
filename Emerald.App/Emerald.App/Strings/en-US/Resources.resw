@@ -129,6 +129,9 @@
   <data name="ClearAll" xml:space="preserve">
     <value>Clear All</value>
   </data>
+  <data name="CreateOldSettingsBackup" xml:space="preserve">
+    <value>Create a backup of the old settings</value>
+  </data>
   <data name="Custom" xml:space="preserve">
     <value>Custom</value>
   </data>
@@ -197,6 +200,9 @@
   </data>
   <data name="LoadMod" xml:space="preserve">
     <value>Load Mod</value>
+  </data>
+  <data name="LoadSettingsFailed" xml:space="preserve">
+    <value>Failed to load the app settings accounts. The version of the setting system is different. You may have recently updated the app. Contact a developer of this app to recover the settings</value>
   </data>
   <data name="Logs" xml:space="preserve">
     <value>Logs</value>

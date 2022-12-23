@@ -7,7 +7,8 @@
         Yes,
         No,
         CustomResult1,
-        CustomResult2
+        CustomResult2,
+        OpenFailed
     }
     public enum MessageBoxButtons
     {

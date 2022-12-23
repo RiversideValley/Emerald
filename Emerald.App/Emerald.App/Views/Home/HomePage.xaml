@@ -6,6 +6,7 @@
     xmlns:core="using:Emerald.Core"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helpers="using:Emerald.WinUI.Helpers"
+    xmlns:settings="using:Emerald.WinUI.Helpers.Settings"
     xmlns:local="using:Emerald.WinUI.Views.Home"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Emerald.WinUI.Models"
@@ -71,14 +72,14 @@
                         Grid.Column="0"
                         Margin="10"
                         Orientation="Vertical">
-                        <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{helpers:LocalizeString Name=PickVer}" />
+                        <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{helpers:Localize Name=PickVer}" />
                         <TextBlock
                             x:Name="txtVerOfflineMode"
                             VerticalAlignment="Bottom"
                             FontSize="13"
                             FontWeight="SemiBold"
                             Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
-                            Text="{helpers:LocalizeString Name=OfflineMode}" />
+                            Text="{helpers:Localize Name=OfflineMode}" />
                     </StackPanel>
                     <Button
                         x:Name="btnCloseVerPane"
@@ -115,9 +116,17 @@
                     <DropDownButton
                         x:Name="btnVerSort"
                         Grid.Column="1"
-                        Margin="5,0,0,0"
-                        Click="btnVerSort_Click">
+                        Margin="5,0,0,0">
                         <FontIcon Glyph="&#xE16E;" />
+                        <DropDownButton.Flyout>
+                            <MenuFlyout>
+                                <ToggleMenuFlyoutItem Click="tglMitVerSort_Click" IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Release, Mode=TwoWay}" Text="{helpers:Localize CustomName=Release}"/>
+                                <ToggleMenuFlyoutItem Click="tglMitVerSort_Click" Text="{helpers:Localize CustomName=Snapshot}" IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Snapshot, Mode=TwoWay}"/>
+                                <ToggleMenuFlyoutItem Click="tglMitVerSort_Click" Text="{helpers:Localize CustomName=OldBeta}" IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.OldBeta, Mode=TwoWay}"/>
+                                <ToggleMenuFlyoutItem Click="tglMitVerSort_Click" Text="{helpers:Localize CustomName=OldAlpha}" IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.OldAlpha, Mode=TwoWay}"/>
+                                <ToggleMenuFlyoutItem Click="tglMitVerSort_Click" Text="{helpers:Localize CustomName=Custom}" IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Custom, Mode=TwoWay}"/>
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
                     </DropDownButton>
                 </Grid>
                 <TreeView
@@ -145,7 +154,7 @@
                     Grid.Row="2"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Text="{helpers:LocalizeString Name=Empty}"
+                    Text="{helpers:Localize Name=Empty}"
                     Visibility="Collapsed" />
             </Grid>
         </SplitView.Pane>
@@ -234,7 +243,7 @@
                     FontSize="16"
                     Style="{ThemeResource AccentButtonStyle}">
                     <TextBlock
-                        Text="{helpers:LocalizeString Name=LaunchMC}"
+                        Text="{helpers:Localize Name=LaunchMC}"
                         HorizontalAlignment="Center"
                         FontSize="16"
                         FontWeight="Bold" />

@@ -7,7 +7,7 @@
     xmlns:uc="using:Emerald.WinUI.UserControls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:helpers="using:Emerald.WinUI.Helpers"
-    xmlns:SS="using:Emerald.WinUI.Helpers.Settings" 
+    xmlns:SS="using:Emerald.WinUI.Helpers.Settings"
     xmlns:windowsui="using:Windows.UI"
     mc:Ignorable="d">
 
@@ -16,21 +16,21 @@
             <uc:Expander 
             Icon="&#xE790;"
             ExpanderStyle="Static" 
-            Title="{helpers:LocalizeString CustomName=ColorMode,RESW=Settings}" 
-            Description="{helpers:LocalizeString CustomName=ColorModeDescription,RESW=Settings}">
+            Title="{helpers:Localize CustomName=ColorMode,RESW=Settings}" 
+            Description="{helpers:Localize CustomName=ColorModeDescription,RESW=Settings}">
                 <uc:Expander.HeaderControls>
                     <ComboBox SelectedIndex="{x:Bind SS:SettingsSystem.Settings.App.Appearance.Theme,Mode=TwoWay}">
-                        <ComboBoxItem Content="{helpers:LocalizeString CustomName=SystemDefault,RESW=Settings}"/>
-                        <ComboBoxItem Content="{helpers:LocalizeString CustomName=Light,RESW=Settings}"/>
-                        <ComboBoxItem Content="{helpers:LocalizeString CustomName=Dark,RESW=Settings}"/>
+                        <ComboBoxItem Content="{helpers:Localize CustomName=SystemDefault,RESW=Settings}"/>
+                        <ComboBoxItem Content="{helpers:Localize CustomName=Light,RESW=Settings}"/>
+                        <ComboBoxItem Content="{helpers:Localize CustomName=Dark,RESW=Settings}"/>
                     </ComboBox>
                 </uc:Expander.HeaderControls>
             </uc:Expander>
             <uc:Expander
             Icon="&#xE790;"
             ExpanderStyle="Static"
-            Title="{helpers:LocalizeString CustomName=MicaType,RESW=Settings}" 
-            Description="{helpers:LocalizeString CustomName=MicaTypeDescription,RESW=Settings}">
+            Title="{helpers:Localize CustomName=MicaType,RESW=Settings}" 
+            Description="{helpers:Localize CustomName=MicaTypeDescription,RESW=Settings}">
                 <uc:Expander.HeaderControls>
                     <ComboBox SelectedIndex="{x:Bind SS:SettingsSystem.Settings.App.Appearance.MicaType,Mode=TwoWay}">
                         <ComboBoxItem Content="Mica"/>
@@ -41,13 +41,13 @@
             <uc:Expander
                 Icon="&#xE771;"
                 ExpanderStyle="Default" 
-                Title="{helpers:LocalizeString CustomName=WindowTintColor,RESW=Settings}"
-                Description="{helpers:LocalizeString CustomName=WindowTintColorDescription,RESW=Settings}">
+                Title="{helpers:Localize CustomName=WindowTintColor,RESW=Settings}"
+                Description="{helpers:Localize CustomName=WindowTintColorDescription,RESW=Settings}">
                 <uc:Expander.HeaderControls>
                     <ComboBox SelectedIndex="{x:Bind SS:SettingsSystem.Settings.App.Appearance.MicaTintColor,Mode=TwoWay}">
-                        <ComboBoxItem Content="{helpers:LocalizeString CustomName=NoColor,RESW=Settings}"/>
-                        <ComboBoxItem Content="{helpers:LocalizeString CustomName=AccentColor,RESW=Settings}"/>
-                        <ComboBoxItem Content="{helpers:LocalizeString CustomName=CustomColor,RESW=Settings}"/>
+                        <ComboBoxItem Content="{helpers:Localize CustomName=NoColor,RESW=Settings}"/>
+                        <ComboBoxItem Content="{helpers:Localize CustomName=AccentColor,RESW=Settings}"/>
+                        <ComboBoxItem Content="{helpers:Localize CustomName=CustomColor,RESW=Settings}"/>
                     </ComboBox>
                 </uc:Expander.HeaderControls>
                 <uc:Expander.Controls>

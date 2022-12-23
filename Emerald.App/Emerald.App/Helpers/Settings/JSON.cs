@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml;
+﻿using Emerald.WinUI.Models;
+using Microsoft.UI.Xaml;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -11,32 +12,43 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
     public class JSON : Models.Model
     {
         public string Serialize() => JsonConvert.SerializeObject(this, Formatting.Indented);
-        
+
     }
+
+    public class SettingsBackup : JSON
+    {
+        public string Backup { get; set; }
+        public DateTime Time { get; set; }
+    }
+
+
+    public class Backups : JSON
+    {
+        public SettingsBackup[] AllBackups { get; set; } = Array.Empty<SettingsBackup>();
+        public string APIVersion { get; private set; } = "1.0";
+    }
+
     public class Settings : JSON
     {
-        public static Settings CreateNew()
+        public static Settings CreateNew() => new()
         {
-            var s = new Settings()
+            App = new()
             {
-                App = new App
+                Discord = new(),
+                Appearance = new()
                 {
-                    Discord = new Discord(),
-                    Appearance = new Appearance()
-                    {
-                        MicaTintColor = ((int)Enums.MicaTintColor.NoColor),
-                        Theme = ((int)ElementTheme.Default)
-                    }
-                },
-                Minecraft = new Minecraft
-                {
-                    JVM = new JVM(),
-                    Downloader = new Downloader()
+                    MicaTintColor = ((int)Enums.MicaTintColor.NoColor),
+                    Theme = ((int)ElementTheme.Default)
                 }
-            };
-            return s;
-        }
-        public string APIVersion { get; set; } = "1.0";
+            },
+            Minecraft = new()
+            {
+                MCVerionsConfiguration = new(),
+                JVM = new(),
+                Downloader = new()
+            }
+        };
+        public string APIVersion { get; set; } = "1.1";
         public Minecraft Minecraft { get; set; }
         public App App { get; set; }
     }
@@ -45,6 +57,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public int RAM { get; set; }
         public Account[] Accounts { get; set; }
         public Downloader Downloader { get; set; }
+        public MCVerionsConfiguration MCVerionsConfiguration { get; set; }
         public JVM JVM { get; set; }
     }
     public class Account : JSON
@@ -84,11 +97,43 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
     public class Discord : JSON
     {
     }
-
+    public class MCVerionsConfiguration : JSON
+    {
+        private bool _Release = true;
+        public bool Release
+        {
+            get => _Release;
+            set => Set(ref _Release, value);
+        }
+        private bool _Custom = false;
+        public bool Custom
+        {
+            get => _Custom;
+            set => Set(ref _Custom, value);
+        }
+        private bool _OldBeta = false;
+        public bool OldBeta
+        {
+            get => _OldBeta;
+            set => Set(ref _OldBeta, value);
+        }
+        private bool _OldAlpha = false;
+        public bool OldAlpha
+        {
+            get => _OldAlpha;
+            set => Set(ref _OldAlpha, value);
+        }
+        private bool _Snapshot = false;
+        public bool Snapshot
+        {
+            get => _Snapshot;
+            set => Set(ref _Snapshot, value);
+        }
+    }
     public class Appearance : JSON
     {
         private int _Theme;
-        public int Theme { get => _Theme; set => Set(ref _Theme, value,nameof(Theme)); }
+        public int Theme { get => _Theme; set => Set(ref _Theme, value, nameof(Theme)); }
 
         private int _MicaTintColor;
         public int MicaTintColor { get => _MicaTintColor; set => Set(ref _MicaTintColor, value, nameof(MicaTintColor)); }
