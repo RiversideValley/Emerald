@@ -10,6 +10,7 @@ using PInvoke;
 using System;
 using Windows.ApplicationModel;
 using CommunityToolkit.WinUI.Helpers;
+using System.Threading.Tasks;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -20,6 +21,10 @@ namespace Emerald.WinUI
     /// </summary>
     public partial class App : Application
     {
+        public static async Task<string> CheckForUpdates()
+        {
+            return null;
+        }
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code

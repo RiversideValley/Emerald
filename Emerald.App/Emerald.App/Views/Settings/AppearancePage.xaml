@@ -12,31 +12,27 @@
     mc:Ignorable="d">
 
     <Grid>
-        <StackPanel Spacing="3" ChildrenTransitions="{StaticResource EntranceThemeTransitionStaggeringEnabled}">
+        <StackPanel Spacing="3">
             <uc:Expander 
             Icon="&#xE790;"
             ExpanderStyle="Static" 
             Title="{helpers:Localize CustomName=ColorMode,RESW=Settings}" 
             Description="{helpers:Localize CustomName=ColorModeDescription,RESW=Settings}">
-                <uc:Expander.HeaderControls>
-                    <ComboBox SelectedIndex="{x:Bind SS:SettingsSystem.Settings.App.Appearance.Theme,Mode=TwoWay}">
-                        <ComboBoxItem Content="{helpers:Localize CustomName=SystemDefault,RESW=Settings}"/>
-                        <ComboBoxItem Content="{helpers:Localize CustomName=Light,RESW=Settings}"/>
-                        <ComboBoxItem Content="{helpers:Localize CustomName=Dark,RESW=Settings}"/>
-                    </ComboBox>
-                </uc:Expander.HeaderControls>
+                <ComboBox SelectedIndex="{x:Bind SS:SettingsSystem.Settings.App.Appearance.Theme,Mode=TwoWay}">
+                    <ComboBoxItem Content="{helpers:Localize CustomName=SystemDefault,RESW=Settings}"/>
+                    <ComboBoxItem Content="{helpers:Localize CustomName=Light,RESW=Settings}"/>
+                    <ComboBoxItem Content="{helpers:Localize CustomName=Dark,RESW=Settings}"/>
+                </ComboBox>
             </uc:Expander>
             <uc:Expander
             Icon="&#xE790;"
             ExpanderStyle="Static"
             Title="{helpers:Localize CustomName=MicaType,RESW=Settings}" 
             Description="{helpers:Localize CustomName=MicaTypeDescription,RESW=Settings}">
-                <uc:Expander.HeaderControls>
-                    <ComboBox SelectedIndex="{x:Bind SS:SettingsSystem.Settings.App.Appearance.MicaType,Mode=TwoWay}">
-                        <ComboBoxItem Content="Mica"/>
-                        <ComboBoxItem Content="Mica Alt"/>
-                    </ComboBox>
-                </uc:Expander.HeaderControls>
+                <ComboBox SelectedIndex="{x:Bind SS:SettingsSystem.Settings.App.Appearance.MicaType,Mode=TwoWay}">
+                    <ComboBoxItem Content="Mica"/>
+                    <ComboBoxItem Content="Mica Alt"/>
+                </ComboBox>
             </uc:Expander>
             <uc:Expander
                 Icon="&#xE771;"

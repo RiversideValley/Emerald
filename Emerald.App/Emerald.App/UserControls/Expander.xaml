@@ -97,7 +97,7 @@
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Center"
                                     VerticalContentAlignment="Center"
-                                    Content="{x:Bind HeaderControls}" />
+                                    Content="{x:Bind Controls}" />
                             </Grid>
                         </Border>
                     </DataTemplate>

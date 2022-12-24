@@ -14,7 +14,7 @@
         <Grid.Resources>
             <ResourceDictionary Source="/ResourceDictionaries/Expanders.xaml" />
         </Grid.Resources>
-        <StackPanel Spacing="3" ChildrenTransitions="{StaticResource EntranceThemeTransitionStaggeringEnabled}">
+        <StackPanel Spacing="3">
             <Border
             Height="auto"
             Padding="12,12,12,0"
@@ -39,15 +39,15 @@
                             </TextBlock>
                             <TextBlock
                                 VerticalAlignment="Top"
-                            Margin="3,0,0,0"
+                                Margin="3,0,0,0"
                                 FontFamily="18"
                                 FontWeight="Bold"
-                            Text="DEV">
+                                Text="DEV">
                                 <TextBlock.Foreground>
                                     <LinearGradientBrush>
                                         <GradientStop Offset="0.1" Color="{ThemeResource SystemAccentColorLight1}" />
                                         <GradientStop Color="{ThemeResource SystemAccentColor}" />
-                                        <GradientStop Offset="0.8" Color="{ThemeResource SystemAccentColorDark2}" />
+                                        <GradientStop Offset="0.8" Color="{ThemeResource SystemAccentColorDark1}" />
                                     </LinearGradientBrush>
                                 </TextBlock.Foreground>
                             </TextBlock>
@@ -88,7 +88,7 @@
                                 </StackPanel>
                             </Button>
 
-                            <HyperlinkButton NavigateUri="https://github.com/OpenAndrexial/Emerald">
+                            <HyperlinkButton NavigateUri="https://github.com/OpenAndrexial/Emerald/Contribute">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon VerticalAlignment="Center" Glyph="&#xEC7A;" />
 
@@ -104,6 +104,66 @@
                     </uc:AdaptiveItemPane.RightPane>
                 </uc:AdaptiveItemPane>
             </Border>
+            <uc:Expander
+                ExpanderStyle="Static"
+                Title="{helpers:Localize CustomName=Links,RESW=Settings}"
+                Description="{helpers:Localize CustomName=LinksDescription,RESW=Settings}"
+                Icon="&#xE12B;">
+                <StackPanel Orientation="Horizontal">
+                    <HyperlinkButton
+                    Padding="10"
+                    Content="Discord"
+                    NavigateUri="" />
+                    <HyperlinkButton
+                    Padding="10"
+                    Content="Source code"
+                    NavigateUri="https://github.com/OpenAndrexial/Emerald" />
+                    <HyperlinkButton
+                    Padding="10"
+                    Content="Website"
+                    NavigateUri="https://www.andrexial.co.uk/" />
+                </StackPanel>
+            </uc:Expander>
+            <uc:Expander
+                Icon="&#xE159;"
+                Title="{helpers:Localize CustomName=SettingsBackups,RESW=Settings}"
+                Description="{helpers:Localize CustomName=SettingsBackupsDescription,RESW=Settings}">
+                <uc:Expander.HeaderControls>
+                    <Button Content="{helpers:Localize CustomName=CreateBackup,RESW=Settings}"/>
+                </uc:Expander.HeaderControls>
+            </uc:Expander>
         </StackPanel>
+        <TeachingTip
+            x:Name="vTip"
+            IsOpen="False"
+            Target="{x:Bind Version}"
+            PreferredPlacement="Bottom"
+            ActionButtonContent="{helpers:Localize CustomName=CheckForUpdates,RESW=Settings}"
+            CloseButtonContent="{helpers:Localize CustomName=CopyVersion,RESW=Settings}"
+            Title="{helpers:Localize CustomName=MoreVerInfo,RESW=Settings}"
+            IsLightDismissEnabled="True"
+            ActionButtonClick="vTip_ActionButtonClick"
+            CloseButtonClick="vTip_CloseButtonClick">
+            <TeachingTip.Content>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Margin="0,0,5,0">
+                        <Run Text="{helpers:Localize CustomName=Version,RESW=Settings}"/>:
+                    </TextBlock>
+                    <TextBlock Grid.Column="1" Text="{x:Bind App:DirectResoucres.AppVersion}"/>
+                    <TextBlock Margin="0,0,5,0" Grid.Row="1">
+                        <Run Text="{helpers:Localize CustomName=BuildType,RESW=Settings}"/>:
+                    </TextBlock>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind App:DirectResoucres.BuildType}"/>
+                </Grid>
+            </TeachingTip.Content>
+        </TeachingTip>
     </Grid>
 </Page>

@@ -39,15 +39,15 @@ namespace Emerald.WinUI.Views.Settings
             switch (itm.Tag)
             {
                 case "Appearance":
-                    contentframe.Navigate(typeof(AppearancePage),null, new SuppressNavigationTransitionInfo());
+                    contentframe.Navigate(typeof(AppearancePage),null, new DrillInNavigationTransitionInfo());
                     navView.AlwaysShowHeader = true;
                     break;
                 case "About":
-                    contentframe.Navigate(typeof(AboutPage), null, new SuppressNavigationTransitionInfo());
                     navView.AlwaysShowHeader = false;
+                    contentframe.Navigate(typeof(AboutPage), null, new DrillInNavigationTransitionInfo());
                     break;
                 default:
-                    contentframe.Navigate(typeof(GeneralPage), null, new SuppressNavigationTransitionInfo());
+                    contentframe.Navigate(typeof(GeneralPage), null, new DrillInNavigationTransitionInfo());
                     navView.AlwaysShowHeader = true;
                     break;
             }

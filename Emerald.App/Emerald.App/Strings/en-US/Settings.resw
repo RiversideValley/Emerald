@@ -126,6 +126,12 @@
   <data name="Appearance" xml:space="preserve">
     <value>Appearance</value>
   </data>
+  <data name="BuildType" xml:space="preserve">
+    <value>Build type</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
   <data name="ColorMode" xml:space="preserve">
     <value>Color Mode</value>
   </data>
@@ -134,6 +140,12 @@
   </data>
   <data name="Contribute" xml:space="preserve">
     <value>Contribute</value>
+  </data>
+  <data name="CopyVersion" xml:space="preserve">
+    <value>Copy version</value>
+  </data>
+  <data name="CreateBackup" xml:space="preserve">
+    <value>Create Backup</value>
   </data>
   <data name="Credits" xml:space="preserve">
     <value>Credits</value>
@@ -156,14 +168,29 @@
   <data name="Light" xml:space="preserve">
     <value>Light</value>
   </data>
+  <data name="Links" xml:space="preserve">
+    <value>Links</value>
+  </data>
+  <data name="LinksDescription" xml:space="preserve">
+    <value>Keep up with the latest updates</value>
+  </data>
   <data name="MicaType" xml:space="preserve">
     <value>Mica Type</value>
   </data>
   <data name="MicaTypeDescription" xml:space="preserve">
     <value>Normal Mica or Mica Alt (Tabbed)</value>
   </data>
+  <data name="MoreVerInfo" xml:space="preserve">
+    <value>More version info</value>
+  </data>
   <data name="NoColor" xml:space="preserve">
     <value>No color</value>
+  </data>
+  <data name="SettingsBackups" xml:space="preserve">
+    <value>Settings Backups</value>
+  </data>
+  <data name="SettingsBackupsDescription" xml:space="preserve">
+    <value>Create, delete, view, load backups of your settings and accounts</value>
   </data>
   <data name="SystemDefault" xml:space="preserve">
     <value>System Default</value>

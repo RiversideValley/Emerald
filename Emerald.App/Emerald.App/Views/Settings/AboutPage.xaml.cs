@@ -1,4 +1,6 @@
-﻿using Microsoft.UI.Xaml.Controls;
+﻿using Emerald.WinUI.Helpers;
+using Microsoft.UI.Xaml.Controls;
+using Windows.ApplicationModel.DataTransfer;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -17,7 +19,20 @@ namespace Emerald.WinUI.Views.Settings
 
         private void Version_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
+            vTip.IsOpen = true;
+        }
 
+        private void vTip_ActionButtonClick(TeachingTip sender, object args)
+        {
+            vTip.IsOpen = false;
+        }
+
+        private void vTip_CloseButtonClick(TeachingTip sender, object args)
+        {
+            var VerData = new DataPackage();
+            VerData.RequestedOperation = DataPackageOperation.Copy;
+            VerData.SetText($"{"Version".ToLocalizedString()}: {DirectResoucres.AppVersion}\n{"BuildType".ToLocalizedString()}: {DirectResoucres.BuildType}");
+            Clipboard.SetContent(VerData);
         }
     }
 }
