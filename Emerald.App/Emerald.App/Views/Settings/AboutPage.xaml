@@ -71,7 +71,6 @@
                                     </StackPanel>
                                 </StackPanel>
                             </Button>
-
                             <Button
                             Style="{StaticResource TransparentButtonStyle}"
                             Tag="Insider">
