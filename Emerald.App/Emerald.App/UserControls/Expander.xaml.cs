@@ -1,9 +1,8 @@
 ﻿using Emerald.WinUI.Enums;
+using Emerald.WinUI.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
-using System.ComponentModel;
-using Emerald.WinUI.ViewModels;
 
 namespace Emerald.WinUI.UserControls
 {
@@ -14,7 +13,7 @@ namespace Emerald.WinUI.UserControls
         public Expander()
         {
             this.InitializeComponent();
-           // this.Loaded += (_,_) =>
+            // this.Loaded += (_,_) =>
             //this.Content = new Helpers.CompositionControl { ContentTemplateSelector = ExpanderSelector, Content = VM };
         }
         public event RoutedEventHandler Click;

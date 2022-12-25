@@ -1,8 +1,8 @@
-﻿using Microsoft.UI.Xaml;
+﻿using Emerald.WinUI.Helpers;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.ObjectModel;
-using Emerald.WinUI.Helpers;
 namespace Emerald.WinUI.Models
 {
     public interface ITask

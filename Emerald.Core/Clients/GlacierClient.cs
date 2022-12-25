@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using CmlLib.Utils;
+﻿using Emerald.Core.Args;
 using Emerald.Core.Tasks;
-using System.IO;
 using System.IO.Compression;
-using Emerald.Core.Args;
 
 namespace Emerald.Core.Clients
 {

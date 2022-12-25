@@ -1,12 +1,9 @@
-﻿using Microsoft.UI.Xaml;
+﻿using Emerald.WinUI.Helpers.Settings.JSON;
 using Newtonsoft.Json;
 using System;
-using Windows.Storage;
-using System.Threading.Tasks;
-using CommunityToolkit.WinUI.UI.Controls.TextToolbarSymbols;
-using Emerald.WinUI.Helpers.Settings.JSON;
 using System.Collections.Generic;
 using System.Linq;
+using Windows.Storage;
 
 namespace Emerald.WinUI.Helpers.Settings
 {
@@ -98,7 +95,7 @@ namespace Emerald.WinUI.Helpers.Settings
                 return false;
             }
         }
-        public static List<SettingsBackup> GetBackups(string system)
+        public static List<SettingsBackup> GetBackups()
         {
             string json;
             try

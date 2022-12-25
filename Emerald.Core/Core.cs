@@ -1,8 +1,5 @@
 ﻿using Emerald.Core.Args;
 using Emerald.Core.Store;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Emerald.Core
 {
@@ -25,7 +22,7 @@ namespace Emerald.Core
             Labrinth.ProgressChanged += ProgressChangedEvent;
             Labrinth.MainUIChangeRequested += UIChangedEvent;
             Labrinth.StatusChanged += (s, _) => StatusChanged(Labrinth, new StatusChangedEventArgs(s.ToString()));
-            
+
         }
 
 

@@ -103,9 +103,9 @@ namespace Emerald.WinUI.Views.Home
             UpdateVerTreeSource();
         }
 
-        private void tglMitVerSort_Click(object sender, RoutedEventArgs e)=>
+        private void tglMitVerSort_Click(object sender, RoutedEventArgs e) =>
             UpdateVerTreeSource();
-        
+
         private void UpdateVerTreeSource()
         {
             btnVerSort.IsEnabled = !MainCore.Launcher.UseOfflineLoader;
@@ -161,7 +161,7 @@ namespace Emerald.WinUI.Views.Home
         private async void LaunchButton_Click(object sender, RoutedEventArgs e)
         {
             var ver = (VersionButton.Content as Models.MinecraftVersion).GetLaunchVersion();
-            (await MainCore.Launcher.CreateProcessAsync(ver, new() { DockName = "Test", Session = MSession.GetOfflineSession("Noob"),MaximumRamMb = 4096,MinimumRamMb = 1024 })).Start();
+            (await MainCore.Launcher.CreateProcessAsync(ver, new() { DockName = "Test", Session = MSession.GetOfflineSession("Noob"), MaximumRamMb = 4096, MinimumRamMb = 1024 })).Start();
         }
     }
 }

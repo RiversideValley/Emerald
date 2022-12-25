@@ -1,6 +1,6 @@
 ﻿using Microsoft.Windows.ApplicationModel.Resources;
-using System.Collections.ObjectModel;
 using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -57,7 +57,7 @@ namespace Emerald.WinUI.Helpers
                 }
                 else
                 {
-                    s = new Windows.ApplicationModel.Resources. ResourceLoader(resw).GetString(resourceKey);
+                    s = new Windows.ApplicationModel.Resources.ResourceLoader(resw).GetString(resourceKey);
                 }
                 return string.IsNullOrEmpty(s) ? resourceKey : s;
             }

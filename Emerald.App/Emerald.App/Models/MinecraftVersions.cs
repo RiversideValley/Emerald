@@ -1,8 +1,7 @@
-﻿using Microsoft.UI.Xaml;
-using Emerald.WinUI.Helpers;
+﻿using Emerald.WinUI.Helpers;
+using Microsoft.UI.Xaml;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 namespace Emerald.WinUI.Models
 {
     public class MinecraftVersion : Model
@@ -56,7 +55,7 @@ namespace Emerald.WinUI.Models
         {
             return Version.IsNullEmptyOrWhiteSpace() ? null :
                 (Version.StartsWith("fabricMC-") ? Version.Replace("fabricMC-", "") :
-                (Version.StartsWith("vanilla-") ? Version.Replace("vanilla-","") :
+                (Version.StartsWith("vanilla-") ? Version.Replace("vanilla-", "") :
                 Version
                 )
                 );

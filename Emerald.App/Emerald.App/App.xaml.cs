@@ -1,15 +1,4 @@
 ﻿using Microsoft.UI.Xaml;
-using System.IO;
-using Windows.Storage;
-using Windows.UI;
-using Microsoft.UI.Composition.SystemBackdrops;
-using WinUIEx.Messaging;
-using Emerald.WinUI.Helpers;
-using Emerald.Core;
-using PInvoke;
-using System;
-using Windows.ApplicationModel;
-using CommunityToolkit.WinUI.Helpers;
 using System.Threading.Tasks;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.

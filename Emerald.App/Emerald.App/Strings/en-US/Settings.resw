@@ -159,6 +159,9 @@
   <data name="Dark" xml:space="preserve">
     <value>Dark</value>
   </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
   <data name="General" xml:space="preserve">
     <value>General</value>
   </data>
@@ -180,6 +183,9 @@
   <data name="MicaTypeDescription" xml:space="preserve">
     <value>Normal Mica or Mica Alt (Tabbed)</value>
   </data>
+  <data name="More" xml:space="preserve">
+    <value>More</value>
+  </data>
   <data name="MoreVerInfo" xml:space="preserve">
     <value>More version info</value>
   </data>
@@ -195,8 +201,14 @@
   <data name="SystemDefault" xml:space="preserve">
     <value>System Default</value>
   </data>
+  <data name="TryLoad" xml:space="preserve">
+    <value>Try to load</value>
+  </data>
   <data name="Version" xml:space="preserve">
     <value>Version</value>
+  </data>
+  <data name="View" xml:space="preserve">
+    <value>View</value>
   </data>
   <data name="WindowTintColor" xml:space="preserve">
     <value>Window tint color</value>

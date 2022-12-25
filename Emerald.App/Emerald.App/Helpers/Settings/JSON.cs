@@ -1,11 +1,6 @@
-﻿using Emerald.WinUI.Models;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Emerald.WinUI.Helpers.Settings.JSON
 {

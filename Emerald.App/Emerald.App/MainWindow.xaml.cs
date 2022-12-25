@@ -33,7 +33,7 @@ namespace Emerald.WinUI
             Title = "Emerald";
             (this.Content as FrameworkElement).Loaded += Initialize;
         }
-        public void Initialize(object s,RoutedEventArgs e)
+        public void Initialize(object s, RoutedEventArgs e)
         {
             MainFrame = frame;
             SS.APINoMatch += async (_, e) =>
@@ -55,7 +55,7 @@ namespace Emerald.WinUI
             mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
             SS.Settings.App.Appearance.PropertyChanged += (s, e) =>
                 mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
-            
+
             NavView.MenuItems.Add(new SquareNavigationViewItem("Home".ToLocalizedString(), true, new(new("ms-appx:///Assets/NavigationViewIcons/home.png"))));
             NavView.MenuItems.Add(new SquareNavigationViewItem("Store".ToLocalizedString(), false, new(new("ms-appx:///Assets/NavigationViewIcons/store.png"))));
             NavView.FooterMenuItems.Add(new SquareNavigationViewItem("Tasks".ToLocalizedString(), false, new(new("ms-appx:///Assets/NavigationViewIcons/tasks.png")), TasksInfoBadge));
@@ -91,7 +91,7 @@ namespace Emerald.WinUI
                     {
                         TaskView.ChangeProgress(ID.Value, 100);
                         TaskView.ChangeIndeterminate(ID.Value, false);
-                        TaskView.ChangeDescription(ID.Value,e.Message);
+                        TaskView.ChangeDescription(ID.Value, e.Message);
                         TaskView.ChangeSeverty(ID.Value, e.Success ? InfoBarSeverity.Success : InfoBarSeverity.Error);
                     }
                 };
@@ -99,7 +99,8 @@ namespace Emerald.WinUI
             Tasks();
             void Settings()
             {
-                void TintColor() {
+                void TintColor()
+                {
                     switch ((Helpers.Settings.Enums.MicaTintColor)SS.Settings.App.Appearance.MicaTintColor)
                     {
                         case Helpers.Settings.Enums.MicaTintColor.NoColor:
@@ -121,7 +122,7 @@ namespace Emerald.WinUI
                 {
                     TintColor();
                     (this.Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
-                    
+
                 };
                 TintColor();
                 (this.Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
@@ -155,19 +156,19 @@ namespace Emerald.WinUI
         private void UpdateSelectedItem() =>
             SelectedItemIndex = NavView.SelectedItem is SquareNavigationViewItem item ?
                 (
-                 ((NavView.SelectedItem as SquareNavigationViewItem).Name.ToString() == "Tasks".ToLocalizedString()) ? 
-                    SelectedItemIndex 
-                    : 
-                    (NavView.MenuItems.IndexOf(NavView.MenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)) == -1 ? 
+                 ((NavView.SelectedItem as SquareNavigationViewItem).Name.ToString() == "Tasks".ToLocalizedString()) ?
+                    SelectedItemIndex
+                    :
+                    (NavView.MenuItems.IndexOf(NavView.MenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)) == -1 ?
                         (
                          NavView.FooterMenuItems.IndexOf(NavView.FooterMenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)) == -1 ?
-                            (1,2) 
+                            (1, 2)
                             :
-                            (NavView.FooterMenuItems.IndexOf(NavView.FooterMenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)),1)
-                         ) 
+                            (NavView.FooterMenuItems.IndexOf(NavView.FooterMenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)), 1)
+                         )
                         :
                         (NavView.MenuItems.IndexOf(NavView.MenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)), 0))
-                ) 
+                )
                 : (1, 2);
         private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
@@ -181,7 +182,7 @@ namespace Emerald.WinUI
                         MainFrame.Content = HomePage;
                     }
                     else if (h == "Store".ToLocalizedString())
-                    {}
+                    { }
                     else if (h == "Tasks".ToLocalizedString())
                     {
                         TaskViewFlyout.ShowAt(args.InvokedItemContainer, new() { Placement = FlyoutPlacementMode.Right, ShowMode = FlyoutShowMode.Standard });

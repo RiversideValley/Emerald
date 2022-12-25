@@ -6,12 +6,7 @@ using CmlLib.Core.VersionLoader;
 using CmlLib.Utils;
 using Emerald.Core.Args;
 using Emerald.Core.Clients;
-using Emerald.Core.Store;
 using Emerald.Core.Tasks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 namespace Emerald.Core
 {
     public class Emerald
@@ -86,14 +81,14 @@ namespace Emerald.Core
             GlacierClient.StatusChanged += GlacierClient_StatusChanged;
             GlacierClient.ProgressChanged += GlacierClient_ProgressChanged;
             GlacierClient.UIChangedReqested += GlacierClient_UIChangedReqested;
-            
+
         }
 
         /// <summary>
         /// Creates a Minecraft <see cref="System.Diagnostics.Process"/> using the given <paramref name="ver"/> and <paramref name="launchOption"/>
         /// </summary>
         public async Task<System.Diagnostics.Process?> CreateProcessAsync(string ver, MLaunchOption launchOption)
-        { 
+        {
             var id = TasksHelper.AddTask(Localized.LaunchMC);
             try
             {
@@ -106,7 +101,7 @@ namespace Emerald.Core
                 TasksHelper.CompleteTask(id, false, ex.Message);
                 return null;
             }
-            
+
         }
         private void Labrinth_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
@@ -210,7 +205,7 @@ namespace Emerald.Core
             }
             catch (Exception ex)
             {
-                TasksHelper.CompleteTask(taskID, false,ex.Message);
+                TasksHelper.CompleteTask(taskID, false, ex.Message);
             }
         }
         private void UpdateLogs(string html)

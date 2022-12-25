@@ -67,9 +67,9 @@ namespace Emerald.WinUI.Views.Settings
         public AppearancePage()
         {
             this.InitializeComponent();
-            if(SS.Settings.App.Appearance.MicaTintColor == (int)Helpers.Settings.Enums.MicaTintColor.CustomColor)
+            if (SS.Settings.App.Appearance.MicaTintColor == (int)Helpers.Settings.Enums.MicaTintColor.CustomColor)
             {
-                if(SS.Settings.App.Appearance.CustomMicaTintColor != null)
+                if (SS.Settings.App.Appearance.CustomMicaTintColor != null)
                 {
                     var c = SS.Settings.App.Appearance.CustomMicaTintColor;
                     var cl = Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B);

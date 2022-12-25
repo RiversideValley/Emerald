@@ -9,7 +9,7 @@
     xmlns:uc="using:Emerald.WinUI.UserControls"
     xmlns:helpers="using:Emerald.WinUI.Helpers"
     xmlns:SS="using:Emerald.WinUI.Helpers.Settings"
-    xmlns:App="using:Emerald.WinUI">
+    xmlns:App="using:Emerald.WinUI" xmlns:json="using:Emerald.WinUI.Helpers.Settings.JSON" xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations">
     <Grid Margin="0,15,0,0">
         <Grid.Resources>
             <ResourceDictionary Source="/ResourceDictionaries/Expanders.xaml" />
@@ -103,6 +103,11 @@
                     </uc:AdaptiveItemPane.RightPane>
                 </uc:AdaptiveItemPane>
             </Border>
+
+            <TextBlock
+                Text="{helpers:Localize CustomName=More,RESW=Settings}"
+            Margin="0,7"
+                FontWeight="SemiBold"/>
             <uc:Expander
                 ExpanderStyle="Static"
                 Title="{helpers:Localize CustomName=Links,RESW=Settings}"
@@ -130,6 +135,30 @@
                 <uc:Expander.HeaderControls>
                     <Button Content="{helpers:Localize CustomName=CreateBackup,RESW=Settings}"/>
                 </uc:Expander.HeaderControls>
+                <Grid MinHeight="70">
+                    <CommandBar Margin="0,-15,-15,0" Canvas.ZIndex="2" x:Name="cmdBarBackups" HorizontalAlignment="Right" Visibility="Collapsed" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}" DefaultLabelPosition="Right">
+                        <AppBarButton Icon="Delete" Label="{helpers:Localize CustomName=Delete,RESW=Settings}"/>
+                        <AppBarButton Icon="View" Label="{helpers:Localize CustomName=View,RESW=Settings}"/>
+                        <AppBarButton Icon="Upload" Label="{helpers:Localize CustomName=TryLoad,RESW=Settings}"/>
+                        <animations:Implicit.ShowAnimations>
+                            <animations:OpacityAnimation Duration="0:0:0.5" From="0" To="1.0"/>
+                        </animations:Implicit.ShowAnimations>
+
+                        <animations:Implicit.HideAnimations>
+                            <animations:OpacityAnimation Duration="0:0:0.5" To="0.0"/>
+                        </animations:Implicit.HideAnimations>
+                    </CommandBar>
+                    <ListView x:Name="lvBackups" SelectionChanged="lvBackups_SelectionChanged">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="json:SettingsBackup">
+                                <TextBlock Margin="5">
+                                    <Run Text="{x:Bind Time.ToLongDateString()}"/> 
+                                    <Run Text="{x:Bind Time.ToShortTimeString()}"/>
+                                </TextBlock>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
             </uc:Expander>
         </StackPanel>
         <TeachingTip

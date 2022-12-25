@@ -1,5 +1,4 @@
 ﻿using Emerald.WinUI.Enums;
-using Microsoft.UI.Xaml;
 
 namespace Emerald.WinUI.Models
 {

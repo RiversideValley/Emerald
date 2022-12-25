@@ -1,13 +1,9 @@
-﻿using Emerald.WinUI.Models;
-using System.Threading.Tasks;
+﻿using Emerald.WinUI.Helpers;
+using Emerald.WinUI.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System;
-using ProjBobcat.Class.Model.Version;
-using Emerald.WinUI.Helpers;
-using System.Diagnostics;
 
 namespace Emerald.WinUI.Views.Home
 {
@@ -64,7 +60,8 @@ namespace Emerald.WinUI.Views.Home
             {
                 //Accounts.Where(x => ((sender as CheckBox).DataContext as Account).Count == x.Count).FirstOrDefault().IsChecked = (sender as CheckBox).IsChecked.Value;
                 UpdateAll();
-            }catch { }
+            }
+            catch { }
         }
 
         private void btnAccount_Click(object sender, RoutedEventArgs e)
@@ -86,16 +83,16 @@ namespace Emerald.WinUI.Views.Home
             UpdateAll();
 
         }
-        private void RemoveSelected()=>
+        private void RemoveSelected() =>
             Accounts.Remove(x => x.IsChecked);
-        
-        private void btnRemove_Click(object sender, RoutedEventArgs e)=>
+
+        private void btnRemove_Click(object sender, RoutedEventArgs e) =>
             RemoveSelected();
-        
+
 
         private void mitRemove_Click(object sender, RoutedEventArgs e)
         {
-            if(Accounts.Where(x => x.IsChecked).Any())
+            if (Accounts.Where(x => x.IsChecked).Any())
             {
                 RemoveSelected();
             }

@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
+﻿using Emerald.Core.Args;
 using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
-using Emerald.Core;
-using Emerald.Core.Args;
 namespace Emerald.Core.Store
 {
     public class Labrinth
@@ -123,7 +116,7 @@ namespace Emerald.Core.Store
                 var json = await Get("v2/search?query=" + q + "&index=" + sortOptions.ToString().ToLower() + "&facets=[[\"categories:fabric\"]" + categouriesString + ",[\"project_type:mod\"]]&" + l);
                 s = JSONConverter.ConvertToLabrinthSearchResult(json);
                 StatusChanged(Localized.Ready, new EventArgs());
-                Tasks.TasksHelper.CompleteTask(taskID,true);
+                Tasks.TasksHelper.CompleteTask(taskID, true);
                 return s;
             }
             catch
@@ -151,7 +144,7 @@ namespace Emerald.Core.Store
                 {
                     UI(true);
                 }
-                Tasks.TasksHelper.CompleteTask(taskID,true);
+                Tasks.TasksHelper.CompleteTask(taskID, true);
                 return s;
             }
             catch
@@ -177,7 +170,7 @@ namespace Emerald.Core.Store
                 s = JSONConverter.ConvertDownloadLinksToCS(json);
                 StatusChanged(Localized.Ready, new EventArgs());
                 UI(true);
-                Tasks.TasksHelper.CompleteTask(taskID,true);
+                Tasks.TasksHelper.CompleteTask(taskID, true);
                 return s;
             }
             catch

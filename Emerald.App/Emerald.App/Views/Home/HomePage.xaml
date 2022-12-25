@@ -16,7 +16,7 @@
             <Grid>
                 <Grid.ChildrenTransitions>
                     <TransitionCollection>
-                        <AddDeleteThemeTransition/>
+                        <EntranceThemeTransition/>
                     </TransitionCollection>
                 </Grid.ChildrenTransitions>
                 <Grid.ColumnDefinitions>
@@ -57,7 +57,7 @@
         PaneBackground="{ThemeResource LayerFillColorDefaultBrush}"
         PanePlacement="Left">
         <SplitView.Pane>
-            <Grid ChildrenTransitions="{StaticResource EntranceThemeTransitionStaggeringEnabled}">
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
