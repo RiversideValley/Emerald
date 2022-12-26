@@ -25,7 +25,10 @@
                 <EntranceThemeTransition IsStaggeringEnabled="True"/>
             </TransitionCollection>
             <TransitionCollection x:Key="EntranceThemeTransition">
-                <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                <EntranceThemeTransition/>
+            </TransitionCollection>
+            <TransitionCollection x:Key="AddDeleteThemeTransition">
+                <AddDeleteThemeTransition/>
             </TransitionCollection>
             <Style x:Key="TransparentButtonStyle" BasedOn="{StaticResource DefaultButtonStyle}" TargetType="Button">
                 <Setter Property="Background" Value="Transparent" />

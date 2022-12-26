@@ -11,7 +11,7 @@
             TaskAddRequested(null, new TaskAddRequestedEventArgs(name, AllTaksCount));
             return AllTaksCount;
         }
-        public static int AddTask(Core.Localized name)
+        public static int AddTask(Localized name)
         {
             AllTaksCount++;
             TaskAddRequested(null, new TaskAddRequestedEventArgs(name.ToString(), AllTaksCount));

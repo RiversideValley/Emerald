@@ -5,8 +5,76 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:Emerald.WinUI.Views.Settings"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-    mc:Ignorable="d">
-
-    <Grid />
+    mc:Ignorable="d"
+    xmlns:uc="using:Emerald.WinUI.UserControls"
+    xmlns:helpers="using:Emerald.WinUI.Helpers"
+    xmlns:SS="using:Emerald.WinUI.Helpers.Settings"
+    xmlns:App="using:Emerald.WinUI" xmlns:json="using:Emerald.WinUI.Helpers.Settings.JSON" xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations">
+    <Grid Margin="0,0,0,0">
+        <Grid.Resources>
+            <ResourceDictionary Source="/ResourceDictionaries/Expanders.xaml" />
+        </Grid.Resources>
+        <StackPanel Spacing="3">
+            <TextBlock
+                FontWeight="SemiBold"
+                Text="{helpers:Localize CustomName=Minecraft,RESW=Settings}"/>
+            <uc:Expander 
+                Icon="&#xE838;"
+                Title="{helpers:Localize CustomName=MinecraftPath,RESW=Settings}"
+                Description="{helpers:Localize CustomName=MinecraftPathDescription,RESW=Settings}"
+                ExpanderStyle="Static">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock TextTrimming="CharacterEllipsis" MaxWidth="250" Text="{x:Bind SS:SettingsSystem.Settings.Minecraft.Path,Mode=OneWay}" VerticalAlignment="Center"/>
+                    <Button Click="btnChangeMPath_Click" ToolTipService.ToolTip="Change" x:Name="btnChangeMPath" Padding="7,7" Margin="5,0,0,0">
+                        <FontIcon FontSize="16" Glyph="&#xE19C;"/>
+                    </Button>
+                </StackPanel>
+            </uc:Expander>
+            <uc:Expander 
+                Icon="&#xE964;"
+                Title="{helpers:Localize CustomName=RAM,RESW=Settings}"
+                Description="{helpers:Localize CustomName=RAMDescription,RESW=Settings}">
+                <uc:Expander.HeaderControls>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock x:Name="txtRam" VerticalAlignment="Center">
+                            <Run Text="{x:Bind SS:SettingsSystem.Settings.Minecraft.RAMinGB,Mode=OneWay}"/> GB
+                        </TextBlock>
+                        <RepeatButton Click="btnRamPlus_Click" Padding="5" FontWeight="SemiBold" Content="{helpers:FontIcon Glyph=&#xE948;}"/>
+                        <RepeatButton Click="btnRamMinus_Click" Padding="5" FontWeight="SemiBold" Content="{helpers:FontIcon Glyph=&#xE949;}"/>
+                    </StackPanel>
+                </uc:Expander.HeaderControls>
+                <uc:Expander.Controls>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Slider
+                            Grid.Column="0"
+                            Maximum="{x:Bind App:DirectResoucres.MaxRAM}"
+                            Value="{x:Bind SS:SettingsSystem.Settings.Minecraft.RAM,Mode=TwoWay}"
+                            Minimum="{x:Bind App:DirectResoucres.MinRAM}"
+                            TickFrequency="{x:Bind App:DirectResoucres.MinRAM}"/>
+                        <Button Grid.Column="1" x:Name="btnAutoRAM" Click="btnAutoRAM_Click" Margin="5,0,0,0" Content="Auto Suggest"/>
+                    </Grid>
+                </uc:Expander.Controls>
+            </uc:Expander>
+            <uc:Expander 
+                Title="{helpers:Localize CustomName=MCasAdmin,RESW=Settings}"
+                Description="{helpers:Localize CustomName=MCasAdminDescription,RESW=Settings}"
+                Icon="&#xe83d;" 
+                ExpanderStyle="Static">
+                <ToggleSwitch 
+                    IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.IsAdmin,Mode=TwoWay}"
+                    OnContent="{helpers:Localize Name=Yes}" 
+                    OffContent="{helpers:Localize Name=No}"/>
+            </uc:Expander>
+            <uc:Expander
+                Icon="&#xec7a;"
+                Title="{helpers:Localize CustomName=JVMArgs,RESW=Settings}"
+                Description="{helpers:Localize CustomName=JVMArgsDescription,RESW=Settings}">
+                
+            </uc:Expander>
+        </StackPanel>
+    </Grid>
 </Page>

@@ -21,7 +21,9 @@
                 <uc:NavViewItem Tag="Appearance" IconGlyph="&#xE771;" Content="{helpers:Localize CustomName=Appearance,RESW=Settings}"/>
                 <uc:NavViewItem Tag="About" IconGlyph="&#xE946;" Content="{helpers:Localize CustomName=About,RESW=Settings}"/>
             </NavigationView.MenuItems>
-            <Frame Margin="10,-5,10,0" x:Name="contentframe"/>
+            <ScrollViewer>
+                <Frame Margin="10,-5,10,0" x:Name="contentframe"/>
+            </ScrollViewer>
         </NavigationView>
     </Grid>
 </Page>

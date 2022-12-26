@@ -120,6 +120,9 @@
   <data name="Add" xml:space="preserve">
     <value>Add</value>
   </data>
+  <data name="AuthWindowshello" xml:space="preserve">
+    <value>Authenticating using Windows Hello...</value>
+  </data>
   <data name="BegLogIn" xml:space="preserve">
     <value>Please Login</value>
   </data>

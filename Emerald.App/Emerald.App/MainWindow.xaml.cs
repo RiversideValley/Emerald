@@ -8,6 +8,7 @@ using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using System;
 using System.Linq;
 using Windows.UI;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
@@ -66,7 +67,7 @@ namespace Emerald.WinUI
             WindowManager.SetTitleBar(this, AppTitleBar);
             WinUIEx.WindowManager.Get(this).MinHeight = 400;
             WinUIEx.WindowManager.Get(this).MinWidth = 500;
-
+            NavView.SelectedItem = NavView.MenuItems[0];
             void Tasks()
             {
                 var g = new TaskViewGrid(TaskView);
@@ -192,7 +193,7 @@ namespace Emerald.WinUI
                     { }
                     else if (h == "Settings".ToLocalizedString())
                     {
-                        MainFrame.Navigate(typeof(Views.Settings.SettingsPage));
+                        NavigateOnce(typeof(Views.Settings.SettingsPage));
                     }
                     UpdateTasksInfoBadge();
                     (NavView.Header as NavViewHeader).HeaderText = h == "Tasks".ToLocalizedString() ? (NavView.Header as NavViewHeader).HeaderText : h;
@@ -210,6 +211,13 @@ namespace Emerald.WinUI
                             NavView.SelectedItem)));
                 pitm.IsSelected = pitm == itm;
                 UpdateSelectedItem();
+            }
+        }
+        private void NavigateOnce(Type type)
+        {
+            if (MainFrame.Content == null || MainFrame.Content.GetType() != type)
+            {
+                MainFrame.Navigate(type);
             }
         }
     }

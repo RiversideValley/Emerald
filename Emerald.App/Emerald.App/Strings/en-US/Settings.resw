@@ -162,11 +162,20 @@
   <data name="Delete" xml:space="preserve">
     <value>Delete</value>
   </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
   <data name="General" xml:space="preserve">
     <value>General</value>
   </data>
   <data name="Github" xml:space="preserve">
     <value>Github</value>
+  </data>
+  <data name="JVMArgs" xml:space="preserve">
+    <value>JVM Arguments</value>
+  </data>
+  <data name="JVMArgsDescription" xml:space="preserve">
+    <value>For Endermans!</value>
   </data>
   <data name="Light" xml:space="preserve">
     <value>Light</value>
@@ -177,11 +186,26 @@
   <data name="LinksDescription" xml:space="preserve">
     <value>Keep up with the latest updates</value>
   </data>
+  <data name="MCasAdmin" xml:space="preserve">
+    <value>Launch minecraft as admin</value>
+  </data>
+  <data name="MCasAdminDescription" xml:space="preserve">
+    <value>Do this at your own risk!</value>
+  </data>
   <data name="MicaType" xml:space="preserve">
     <value>Mica Type</value>
   </data>
   <data name="MicaTypeDescription" xml:space="preserve">
     <value>Normal Mica or Mica Alt (Tabbed)</value>
+  </data>
+  <data name="Minecraft" xml:space="preserve">
+    <value>Minecraft</value>
+  </data>
+  <data name="MinecraftPath" xml:space="preserve">
+    <value>Minecraft Path</value>
+  </data>
+  <data name="MinecraftPathDescription" xml:space="preserve">
+    <value>The path of the minecraft client</value>
   </data>
   <data name="More" xml:space="preserve">
     <value>More</value>
@@ -191,6 +215,12 @@
   </data>
   <data name="NoColor" xml:space="preserve">
     <value>No color</value>
+  </data>
+  <data name="RAM" xml:space="preserve">
+    <value>Memory</value>
+  </data>
+  <data name="RAMDescription" xml:space="preserve">
+    <value>The allocated memory of the minecraft client</value>
   </data>
   <data name="SettingsBackups" xml:space="preserve">
     <value>Settings Backups</value>
@@ -210,10 +240,19 @@
   <data name="View" xml:space="preserve">
     <value>View</value>
   </data>
+  <data name="WindowsHello" xml:space="preserve">
+    <value>Windows Hello</value>
+  </data>
+  <data name="WindowsHelloDescription" xml:space="preserve">
+    <value>Do not create, view, load, delete backups without Windows Hello authentication</value>
+  </data>
   <data name="WindowTintColor" xml:space="preserve">
     <value>Window tint color</value>
   </data>
   <data name="WindowTintColorDescription" xml:space="preserve">
     <value>Show a color overlay behind the app content</value>
+  </data>
+  <data name="WinHelloChangeFailed" xml:space="preserve">
+    <value>Unable to change the setting because you failed to authenticate with Windows Hello</value>
   </data>
 </root>

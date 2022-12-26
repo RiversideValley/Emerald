@@ -52,6 +52,7 @@
         SelectAll,
         SelectNone,
         LoadSettingsFailed,
-        CreateOldSettingsBackup
+        CreateOldSettingsBackup,
+        AuthWindowshello
     }
 }

@@ -1,4 +1,6 @@
-﻿using Microsoft.UI.Xaml;
+﻿using CmlLib.Core;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Shapes;
 using Newtonsoft.Json;
 using System;
 
@@ -38,18 +40,38 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
             },
             Minecraft = new()
             {
+                Path = MinecraftPath.GetOSDefaultPath(),
+                RAM = DirectResoucres.MaxRAM / 2,
                 MCVerionsConfiguration = new(),
                 JVM = new(),
                 Downloader = new()
             }
         };
-        public string APIVersion { get; set; } = "1.1";
+        public string APIVersion { get; set; } = "1.2";
         public Minecraft Minecraft { get; set; }
         public App App { get; set; }
     }
     public class Minecraft : JSON
     {
-        public int RAM { get; set; }
+        public double RAMinGB => Math.Round(RAM / Math.Pow(1024, 1), 1);
+        private string _Path;
+        public string Path
+        {
+            get => _Path;
+            set => Set(ref _Path, value);
+        }
+        private int _RAM;
+        public int RAM
+        {
+            get => _RAM;
+            set => Set(ref _RAM, value);
+        }
+        private bool _IsAdmin;
+        public bool IsAdmin
+        {
+            get => _IsAdmin;
+            set => Set(ref _IsAdmin, value);
+        }
         public Account[] Accounts { get; set; }
         public Downloader Downloader { get; set; }
         public MCVerionsConfiguration MCVerionsConfiguration { get; set; }
@@ -87,6 +109,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public Discord Discord { get; set; }
         public bool AutoClose { get; set; }
         public bool HideOnLaunch { get; set; }
+        public bool WindowsHello { get; set; }
     }
 
     public class Discord : JSON

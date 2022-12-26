@@ -29,7 +29,7 @@ namespace Emerald.WinUI.Helpers.Settings
                 ApplicationData.Current.RoamingSettings.Values["Settings"] = json;
             }
             Settings = JsonConvert.DeserializeObject<JSON.Settings>(json);
-            if (Settings.APIVersion != "1.1")
+            if (Settings.APIVersion != "1.2")
             {
                 APINoMatch?.Invoke(null, json);
                 json = JSON.Settings.CreateNew().Serialize();
@@ -37,30 +37,38 @@ namespace Emerald.WinUI.Helpers.Settings
                 Settings = JsonConvert.DeserializeObject<JSON.Settings>(json);
             }
         }
-        public static void CreateBackup(string system)
+        public static bool CreateBackup(string system)
         {
             string json;
             var l = new Backups();
             try
             {
-                json = ApplicationData.Current.RoamingSettings.Values["SettingsBackups"] as string;
+                json = ApplicationData.Current.LocalSettings.Values["SettingsBackups"] as string;
             }
             catch
             {
                 json = JsonConvert.SerializeObject(new Backups());
-                ApplicationData.Current.RoamingSettings.Values["SettingsBackups"] = json;
+                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
             }
             if (json.IsNullEmptyOrWhiteSpace())
             {
                 json = JsonConvert.SerializeObject(new Backups());
-                ApplicationData.Current.RoamingSettings.Values["SettingsBackups"] = json;
+                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
             }
             l = JsonConvert.DeserializeObject<Backups>(json);
             var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
             bl.Add(new SettingsBackup() { Time = DateTime.Now, Backup = system });
             l.AllBackups = bl.ToArray();
             json = JsonConvert.SerializeObject(l);
-            ApplicationData.Current.RoamingSettings.Values["SettingsBackups"] = json;
+            try
+            {
+                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
         public static bool DeleteBackup(int Index)
         {
@@ -68,17 +76,17 @@ namespace Emerald.WinUI.Helpers.Settings
             var l = new Backups();
             try
             {
-                json = ApplicationData.Current.RoamingSettings.Values["SettingsBackups"] as string;
+                json = ApplicationData.Current.LocalSettings.Values["SettingsBackups"] as string;
             }
             catch
             {
                 json = JsonConvert.SerializeObject(new Backups());
-                ApplicationData.Current.RoamingSettings.Values["SettingsBackups"] = json;
+                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
             }
             if (json.IsNullEmptyOrWhiteSpace())
             {
                 json = JsonConvert.SerializeObject(new Backups());
-                ApplicationData.Current.RoamingSettings.Values["SettingsBackups"] = json;
+                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
             }
             l = JsonConvert.DeserializeObject<Backups>(json);
             try
@@ -87,7 +95,40 @@ namespace Emerald.WinUI.Helpers.Settings
                 bl.RemoveAt(Index);
                 l.AllBackups = bl.ToArray();
                 json = JsonConvert.SerializeObject(l);
-                ApplicationData.Current.RoamingSettings.Values["SettingsBackups"] = json;
+                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        public static bool DeleteBackup(DateTime time)
+        {
+            string json;
+            var l = new Backups();
+            try
+            {
+                json = ApplicationData.Current.LocalSettings.Values["SettingsBackups"] as string;
+            }
+            catch
+            {
+                json = JsonConvert.SerializeObject(new Backups());
+                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
+            }
+            if (json.IsNullEmptyOrWhiteSpace())
+            {
+                json = JsonConvert.SerializeObject(new Backups());
+                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
+            }
+            l = JsonConvert.DeserializeObject<Backups>(json);
+            try
+            {
+                var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
+                bl.Remove(x=> x.Time == time);
+                l.AllBackups = bl.ToArray();
+                json = JsonConvert.SerializeObject(l);
+                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
                 return true;
             }
             catch
@@ -100,17 +141,17 @@ namespace Emerald.WinUI.Helpers.Settings
             string json;
             try
             {
-                json = ApplicationData.Current.RoamingSettings.Values["SettingsBackups"] as string;
+                json = ApplicationData.Current.LocalSettings.Values["SettingsBackups"] as string;
             }
             catch
             {
                 json = JsonConvert.SerializeObject(new Backups());
-                ApplicationData.Current.RoamingSettings.Values["SettingsBackups"] = json;
+                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
             }
             if (json.IsNullEmptyOrWhiteSpace())
             {
                 json = JsonConvert.SerializeObject(new Backups());
-                ApplicationData.Current.RoamingSettings.Values["SettingsBackups"] = json;
+                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
             }
             var l = JsonConvert.DeserializeObject<Backups>(json);
             return l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();

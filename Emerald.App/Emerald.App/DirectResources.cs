@@ -1,11 +1,13 @@
 ﻿using CommunityToolkit.WinUI.Helpers;
 using Windows.UI;
-
+using Emerald.WinUI.Helpers;
 namespace Emerald.WinUI
 {
 
     public static class DirectResoucres
     {
+        public static int MaxRAM => Extentions.GetMemoryGB() * 1024;
+        public static int MinRAM => 512;
         public static string BuildType
         {
             get

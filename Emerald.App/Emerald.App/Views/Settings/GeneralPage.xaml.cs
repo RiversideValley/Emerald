@@ -1,7 +1,17 @@
-﻿using Microsoft.UI.Xaml.Controls;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
+﻿using Emerald.Core;
+using Emerald.Core.Tasks;
+using Emerald.WinUI.Helpers;
+using Emerald.WinUI.Models;
+using Emerald.WinUI.UserControls;
+using Microsoft.UI;
+using Microsoft.UI.Composition.SystemBackdrops;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using System;
+using System.Linq;
+using Windows.UI;
+using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 
 namespace Emerald.WinUI.Views.Settings
 {
@@ -14,5 +24,23 @@ namespace Emerald.WinUI.Views.Settings
         {
             this.InitializeComponent();
         }
+
+        private void btnChangeMPath_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnRamPlus_Click(object sender, RoutedEventArgs e) =>
+            SS.Settings.Minecraft.RAM = SS.Settings.Minecraft.RAM + 50;
+        
+
+        private void btnRamMinus_Click(object sender, RoutedEventArgs e) =>
+            SS.Settings.Minecraft.RAM = SS.Settings.Minecraft.RAM - 50;
+        
+
+        private void btnAutoRAM_Click(object sender, RoutedEventArgs e)=>
+            SS.Settings.Minecraft.RAM = DirectResoucres.MaxRAM / 2;
+        
+
     }
 }

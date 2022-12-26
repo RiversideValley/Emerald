@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
+using System;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -26,19 +27,26 @@ namespace Emerald.WinUI.Views.Settings
             switch (itm.Tag)
             {
                 case "Appearance":
-                    contentframe.Navigate(typeof(AppearancePage), null, new DrillInNavigationTransitionInfo());
+                    NavigateOnce(typeof(AppearancePage));
                     navView.AlwaysShowHeader = true;
                     break;
                 case "About":
                     navView.AlwaysShowHeader = false;
-                    contentframe.Navigate(typeof(AboutPage), null, new DrillInNavigationTransitionInfo());
+                    NavigateOnce(typeof(AboutPage));
                     break;
                 default:
-                    contentframe.Navigate(typeof(GeneralPage), null, new DrillInNavigationTransitionInfo());
+                    NavigateOnce(typeof(GeneralPage));
                     navView.AlwaysShowHeader = true;
                     break;
             }
             navView.Header = itm.Content;
+        }
+        private void NavigateOnce(Type type)
+        {
+            if (contentframe.Content == null || contentframe.Content.GetType() != type)
+            {
+                contentframe.Navigate(type, null, new DrillInNavigationTransitionInfo());
+            }
         }
     }
 

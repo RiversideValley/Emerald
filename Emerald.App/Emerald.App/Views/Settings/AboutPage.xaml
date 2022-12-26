@@ -133,20 +133,20 @@
                 Title="{helpers:Localize CustomName=SettingsBackups,RESW=Settings}"
                 Description="{helpers:Localize CustomName=SettingsBackupsDescription,RESW=Settings}">
                 <uc:Expander.HeaderControls>
-                    <Button Content="{helpers:Localize CustomName=CreateBackup,RESW=Settings}"/>
+                    <Button x:Name="CreateBackup" Click="CreateBackup_Click" Content="{helpers:Localize CustomName=CreateBackup,RESW=Settings}"/>
                 </uc:Expander.HeaderControls>
-                <Grid MinHeight="70">
-                    <CommandBar Margin="0,-15,-15,0" Canvas.ZIndex="2" x:Name="cmdBarBackups" HorizontalAlignment="Right" Visibility="Collapsed" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}" DefaultLabelPosition="Right">
-                        <AppBarButton Icon="Delete" Label="{helpers:Localize CustomName=Delete,RESW=Settings}"/>
-                        <AppBarButton Icon="View" Label="{helpers:Localize CustomName=View,RESW=Settings}"/>
+                <Grid ChildrenTransitions="{StaticResource AddDeleteThemeTransition}">
+                    <CommandBar 
+                        x:Load="{x:Bind LoadBackupCMDBar,Mode=OneWay}"
+                        Margin="0,-15,-15,0" 
+                        Canvas.ZIndex="2" 
+                        x:Name="cmdBarBackups"
+                        HorizontalAlignment="Right" 
+                        Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}" 
+                        DefaultLabelPosition="Right">
+                        <AppBarButton Click="DeleteBackup_Click" Icon="Delete" Label="{helpers:Localize CustomName=Delete,RESW=Settings}"/>
+                        <AppBarButton Click="ViewBackup_Click" Icon="View" Label="{helpers:Localize CustomName=View,RESW=Settings}"/>
                         <AppBarButton Icon="Upload" Label="{helpers:Localize CustomName=TryLoad,RESW=Settings}"/>
-                        <animations:Implicit.ShowAnimations>
-                            <animations:OpacityAnimation Duration="0:0:0.5" From="0" To="1.0"/>
-                        </animations:Implicit.ShowAnimations>
-
-                        <animations:Implicit.HideAnimations>
-                            <animations:OpacityAnimation Duration="0:0:0.5" To="0.0"/>
-                        </animations:Implicit.HideAnimations>
                     </CommandBar>
                     <ListView x:Name="lvBackups" SelectionChanged="lvBackups_SelectionChanged">
                         <ListView.ItemTemplate>
@@ -159,6 +159,13 @@
                         </ListView.ItemTemplate>
                     </ListView>
                 </Grid>
+            </uc:Expander>
+            <uc:Expander
+                Icon="&#xE75F;"
+                x:Name="expWinHello"
+                Title="{helpers:Localize CustomName=WindowsHello,RESW=Settings}"
+                Description="{helpers:Localize CustomName=WindowsHelloDescription,RESW=Settings}">
+                <ToggleSwitch x:Name="tglWinHello" Toggled="ToggleSwitch_Toggled" />
             </uc:Expander>
         </StackPanel>
         <TeachingTip

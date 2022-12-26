@@ -1,16 +1,69 @@
-﻿using Microsoft.Windows.ApplicationModel.Resources;
+﻿using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml;
+using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Collections.Generic;
+using Windows.System.Diagnostics;
 
 namespace Emerald.WinUI.Helpers
 {
     public static class Extentions
     {
-        public static int Remove<T>(
-        this ObservableCollection<T> coll, Func<T, bool> condition)
+        public static int GetMemoryGB()
+        {
+            SystemMemoryUsageReport systemMemoryUsageReport = SystemDiagnosticInfo.GetForCurrentSystem().MemoryUsage.GetReport();
+
+            long memkb = Convert.ToInt64(systemMemoryUsageReport.TotalPhysicalSizeInBytes);
+            return Convert.ToInt32(memkb / Math.Pow(1024, 3));
+        }
+        public static string KiloFormat(this int num)
+        {
+            if (num >= 100000000)
+                return (num / 1000000).ToString("#,0M");
+
+            if (num >= 10000000)
+                return (num / 1000000).ToString("0.#") + "M";
+
+            if (num >= 100000)
+                return (num / 1000).ToString("#,0K");
+
+            if (num >= 10000)
+                return (num / 1000).ToString("0.#") + "K";
+
+            if (num >= 1000)
+                return (num / 100).ToString("0.#") + "K";
+
+            return num.ToString("#,0");
+        }
+        public static ContentDialog ToContentDialog(this UIElement content, string title, string closebtnText = null, ContentDialogButton defaultButton = ContentDialogButton.Close)
+        {
+            ContentDialog dialog = new()
+            {
+                XamlRoot = MainWindow.MainFrame.XamlRoot,
+                Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+                Title = title,
+                CloseButtonText = closebtnText,
+                DefaultButton = defaultButton,
+                Content = content
+            };
+            return dialog;
+        }
+        public static int Remove<T>(this ObservableCollection<T> coll, Func<T, bool> condition)
+        {
+            var itemsToRemove = coll.Where(condition).ToList();
+
+            foreach (var itemToRemove in itemsToRemove)
+            {
+                coll.Remove(itemToRemove);
+            }
+
+            return itemsToRemove.Count;
+        }
+        public static int Remove<T>(this List<T> coll, Func<T, bool> condition)
         {
             var itemsToRemove = coll.Where(condition).ToList();
 
