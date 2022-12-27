@@ -53,6 +53,18 @@
         SelectNone,
         LoadSettingsFailed,
         CreateOldSettingsBackup,
-        AuthWindowshello
+        AuthWindowshello,
+        InitializeCore,
+        NewHere,
+        Sure,
+        NoThanks,
+        ChooseAccount,
+        MicrosoftOrOffline,
+        GotIt,
+        ChooseAVersion,
+        VaniilaOrFabric,
+        Finish,
+        Launch,
+        ThatsIt
     }
 }

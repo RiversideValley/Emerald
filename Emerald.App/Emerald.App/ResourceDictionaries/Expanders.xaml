@@ -60,7 +60,6 @@
         <Setter Property="BorderThickness" Value="{ThemeResource ExpanderHeaderBorderThickness}" />
         <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
-        <Setter Property="MinHeight" Value="{StaticResource ExpanderMinHeight}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
@@ -567,7 +566,7 @@
                         </Grid.RowDefinitions>
                         <ToggleButton
                             x:Name="ExpanderHeader"
-                            MinHeight="{TemplateBinding MinHeight}"
+                            MinHeight="62"
                             Padding="{StaticResource ExpanderHeaderPadding}"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="{StaticResource ExpanderHeaderHorizontalContentAlignment}"

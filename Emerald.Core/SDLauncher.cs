@@ -7,9 +7,12 @@ using CmlLib.Utils;
 using Emerald.Core.Args;
 using Emerald.Core.Clients;
 using Emerald.Core.Tasks;
+using System.ComponentModel;
+using ProgressChangedEventArgs = Emerald.Core.Args.ProgressChangedEventArgs;
+
 namespace Emerald.Core
 {
-    public class Emerald
+    public class Emerald : INotifyPropertyChanged
     {
         public event EventHandler<UIChangeRequestedEventArgs> UIChangeRequested = delegate { };
         public event EventHandler<StatusChangedEventArgs> StatusChanged = delegate { };
@@ -17,8 +20,24 @@ namespace Emerald.Core
         public event EventHandler VersionLoaderChanged = delegate { };
         public event EventHandler<VersionsRefreshedEventArgs> VersionsRefreshed = delegate { };
         public event EventHandler LogsUpdated = delegate { };
-        private bool offlineloader = false;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
+        internal void Set<T>(ref T obj, T value, string name = null)
+        {
+            obj = value;
+            InvokePropertyChanged(name);
+        }
+        public void InvokePropertyChanged(string name = null)
+        {
+            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+        private bool offlineloader = false;
+        private bool _UIState;
+        public bool UIState
+        {
+            get => _UIState;
+            set => Set(ref _UIState, value);
+        }
         /// <summary>
         /// Checks whether the launcher is in Offline mode
         /// </summary>
@@ -257,6 +276,7 @@ namespace Emerald.Core
 
         private void UI(bool ui)
         {
+            UIState = ui;
             UIChangeRequested(this, new UIChangeRequestedEventArgs(ui));
         }
         private void Status(string stats)
@@ -269,11 +289,14 @@ namespace Emerald.Core
         }
         public void InitializeLauncher(MinecraftPath path)
         {
+            var taskID = TasksHelper.AddTask(Localized.InitializeCore);
             UI(false);
+            UseOfflineLoader = false;
             Launcher = new CMLauncher(path);
             Launcher.FileChanged += Launcher_FileChanged;
             Launcher.ProgressChanged += Launcher_ProgressChanged;
             UI(true);
+            TasksHelper.CompleteTask(taskID);
         }
 
 

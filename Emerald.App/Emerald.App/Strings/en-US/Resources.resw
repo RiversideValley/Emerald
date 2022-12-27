@@ -129,6 +129,12 @@
   <data name="BegVer" xml:space="preserve">
     <value>Please enter a version</value>
   </data>
+  <data name="ChooseAccount" xml:space="preserve">
+    <value>Choose an account</value>
+  </data>
+  <data name="ChooseAVersion" xml:space="preserve">
+    <value>Choose a version</value>
+  </data>
   <data name="ClearAll" xml:space="preserve">
     <value>Clear All</value>
   </data>
@@ -152,6 +158,9 @@
   </data>
   <data name="Error" xml:space="preserve">
     <value>Error</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>Finish!</value>
   </data>
   <data name="GetFabric" xml:space="preserve">
     <value>Get Fabric</value>
@@ -180,8 +189,17 @@
   <data name="GoodMorning" xml:space="preserve">
     <value>Good Morning</value>
   </data>
+  <data name="GotIt" xml:space="preserve">
+    <value>Got it!</value>
+  </data>
   <data name="Home" xml:space="preserve">
     <value>Home</value>
+  </data>
+  <data name="InitializeCore" xml:space="preserve">
+    <value>Initialize Launcher Core</value>
+  </data>
+  <data name="Launch" xml:space="preserve">
+    <value>Launch!</value>
   </data>
   <data name="LaunchMC" xml:space="preserve">
     <value>Launch Minecraft</value>
@@ -222,8 +240,17 @@
   <data name="MicrosoftAccount" xml:space="preserve">
     <value>Microsoft account</value>
   </data>
+  <data name="MicrosoftOrOffline" xml:space="preserve">
+    <value>Microsoft or offline</value>
+  </data>
+  <data name="NewHere" xml:space="preserve">
+    <value>Looks like you are new here. Shall we go on a quick check out?</value>
+  </data>
   <data name="NoNetwork" xml:space="preserve">
     <value>Seems like you don't have good internet...</value>
+  </data>
+  <data name="NoThanks" xml:space="preserve">
+    <value>No Thanks</value>
   </data>
   <data name="OfflineAccount" xml:space="preserve">
     <value>Offline account</value>
@@ -286,17 +313,26 @@
   <data name="Store" xml:space="preserve">
     <value>Store</value>
   </data>
+  <data name="Sure" xml:space="preserve">
+    <value>Sure!</value>
+  </data>
   <data name="SwitchOffline" xml:space="preserve">
     <value>Switch to offline mode</value>
   </data>
   <data name="Tasks" xml:space="preserve">
     <value>Tasks</value>
   </data>
+  <data name="ThatsIt" xml:space="preserve">
+    <value>That's it! Go to settings for more options</value>
+  </data>
   <data name="UnexpectedRestart" xml:space="preserve">
     <value>Some unexpected thing happend. Please restart the app!</value>
   </data>
+  <data name="VaniilaOrFabric" xml:space="preserve">
+    <value>Fabric and Vanilla is officially supported</value>
+  </data>
   <data name="Welcome" xml:space="preserve">
-    <value>Welcome</value>
+    <value>Welcome!</value>
     <comment>Rarely Used</comment>
   </data>
   <data name="Win32Error" xml:space="preserve">

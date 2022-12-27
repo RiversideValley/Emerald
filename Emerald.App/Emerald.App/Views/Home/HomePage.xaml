@@ -113,8 +113,10 @@
                         VerticalAlignment="Center"
                         PlaceholderText="Search for a version"
                         QueryIcon="Find"
+                        IsEnabled="{x:Bind core:MainCore.Launcher.UIState,Mode=OneWay}"
                         TextChanged="txtbxFindVer_TextChanged" />
                     <DropDownButton
+                        IsEnabled="{x:Bind core:MainCore.Launcher.UIState,Mode=OneWay}"
                         x:Name="btnVerSort"
                         Grid.Column="1"
                         Margin="5,0,0,0">
@@ -131,6 +133,7 @@
                     </DropDownButton>
                 </Grid>
                 <TreeView
+                        IsEnabled="{x:Bind core:MainCore.Launcher.UIState,Mode=OneWay}"
                     x:Name="treeVer"
                     Grid.Row="2"
                     CanDragItems="False"
@@ -159,14 +162,13 @@
                     Visibility="Collapsed" />
             </Grid>
         </SplitView.Pane>
-        <Grid>
+        <Grid x:Name="MainGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="1*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!--  TODO: Add click event (to account settings page) and data template for username  -->
             <Button
                 x:Name="AccountButton"
                 Grid.Row="0"
@@ -228,6 +230,7 @@
                     <ColumnDefinition Width="1*" MaxWidth="250" />
                 </Grid.ColumnDefinitions>
                 <DropDownButton
+                        IsEnabled="{x:Bind core:MainCore.Launcher.UIState,Mode=OneWay}"
                     x:Name="VersionButton"
                     Grid.Column="0"
                     Padding="5,0,10,0"
@@ -236,6 +239,7 @@
                     Click="VersionButton_Click"
                     ContentTemplate="{StaticResource MCVersionTemplate}" />
                 <Button
+                        IsEnabled="{x:Bind core:MainCore.Launcher.UIState,Mode=OneWay}"
                     x:Name="LaunchButton"
                     Grid.Column="2"
                     Click="LaunchButton_Click"
@@ -261,16 +265,33 @@
                     Background="{ThemeResource ButtonBackground}"
                     BorderBrush="{ThemeResource ButtonBorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="8"
-                    ItemsSource="{Binding NewsViews}" />
+                    CornerRadius="8" />
 
-                <!--<muxc:PipsPager
-                Margin="0,70,0,0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                NumberOfPages="{Binding NewsViews.Count}"
-                SelectedPageIndex="{x:Bind Path=FlipView.SelectedIndex, Mode=TwoWay}" />-->
             </Grid>
+            <TeachingTip
+                x:Name="AccountTip"
+                PreferredPlacement="Bottom"
+                Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+                Title="{helpers:Localize Name=ChooseAccount}"
+                Subtitle="{helpers:Localize Name=MicrosoftOrOffline}"
+                CloseButtonContent="{helpers:Localize Name=GotIt}"
+                Target="{x:Bind AccountButton}"/>
+            <TeachingTip
+                x:Name="VersionTip"
+                PreferredPlacement="Top"
+                Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+                Title="{helpers:Localize Name=ChooseAVersion}"
+                Subtitle="{helpers:Localize Name=VaniilaOrFabric}"
+                CloseButtonContent="{helpers:Localize Name=GotIt}"
+                Target="{x:Bind VersionButton}"/>
+            <TeachingTip
+                x:Name="LaunchTip"
+                PreferredPlacement="Top"
+                Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+                Title="{helpers:Localize Name=Launch}"
+                Subtitle="{helpers:Localize Name=ThatsIt}"
+                CloseButtonContent="{helpers:Localize Name=Finish}"
+                Target="{x:Bind LaunchButton}"/>
         </Grid>
     </SplitView>
 </Page>

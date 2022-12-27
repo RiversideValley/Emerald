@@ -11,9 +11,9 @@
     mc:Ignorable="d">
     <Rectangle
                         Height="2"
-                        Margin="-16,20,-16,0"
+                        Margin="-16,0,-16,0"
         Visibility="{x:Bind BorderVisibility}"
                         HorizontalAlignment="Stretch"
                         Fill="{ThemeResource ExpanderHeaderBorderBrush}" />
     <local:Expander ExpanderStyle="Transparent" Title="{x:Bind Title,Mode=OneWay}" HeaderControls="{x:Bind Content,Mode=OneWay}"/>
-    </StackPanel>
+</StackPanel>

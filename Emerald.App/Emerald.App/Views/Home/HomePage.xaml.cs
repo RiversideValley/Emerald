@@ -1,25 +1,28 @@
 ﻿using CmlLib.Core;
 using CmlLib.Core.Auth;
+using CmlLib.Core.Downloader;
+using CommunityToolkit.WinUI.Helpers;
 using Emerald.Core;
 using Emerald.WinUI.Enums;
 using Emerald.WinUI.Helpers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using ProjBobcat.Class.Model;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Net;
 using Windows.ApplicationModel.Core;
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
+using Windows.System;
+using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 namespace Emerald.WinUI.Views.Home
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class HomePage : Page
     {
+        public static MSession Session { get; set; }
         public AccountsPage AccountsPage { get; private set; }
         public HomePage()
         {
@@ -31,14 +34,60 @@ namespace Emerald.WinUI.Views.Home
 
         public void Initialize()
         {
+            this.Loaded -= InitializeWhenLoad;
             MainCore.Intialize();
-            MainCore.Launcher.InitializeLauncher(new MinecraftPath(MinecraftPath.GetOSDefaultPath()));
+            MainCore.Launcher.InitializeLauncher(new MinecraftPath(SS.Settings.Minecraft.Path));
+            SS.Settings.Minecraft.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == "Path")
+                {
+                    MainCore.Launcher.InitializeLauncher(new MinecraftPath(SS.Settings.Minecraft.Path));
+                    VersionButton.Content = MCVersionsCreator.GetNotSelectedVersion();
+                    _ = MainCore.Launcher.RefreshVersions();
+                }
+            };
             MainCore.Launcher.VersionsRefreshed += Launcher_VersionsRefreshed;
             VersionButton.Content = MCVersionsCreator.GetNotSelectedVersion();
             btnCloseVerPane.Click += (_, _) => paneVersions.IsPaneOpen = false;
             _ = MainCore.Launcher.RefreshVersions();
             AccountsPage = new();
-            this.Loaded -= InitializeWhenLoad;
+            if (SystemInformation.Instance.IsFirstRun)
+            {
+                ShowTips();
+            }
+        }
+        public void ShowTips()
+        {
+            var tip = new TeachingTip()
+            {
+                IsLightDismissEnabled = true,
+                Title = Localized.Welcome.ToLocalizedString(),
+                Subtitle = Localized.NewHere.ToLocalizedString(),
+                ActionButtonContent = Localized.Sure.ToLocalizedString(),
+                CloseButtonContent = Localized.NoThanks.ToLocalizedString(),
+                ActionButtonStyle = App.Current.Resources["AccentButtonStyle"] as Style,
+                Background = App.Current.Resources["AcrylicInAppFillColorDefaultBrush"] as AcrylicBrush
+            };
+            tip.ActionButtonClick += (_, _) =>
+            {
+                tip.IsOpen = false;
+                AccountTip.CloseButtonClick += (_, _) =>
+                {
+                    AccountTip.IsOpen = false;
+                    VersionTip.CloseButtonClick += (_, _) =>
+                    {
+                        VersionTip.IsOpen = false;
+                        VersionTip.CloseButtonClick += (_, _) =>
+                        {
+                            VersionTip.IsOpen = false;
+                        };
+                        LaunchTip.IsOpen = true;
+                    };
+                    VersionTip.IsOpen = true;
+                };
+                AccountTip.IsOpen = true;
+            };
+            tip.ShowAt(null);
         }
         public string GetLauncVer(bool returntag = false)
         {
@@ -150,17 +199,57 @@ namespace Emerald.WinUI.Views.Home
             }
         }
 
-        private int currentPage = 0;
         private void AccountButton_Click(object sender, RoutedEventArgs e)
         {
             MainWindow.MainFrame.Content = AccountsPage;
-            currentPage = 1;
+
             AccountsPage.Accounts.Add(MSession.GetOfflineSession("Noob").ToAccount());
         }
-
+        private bool UI(bool value) => MainCore.Launcher.UIState = value;
         private async void LaunchButton_Click(object sender, RoutedEventArgs e)
         {
             var ver = (VersionButton.Content as Models.MinecraftVersion).GetLaunchVersion();
+            if (Session == null)
+            {
+                if (await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.BegLogIn.ToLocalizedString(), MessageBoxButtons.OkCancel) == MessageBoxResults.Ok)
+                {
+                  //  _ = await new Login().ShowAsync();
+                    UI(true);
+                   // LaunchButton_Click(null, null);
+                }
+                UI(true);
+                return;
+            }
+            if (ver == null)
+            {
+                UI(true);
+                _ = await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.BegVer.ToLocalizedString(), MessageBoxButtons.Ok);
+                VersionButton_Click(null, null);
+                return;
+            }
+            if (DirectResoucres.MinRAM == 0) { _ = await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.WrongRAM.ToLocalizedString(), MessageBoxButtons.Ok); return; }
+            if (SS.Settings.Minecraft.RAM == 0) { _ = await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.WrongRAM.ToLocalizedString(), MessageBoxButtons.Ok); return; }
+            MainCore.Launcher.Launcher.FileDownloader = new AsyncParallelDownloader();
+            var l = new MLaunchOption
+            {
+                MinimumRamMb = DirectResoucres.MinRAM,
+                MaximumRamMb = SS.Settings.Minecraft.RAM,
+                Session = Session,
+            };
+
+            if (SS.Settings.Minecraft.JVM.ScreenWidth != 0 && SS.Settings.Minecraft.JVM.ScreenHeight != 0)
+            {
+                l.ScreenWidth = SS.Settings.Minecraft.JVM.ScreenWidth;
+                l.ScreenHeight = SS.Settings.Minecraft.JVM.ScreenHeight;
+            }
+            l.FullScreen = SS.Settings.Minecraft.JVM.FullScreen;
+            l.JVMArguments = SS.Settings.Minecraft.JVM.Arguments;
+            var process = await MainCore.Launcher.CreateProcessAsync(ver, l);
+            if (process != null)
+            {
+                //StartProcess(process);
+            }
+
             (await MainCore.Launcher.CreateProcessAsync(ver, new() { DockName = "Test", Session = MSession.GetOfflineSession("Noob"), MaximumRamMb = 4096, MinimumRamMb = 1024 })).Start();
         }
     }

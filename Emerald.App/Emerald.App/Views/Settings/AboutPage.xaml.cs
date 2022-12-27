@@ -48,8 +48,8 @@ namespace Emerald.WinUI.Views.Settings
 
         private async void Start()
         {
+            tglWinHello.IsEnabled = await WindowsHello.IsAvailable();
             tglWinHello.IsOn = SS.Settings.App.WindowsHello;
-            expWinHello.ExpanderStyle = (await WindowsHello.IsAvailable()) ? ExpanderStyles.Static : ExpanderStyles.Disabled;
             UpdateBackupList();
         }
         private void UpdateBackupList()

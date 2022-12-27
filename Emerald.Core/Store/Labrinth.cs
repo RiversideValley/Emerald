@@ -3,6 +3,8 @@ using System.Net.Http.Headers;
 using System.Web;
 namespace Emerald.Core.Store
 {
+#pragma warning disable CS8603 // Possible null reference return.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
     public class Labrinth
     {
         public event EventHandler StatusChanged = delegate { };

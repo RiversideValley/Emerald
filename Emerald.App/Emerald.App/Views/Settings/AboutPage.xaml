@@ -9,7 +9,7 @@
     xmlns:uc="using:Emerald.WinUI.UserControls"
     xmlns:helpers="using:Emerald.WinUI.Helpers"
     xmlns:SS="using:Emerald.WinUI.Helpers.Settings"
-    xmlns:App="using:Emerald.WinUI" xmlns:json="using:Emerald.WinUI.Helpers.Settings.JSON" xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations">
+    xmlns:App="using:Emerald.WinUI" xmlns:json="using:Emerald.WinUI.Helpers.Settings.JSON" xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations" xmlns:core="using:Emerald.Core">
     <Grid Margin="0,15,0,0">
         <Grid.Resources>
             <ResourceDictionary Source="/ResourceDictionaries/Expanders.xaml" />
@@ -117,7 +117,7 @@
                     <HyperlinkButton
                     Padding="10"
                     Content="Discord"
-                    NavigateUri="" />
+                    NavigateUri="https://discord.gg/x7MPYvzGMT" />
                     <HyperlinkButton
                     Padding="10"
                     Content="Source code"
@@ -161,6 +161,7 @@
                 </Grid>
             </uc:Expander>
             <uc:Expander
+                ExpanderStyle="Static"
                 Icon="&#xE75F;"
                 x:Name="expWinHello"
                 Title="{helpers:Localize CustomName=WindowsHello,RESW=Settings}"

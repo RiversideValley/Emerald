@@ -123,8 +123,14 @@
   <data name="AccentColor" xml:space="preserve">
     <value>Accent color</value>
   </data>
+  <data name="AdvancedMinecraftSettings" xml:space="preserve">
+    <value>Advanced Settings</value>
+  </data>
   <data name="Appearance" xml:space="preserve">
     <value>Appearance</value>
+  </data>
+  <data name="AssetsCheck" xml:space="preserve">
+    <value>Assets check</value>
   </data>
   <data name="BuildType" xml:space="preserve">
     <value>Build type</value>
@@ -162,6 +168,12 @@
   <data name="Delete" xml:space="preserve">
     <value>Delete</value>
   </data>
+  <data name="DownloadSettings" xml:space="preserve">
+    <value>Download Settings</value>
+  </data>
+  <data name="DownloadSettingsDescription" xml:space="preserve">
+    <value>Optional. Recommended to turn these on</value>
+  </data>
   <data name="Error" xml:space="preserve">
     <value>Error</value>
   </data>
@@ -170,6 +182,9 @@
   </data>
   <data name="Github" xml:space="preserve">
     <value>Github</value>
+  </data>
+  <data name="HashCheck" xml:space="preserve">
+    <value>Hash check</value>
   </data>
   <data name="JVMArgs" xml:space="preserve">
     <value>JVM Arguments</value>
@@ -198,14 +213,14 @@
   <data name="MicaTypeDescription" xml:space="preserve">
     <value>Normal Mica or Mica Alt (Tabbed)</value>
   </data>
-  <data name="Minecraft" xml:space="preserve">
-    <value>Minecraft</value>
-  </data>
   <data name="MinecraftPath" xml:space="preserve">
     <value>Minecraft Path</value>
   </data>
   <data name="MinecraftPathDescription" xml:space="preserve">
     <value>The path of the minecraft client</value>
+  </data>
+  <data name="MinecraftSettings" xml:space="preserve">
+    <value>Minecraft Settings</value>
   </data>
   <data name="More" xml:space="preserve">
     <value>More</value>

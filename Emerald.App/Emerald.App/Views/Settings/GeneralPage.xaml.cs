@@ -11,7 +11,9 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
 using System.Linq;
 using Windows.UI;
+using static System.Net.WebRequestMethods;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
+using Windows.Storage.Pickers;
 
 namespace Emerald.WinUI.Views.Settings
 {
@@ -25,9 +27,15 @@ namespace Emerald.WinUI.Views.Settings
             this.InitializeComponent();
         }
 
-        private void btnChangeMPath_Click(object sender, RoutedEventArgs e)
+        private async void btnChangeMPath_Click(object sender, RoutedEventArgs e)
         {
-
+            var fop = new FolderPicker();
+            WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow));
+            var f = await fop.PickSingleFolderAsync();
+            if(f != null)
+            {
+                SS.Settings.Minecraft.Path = f.Path;
+            }
         }
 
         private void btnRamPlus_Click(object sender, RoutedEventArgs e) =>

@@ -15,10 +15,13 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using System.Xml.Linq;
+using Microsoft.UI.Xaml.Markup;
 
 namespace Emerald.WinUI.UserControls
 {
-//Copied from MSFree4All
+    //Copied from MSFree4All
+    [ContentProperty(Name = "Content")]
     public sealed partial class ExpanderItem : StackPanel
     {
         public ExpanderItem()

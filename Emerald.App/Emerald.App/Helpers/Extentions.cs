@@ -13,6 +13,20 @@ namespace Emerald.WinUI.Helpers
 {
     public static class Extentions
     {
+        public static void ShowAt(this TeachingTip tip, FrameworkElement element, TeachingTipPlacementMode placement = TeachingTipPlacementMode.Auto, bool closeWhenClick = true,bool addToMainGrid = true)
+        {
+            if (addToMainGrid)
+                (App.MainWindow.Content as Grid).Children.Add(tip);
+
+            tip.Target = element;
+            tip.PreferredPlacement = placement;
+            tip.IsOpen = true;
+            if (closeWhenClick)
+            {
+                tip.ActionButtonClick += (_, _) => tip.IsOpen = false;
+                tip.CloseButtonClick += (_, _) => tip.IsOpen = false;
+            }
+        }
         public static int GetMemoryGB()
         {
             SystemMemoryUsageReport systemMemoryUsageReport = SystemDiagnosticInfo.GetForCurrentSystem().MemoryUsage.GetReport();
@@ -147,6 +161,11 @@ namespace Emerald.WinUI.Helpers
         {
             bool isOffline = session.UUID == "user_uuid";
             return new Models.Account(session.Username, isOffline ? null : session.AccessToken, isOffline ? null : session.UUID, MainWindow.HomePage.AccountsPage.AllCount++, false);
+        }
+        public static CmlLib.Core.Auth.MSession ToMSession(this Models.Account account)
+        {
+            bool isOffline = account.UUID == null;
+            return new CmlLib.Core.Auth.MSession(account.UserName, isOffline ? "access_token" : account.AccessToken, isOffline ? "user_uuid" : account.UUID);
         }
     }
 }

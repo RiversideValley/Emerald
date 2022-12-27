@@ -17,10 +17,6 @@
             TaskAddRequested(null, new TaskAddRequestedEventArgs(name.ToString(), AllTaksCount));
             return AllTaksCount;
         }
-        public static void CompleteTask(int ID, bool success = true)
-        {
-            TaskCompleteRequested(null, new TaskCompletedEventArgs(ID, success));
-        }
         public static void CompleteTask(int ID, bool success = true, string message = null)
         {
             TaskCompleteRequested(null, new TaskCompletedEventArgs(ID, success, message));

@@ -45,6 +45,10 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
                 MCVerionsConfiguration = new(),
                 JVM = new(),
                 Downloader = new()
+                { 
+                    AssetsCheck= true,
+                    HashCheck = true
+                }
             }
         };
         public string APIVersion { get; set; } = "1.2";
@@ -58,7 +62,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public string Path
         {
             get => _Path;
-            set => Set(ref _Path, value);
+            set => Set(ref _Path, value,nameof(Path));
         }
         private int _RAM;
         public int RAM
