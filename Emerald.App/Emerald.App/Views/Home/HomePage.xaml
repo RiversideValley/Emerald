@@ -3,7 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations"
-    xmlns:core="using:Emerald.Core"
+    xmlns:Main="using:Emerald.WinUI"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helpers="using:Emerald.WinUI.Helpers"
     xmlns:settings="using:Emerald.WinUI.Helpers.Settings"
@@ -114,10 +114,10 @@
                         VerticalAlignment="Center"
                         PlaceholderText="Search for a version"
                         QueryIcon="Find"
-                        IsEnabled="{x:Bind core:MainCore.Launcher.UIState,Mode=OneWay}"
+                        IsEnabled="{x:Bind Main:App.Launcher.UIState,Mode=OneWay}"
                         TextChanged="txtbxFindVer_TextChanged" />
                         <DropDownButton
-                        IsEnabled="{x:Bind core:MainCore.Launcher.UIState,Mode=OneWay}"
+                        IsEnabled="{x:Bind Main:App.Launcher.UIState,Mode=OneWay}"
                         x:Name="btnVerSort"
                         Grid.Column="1"
                         Margin="5,0,0,0">
@@ -134,7 +134,7 @@
                         </DropDownButton>
                     </Grid>
                     <TreeView
-                        IsEnabled="{x:Bind core:MainCore.Launcher.UIState,Mode=OneWay}"
+                        IsEnabled="{x:Bind Main:App.Launcher.UIState,Mode=OneWay}"
                     x:Name="treeVer"
                     Grid.Row="2"
                     CanDragItems="False"
@@ -231,7 +231,7 @@
                         <ColumnDefinition Width="1*" MaxWidth="250" />
                     </Grid.ColumnDefinitions>
                     <DropDownButton
-                        IsEnabled="{x:Bind core:MainCore.Launcher.UIState,Mode=OneWay}"
+                        IsEnabled="{x:Bind Main:App.Launcher.UIState,Mode=OneWay}"
                     x:Name="VersionButton"
                     Grid.Column="0"
                     Padding="5,0,10,0"
@@ -240,7 +240,7 @@
                     Click="VersionButton_Click"
                     ContentTemplate="{StaticResource MCVersionTemplate}" />
                     <Button
-                        IsEnabled="{x:Bind core:MainCore.Launcher.UIState,Mode=OneWay}"
+                        IsEnabled="{x:Bind Main:App.Launcher.UIState,Mode=OneWay}"
                     x:Name="LaunchButton"
                     Grid.Column="2"
                     Click="LaunchButton_Click"
@@ -298,6 +298,6 @@
         <Frame 
             Canvas.ZIndex="10"
             Visibility="Collapsed"
-            x:Name="AccountsFrame"/>
+            x:Name="SecondaryFrame"/>
     </Grid>
 </Page>

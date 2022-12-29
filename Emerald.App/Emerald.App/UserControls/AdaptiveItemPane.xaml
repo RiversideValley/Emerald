@@ -9,43 +9,119 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
+    HorizontalAlignment="Stretch"
     Loaded="OnControlLoaded"
     SizeChanged="Pane_SizeChanged"
     Unloaded="OnControlUnloaded">
 
     <Grid
+        Margin="0,0,0,-12"
         HorizontalAlignment="Stretch"
         ColumnSpacing="6"
+        x:Name="MainGrid"
         RowSpacing="12">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="1*" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition x:Name="LeftColumn" Width="auto" />
+            <ColumnDefinition x:Name="LeftSpaceColumn" Width="1*" />
+            <ColumnDefinition x:Name="MiddleColumn" Width="auto" />
+            <ColumnDefinition x:Name="RightSpaceColumn" Width="1*" />
+            <ColumnDefinition x:Name="RightColumn" Width="auto" />
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <ContentPresenter
             x:Name="Left"
-            HorizontalAlignment="Left"
-            Content="{x:Bind LeftPane, Mode=OneWay}" />
+            HorizontalContentAlignment="Stretch"
+            VerticalContentAlignment="Stretch"
+            Content="{x:Bind RealLeft, Mode=OneWay}" />
+        
+        <ContentPresenter
+            x:Name="Middle"
+            Grid.Row="0"
+            Grid.Column="2"
+            HorizontalContentAlignment="Stretch"
+            VerticalContentAlignment="Stretch"
+            Content="{x:Bind RealMiddle, Mode=OneWay}" />
 
         <ContentPresenter
             x:Name="Right"
             Grid.Row="0"
-            Grid.Column="2"
-            HorizontalAlignment="Right"
-            Content="{x:Bind RightPane, Mode=OneWay}" />
+            Grid.Column="4"
+            HorizontalContentAlignment="Stretch"
+            VerticalContentAlignment="Stretch"
+            Content="{x:Bind RealRight, Mode=OneWay}" />
 
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="PaneModes">
-                <VisualState x:Name="SideBySide" />
+                <VisualState x:Name="SideBySideStretch"/>
+                <VisualState x:Name="SideBySide">
+                    <VisualState.Setters>
+                        <Setter Target="LeftSpaceColumn.Width" Value="auto" />
+                        <Setter Target="RightSpaceColumn.Width" Value="auto" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="SideBySideStretchNoRight">
+                    <VisualState.Setters>
+                        <Setter Target="RightSpaceColumn.Width" Value="auto" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="StackedCenter">
+                    <VisualState.Setters>
+                        <Setter Target="Left.HorizontalAlignment" Value="Center" />
+                        <Setter Target="Middle.HorizontalAlignment" Value="Center" />
+                        <Setter Target="Right.HorizontalAlignment" Value="Center" />
+                        
+                        <Setter Target="LeftSpaceColumn.Width" Value="auto" />
+                        <Setter Target="RightSpaceColumn.Width" Value="auto" />
+
+                        <Setter Target="LeftColumn.Width" Value="*" />
+
+                        <Setter Target="MainGrid.Margin" Value="0,0,0,12" />
+                        
+                        <Setter Target="Middle.(Grid.Column)" Value="0" />
+                        <Setter Target="Middle.(Grid.Row)" Value="1" />
+
+                        <Setter Target="Right.(Grid.Column)" Value="0" />
+                        <Setter Target="Right.(Grid.Row)" Value="2" />
+                    </VisualState.Setters>
+                </VisualState>
                 <VisualState x:Name="Stacked">
                     <VisualState.Setters>
-                        <Setter Target="Right.HorizontalAlignment" Value="Left" />
+                        <Setter Target="LeftSpaceColumn.Width" Value="auto" />
+                        <Setter Target="RightSpaceColumn.Width" Value="auto" />
+                        
+                        <Setter Target="LeftColumn.Width" Value="*" />
+                        
+                        <Setter Target="MainGrid.Margin" Value="0,0,0,12" />
+                        
+                        <Setter Target="Middle.(Grid.Column)" Value="0" />
+                        <Setter Target="Middle.(Grid.Row)" Value="1" />
+
+                        <Setter Target="Right.(Grid.Column)" Value="0" />
+                        <Setter Target="Right.(Grid.Row)" Value="2" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="MiddleState">
+                    <VisualState.Setters>
+                        <Setter Target="LeftSpaceColumn.Width" Value="auto" />
+                        <Setter Target="RightSpaceColumn.Width" Value="auto" />
+
+                        <Setter Target="MainGrid.Margin" Value="0" />
+
+                        <Setter Target="Right.(Grid.Column)" Value="0" />
+                        <Setter Target="Right.(Grid.Row)" Value="1" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="MiddleStateStretch">
+                    <VisualState.Setters>
+                        <Setter Target="MainGrid.Margin" Value="0" />
+                        <Setter Target="RightSpaceColumn.Width" Value="auto" />
+
                         <Setter Target="Right.(Grid.Column)" Value="0" />
                         <Setter Target="Right.(Grid.Row)" Value="1" />
                     </VisualState.Setters>

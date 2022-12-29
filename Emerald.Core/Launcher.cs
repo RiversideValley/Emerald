@@ -108,15 +108,33 @@ namespace Emerald.Core
         /// </summary>
         public async Task<System.Diagnostics.Process?> CreateProcessAsync(string ver, MLaunchOption launchOption)
         {
-            var id = TasksHelper.AddTask(Localized.LaunchMC);
+            var id = TasksHelper.AddProgressTask(Localized.LaunchMC);
+            int prog = 0;
+            string message = "";
+            void ProgChange(object sender, System.ComponentModel.ProgressChangedEventArgs e)
+            {
+                TasksHelper.EditProgressTask(id, prog, message: message);
+                prog = e.ProgressPercentage;
+            };
+            void FileChange(CmlLib.Core.Downloader.DownloadFileChangedEventArgs e)
+            {
+                message = $"{e.FileKind} : {e.FileName} ({e.ProgressedFileCount}/{e.TotalFileCount})";
+                TasksHelper.EditProgressTask(id, prog, message: message);
+            };
             try
             {
+                Launcher.ProgressChanged += ProgChange;
+                Launcher.FileChanged += FileChange;
                 var p = await Launcher.CreateProcessAsync(ver, launchOption);
+                Launcher.ProgressChanged -= ProgChange;
+                Launcher.FileChanged -= FileChange;
                 TasksHelper.CompleteTask(id, true);
                 return p;
             }
             catch (Exception ex)
             {
+                Launcher.ProgressChanged -= ProgChange;
+                Launcher.FileChanged -= FileChange;
                 TasksHelper.CompleteTask(id, false, ex.Message);
                 return null;
             }
@@ -293,8 +311,6 @@ namespace Emerald.Core
             UI(false);
             UseOfflineLoader = false;
             Launcher = new CMLauncher(path);
-            Launcher.FileChanged += Launcher_FileChanged;
-            Launcher.ProgressChanged += Launcher_ProgressChanged;
             UI(true);
             TasksHelper.CompleteTask(taskID);
         }
@@ -344,19 +360,6 @@ namespace Emerald.Core
             Launcher.VersionLoader = new LocalVersionLoader(Launcher.MinecraftPath);
             UseOfflineLoader = true;
             TasksHelper.CompleteTask(offTask, true);
-        }
-
-        private int CurrentProg;
-        private void Launcher_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
-        {
-            CurrentProg = e.ProgressPercentage;
-            FileOrProgressChanged(this, new ProgressChangedEventArgs(currentProg: e.ProgressPercentage));
-        }
-
-        private void Launcher_FileChanged(DownloadFileChangedEventArgs e)
-        {
-            Status($"{e.FileKind} : {e.FileName} ({e.ProgressedFileCount}/{e.TotalFileCount})");
-            FileOrProgressChanged(this, new ProgressChangedEventArgs(maxfiles: e.TotalFileCount, currentfile: e.ProgressedFileCount, args: e, currentProg: CurrentProg));
         }
 
 

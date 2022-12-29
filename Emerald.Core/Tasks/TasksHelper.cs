@@ -1,8 +1,12 @@
-﻿namespace Emerald.Core.Tasks
+﻿using System.Security.Cryptography.X509Certificates;
+using System.Xml.Linq;
+
+namespace Emerald.Core.Tasks
 {
     public static class TasksHelper
     {
-        public static event EventHandler<TaskAddRequestedEventArgs> TaskAddRequested = delegate { };
+        public static event EventHandler<TaskEventArgs> TaskAddRequested = delegate { };
+        public static event EventHandler<ProgressTaskEventArgs> ProgressTaskEditRequested = delegate { };
         public static event EventHandler<TaskCompletedEventArgs> TaskCompleteRequested = delegate { };
         private static int AllTaksCount { get; set; } = 0;
         public static int AddTask(string name)
@@ -17,12 +21,26 @@
             TaskAddRequested(null, new TaskAddRequestedEventArgs(name.ToString(), AllTaksCount));
             return AllTaksCount;
         }
+        public static int AddProgressTask(Localized name, int value = 0, int maxVal = 100, int minVal = 0,string message = null)
+        {
+            AllTaksCount++;
+            TaskAddRequested(null, new ProgressTaskEventArgs(name.ToString(), AllTaksCount, maxVal, minVal, value, message));
+            return AllTaksCount;
+        }
+        public static void EditProgressTask(int ID, int value = 0, int maxVal = 100, int minVal = 0,string message = null)
+        {
+            ProgressTaskEditRequested(null, new ProgressTaskEventArgs(null, AllTaksCount, maxVal, minVal, value, message));
+        }
         public static void CompleteTask(int ID, bool success = true, string message = null)
         {
             TaskCompleteRequested(null, new TaskCompletedEventArgs(ID, success, message));
         }
     }
-    public class TaskCompletedEventArgs : EventArgs
+    public interface TaskEventArgs
+    {
+        public int ID { get; }
+    }
+    public class TaskCompletedEventArgs : EventArgs, TaskEventArgs
     {
         public int ID { get; private set; }
         public bool Success { get; private set; }
@@ -34,14 +52,32 @@
             Message = message;
         }
     }
-    public class TaskAddRequestedEventArgs : EventArgs
+    public class TaskAddRequestedEventArgs : EventArgs, TaskEventArgs
     {
-        public int TaskID { get; private set; }
+        public int ID { get; private set; }
         public string Name { get; private set; }
         public TaskAddRequestedEventArgs(string name, int taskID)
         {
-            TaskID = taskID;
+            ID = taskID;
             Name = name;
+        }
+    }
+    public class ProgressTaskEventArgs : EventArgs, TaskEventArgs
+    {
+        public int ID { get; private set; }
+        public int MaxValue { get; private set; }
+        public int MinValue { get; private set; }
+        public int Value { get; private set; }
+        public string Name { get; private set; }
+        public string Message { get; private set; }
+        public ProgressTaskEventArgs(string name, int taskID,int maxProg = 100, int minProg = 0, int prog = 0, string message = null)
+        {
+            ID = taskID;
+            Name = name;
+            MaxValue = maxProg;
+            MinValue = minProg;
+            Value = prog;
+            Message = message;
         }
     }
 }

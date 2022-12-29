@@ -8,15 +8,18 @@ namespace Emerald.WinUI.Models
     {
         private string userName;
         public string UserName { get => userName; set => Set(ref userName, value); }
-
-        public string ProfilePicture { get => Type != AccountType.Offline ? "https://minotar.net/avatar/" + UUID : "https://minotar.net/avatar/MHF_Steve"; }
-        public AccountType Type { get => UUID == null ? AccountType.Offline : AccountType.Microsoft; }
-        public string TypeIconGlyph { get => Type == AccountType.Offline ? "\xF384" : "\xEC05"; }
         public string AccessToken { get; set; }
         public string UUID { get; set; }
         public int Count { get; set; }
         public bool Last { get; set; }
+
+
         // For app UI
+        public string TypeIconGlyph { get => Type == AccountType.Offline ? "\xF384" : "\xEC05"; }
+        public string ProfilePicture { get => Type != AccountType.Offline ? "https://minotar.net/avatar/" + UUID : "https://minotar.net/avatar/MHF_Steve"; }
+        public string BodyPicture { get => Type != AccountType.Offline ? "https://minotar.net/body/" + UUID : "https://minotar.net/body/MHF_Steve"; }
+        public string Skin { get => Type != AccountType.Offline ? "https://minotar.net/skin/" + UUID : "https://minotar.net/skin/MHF_Steve"; }
+        public AccountType Type { get => UUID == null ? AccountType.Offline : AccountType.Microsoft; }
         private bool _CheckBoxLoaded;
         public bool CheckBoxLoaded { get => _CheckBoxLoaded; set => Set(ref _CheckBoxLoaded, value); }
         public string TypeString => IsOffline ? Localized.OfflineAccount.ToLocalizedString() : Localized.MicrosoftAccount.ToLocalizedString();

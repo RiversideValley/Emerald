@@ -76,10 +76,30 @@ namespace Emerald.WinUI
                         NavView.SelectedItem);
                 TasksHelper.TaskAddRequested += (_, e) =>
                         {
-                            TaskView.AddProgressTask(e.Name.ToLocalizedString(), 0, InfoBarSeverity.Informational, true, e.TaskID);
-                            TasksInfoBadge.Value++;
-                            UpdateTasksInfoBadge();
+                            if (e is TaskAddRequestedEventArgs task)
+                            {
+                                TaskView.AddProgressTask(task.Name.ToLocalizedString(), 0, InfoBarSeverity.Informational, true, task.ID);
+                                TasksInfoBadge.Value++;
+                                UpdateTasksInfoBadge();
+                            }
+                            else if(e is ProgressTaskEventArgs Ptask)
+                            { 
+                                var val = Ptask.Value / Ptask.MaxValue * 100;
+                                TaskView.AddProgressTask(Ptask.Name.ToLocalizedString(), val, InfoBarSeverity.Informational, false, Ptask.ID);
+                                TasksInfoBadge.Value++;
+                                UpdateTasksInfoBadge();
+                            }
                         };
+                TasksHelper.ProgressTaskEditRequested += (_, e) =>
+                {
+                    var val = e.Value / e.MaxValue * 100;
+                    int? ID = TaskView.SearchByUniqueThingsToString(e.ID.ToString()).First();
+                    if (ID != null)
+                    {
+                        TaskView.ChangeDescription(ID.Value, e.Message);
+                        TaskView.ChangeProgress(ID.Value, e.Value);
+                    }
+                };
                 TasksHelper.TaskCompleteRequested += (_, e) =>
                 {
                     int? ID = TaskView.SearchByUniqueThingsToString(e.ID.ToString()).First();

@@ -9,7 +9,7 @@
     xmlns:uc="using:Emerald.WinUI.UserControls"
     xmlns:helpers="using:Emerald.WinUI.Helpers"
     xmlns:SS="using:Emerald.WinUI.Helpers.Settings"
-    xmlns:App="using:Emerald.WinUI" xmlns:json="using:Emerald.WinUI.Helpers.Settings.JSON" xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations" xmlns:core="using:Emerald.Core">
+    xmlns:App="using:Emerald.WinUI" xmlns:json="using:Emerald.WinUI.Helpers.Settings.JSON" xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations" xmlns:Main="using:Emerald.WinUI">
     <Grid Margin="0,15,0,0">
         <Grid.Resources>
             <ResourceDictionary Source="/ResourceDictionaries/Expanders.xaml" />
@@ -19,9 +19,9 @@
             Height="auto"
             Padding="12,12,12,0"
             Style="{StaticResource SettingsCard}">
-                <uc:AdaptiveItemPane>
+                <uc:AdaptiveItemPane IsStackedCenter="True" StretchContent="True">
                     <uc:AdaptiveItemPane.LeftPane>
-                        <StackPanel Orientation="Horizontal">
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                             <Image Source="/Assets/icon.png" Height="40"/>
                             <TextBlock
                                 VerticalAlignment="Center"
@@ -53,8 +53,8 @@
                             </TextBlock>
                         </StackPanel>
                     </uc:AdaptiveItemPane.LeftPane>
-                    <uc:AdaptiveItemPane.RightPane>
-                        <StackPanel Orientation="Horizontal" Spacing="12">
+                    <uc:AdaptiveItemPane.MiddlePane>
+                        <StackPanel  HorizontalAlignment="Center"  Orientation="Horizontal" Spacing="12">
                             <Button 
                                 x:Name="Version"
                                 Click="Version_Click"
@@ -100,7 +100,7 @@
                                 </StackPanel>
                             </HyperlinkButton>
                         </StackPanel>
-                    </uc:AdaptiveItemPane.RightPane>
+                    </uc:AdaptiveItemPane.MiddlePane>
                 </uc:AdaptiveItemPane>
             </Border>
 
@@ -191,11 +191,11 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Margin="0,0,5,0">
-                        <Run Text="{helpers:Localize CustomName=Version,RESW=Settings}"/>:
+                        <Run Text="{helpers:Localize CustomName=Version,RESW=Settings}"/>
                     </TextBlock>
                     <TextBlock Grid.Column="1" Text="{x:Bind App:DirectResoucres.AppVersion}"/>
                     <TextBlock Margin="0,0,5,0" Grid.Row="1">
-                        <Run Text="{helpers:Localize CustomName=BuildType,RESW=Settings}"/>:
+                        <Run Text="{helpers:Localize CustomName=BuildType,RESW=Settings}"/>
                     </TextBlock>
                     <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind App:DirectResoucres.BuildType}"/>
                 </Grid>

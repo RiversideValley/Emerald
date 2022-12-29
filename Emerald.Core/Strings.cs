@@ -76,6 +76,6 @@
         Options,
         Duplicate,
         Select,
-        LoginWithMicrosoft,
+        LoginWithMicrosoft
     }
 }

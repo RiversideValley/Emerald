@@ -11,6 +11,7 @@
     <Configurations>Debug;Release;SkipOld</Configurations>
     <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
 	  <Nullable>enable</Nullable>
+	  <DefineConstants>DISABLE_XAML_GENERATED_MAIN</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Assets\icon.ico" />
@@ -25,6 +26,7 @@
     <None Remove="UserControls\TitleBar.xaml" />
     <None Remove="Views\HomePage.xaml" />
     <None Remove="Views\Home\AccountsPage.xaml" />
+    <None Remove="Views\Home\NewsPage.xaml" />
     <None Remove="Views\Settings\AboutPage.xaml" />
     <None Remove="Views\Settings\AccountPage.xaml" />
     <None Remove="Views\Settings\AppearancePage.xaml" />
@@ -69,6 +71,12 @@
     <Content Update="Assets\icon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\Home\NewsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <ItemGroup>

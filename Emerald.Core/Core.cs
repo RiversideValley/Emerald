@@ -3,6 +3,7 @@ using Emerald.Core.Store;
 
 namespace Emerald.Core
 {
+    [Obsolete("Create classes directly")]
     public static class MainCore
     {
         public static event EventHandler<StatusChangedEventArgs> StatusChanged = delegate { };

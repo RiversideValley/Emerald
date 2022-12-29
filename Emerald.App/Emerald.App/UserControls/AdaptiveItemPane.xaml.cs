@@ -12,6 +12,7 @@ namespace Emerald.WinUI.UserControls
     /// </summary>
     public sealed partial class AdaptiveItemPane : UserControl
     {
+
         public static DependencyProperty LeftPaneProperty =
             DependencyProperty.Register("LeftPane", typeof(object),
                 typeof(AdaptiveItemPane), new PropertyMetadata(null));
@@ -21,25 +22,50 @@ namespace Emerald.WinUI.UserControls
             get => GetValue(LeftPaneProperty);
             set => SetValue(LeftPaneProperty, value);
         }
-
+        private object RealLeft => GetValue(LeftPaneProperty) == null ? (GetValue(MiddlePaneProperty) != null ? GetValue(MiddlePaneProperty) : GetValue(RightPaneProperty)) : GetValue(LeftPaneProperty);
         public static DependencyProperty RightPaneProperty =
             DependencyProperty.Register("RightPane", typeof(object),
                 typeof(AdaptiveItemPane), new PropertyMetadata(null));
-
+        private object RealRight => GetValue(MiddlePaneProperty) == null || GetValue(LeftPaneProperty) == null ? null : GetValue(RightPaneProperty);
         public object RightPane
         {
             get => GetValue(RightPaneProperty);
             set => SetValue(RightPaneProperty, value);
         }
 
-        public static DependencyProperty BreakpointProperty =
-            DependencyProperty.Register("Breakpoint", typeof(double),
-                typeof(AdaptiveItemPane), new PropertyMetadata(double.NaN));
 
-        public double Breakpoint
+        public static DependencyProperty MiddlePaneProperty =
+            DependencyProperty.Register("MiddlePane", typeof(object),
+                typeof(AdaptiveItemPane), new PropertyMetadata(null));
+        private object RealMiddle => GetValue(LeftPaneProperty) == null && GetValue(MiddlePaneProperty) != null ? GetValue(RightPaneProperty) : (GetValue(LeftPaneProperty) == null ? null : (GetValue(MiddlePaneProperty) == null ? GetValue(RightPaneProperty) : GetValue(MiddlePaneProperty)));
+        public object MiddlePane
         {
-            get => (double)GetValue(BreakpointProperty);
-            set => SetValue(BreakpointProperty, value);
+            get => GetValue(MiddlePaneProperty);
+            set => SetValue(MiddlePaneProperty, value);
+        }
+
+
+        public double MainBreakpoint { get; set; }
+        public double LeftMiddleBreakpoint { get; set; }
+
+        public static DependencyProperty IsStackedCenterProperty =
+            DependencyProperty.Register("IsStackedCenter", typeof(bool),
+                typeof(AdaptiveItemPane), new PropertyMetadata(false));
+
+        public bool IsStackedCenter
+        {
+            get => (bool)GetValue(IsStackedCenterProperty);
+            set => SetValue(IsStackedCenterProperty, value);
+        }
+        
+        public static DependencyProperty StretchContentProperty =
+            DependencyProperty.Register("StretchContent", typeof(bool),
+                typeof(AdaptiveItemPane), new PropertyMetadata(false));
+
+        public bool StretchContent
+        {
+            get => (bool)GetValue(StretchContentProperty);
+            set => SetValue(StretchContentProperty, value);
         }
 
         private long _leftToken;
@@ -77,7 +103,8 @@ namespace Emerald.WinUI.UserControls
 
         private static void UpdateBreakpoint(AdaptiveItemPane pane)
         {
-            pane.Breakpoint = pane.Left.DesiredSize.Width + pane.Right.DesiredSize.Width;
+            pane.MainBreakpoint = pane.Left.ActualWidth + pane.Middle.ActualWidth + pane.Right.ActualWidth;
+            pane.LeftMiddleBreakpoint = pane.Left.ActualWidth + pane.Middle.ActualWidth;
         }
 
         private void Pane_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -85,10 +112,14 @@ namespace Emerald.WinUI.UserControls
 
         private void PerformResize(double width)
         {
-            if (width - 12 < Breakpoint)
-                VisualStateManager.GoToState(this, "Stacked", false);
+            int margin = StretchContent ? (MiddlePane == null ? 12 : 24) : 0;
+            bool NoRight = RightPane == null;
+            if (width - margin < MainBreakpoint && width - margin < LeftMiddleBreakpoint)
+                VisualStateManager.GoToState(this, IsStackedCenter ? "StackedCenter" : "Stacked", false);
+            else if (width - margin < MainBreakpoint)
+                VisualStateManager.GoToState(this, StretchContent ? "MiddleStateStretch" : "MiddleState", false);
             else
-                VisualStateManager.GoToState(this, "SideBySide", false);
+                VisualStateManager.GoToState(this, StretchContent ? (NoRight ? "SideBySideStretchNoRight" : "SideBySideStretch") : "SideBySide", false);
         }
     }
 }

@@ -10,6 +10,7 @@ namespace Emerald.WinUI
     /// </summary>
     public partial class App : Application
     {
+        public static readonly Core.Emerald Launcher = new();
         public static async Task<string> CheckForUpdates()
         {
             return null;

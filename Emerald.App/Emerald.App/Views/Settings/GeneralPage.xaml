@@ -9,7 +9,7 @@
     xmlns:uc="using:Emerald.WinUI.UserControls"
     xmlns:helpers="using:Emerald.WinUI.Helpers"
     xmlns:SS="using:Emerald.WinUI.Helpers.Settings"
-    xmlns:App="using:Emerald.WinUI" xmlns:json="using:Emerald.WinUI.Helpers.Settings.JSON" xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations" xmlns:core="using:Emerald.Core">
+    xmlns:App="using:Emerald.WinUI" xmlns:json="using:Emerald.WinUI.Helpers.Settings.JSON" xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations" xmlns:Main="using:Emerald.WinUI">
     <Grid Margin="0,0,0,0">
         <Grid.Resources>
             <ResourceDictionary Source="/ResourceDictionaries/Expanders.xaml" />
@@ -20,7 +20,7 @@
                 FontWeight="SemiBold"
                 Text="{helpers:Localize CustomName=MinecraftSettings,RESW=Settings}"/>
             <uc:Expander
-                IsEnabled="{x:Bind core:MainCore.Launcher.UIState,Mode=OneWay}"
+                IsEnabled="{x:Bind Main:App.Launcher.UIState,Mode=OneWay}"
                 Icon="&#xE838;"
                 Title="{helpers:Localize CustomName=MinecraftPath,RESW=Settings}"
                 Description="{helpers:Localize CustomName=MinecraftPathDescription,RESW=Settings}"
@@ -33,7 +33,7 @@
                 </StackPanel>
             </uc:Expander>
             <uc:Expander
-                IsEnabled="{x:Bind core:MainCore.Launcher.UIState,Mode=OneWay}"
+                IsEnabled="{x:Bind Main:App.Launcher.UIState,Mode=OneWay}"
                 Icon="&#xE964;"
                 Title="{helpers:Localize CustomName=RAM,RESW=Settings}"
                 Description="{helpers:Localize CustomName=RAMDescription,RESW=Settings}">
@@ -63,7 +63,7 @@
                 </uc:Expander.Controls>
             </uc:Expander>
             <uc:Expander
-                IsEnabled="{x:Bind core:MainCore.Launcher.UIState,Mode=OneWay}"
+                IsEnabled="{x:Bind Main:App.Launcher.UIState,Mode=OneWay}"
                 Icon="&#xE896;"
                 Title="{helpers:Localize CustomName=DownloadSettings,RESW=Settings}"
                 Description="{helpers:Localize CustomName=DownloadSettingsDescription,RESW=Settings}">
@@ -81,7 +81,7 @@
                 FontWeight="SemiBold"
                 Text="{helpers:Localize CustomName=AdvancedMinecraftSettings,RESW=Settings}"/>
             <uc:Expander 
-                IsEnabled="{x:Bind core:MainCore.Launcher.UIState,Mode=OneWay}"
+                IsEnabled="{x:Bind Main:App.Launcher.UIState,Mode=OneWay}"
                 Title="{helpers:Localize CustomName=MCasAdmin,RESW=Settings}"
                 Description="{helpers:Localize CustomName=MCasAdminDescription,RESW=Settings}"
                 Icon="&#xe83d;" 
@@ -92,7 +92,7 @@
                     OffContent="{helpers:Localize Name=No}"/>
             </uc:Expander>
             <uc:Expander
-                IsEnabled="{x:Bind core:MainCore.Launcher.UIState,Mode=OneWay}"
+                IsEnabled="{x:Bind Main:App.Launcher.UIState,Mode=OneWay}"
                 Icon="&#xec7a;"
                 Title="{helpers:Localize CustomName=JVMArgs,RESW=Settings}"
                 Description="{helpers:Localize CustomName=JVMArgsDescription,RESW=Settings}">

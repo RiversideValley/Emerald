@@ -16,16 +16,16 @@ namespace Emerald.WinUI.Helpers
         public static ObservableCollection<MinecraftVersion> CreateVersions()
         {
             Collection = new();
-            if (Core.MainCore.Launcher.MCVersions != null && Core.MainCore.Launcher.MCVersions.Any())
+            if (App.Launcher.MCVersions != null && App.Launcher.MCVersions.Any())
             {
-                if (Core.MainCore.Launcher.UseOfflineLoader)
+                if (App.Launcher.UseOfflineLoader)
                 {
                     Collection = LoadCustomVers().SubVersions;
                 }
                 else
                 {
-                    var lr = Core.MainCore.Launcher.MCVersions.LatestReleaseVersion?.Name;
-                    var ls = Core.MainCore.Launcher.MCVersions.LatestSnapshotVersion;
+                    var lr = App.Launcher.MCVersions.LatestReleaseVersion?.Name;
+                    var ls = App.Launcher.MCVersions.LatestSnapshotVersion;
                     var l = CreateItem("Latest", "latest");
                     l.SubVersions = new();
                     if (lr != null)
@@ -67,7 +67,7 @@ namespace Emerald.WinUI.Helpers
         }
         public static ObservableCollection<MinecraftVersion> CreateAllVersions()
         {
-            if (Core.MainCore.Launcher.UseOfflineLoader)
+            if (App.Launcher.UseOfflineLoader)
             {
                 var c = LoadCustomVers();
                 return c == null ? new() : c.SubVersions;
@@ -77,8 +77,8 @@ namespace Emerald.WinUI.Helpers
                 var l = new List<MinecraftVersion>();
                 MinecraftVersion[] GetVers(string ver)
                 {
-                    string fabricVer = Core.MainCore.Launcher.SearchFabric(ver);
-                    var verMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
+                    string fabricVer = App.Launcher.SearchFabric(ver);
+                    var verMdata = App.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
                     if (string.IsNullOrEmpty(fabricVer))
                     {
                         if (ConfigToList(true).Contains(verMdata.MType))
@@ -103,7 +103,7 @@ namespace Emerald.WinUI.Helpers
                     }
                 }
 
-                foreach (var item in Core.MainCore.Launcher.MCVerNames)
+                foreach (var item in App.Launcher.MCVerNames)
                 {
                     l.AddRange(GetVers(item));
                 }
@@ -121,9 +121,9 @@ namespace Emerald.WinUI.Helpers
         private static MinecraftVersion LoadCustomVers()
         {
             var m = CreateItem("Custom", "custom");
-            var sub = Core.MainCore.Launcher.MCVersions.Where(x => x.MType == CmlLib.Core.Version.MVersionType.Custom);
+            var sub = App.Launcher.MCVersions.Where(x => x.MType == CmlLib.Core.Version.MVersionType.Custom);
             m.SubVersions = new();
-            if (sub != null && sub.Count() > 0)
+            if (sub != null && sub.Any())
             {
                 foreach (var item in sub)
                 {
@@ -151,21 +151,21 @@ namespace Emerald.WinUI.Helpers
         }
         private static MinecraftVersion GetFromStrings(string ver)
         {
-            if (Core.MainCore.Launcher.MCVerNames.Contains(ver))
+            if (App.Launcher.MCVerNames.Contains(ver))
             {
-                var verMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
+                var verMdata = App.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
                 if (!ConfigToList().Contains(verMdata.MType))
                 {
                     return null;
                 }
-                var subVers = Core.MainCore.Launcher.GetSubVersions(ver);
+                var subVers = App.Launcher.GetSubVersions(ver);
                 if (subVers.Length > 1)
                 {
                     MinecraftVersion f = CreateItem(ver, ver);
                     f.SubVersions = new();
                     foreach (var item in subVers)
                     {
-                        var SverMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == item).FirstOrDefault();
+                        var SverMdata = App.Launcher.MCVersions.Where(x => x.Name == item).FirstOrDefault();
                         if (ConfigToList().Contains(SverMdata.MType))
                         {
                             f.SubVersions.Add(ReturnMCWithFabric(item));
@@ -180,14 +180,14 @@ namespace Emerald.WinUI.Helpers
             }
             else
             {
-                var subVers = Core.MainCore.Launcher.GetSubVersions(ver);
+                var subVers = App.Launcher.GetSubVersions(ver);
                 if (subVers.Length > 1)
                 {
                     MinecraftVersion f = CreateItem(ver, ver);
                     f.SubVersions = new();
                     foreach (var item in subVers)
                     {
-                        var SverMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == item).FirstOrDefault();
+                        var SverMdata = App.Launcher.MCVersions.Where(x => x.Name == item).FirstOrDefault();
                         if (ConfigToList().Contains(SverMdata.MType))
                         {
                             f.SubVersions.Add(ReturnMCWithFabric(item));
@@ -197,7 +197,7 @@ namespace Emerald.WinUI.Helpers
                 }
                 else if (subVers.Length == 1)
                 {
-                    var SverMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == subVers.FirstOrDefault()).FirstOrDefault();
+                    var SverMdata = App.Launcher.MCVersions.Where(x => x.Name == subVers.FirstOrDefault()).FirstOrDefault();
                     if (ConfigToList().Contains(SverMdata.MType))
                     {
                         return ReturnMCWithFabric(subVers.FirstOrDefault());
@@ -215,8 +215,8 @@ namespace Emerald.WinUI.Helpers
         }
         private static MinecraftVersion ReturnMCWithFabric(string ver, string displayVer = null, CmlLib.Core.Version.MVersionType? type = null)
         {
-            string fabricVer = Core.MainCore.Launcher.SearchFabric(ver);
-            var verMdata = Core.MainCore.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
+            string fabricVer = App.Launcher.SearchFabric(ver);
+            var verMdata = App.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
             if (string.IsNullOrEmpty(fabricVer))
             {
                 return displayVer == null ? CreateItem($"{ver} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType) : CreateItem($"{displayVer} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType);
