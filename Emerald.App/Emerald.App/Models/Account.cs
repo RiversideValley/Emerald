@@ -1,4 +1,6 @@
-﻿using Emerald.WinUI.Enums;
+﻿using Emerald.Core;
+using Emerald.WinUI.Enums;
+using Emerald.WinUI.Helpers;
 
 namespace Emerald.WinUI.Models
 {
@@ -17,10 +19,10 @@ namespace Emerald.WinUI.Models
         // For app UI
         private bool _CheckBoxLoaded;
         public bool CheckBoxLoaded { get => _CheckBoxLoaded; set => Set(ref _CheckBoxLoaded, value); }
-
+        public string TypeString => IsOffline ? Localized.OfflineAccount.ToLocalizedString() : Localized.MicrosoftAccount.ToLocalizedString();
         private bool _IsChecked;
         public bool IsChecked { get => _IsChecked; set => Set(ref _IsChecked, value); }
-
+        public bool IsOffline => UUID == null;
         public Account(string username, string accesstoken, string uuid, int count, bool last)
         {
             CheckBoxLoaded = false;

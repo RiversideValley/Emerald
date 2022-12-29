@@ -8,3 +8,12 @@ dotnet_diagnostic.CS8604.severity = silent
 dotnet_diagnostic.CS8622.severity = silent
 
 dotnet_diagnostic.CS8625.severity = silent
+
+# CS8602: Dereference of a possibly null reference.
+dotnet_diagnostic.CS8602.severity = silent
+
+# CS8603: Possible null reference return.
+dotnet_diagnostic.CS8603.severity = silent
+
+# CS0252: Possible unintended reference comparison; left hand side needs cast
+dotnet_diagnostic.CS0252.severity = silent

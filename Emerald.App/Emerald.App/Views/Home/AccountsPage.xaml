@@ -8,37 +8,231 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Emerald.WinUI.Models"
     xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations"
-    xmlns:toolkit="using:CommunityToolkit.WinUI.UI.Controls"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.UI.Controls" 
+    xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <CommandBar Background="Transparent" DefaultLabelPosition="Right">
-            <AppBarButton Icon="Add" Label="{helpers:Localize Name=Add}">
-                <AppBarButton.Flyout>
-                    <MenuFlyout Placement="Bottom">
-                        <MenuFlyoutItem Icon="{helpers:FontIcon Glyph=&#xEC05;}" Text="{helpers:Localize Name=MicrosoftAccount}"/>
-                        <MenuFlyoutItem Icon="{helpers:FontIcon Glyph=&#xF384;}" Text="{helpers:Localize Name=OfflineAccount}"/>
-                    </MenuFlyout>
-                </AppBarButton.Flyout>
-            </AppBarButton>
-            <AppBarButton Click="btnRemove_Click" Icon="Remove" Label="{helpers:Localize Name=Remove}"/>
-            <AppBarButton x:Name="btnSelect" Icon="SelectAll" Click="btnSelectAll_Click" Label="{helpers:Localize Name=SelectAll}"/>
-        </CommandBar>
-            <toolkit:AdaptiveGridView
+        <Grid>
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Margin" Value="10"/>
+                    <Setter Property="Padding" Value="5"/>
+                    <Setter Property="Background" Value="{ThemeResource ExpanderHeaderBackground}" />
+                    <Setter Property="BorderBrush" Value="{ThemeResource ExpanderHeaderBorderBrush}" />
+                    <Setter Property="BorderThickness" Value="{ThemeResource ExpanderHeaderBorderThickness}" />
+                    <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
+                </Style>
+            </Grid.Style>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <Button Click="BackButton_Click" Padding="5" Width="35" Background="Transparent" BorderThickness="0">
+                    <AnimatedIcon>
+                        <AnimatedIcon.Source>
+                            <animatedvisuals:AnimatedBackVisualSource/>
+                        </AnimatedIcon.Source>
+                        <AnimatedIcon.FallbackIconSource>
+                            <SymbolIconSource Symbol="Back"/>
+                        </AnimatedIcon.FallbackIconSource>
+                    </AnimatedIcon>
+                </Button>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Margin="5,0,0,0"
+                    Style="{ThemeResource SubtitleTextBlockStyle}"
+                    FontWeight="SemiBold"
+                    Text="{helpers:Localize Name=Accounts}"/>
+            </StackPanel>
+            <CommandBar VerticalAlignment="Center" Grid.Column="2" Background="Transparent" DefaultLabelPosition="Right">
+                <AppBarButton x:Name="btnAdd" Icon="Add" Label="{helpers:Localize Name=Add}">
+                    <AppBarButton.Flyout>
+                        <MenuFlyout Placement="Bottom">
+                            <MenuFlyoutItem Click="mitMicrosoftAdd_Click" Icon="{helpers:FontIcon Glyph=&#xEC05;}" Text="{helpers:Localize Name=MicrosoftAccount}"/>
+                            <MenuFlyoutItem Click="mitOfflineAdd_Click" Icon="{helpers:FontIcon Glyph=&#xF384;}" Text="{helpers:Localize Name=OfflineAccount}"/>
+                        </MenuFlyout>
+                    </AppBarButton.Flyout>
+                </AppBarButton>
+                <AppBarButton Click="btnRemove_Click" Icon="Remove" Label="{helpers:Localize Name=Remove}"/>
+                <AppBarButton x:Name="btnSelect" Icon="SelectAll" Click="btnSelectAll_Click" Label="{helpers:Localize Name=SelectAll}"/>
+            </CommandBar>
+        </Grid>
+        <ScrollViewer Grid.Row="1">
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <ContentPresenter 
+                        x:Name="editor"
+                        x:Load="{x:Bind ShowEditor,Mode=OneWay}" 
+                        Content="{x:Bind EditorAccount,Mode=OneWay}"
+                        HorizontalContentAlignment="Stretch">
+                        <ContentPresenter.ContentTemplate>
+                            <DataTemplate x:DataType="models:Account">
+                                <Grid 
+                            x:DefaultBindMode="OneWay"
+                            Padding="10"
+                            ChildrenTransitions="{StaticResource AddDeleteThemeTransition}">
+                                    <Grid.Style>
+                                        <Style TargetType="Grid">
+                                            <Setter Property="Margin" Value="10,0,10,10"/>
+                                            <Setter Property="Background" Value="{ThemeResource ExpanderHeaderBackground}" />
+                                            <Setter Property="BorderBrush" Value="{ThemeResource ExpanderHeaderBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="{ThemeResource ExpanderHeaderBorderThickness}" />
+                                            <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
+                                        </Style>
+                                    </Grid.Style>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid Margin="10,5" Padding="30,20" VerticalAlignment="Center">
+                                        <Grid.Style>
+                                            <Style TargetType="Grid">
+                                                <Setter Property="Background" Value="{ThemeResource ExpanderHeaderBackground}" />
+                                                <Setter Property="BorderBrush" Value="{ThemeResource ExpanderHeaderBorderBrush}" />
+                                                <Setter Property="BorderThickness" Value="{ThemeResource ExpanderHeaderBorderThickness}" />
+                                                <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
+                                            </Style>
+                                        </Grid.Style>
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <PersonPicture
+                                            Width="60"
+                                            Height="60"
+                                            HorizontalAlignment="Center"
+                                            DisplayName="{x:Bind UserName}"
+                                            ProfilePicture="{x:Bind ProfilePicture,Mode=OneTime}" />
+                                            <TextBlock
+                                                
+                                            MaxWidth="140"
+                                            HorizontalAlignment="Center"
+                                            FontSize="20"
+                                            Text="{x:Bind UserName}"
+                                            TextTrimming="CharacterEllipsis" />
+                                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                                <FontIcon
+                                                Margin="0,0,2,0"
+                                                FontSize="14"
+                                                Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                                Glyph="{x:Bind TypeIconGlyph}" />
+                                                <TextBlock
+                                                HorizontalAlignment="Center"
+                                                FontSize="13"
+                                                Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                                FontWeight="SemiBold"
+                                                Text="{x:Bind TypeString}" />
+                                            </StackPanel>
+                                            <DropDownButton
+                                                Margin="0,10,0,0"
+                                        HorizontalAlignment="Center"
+                                                Content="{helpers:Localize Name=Options}"
+                                                FontSize="13"
+                                                FontWeight="SemiBold">
+                                                <DropDownButton.Flyout>
+                                                    <MenuFlyout>
+                                                        <MenuFlyoutItem Click="RemoveinEditor_Click" Text="{helpers:Localize Name=Remove}" Icon="{helpers:FontIcon Glyph=&#xE107;}" />
+                                                        <MenuFlyoutItem Click="Duplicate_Click" Text="{helpers:Localize Name=Duplicate}" Icon="{helpers:FontIcon Glyph=&#xE16F;}" IsEnabled="{x:Bind IsOffline}"/>
+                                                    </MenuFlyout>
+                                                </DropDownButton.Flyout>
+                                            </DropDownButton>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Grid Grid.Column="1">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid ColumnSpacing="3">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="auto"/>
+                                                <RowDefinition Height="auto"/>
+                                                <RowDefinition Height="auto"/>
+                                                <RowDefinition Height="auto"/>
+                                            </Grid.RowDefinitions>
+                                            <TextBlock Text="{helpers:Localize Name=AccountDetails}" FontWeight="SemiBold"/>
+
+                                            <TextBlock
+                                        Text="{helpers:Localize Name=Username}"
+                                        Grid.Row="1"
+                                        Grid.Column="0"/>
+                                            <TextBox
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        Text="{x:Bind UserName,Mode=TwoWay}"
+                                        IsReadOnly="{x:Bind IsOffline.Equals(x:False)}"/>
+
+                                            <TextBlock
+                                        Text="{helpers:Localize Name=AccountType}"
+                                        Grid.Row="2"
+                                        Grid.Column="0"/>
+                                            <TextBox 
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Grid.Row="2"
+                                                IsReadOnly="True"
+                                        Grid.Column="1"
+                                        Text="{x:Bind TypeString}"/>
+
+
+                                            <TextBlock
+                                        Text="{helpers:Localize Name=UUID}"
+                                        Grid.Row="3"
+                                        Grid.Column="0"/>
+                                            <TextBox
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Grid.Row="3"
+                                        Grid.Column="1"
+                                        PlaceholderText="null"
+                                        PlaceholderForeground="{ThemeResource ApplicationForegroundThemeBrush}"
+                                        Text="{x:Bind UUID}"
+                                        IsReadOnly="True"/>
+                                        </Grid>
+                                        <StackPanel
+                                    Orientation="Horizontal" 
+                                    Spacing="5" Grid.Row="1">
+                                            <Button
+                                        Click="Login_Click"
+                                        Style="{ThemeResource AccentButtonStyle}"
+                                        Content="{helpers:Localize Name=Login}"/>
+                                            <Button
+                                        Click="CancelLogin_Click"
+                                        Content="{helpers:Localize Name=Cancel}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ContentPresenter.ContentTemplate>
+                    </ContentPresenter>
+                </Grid>
+                <toolkit:AdaptiveGridView
             Grid.Row="1"
             animations:ItemsReorderAnimation.Duration="00:00:00.3150000"
             x:Name="gv"
+            Margin="5,0,10,10"
             StretchContentForSingleRow="False"
             IsItemClickEnabled="False"
             SelectionMode="None">
-            <toolkit:AdaptiveGridView.ItemTemplate>
-                <DataTemplate x:DataType="models:Account">
-                    <Grid x:DefaultBindMode="OneWay">
-                        <Button
+                    <toolkit:AdaptiveGridView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Account">
+                            <Grid x:DefaultBindMode="OneWay">
+                                <Button
                             Click="btnAccount_Click"
                             PointerEntered="btnAccount_PointerEntered"
                             PointerExited="btnAccount_PointerExited"
@@ -47,29 +241,28 @@
                             Margin="5,0,0,5"
                             Padding="0,0,0,0"
                             HorizontalAlignment="Left">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="Background" Value="{ThemeResource ExpanderHeaderBackground}" />
-                                    <Setter Property="BorderBrush" Value="{ThemeResource ExpanderHeaderBorderBrush}" />
-                                    <Setter Property="BorderThickness" Value="{ThemeResource ExpanderHeaderBorderThickness}" />
-                                    <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
-                                </Style>
-                            </Button.Style>
-                            <Button.ContextFlyout>
-                                <MenuFlyout>
-                                    <MenuFlyoutItem Click="mitRemove_Click" Text="Remove" />
-                                    <MenuFlyoutItem Text="Settings" />
-                                    <ToggleMenuFlyoutItem Click="ToggleMenuFlyoutItem_Click" IsChecked="{x:Bind IsChecked,Mode=TwoWay}" Text="Select" />
-                                    <MenuFlyoutItem Text="Duplicate" />
-                                </MenuFlyout>
-                            </Button.ContextFlyout>
-                            <Grid>
-                                <Grid.ChildrenTransitions>
-                                    <TransitionCollection>
-                                        <AddDeleteThemeTransition />
-                                    </TransitionCollection>
-                                </Grid.ChildrenTransitions>
-                                <CheckBox
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Background" Value="{ThemeResource ExpanderHeaderBackground}" />
+                                            <Setter Property="BorderBrush" Value="{ThemeResource ExpanderHeaderBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="{ThemeResource ExpanderHeaderBorderThickness}" />
+                                            <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
+                                        </Style>
+                                    </Button.Style>
+                                    <Button.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Click="mitRemove_Click" Text="{helpers:Localize Name=Remove}" />
+                                            <ToggleMenuFlyoutItem Click="ToggleMenuFlyoutItem_Click" IsChecked="{x:Bind IsChecked,Mode=TwoWay}" Text="{helpers:Localize Name=Select}" />
+                                            <MenuFlyoutItem Click="Duplicate_Click" Text="{helpers:Localize Name=Duplicate}" />
+                                        </MenuFlyout>
+                                    </Button.ContextFlyout>
+                                    <Grid>
+                                        <Grid.ChildrenTransitions>
+                                            <TransitionCollection>
+                                                <AddDeleteThemeTransition />
+                                            </TransitionCollection>
+                                        </Grid.ChildrenTransitions>
+                                        <CheckBox
                                     MinWidth="0"
                                     Margin="5,-6,0,0"
                                     HorizontalAlignment="Left"
@@ -79,56 +272,57 @@
                                     x:Name="chkbxSelect"
                                     IsChecked="{x:Bind IsChecked,Mode=TwoWay}"
                                     x:Load="{x:Bind CheckBoxLoaded,Mode=OneWay}"/>
-                                <Grid Margin="10" Padding="20,10">
-                                    <StackPanel HorizontalAlignment="Center">
-                                        <PersonPicture
+                                        <Grid Margin="10" Padding="20,10">
+                                            <StackPanel HorizontalAlignment="Center">
+                                                <PersonPicture
                                             Width="60"
                                             Height="60"
                                             HorizontalAlignment="Center"
                                             DisplayName="{x:Bind UserName}"
                                             ProfilePicture="{x:Bind ProfilePicture,Mode=OneTime}" />
-                                        <TextBlock
+                                                <TextBlock
                                             MaxWidth="140"
                                             HorizontalAlignment="Center"
                                             FontSize="20"
                                             Text="{x:Bind UserName}"
                                             TextTrimming="CharacterEllipsis" />
-                                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                                            <FontIcon
+                                                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                                    <FontIcon
                                                 Margin="0,0,2,0"
                                                 FontSize="14"
                                                 Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
                                                 Glyph="{x:Bind TypeIconGlyph}" />
-                                            <TextBlock
+                                                    <TextBlock
                                                 HorizontalAlignment="Center"
                                                 FontSize="13"
                                                 Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
                                                 FontWeight="SemiBold"
-                                                Text="{x:Bind Type}" />
-                                        </StackPanel>
-                                        <StackPanel Margin="0,10,0,0" HorizontalAlignment="Center">
-                                            <DropDownButton
+                                                Text="{x:Bind TypeString}" />
+                                                </StackPanel>
+                                                <StackPanel Margin="0,10,0,0" HorizontalAlignment="Center">
+                                                    <DropDownButton
                                                 Margin="5,0,0,0"
-                                                Content="Options"
+                                                Content="{helpers:Localize Name=Options}"
                                                 FontSize="13"
                                                 FontWeight="SemiBold">
-                                                <DropDownButton.Flyout>
-                                                    <MenuFlyout>
-                                                        <MenuFlyoutItem Click="mitRemove_Click" Text="Remove" />
-                                                        <MenuFlyoutItem Text="Settings" />
-                                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind IsChecked,Mode=TwoWay}" Click="ToggleMenuFlyoutItem_Click" Text="Select" />
-                                                        <MenuFlyoutItem Text="Duplicate" />
-                                                    </MenuFlyout>
-                                                </DropDownButton.Flyout>
-                                            </DropDownButton>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Grid>
+                                                        <DropDownButton.Flyout>
+                                                            <MenuFlyout>
+                                                                <MenuFlyoutItem Click="mitRemove_Click" Text="{helpers:Localize Name=Remove}" />
+                                                                <ToggleMenuFlyoutItem Click="ToggleMenuFlyoutItem_Click" IsChecked="{x:Bind IsChecked,Mode=TwoWay}" Text="{helpers:Localize Name=Select}" />
+                                                                <MenuFlyoutItem Click="Duplicate_Click" Text="{helpers:Localize Name=Duplicate}" />
+                                                            </MenuFlyout>
+                                                        </DropDownButton.Flyout>
+                                                    </DropDownButton>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Grid>
+                                </Button>
                             </Grid>
-                        </Button>
-                    </Grid>
-                </DataTemplate>
-            </toolkit:AdaptiveGridView.ItemTemplate>
-        </toolkit:AdaptiveGridView>
+                        </DataTemplate>
+                    </toolkit:AdaptiveGridView.ItemTemplate>
+                </toolkit:AdaptiveGridView>
+            </Grid>
+        </ScrollViewer>
     </Grid>
 </Page>

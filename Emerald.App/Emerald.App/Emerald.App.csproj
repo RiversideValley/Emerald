@@ -10,9 +10,11 @@
     <UseWinUI>true</UseWinUI>
     <Configurations>Debug;Release;SkipOld</Configurations>
     <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+	  <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Assets\icon.ico" />
+    <None Remove="MsalClientID.txt" />
     <None Remove="ResourceDictionaries\Expanders.xaml" />
     <None Remove="ResourceDictionaries\RightAlignedToggleSwitch.xaml" />
     <None Remove="UserControls\AdaptiveItemPane.xaml" />
@@ -32,6 +34,8 @@
   </ItemGroup>
 
   <ItemGroup>
+	  <PackageReference Include="CmlLib.Core.Auth.Microsoft" Version="2.2.0" />
+	  <PackageReference Include="CmlLib.Core.Auth.Microsoft.MsalClient" Version="2.0.0" />
 	  <PackageReference Include="CommunityToolkit.WinUI.UI.Animations" Version="7.1.2" />
 	  <PackageReference Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
 	  <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.221209.1" />
@@ -43,6 +47,12 @@
 
   <ItemGroup>
     <None Include="..\..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="MsalClientID.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -62,6 +72,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Update="MainWindow.xaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Page>
     <Page Update="UserControls\ArgumentsListView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

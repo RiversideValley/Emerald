@@ -22,7 +22,7 @@ namespace Emerald.WinUI.Views.Home
 {
     public sealed partial class HomePage : Page
     {
-        public static MSession Session { get; set; }
+        public MSession Session { get; set; }
         public AccountsPage AccountsPage { get; private set; }
         public HomePage()
         {
@@ -51,6 +51,19 @@ namespace Emerald.WinUI.Views.Home
             btnCloseVerPane.Click += (_, _) => paneVersions.IsPaneOpen = false;
             _ = MainCore.Launcher.RefreshVersions();
             AccountsPage = new();
+            AccountsPage.BackRequested += (_, _) =>
+            {
+                paneVersions.Visibility = Visibility.Visible;
+                AccountsFrame.Visibility = Visibility.Collapsed;
+                AccountsPage.UpdateMainSource();
+            };
+            AccountsPage.AccountLogged += (_, _) =>
+            {
+                paneVersions.Visibility = Visibility.Visible;
+                AccountsFrame.Visibility = Visibility.Collapsed;
+                AccountsPage.UpdateMainSource();
+            };
+            AccountsFrame.Content = AccountsPage;
             if (SystemInformation.Instance.IsFirstRun)
             {
                 ShowTips();
@@ -201,9 +214,9 @@ namespace Emerald.WinUI.Views.Home
 
         private void AccountButton_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow.MainFrame.Content = AccountsPage;
-
-            AccountsPage.Accounts.Add(MSession.GetOfflineSession("Noob").ToAccount());
+            paneVersions.Visibility = Visibility.Collapsed;
+            AccountsFrame.Visibility = Visibility.Visible;
+            AccountsPage.UpdateSource();
         }
         private bool UI(bool value) => MainCore.Launcher.UIState = value;
         private async void LaunchButton_Click(object sender, RoutedEventArgs e)

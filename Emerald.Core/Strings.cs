@@ -37,7 +37,7 @@
         RefreshVerFailed,
         Retry,
         OfflineMode,
-
+        NewAccount,
         Empty,
         OK,
         No,
@@ -65,6 +65,17 @@
         VaniilaOrFabric,
         Finish,
         Launch,
-        ThatsIt
+        ThatsIt,
+        Accounts,
+        AccountDetails,
+        Username,
+        UUID,
+        AccessToken,
+        Login,
+        AccountType,
+        Options,
+        Duplicate,
+        Select,
+        LoginWithMicrosoft,
     }
 }

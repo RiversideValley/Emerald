@@ -117,6 +117,18 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AccessToken" xml:space="preserve">
+    <value>Access token</value>
+  </data>
+  <data name="AccountDetails" xml:space="preserve">
+    <value>Account Details</value>
+  </data>
+  <data name="Accounts" xml:space="preserve">
+    <value>Accounts</value>
+  </data>
+  <data name="AccountType" xml:space="preserve">
+    <value>Account Type</value>
+  </data>
   <data name="Add" xml:space="preserve">
     <value>Add</value>
   </data>
@@ -152,6 +164,9 @@
   </data>
   <data name="Downloading" xml:space="preserve">
     <value>Downloading</value>
+  </data>
+  <data name="Duplicate" xml:space="preserve">
+    <value>Duplicate</value>
   </data>
   <data name="Empty" xml:space="preserve">
     <value>Empty</value>
@@ -225,6 +240,12 @@
   <data name="LoadSettingsFailed" xml:space="preserve">
     <value>Failed to load the app settings accounts. The version of the setting system is different. You may have recently updated the app. Contact a developer of this app to recover the settings</value>
   </data>
+  <data name="Login" xml:space="preserve">
+    <value>Login</value>
+  </data>
+  <data name="LoginWithMicrosoft" xml:space="preserve">
+    <value>Login with Microsoft</value>
+  </data>
   <data name="Logs" xml:space="preserve">
     <value>Logs</value>
   </data>
@@ -242,6 +263,9 @@
   </data>
   <data name="MicrosoftOrOffline" xml:space="preserve">
     <value>Microsoft or offline</value>
+  </data>
+  <data name="NewAccount" xml:space="preserve">
+    <value>New Account</value>
   </data>
   <data name="NewHere" xml:space="preserve">
     <value>Looks like you are new here. Shall we go on a quick check out?</value>
@@ -263,6 +287,9 @@
   </data>
   <data name="OldBeta" xml:space="preserve">
     <value>OldBeta</value>
+  </data>
+  <data name="Options" xml:space="preserve">
+    <value>Options</value>
   </data>
   <data name="PickVer" xml:space="preserve">
     <value>Pick a Version</value>
@@ -294,6 +321,9 @@
   </data>
   <data name="SearchStore" xml:space="preserve">
     <value>Search Store</value>
+  </data>
+  <data name="Select" xml:space="preserve">
+    <value>Select</value>
   </data>
   <data name="SelectAll" xml:space="preserve">
     <value>Select All</value>
@@ -327,6 +357,12 @@
   </data>
   <data name="UnexpectedRestart" xml:space="preserve">
     <value>Some unexpected thing happend. Please restart the app!</value>
+  </data>
+  <data name="Username" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="UUID" xml:space="preserve">
+    <value>UUID</value>
   </data>
   <data name="VaniilaOrFabric" xml:space="preserve">
     <value>Fabric and Vanilla is officially supported</value>
