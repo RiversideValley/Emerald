@@ -23,17 +23,17 @@ steps:
     restoreSolution: '$(solution)'
   
 - task: DownloadSecureFile@1
-  displayName: 'Download OAuth credentials'
+  displayName: 'Download MSAL credentials'
   name: CredentialSecureFile
   inputs:
-    secureFile: AppCredentials.config
+    secureFile: MsalClientID.txt
 
 - task: CopyFiles@2
-  displayName: 'Copy OAuth credentials'
+  displayName: 'Copy MSAL credentials'
   inputs:
     SourceFolder: '$(Agent.TempDirectory)'
     Contents: '$(CredentialSecureFile.secureFilePath)'
-    TargetFolder: '$(Build.SourcesDirectory)\Emerald.App'
+    TargetFolder: '$(Build.SourcesDirectory)\Emerald.App\Emerald.App'
 
 - task: VSBuild@1
   inputs:
