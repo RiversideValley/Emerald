@@ -35,7 +35,7 @@ See [this section](#-building-the-code)
 
 ### 📸 Screenshots
 
-<a title="Emerald Screenshot" target="_blank" href="">
+<a title="Emerald Screenshot" target="_blank" href="https://github.com/OpenAndrexial/Emerald">
   <img align="left" src="https://user-images.githubusercontent.com/71598437/210103978-ffca5fbd-7950-4cb2-803a-3ef8fd83f924.png" alt="Release" />
 </a>
 
