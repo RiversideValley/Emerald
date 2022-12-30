@@ -39,6 +39,7 @@ See [this section](#-building-the-code)
   <img align="left" src="https://user-images.githubusercontent.com/71598437/210103978-ffca5fbd-7950-4cb2-803a-3ef8fd83f924.png" alt="Release" />
 </a>
 
+###### 📝 This screenshot is from [`redesign`](https://github.com/OpenAndrexial/Emerald/pull/19)
 
 ## 🦜 Contributing & Feedback
 
