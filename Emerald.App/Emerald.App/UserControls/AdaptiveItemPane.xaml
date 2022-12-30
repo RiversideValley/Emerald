@@ -7,7 +7,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Emerald.WinUI.UserControls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations"
     mc:Ignorable="d"
     HorizontalAlignment="Stretch"
     Loaded="OnControlLoaded"
@@ -27,6 +27,11 @@
             <ColumnDefinition x:Name="RightSpaceColumn" Width="1*" />
             <ColumnDefinition x:Name="RightColumn" Width="auto" />
         </Grid.ColumnDefinitions>
+        <Grid.ChildrenTransitions>
+            <TransitionCollection>
+                <RepositionThemeTransition/>                
+            </TransitionCollection>
+        </Grid.ChildrenTransitions>
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -92,6 +97,10 @@
                 </VisualState>
                 <VisualState x:Name="Stacked">
                     <VisualState.Setters>
+                        <Setter Target="Left.HorizontalAlignment" Value="Left" />
+                        <Setter Target="Middle.HorizontalAlignment" Value="Left" />
+                        <Setter Target="Right.HorizontalAlignment" Value="Left" />
+                        
                         <Setter Target="LeftSpaceColumn.Width" Value="auto" />
                         <Setter Target="RightSpaceColumn.Width" Value="auto" />
                         

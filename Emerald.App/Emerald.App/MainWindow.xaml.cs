@@ -9,6 +9,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Windows.UI;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
@@ -26,14 +28,30 @@ namespace Emerald.WinUI
         public MainWindow()
         {
             this.InitializeComponent();
+            MainFrame = frame;
+            SS.APINoMatch += (_, e) =>
+            {
+                BackupState = (true, e);
+            };
+            SS.LoadData();
             Title = "Emerald";
             (this.Content as FrameworkElement).Loaded += Initialize;
         }
-        public void Initialize(object s, RoutedEventArgs e)
+        private (bool WantBackup, string Backup) BackupState = (false,"");
+        public async void Initialize(object s, RoutedEventArgs e)
         {
-            MainFrame = frame;
-            SS.APINoMatch += async (_, e) =>
+            MicaBackground mica = WindowManager.IntializeWindow(this);
+            mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
+            SS.Settings.App.Appearance.PropertyChanged += (s, e) =>
+                mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
+            NavView.Header = new NavViewHeader() { HeaderText = "Home".ToLocalizedString(), HeaderMargin = GetNavViewHeaderMargin() };
+            NavView.DisplayModeChanged += (_, _) => (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
+            WindowManager.SetTitleBar(this, AppTitleBar);
+            WinUIEx.WindowManager.Get(this).MinHeight = 400;
+            WinUIEx.WindowManager.Get(this).MinWidth = 500;
+            if (BackupState.WantBackup)
             {
+
                 var r = await MessageBox.Show(
                      Localized.Error.ToLocalizedString(),
                      Localized.LoadSettingsFailed.ToLocalizedString(),
@@ -42,26 +60,9 @@ namespace Emerald.WinUI
                      Localized.CreateOldSettingsBackup.ToLocalizedString());
                 if (r == Enums.MessageBoxResults.CustomResult2)
                 {
-                    SS.CreateBackup(e);
+                    SS.CreateBackup(BackupState.Backup);
                 }
-            };
-            SS.LoadData();
-
-            MicaBackground mica = WindowManager.IntializeWindow(this);
-            mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
-            SS.Settings.App.Appearance.PropertyChanged += (s, e) =>
-                mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
-
-            NavView.MenuItems.Add(new SquareNavigationViewItem("Home".ToLocalizedString(), true, new(new("ms-appx:///Assets/NavigationViewIcons/home.png"))));
-            NavView.MenuItems.Add(new SquareNavigationViewItem("Store".ToLocalizedString(), false, new(new("ms-appx:///Assets/NavigationViewIcons/store.png"))));
-            NavView.FooterMenuItems.Add(new SquareNavigationViewItem("Tasks".ToLocalizedString(), false, new(new("ms-appx:///Assets/NavigationViewIcons/tasks.png")), TasksInfoBadge));
-            NavView.FooterMenuItems.Add(new SquareNavigationViewItem("Logs".ToLocalizedString(), false, new(new("ms-appx:///Assets/NavigationViewIcons/logs.png"))));
-            NavView.FooterMenuItems.Add(new SquareNavigationViewItem("Settings".ToLocalizedString(), false, new(new("ms-appx:///Assets/NavigationViewIcons/settings.png"))));
-            NavView.Header = new NavViewHeader() { HeaderText = "Home".ToLocalizedString(), HeaderMargin = GetNavViewHeaderMargin() };
-            NavView.DisplayModeChanged += (_, _) => (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
-            WindowManager.SetTitleBar(this, AppTitleBar);
-            WinUIEx.WindowManager.Get(this).MinHeight = 400;
-            WinUIEx.WindowManager.Get(this).MinWidth = 500;
+            }
             NavView.SelectedItem = NavView.MenuItems[0];
             void Tasks()
             {

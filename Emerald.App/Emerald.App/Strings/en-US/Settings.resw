@@ -138,6 +138,9 @@
   <data name="CheckForUpdates" xml:space="preserve">
     <value>Check for updates</value>
   </data>
+  <data name="Colorful" xml:space="preserve">
+    <value>Colorful</value>
+  </data>
   <data name="ColorMode" xml:space="preserve">
     <value>Color Mode</value>
   </data>
@@ -164,6 +167,9 @@
   </data>
   <data name="Dark" xml:space="preserve">
     <value>Dark</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>Default</value>
   </data>
   <data name="Delete" xml:space="preserve">
     <value>Delete</value>
@@ -227,6 +233,12 @@
   </data>
   <data name="MoreVerInfo" xml:space="preserve">
     <value>More version info</value>
+  </data>
+  <data name="NavIconStyle" xml:space="preserve">
+    <value>Navigation Buttons Icon Style</value>
+  </data>
+  <data name="NavIconStyleDescription" xml:space="preserve">
+    <value>Select a beautiful icons set for your sidebar</value>
   </data>
   <data name="NoColor" xml:space="preserve">
     <value>No color</value>

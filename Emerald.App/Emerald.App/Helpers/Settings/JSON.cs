@@ -154,6 +154,10 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
     }
     public class Appearance : JSON
     {
+        private int _NavIconType = 1;
+        public int NavIconType { get => _NavIconType; set => Set(ref _NavIconType, value); }
+        public bool ShowFontIcons => NavIconType == 0;
+
         private int _Theme;
         public int Theme { get => _Theme; set => Set(ref _Theme, value, nameof(Theme)); }
 

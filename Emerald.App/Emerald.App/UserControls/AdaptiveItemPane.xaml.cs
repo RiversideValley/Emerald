@@ -37,7 +37,7 @@ namespace Emerald.WinUI.UserControls
         public static DependencyProperty MiddlePaneProperty =
             DependencyProperty.Register("MiddlePane", typeof(object),
                 typeof(AdaptiveItemPane), new PropertyMetadata(null));
-        private object RealMiddle => GetValue(LeftPaneProperty) == null && GetValue(MiddlePaneProperty) != null ? GetValue(RightPaneProperty) : (GetValue(LeftPaneProperty) == null ? null : (GetValue(MiddlePaneProperty) == null ? GetValue(RightPaneProperty) : GetValue(MiddlePaneProperty)));
+        private object RealMiddle => GetValue(LeftPaneProperty) == null && GetValue(MiddlePaneProperty) != null ? (GetValue(RightPaneProperty) != null ? GetValue(RightPaneProperty) : null) : (GetValue(LeftPaneProperty) == null ? null : (GetValue(MiddlePaneProperty) == null ? GetValue(RightPaneProperty) : GetValue(MiddlePaneProperty)));
         public object MiddlePane
         {
             get => GetValue(MiddlePaneProperty);

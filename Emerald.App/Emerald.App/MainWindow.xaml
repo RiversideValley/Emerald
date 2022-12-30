@@ -6,6 +6,8 @@
     xmlns:local="using:Emerald.WinUI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Emerald.WinUI.Models"
+    xmlns:helpers="using:Emerald.WinUI.Helpers"
+    xmlns:SS="using:Emerald.WinUI.Helpers.Settings"
     xmlns:uc="using:Emerald.WinUI.UserControls" xmlns:toolkit="using:CommunityToolkit.WinUI.UI.Controls"
     mc:Ignorable="d">
 
@@ -61,6 +63,7 @@
                                 IsSelected="{x:Bind IsSelected, Mode=TwoWay}"
                                 Tag="{x:Bind Name}">
                         <Grid
+                            x:DefaultBindMode="OneWay"
                             Margin="-5,4,-9,0"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch"
@@ -78,25 +81,40 @@
                             <ContentPresenter 
                                 VerticalAlignment="Top" 
                                 HorizontalAlignment="Right"
-                                Content="{x:Bind InfoBadge,Mode=OneWay}"/>
+                                Content="{x:Bind InfoBadge}"/>
                             <toolkit:ImageEx
                                 Width="28"
                                 Height="28"
+                                x:Name="Image"
+                                x:Load="{x:Bind SS:SettingsSystem.Settings.App.Appearance.ShowFontIcons.Equals(x:False),Mode=OneWay}"
                                 Source="{x:Bind Thumbnail}" />
-
+                            <FontIcon 
+                                FontSize="22" 
+                                x:Name="fontIcon" 
+                                x:Load="{x:Bind SS:SettingsSystem.Settings.App.Appearance.ShowFontIcons,Mode=OneWay}"
+                                Glyph="{x:Bind FontIconGlyph}"/>
                             <TextBlock
                                 x:Name="txtNavItemName"
                                 Grid.Row="1"
                                 HorizontalAlignment="Center"
-                                x:Load="{x:Bind IsSelected.Equals(x:False),Mode=OneWay}"
+                                x:Load="{x:Bind IsSelected.Equals(x:False)}"
                                 FontSize="10"
                                 Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="{x:Bind Name,Mode=OneWay}" />
+                                Text="{x:Bind Name}" />
                         </Grid>
                     </NavigationViewItem>
                 </DataTemplate>
             </NavigationView.MenuItemTemplate>
+            <NavigationView.MenuItems>
+                <models:SquareNavigationViewItem FontIconGlyph="&#xE80F;" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Home}" Thumbnail="Assets/NavigationViewIcons/home.png" IsSelected="True"/>
+                <models:SquareNavigationViewItem FontIconGlyph="&#xE7BF;" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Store}" Thumbnail="Assets/NavigationViewIcons/store.png" IsSelected="False"/>
+            </NavigationView.MenuItems>
+            <NavigationView.FooterMenuItems>
+                <models:SquareNavigationViewItem FontIconGlyph="&#xE9D5;" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Tasks}" Thumbnail="Assets/NavigationViewIcons/tasks.png" InfoBadge="{x:Bind TasksInfoBadge}" IsSelected="False"/>
+                <models:SquareNavigationViewItem FontIconGlyph="&#xE756;" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Logs}" Thumbnail="Assets/NavigationViewIcons/logs.png" IsSelected="False"/>
+                <models:SquareNavigationViewItem FontIconGlyph="&#xE713;" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Settings}" Thumbnail="Assets/NavigationViewIcons/settings.png" IsSelected="False"/>
+            </NavigationView.FooterMenuItems>
             <Frame x:Name="frame" />
         </NavigationView>
 

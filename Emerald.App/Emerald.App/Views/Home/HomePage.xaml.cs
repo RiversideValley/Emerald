@@ -5,6 +5,7 @@ using CommunityToolkit.WinUI.Helpers;
 using Emerald.Core;
 using Emerald.WinUI.Enums;
 using Emerald.WinUI.Helpers;
+using Emerald.WinUI.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -20,9 +21,28 @@ using Windows.System;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 namespace Emerald.WinUI.Views.Home
 {
-    public sealed partial class HomePage : Page
+    public sealed partial class HomePage : Page, INotifyPropertyChanged
     {
-        public MSession Session { get; set; }
+        public event PropertyChangedEventHandler? PropertyChanged;
+        internal void Set<T>(ref T obj, T value, string name = null)
+        {
+            obj = value;
+            InvokePropertyChanged(name);
+        }
+        public void InvokePropertyChanged(string name = null)
+        {
+            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+        private MSession _Session;
+        public MSession Session
+        {
+            get => _Session;
+            set => Set(ref _Session, value);
+        }
+        public Account SessionAsAccount
+        {
+            get => Session == null ? new MSession(Localized.Login.ToLocalizedString(), "fake", null).ToAccount(false) : Session.ToAccount(false);
+        }
         public AccountsPage AccountsPage { get; private set; }
         public HomePage()
         {
@@ -202,9 +222,21 @@ namespace Emerald.WinUI.Views.Home
             {
                 if (await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.BegLogIn.ToLocalizedString(), MessageBoxButtons.OkCancel) == MessageBoxResults.Ok)
                 {
-                  //  _ = await new Login().ShowAsync();
+                    void Cancel(object sender, EventArgs e)
+                    {
+                        AccountsPage.AccountLogged -= LoggedIn;
+                        AccountsPage.BackRequested -= Cancel;
+                    }
+                    void LoggedIn(object sender, EventArgs e)
+                    {
+                        AccountsPage.AccountLogged -= LoggedIn;
+                        AccountsPage.BackRequested -= Cancel;
+                        LaunchButton_Click(null, null);
+                    }
+                    AccountsPage.AccountLogged += LoggedIn;
+                    AccountsPage.BackRequested += Cancel;
+                    AccountButton_Click(null, null);
                     UI(true);
-                   // LaunchButton_Click(null, null);
                 }
                 UI(true);
                 return;

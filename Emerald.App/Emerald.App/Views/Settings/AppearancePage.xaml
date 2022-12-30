@@ -25,13 +25,23 @@
                 </ComboBox>
             </uc:Expander>
             <uc:Expander
-            Icon="&#xE790;"
+            Icon="&#xec7a;"
             ExpanderStyle="Static"
             Title="{helpers:Localize CustomName=MicaType,RESW=Settings}" 
             Description="{helpers:Localize CustomName=MicaTypeDescription,RESW=Settings}">
                 <ComboBox SelectedIndex="{x:Bind SS:SettingsSystem.Settings.App.Appearance.MicaType,Mode=TwoWay}">
                     <ComboBoxItem Content="Mica"/>
                     <ComboBoxItem Content="Mica Alt"/>
+                </ComboBox>
+            </uc:Expander>
+            <uc:Expander
+            Icon="&#xE790;"
+            ExpanderStyle="Static"
+            Title="{helpers:Localize CustomName=NavIconStyle,RESW=Settings}" 
+            Description="{helpers:Localize CustomName=NavIconStyleDescription,RESW=Settings}">
+                <ComboBox SelectedIndex="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType,Mode=TwoWay}">
+                    <ComboBoxItem Content="{helpers:Localize CustomName=Default,RESW=Settings}"/>
+                    <ComboBoxItem Content="{helpers:Localize CustomName=Colorful,RESW=Settings}"/>
                 </ComboBox>
             </uc:Expander>
             <uc:Expander

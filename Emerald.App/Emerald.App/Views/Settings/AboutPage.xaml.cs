@@ -127,6 +127,7 @@ namespace Emerald.WinUI.Views.Settings
                 var b = ((SettingsBackup)lvBackups.SelectedItems[0]);
                 _ = new ScrollViewer()
                 {
+                    HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
                     Content = new MarkdownTextBlock()
                     {
                         CornerRadius = new() { TopLeft = 7, BottomLeft = 7, BottomRight = 7, TopRight = 7 },

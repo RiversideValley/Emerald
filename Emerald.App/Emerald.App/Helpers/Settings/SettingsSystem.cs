@@ -7,6 +7,7 @@ using Windows.Storage;
 
 namespace Emerald.WinUI.Helpers.Settings
 {
+#pragma warning disable CS8601
     public static class SettingsSystem
     {
         public static JSON.Settings Settings { get; private set; }

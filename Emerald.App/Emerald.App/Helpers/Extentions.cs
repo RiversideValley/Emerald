@@ -157,10 +157,10 @@ namespace Emerald.WinUI.Helpers
         {
             return string.IsNullOrEmpty(str) || string.IsNullOrWhiteSpace(str);
         }
-        public static Models.Account ToAccount(this CmlLib.Core.Auth.MSession session)
+        public static Models.Account ToAccount(this CmlLib.Core.Auth.MSession session,bool plusCount = true)
         {
             bool isOffline = session.UUID == "user_uuid";
-            return new Models.Account(session.Username, isOffline ? null : session.AccessToken, isOffline ? null : session.UUID, MainWindow.HomePage.AccountsPage.AllCount++, false);
+            return new Models.Account(session.Username, isOffline ? null : session.AccessToken, isOffline ? null : session.UUID, plusCount ? MainWindow.HomePage.AccountsPage.AllCount++ : 0, false);
         }
         public static CmlLib.Core.Auth.MSession ToMSession(this Models.Account account)
         {
