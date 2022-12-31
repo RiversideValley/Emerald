@@ -1,80 +1,104 @@
-# Emerald
-An open-source custom noob wpf or uwp(still in dev) Minecraft Launcher for Windows 11,10 written with C#!
+# 💎 Emerald
 
-![size](https://img.shields.io/github/repo-size/SeaDevTeam/SDLauncher-UWP?color=%23cc0000&label=Repo%20Size)
-![stars](https://img.shields.io/github/stars/SeaDevTeam/SDLauncher-UWP?color=%23eeab00&label=Stars)
-![downloads](https://img.shields.io/github/downloads/SeaDevTeam/SDLauncher/total?label=Downloads)
-<a href="https://github.com/SeaDevTeam/SDLauncher/releases/latest/download/package.7z" target="_blank">
-![latest](https://img.shields.io/github/v/release/SeaDevTeam/SDLauncher-UWP?label=Latest%20Stable)
+#### A swift Minecraft launcher made using WinUI technologies in the fast C# language really pushes the boundary of the platform.
+
+<p align="center">
+  <a title="Azure Pipeline" target="_blank" href="https://github.com/OpenAndrexial/Emerald/commits">
+    <img align="left" src="https://dev.azure.com/Andrexial/Emerald/_apis/build/status/OpenAndrexial.Emerald?branchName=main">
+  </a>
+  <a title="GitHub Releases" target="_blank" href="https://github.com/OpenAndrexial/Emerald/releases">
+    <img align="left" src="https://img.shields.io/github/v/release/OpenAndrexial/Emerald?include_prereleases" alt="Release" />
+  </a>
+  <a title="GitHub Releases" target="_blank" href="https://github.com/OpenAndrexial/Emerald/releases">
+    <img align="left" src="https://img.shields.io/github/downloads/SeaDevTeam/SDLauncher/total" alt="Release" />
+  </a>
+  <a title="GitHub Releases" target="_blank" href="https://github.com/OpenAndrexial/Emerald/releases">
+    <img align="left" src="https://img.shields.io/github/repo-size/OpenAndrexial/Emerald?color=%23cc0000" alt="Release" />
+  </a>
+</p>
+
+<br/>
+
+---
+
+## 🎁 Installation
+
+### Via GitHub
+
+See the [releases page](https://github.com/OpenAndrexial/Emerald/releases)
+
+### Building from source
+###### ⭐Recommended⭐
+
+This is our preferred method.
+See [this section](#-building-the-code)
+
+### 📸 Screenshots
+
+<a title="Emerald Screenshot" target="_blank" href="https://github.com/OpenAndrexial/Emerald">
+  <img align="left" src="https://user-images.githubusercontent.com/82730163/210150183-fd324c12-5a90-4ffb-964d-c8ccae2c9cee.png" alt="Release" />
 </a>
-<a href="https://discord.gg/kN7bjt6Ncq" target="_blank">
-![Discord](https://img.shields.io/discord/949252950772027412)
+
+###### 📝 This screenshot is from [`redesign`](https://github.com/OpenAndrexial/Emerald/pull/19)
+
+## 🦜 Contributing & Feedback
+
+There are multiple ways to participate in the community:
+
+- Upvote popular feature requests
+- [Submit a new feature](https://github.com/DepthCDLS/Esmerelda/pulls)
+- [File bugs and feature requests](https://github.com/OpenAndrexial/Emerald/issues/new/choose).
+- Review source [code changes](https://github.com/OpenAndrexial/Emerald/commits)
+
+### 🏗️ Codebase Structure
+
+```
+.
+├──Emerald.App                       // Emerald app code and packager
+|  ├──Emerald.App                    // Emerald app code (such as code related to UI but not Minecraft)
+|  └──Emerald.App.Package            // Package code for generating an uploadable MSIX bundle.
+└──Emerald.Core                      // Emerald core code (such as code related to launching and modifying Minecraft
+```
+
+### 🗃️ Contributors
+
+<a href="https://github.com/OpenAndrexial/Emerald/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=OpenAndrexial/Emerald" />
 </a>
 
-Founders <a href="https://github.com/TurtlzYT">TurtlzYT</a>, <a href="https://github.com/NoobNotFound">NoobNotFound</a><br>
-Lead developers  <a href="https://github.com/NoobNotFound">NoobNotFound</a>, <a href="https://github.com/DeveloperWOW64">DeveloperWOW64</a><br>
-Developers <a href="https://github.com/developerx-official">DeveloperX</a>, <a href="https://github.com/Blocsied">Blocsied</a>
-<br>
-Based on <a href="https://github.com/CmlLib/CmlLib.Core" >CmlLib</a>
-<br>
-<br>
-<img src="https://user-images.githubusercontent.com/82730163/170818956-8c32d257-dbec-42d6-bf5d-f34103eeb006.png" />
+## 🔨 Building the Code
 
-The image is from version ``0.3.6-uwp``
+##### 1. Prerequisites
 
-# Announcements & Our History 📢
-<h3>2022</h3>
-<li>(February) We changed our luancher name to SDLauncher from Emerald Launcher but in some versions name may be still the same.</li>
-<li>(April) We sarted moving to uwp with a new look an new features</li>
-<li>(May 24) We released UWP version that is ready to use (0.3.1) with some bugs. </li>
-<li>(June 23) We released SDStore. </li>
-<li>(September 10) <a href="https://github.com/DeveloperWOW64">DeveloperWOW64</a> joined to our team. </li>
-<li>(September 12) Changed name to Emerald again. </li>
-<li>(September 12) We started moving to WinUI. </li>
+Ensure you have following components:
 
+- [Git](https://git-scm.com/)
+- [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) with following individual components:
+  - Universal Windows Platform Software Development Kit
+  - .NET 6+
+  - Windows App Software Development Kit
+  - Windows 11 SDK
+- [Windows 11 or Windows 10](https://www.microsoft.com/en-us/windows) (version 1809+)
+- [.NET Core Desktop Runtime 3.1](https://dotnet.microsoft.com/en-us/download/dotnet/3.1)
+- At least 4gb of RAM
+- [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)
 
-# Features
-- [x] Theming (Backgrounds, Acrylic, Mica)
-- [x] Microsoft Login
-- [ ] Mojang Login (Expired)
-- [x] Offline Login
-- [x] Save Accounts
-- [x] View skins
-- [x] View/edit settings as a json
-- [x] Hide settings
-- [x] Launch Arguments
-- [ ] Discord RPC (To do)
-- [x] Download/Install Minecraft any versions including snapshots
-- [x] Launch Minecraft
-- [ ] Forge (trying to make)
-- [x] Fabric
-- [x] Glacier Client
-- [x] Optifine (Outdated for now)
-- [x] SD Store
+### 2. Git
 
+Clone the repository:
 
-<h3> Currently working on.. </h3>
+```git
+git clone https://github.com/OpenAndrexial/Emerald
+```
 
-- A new SDLauncher.Core
-- A new Optifine System
+### 4. Build the project
 
-# System Requirements
+- Open `Emerald.sln`.
+- Set the Startup Project to `Emerald.Package`
+- Build with `DEBUG|x64` (or `DEBUG|Any CPU`)
 
-<li>Windows 11 or Windows 10 version 1809+.</li>
-<li>.net core desktop runtime 3.1.</li>
-<li>At least 4GB of RAM.</li>
-<li>Microsoft Edge Webview 2 runtime (For Microsoft login). You may have this on windows 11 and newer 10</li>
+## ⚖️ License
 
-<h1>Installation </h1>
-Goto <a href="https://github.com/SeaDevTeam/SDLauncher/releases/">releases</a> and download and extract the Package.7z (using 7zip or something).The details of nstalling appx package is available in description of the releases.
-<br>
+Copyright (c) 2022 Depth
 
-<b>Note: This is in development!</b>
-
-<h2>Source Codes</h2>
-
-<h3>UWP version</h3>
-https://github.com/Chaniru22/SDLauncher-UWP
-
-<h3>WPF version</h3>
-https://github.com/Chaniru22/SDLauncher-Code
+Licensed under the MIT license as stated in the [LICENSE](LICENSE.md).
