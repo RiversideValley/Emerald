@@ -36,7 +36,7 @@ See [this section](#-building-the-code)
 ### 📸 Screenshots
 
 <a title="Emerald Screenshot" target="_blank" href="https://github.com/OpenAndrexial/Emerald">
-  <img align="left" src="https://user-images.githubusercontent.com/71598437/210103978-ffca5fbd-7950-4cb2-803a-3ef8fd83f924.png" alt="Release" />
+  <img align="left" src="https://user-images.githubusercontent.com/82730163/210150183-fd324c12-5a90-4ffb-964d-c8ccae2c9cee.png" alt="Release" />
 </a>
 
 ###### 📝 This screenshot is from [`redesign`](https://github.com/OpenAndrexial/Emerald/pull/19)
