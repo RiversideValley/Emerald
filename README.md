@@ -7,7 +7,7 @@
     <img align="left" src="https://img.shields.io/github/v/release/OpenAndrexial/Emerald?include_prereleases" alt="Release" />
   </a>
   <a title="GitHub Releases" target="_blank" href="https://github.com/OpenAndrexial/Emerald/releases">
-    <img align="left" src="https://img.shields.io/github/downloads/SeaDevTeam/SDLauncher/total" alt="Release" />
+    <img align="left" src="https://img.shields.io/github/downloads/OpenAndrexial/Emerald/total" alt="Release" />
   </a>
   <a title="GitHub Releases" target="_blank" href="https://github.com/OpenAndrexial/Emerald/releases">
     <img align="left" src="https://img.shields.io/github/repo-size/OpenAndrexial/Emerald?color=%23cc0000" alt="Release" />
@@ -43,7 +43,7 @@ See [this section](#-building-the-code)
 There are multiple ways to participate in the community:
 
 - Upvote popular feature requests
-- [Submit a new feature](https://github.com/DepthCDLS/Esmerelda/pulls)
+- [Submit a new feature](https://github.com/OpenAndrexial/Emerald/pulls)
 - [File bugs and feature requests](https://github.com/OpenAndrexial/Emerald/issues/new/choose).
 - Review source [code changes](https://github.com/OpenAndrexial/Emerald/commits)
 
