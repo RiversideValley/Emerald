@@ -7,9 +7,6 @@
     <img align="left" src="https://img.shields.io/github/v/release/OpenAndrexial/Emerald?include_prereleases" alt="Release" />
   </a>
   <a title="GitHub Releases" target="_blank" href="https://github.com/OpenAndrexial/Emerald/releases">
-    <img align="left" src="https://img.shields.io/github/downloads/OpenAndrexial/Emerald/total" alt="Release" />
-  </a>
-  <a title="GitHub Releases" target="_blank" href="https://github.com/OpenAndrexial/Emerald/releases">
     <img align="left" src="https://img.shields.io/github/repo-size/OpenAndrexial/Emerald?color=%23cc0000" alt="Release" />
   </a>
 </p>
@@ -96,6 +93,6 @@ git clone https://github.com/OpenAndrexial/Emerald
 
 ## ⚖️ License
 
-Copyright (c) 2022 Depth
+Copyright (c) 2022-2023 Depth
 
 Licensed under the MIT license as stated in the [LICENSE](LICENSE.md).
