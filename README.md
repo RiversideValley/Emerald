@@ -3,9 +3,6 @@
 #### A swift Minecraft launcher made using WinUI technologies in the fast C# language really pushes the boundary of the platform.
 
 <p align="center">
-  <a title="Azure Pipeline" target="_blank" href="https://github.com/OpenAndrexial/Emerald/commits">
-    <img align="left" src="https://dev.azure.com/Andrexial/Emerald/_apis/build/status/OpenAndrexial.Emerald?branchName=main">
-  </a>
   <a title="GitHub Releases" target="_blank" href="https://github.com/OpenAndrexial/Emerald/releases">
     <img align="left" src="https://img.shields.io/github/v/release/OpenAndrexial/Emerald?include_prereleases" alt="Release" />
   </a>
