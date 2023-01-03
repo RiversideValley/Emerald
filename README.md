@@ -3,14 +3,8 @@
 #### A swift Minecraft launcher made using WinUI technologies in the fast C# language really pushes the boundary of the platform.
 
 <p align="center">
-  <a title="Azure Pipeline" target="_blank" href="https://github.com/OpenAndrexial/Emerald/commits">
-    <img align="left" src="https://dev.azure.com/Andrexial/Emerald/_apis/build/status/OpenAndrexial.Emerald?branchName=main">
-  </a>
   <a title="GitHub Releases" target="_blank" href="https://github.com/OpenAndrexial/Emerald/releases">
     <img align="left" src="https://img.shields.io/github/v/release/OpenAndrexial/Emerald?include_prereleases" alt="Release" />
-  </a>
-  <a title="GitHub Releases" target="_blank" href="https://github.com/OpenAndrexial/Emerald/releases">
-    <img align="left" src="https://img.shields.io/github/downloads/SeaDevTeam/SDLauncher/total" alt="Release" />
   </a>
   <a title="GitHub Releases" target="_blank" href="https://github.com/OpenAndrexial/Emerald/releases">
     <img align="left" src="https://img.shields.io/github/repo-size/OpenAndrexial/Emerald?color=%23cc0000" alt="Release" />
@@ -46,7 +40,7 @@ See [this section](#-building-the-code)
 There are multiple ways to participate in the community:
 
 - Upvote popular feature requests
-- [Submit a new feature](https://github.com/DepthCDLS/Esmerelda/pulls)
+- [Submit a new feature](https://github.com/OpenAndrexial/Emerald/pulls)
 - [File bugs and feature requests](https://github.com/OpenAndrexial/Emerald/issues/new/choose).
 - Review source [code changes](https://github.com/OpenAndrexial/Emerald/commits)
 
@@ -99,6 +93,6 @@ git clone https://github.com/OpenAndrexial/Emerald
 
 ## ⚖️ License
 
-Copyright (c) 2022 Depth
+Copyright (c) 2022-2023 Depth
 
 Licensed under the MIT license as stated in the [LICENSE](LICENSE.md).
