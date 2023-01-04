@@ -84,6 +84,7 @@ Clone the repository:
 ```git
 git clone https://github.com/OpenAndrexial/Emerald
 ```
+(`redesign` is the latest branch)
 
 ### 4. Build the project
 
