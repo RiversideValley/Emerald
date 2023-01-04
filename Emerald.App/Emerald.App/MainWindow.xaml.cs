@@ -29,15 +29,12 @@ namespace Emerald.WinUI
         {
             this.InitializeComponent();
             MainFrame = frame;
-            SS.APINoMatch += (_, e) =>
-            {
-                BackupState = (true, e);
-            };
+            SS.APINoMatch += (_, e) => BackupState = (true, e);
             SS.LoadData();
             Title = "Emerald";
             (this.Content as FrameworkElement).Loaded += Initialize;
         }
-        private (bool WantBackup, string Backup) BackupState = (false,"");
+        private (bool WantBackup, string Backup) BackupState = (false, "");
         public async void Initialize(object s, RoutedEventArgs e)
         {
             MicaBackground mica = WindowManager.IntializeWindow(this);
@@ -70,23 +67,23 @@ namespace Emerald.WinUI
                 g.ClearAllClicked += (_, _) => TaskView.ClearAll();
                 TaskViewFlyout.Content = g;
                 TaskViewFlyout.Closed += (s, e) =>
-                NavView.SelectedItem = SelectedItemIndex.Item2 == 0 ?
-                    NavView.MenuItems[SelectedItemIndex.Item1] :
-                    (SelectedItemIndex.Item2 == 1 ?
-                        NavView.FooterMenuItems[SelectedItemIndex.Item1] :
+                NavView.SelectedItem = SelectedItemIndex.Source == 0 ?
+                    NavView.MenuItems[SelectedItemIndex.Index] :
+                    (SelectedItemIndex.Source == 1 ?
+                        NavView.FooterMenuItems[SelectedItemIndex.Index] :
                         NavView.SelectedItem);
                 TasksHelper.TaskAddRequested += (_, e) =>
                         {
                             if (e is TaskAddRequestedEventArgs task)
                             {
-                                TaskView.AddProgressTask(task.Name.ToLocalizedString(), 0, InfoBarSeverity.Informational, true, task.ID);
+                                TaskView.AddProgressTask(string.Join(" ", (task.Name ?? "").Split(" ").Select(s => s.ToLocalizedString())), 0, InfoBarSeverity.Informational, true, task.ID);
                                 TasksInfoBadge.Value++;
                                 UpdateTasksInfoBadge();
                             }
                             else if(e is ProgressTaskEventArgs Ptask)
                             { 
                                 var val = Ptask.Value / Ptask.MaxValue * 100;
-                                TaskView.AddProgressTask(Ptask.Name.ToLocalizedString(), val, InfoBarSeverity.Informational, false, Ptask.ID);
+                                TaskView.AddProgressTask(string.Join(" ", (Ptask.Name ?? "").Split(" ").Select(s => s.ToLocalizedString())), val, InfoBarSeverity.Informational, false, Ptask.ID);
                                 TasksInfoBadge.Value++;
                                 UpdateTasksInfoBadge();
                             }
@@ -97,7 +94,7 @@ namespace Emerald.WinUI
                     int? ID = TaskView.SearchByUniqueThingsToString(e.ID.ToString()).First();
                     if (ID != null)
                     {
-                        TaskView.ChangeDescription(ID.Value, e.Message);
+                        TaskView.ChangeDescription(ID.Value, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.ToLocalizedString())));
                         TaskView.ChangeProgress(ID.Value, e.Value);
                     }
                 };
@@ -108,7 +105,7 @@ namespace Emerald.WinUI
                     {
                         TaskView.ChangeProgress(ID.Value, 100);
                         TaskView.ChangeIndeterminate(ID.Value, false);
-                        TaskView.ChangeDescription(ID.Value, e.Message);
+                        TaskView.ChangeDescription(ID.Value, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.ToLocalizedString())));
                         TaskView.ChangeSeverty(ID.Value, e.Success ? InfoBarSeverity.Success : InfoBarSeverity.Error);
                     }
                 };
@@ -169,7 +166,7 @@ namespace Emerald.WinUI
         /// <para>Item1 - The Index.<br/>
         /// Item2 - The source (0-Menu, 1-Footer, 2-Unknown).</para>
         /// </summary>
-        private (int, int) SelectedItemIndex;
+        private (int Index, int Source) SelectedItemIndex;
         private void UpdateSelectedItem() =>
             SelectedItemIndex = NavView.SelectedItem is SquareNavigationViewItem item ?
                 (
@@ -189,6 +186,13 @@ namespace Emerald.WinUI
                 : (1, 2);
         private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
+            void NavigateOnce(Type type)
+            {
+                if (MainFrame.Content == null || MainFrame.Content.GetType() != type)
+                {
+                    MainFrame.Navigate(type);
+                }
+            }
             if (!args.IsSettingsInvoked && NavView.SelectedItem is SquareNavigationViewItem itm)
             {
                 try
@@ -206,7 +210,9 @@ namespace Emerald.WinUI
                         TasksInfoBadge.Value = 0;
                     }
                     else if (h == "Logs".ToLocalizedString())
-                    { }
+                    {
+                        NavigateOnce(typeof(Views.LogsPage));
+                    }
                     else if (h == "Settings".ToLocalizedString())
                     {
                         NavigateOnce(typeof(Views.Settings.SettingsPage));
@@ -220,20 +226,13 @@ namespace Emerald.WinUI
 
                 }
 
-                var pitm = ((SquareNavigationViewItem)(SelectedItemIndex.Item2 == 0 ?
-                        NavView.MenuItems[SelectedItemIndex.Item1] :
-                        (SelectedItemIndex.Item2 == 1 ?
-                            NavView.FooterMenuItems[SelectedItemIndex.Item1] :
+                var pitm = ((SquareNavigationViewItem)(SelectedItemIndex.Source == 0 ?
+                        NavView.MenuItems[SelectedItemIndex.Index] :
+                        (SelectedItemIndex.Source == 1 ?
+                            NavView.FooterMenuItems[SelectedItemIndex.Index] :
                             NavView.SelectedItem)));
                 pitm.IsSelected = pitm == itm;
                 UpdateSelectedItem();
-            }
-        }
-        private void NavigateOnce(Type type)
-        {
-            if (MainFrame.Content == null || MainFrame.Content.GetType() != type)
-            {
-                MainFrame.Navigate(type);
             }
         }
     }

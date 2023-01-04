@@ -183,6 +183,12 @@
   <data name="Error" xml:space="preserve">
     <value>Error</value>
   </data>
+  <data name="GameLogs" xml:space="preserve">
+    <value>Read game logs</value>
+  </data>
+  <data name="GameLogsDescription" xml:space="preserve">
+    <value>For debug perposes</value>
+  </data>
   <data name="General" xml:space="preserve">
     <value>General</value>
   </data>

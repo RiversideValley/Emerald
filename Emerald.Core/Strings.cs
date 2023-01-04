@@ -76,6 +76,13 @@
         Options,
         Duplicate,
         Select,
-        LoginWithMicrosoft
+        LoginWithMicrosoft,
+        Clear,
+        Save,
+        GettingInheritedVersion,
+        GettingOptifine,
+        LaunchingMinecraft,
+        ConfigureOptifine,
+        GameIsRunning
     }
 }

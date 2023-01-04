@@ -1,4 +1,5 @@
-﻿using Emerald.WinUI.Models;
+﻿using Emerald.Core;
+using Emerald.WinUI.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -30,11 +31,11 @@ namespace Emerald.WinUI.Helpers
                     l.SubVersions = new();
                     if (lr != null)
                     {
-                        l.SubVersions.Add(ReturnMCWithFabric(lr, "Latest Release", CmlLib.Core.Version.MVersionType.Release));
+                        l.SubVersions.Add(ReturnMCWithModLoaders(lr, "Latest Release", CmlLib.Core.Version.MVersionType.Release));
                     }
                     if (ls != null && ls.MType == CmlLib.Core.Version.MVersionType.Snapshot)
                     {
-                        l.SubVersions.Add(ReturnMCWithFabric(ls.Name, "Latest Snapshot", CmlLib.Core.Version.MVersionType.Snapshot));
+                        l.SubVersions.Add(ReturnMCWithModLoaders(ls.Name, "Latest Snapshot", CmlLib.Core.Version.MVersionType.Snapshot));
                     }
                     if (l.SubVersions.Count > 0)
                     {
@@ -154,11 +155,12 @@ namespace Emerald.WinUI.Helpers
             if (App.Launcher.MCVerNames.Contains(ver))
             {
                 var verMdata = App.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
-                if (!ConfigToList().Contains(verMdata.MType))
+                if (verMdata.Name.ToLower().Contains("optifine") || (!ConfigToList().Contains(verMdata.MType) && verMdata.MType != CmlLib.Core.Version.MVersionType.Custom))
                 {
                     return null;
                 }
                 var subVers = App.Launcher.GetSubVersions(ver);
+                subVers = subVers.Where(x => !x.ToLower().Contains("optifine")).ToArray();
                 if (subVers.Length > 1)
                 {
                     MinecraftVersion f = CreateItem(ver, ver);
@@ -166,9 +168,9 @@ namespace Emerald.WinUI.Helpers
                     foreach (var item in subVers)
                     {
                         var SverMdata = App.Launcher.MCVersions.Where(x => x.Name == item).FirstOrDefault();
-                        if (ConfigToList().Contains(SverMdata.MType))
+                        if (ConfigToList().Contains(SverMdata.MType) || SverMdata.MType == CmlLib.Core.Version.MVersionType.Custom)
                         {
-                            f.SubVersions.Add(ReturnMCWithFabric(item));
+                            f.SubVersions.Add(ReturnMCWithModLoaders(item));
                         }
                     }
                     return f;
@@ -188,9 +190,9 @@ namespace Emerald.WinUI.Helpers
                     foreach (var item in subVers)
                     {
                         var SverMdata = App.Launcher.MCVersions.Where(x => x.Name == item).FirstOrDefault();
-                        if (ConfigToList().Contains(SverMdata.MType))
+                        if (ConfigToList().Contains(SverMdata.MType) || (SverMdata.MType == CmlLib.Core.Version.MVersionType.Custom && !SverMdata.Name.ToLower().Contains("optifine")))
                         {
-                            f.SubVersions.Add(ReturnMCWithFabric(item));
+                            f.SubVersions.Add(ReturnMCWithModLoaders(item));
                         }
                     }
                     return f;
@@ -198,9 +200,9 @@ namespace Emerald.WinUI.Helpers
                 else if (subVers.Length == 1)
                 {
                     var SverMdata = App.Launcher.MCVersions.Where(x => x.Name == subVers.FirstOrDefault()).FirstOrDefault();
-                    if (ConfigToList().Contains(SverMdata.MType))
+                    if (ConfigToList().Contains(SverMdata.MType) || (SverMdata.MType == CmlLib.Core.Version.MVersionType.Custom && !SverMdata.Name.ToLower().Contains("optifine")))
                     {
-                        return ReturnMCWithFabric(subVers.FirstOrDefault());
+                        return ReturnMCWithModLoaders(subVers.FirstOrDefault());
                     }
                     else
                     {
@@ -213,25 +215,49 @@ namespace Emerald.WinUI.Helpers
                 }
             }
         }
-        private static MinecraftVersion ReturnMCWithFabric(string ver, string displayVer = null, CmlLib.Core.Version.MVersionType? type = null)
+        private static MinecraftVersion ReturnMCWithModLoaders(string ver, string displayVer = null, CmlLib.Core.Version.MVersionType? type = null)
         {
             string fabricVer = App.Launcher.SearchFabric(ver);
             var verMdata = App.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
-            if (string.IsNullOrEmpty(fabricVer))
+            MinecraftVersion Optifines = new();
+            if(App.Launcher.OptifineMCVersions != null && App.Launcher.OptifineMCVersions.Any())
             {
-                return displayVer == null ? CreateItem($"{ver} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType) : CreateItem($"{displayVer} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType);
+                var Optfvers = App.Launcher.OptifineMCVersions.Where(x => x.McVersion == ver);
+                if (Optfvers.Any())
+                {
+                    Optifines = CreateItem("Optifine", null);
+                    Optifines.SubVersions = new(Optfvers.Select(x => CreateItem($"{displayVer ?? x.McVersion} Optifine {x.Type}-{x.Patch}", x.ToFullVersion(), type ?? verMdata.MType, misc: x)).ToArray());
+                }
+            }
+            if (string.IsNullOrEmpty(fabricVer) && (Optifines == null || !Optifines.SubVersions.Any()))
+            {
+                return CreateItem($"{displayVer ?? ver} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType);
+            }
+            else if(string.IsNullOrEmpty(fabricVer) && Optifines != null && Optifines.SubVersions.Any())
+            {
+                var i = CreateItem(displayVer ?? ver, ver);
+                i.SubVersions = new()
+                {
+                    CreateItem($"{displayVer ?? ver} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType),
+                    Optifines
+                };
+                return i;
             }
             else
             {
                 var i = CreateItem(displayVer ?? ver, ver);
                 i.SubVersions = new()
                 {
-                    displayVer == null ? CreateItem($"{ver} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType) : CreateItem($"{displayVer} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType),
-                    displayVer == null ? CreateItem($"{ver} Fabric", "fabricMC-" + fabricVer,  type: type ?? verMdata.MType) : CreateItem($"{displayVer} Fabric", "fabricMC-" + fabricVer, type: type ?? verMdata.MType)
+                    CreateItem($"{displayVer ?? ver} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType),
+                    CreateItem($"{displayVer ?? ver} Fabric", "fabricMC-" + fabricVer,  type: type ?? verMdata.MType)
                 };
+                if(Optifines.SubVersions.Any())
+                {
+                    i.SubVersions.Add(Optifines);
+                }
                 return i;
             }
         }
-        private static MinecraftVersion CreateItem(string DisplayVer, string ver, CmlLib.Core.Version.MVersionType? type = null, string blockPath = "/Assets/icon.png") => new() { Type = type, Version = ver, DisplayVersion = DisplayVer, BlockImageLocation = blockPath };
+        private static MinecraftVersion CreateItem(string DisplayVer, string ver, CmlLib.Core.Version.MVersionType? type = null, string blockPath = "/Assets/icon.png",object misc = null) => new() { MISC = misc, Type = type, Version = ver, DisplayVersion = DisplayVer };
     }
 }

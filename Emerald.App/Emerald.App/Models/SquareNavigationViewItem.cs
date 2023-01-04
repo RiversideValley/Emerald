@@ -27,6 +27,9 @@ namespace Emerald.WinUI.Models
         private bool _ShowFontIcons;
         public bool ShowFontIcons { get => _ShowFontIcons; set => Set(ref _ShowFontIcons, value); }
 
+        private bool _IsEnabled = true;
+        public bool IsEnabled { get => _IsEnabled; set => Set(ref _IsEnabled, value); }
+
         private ImageSource _thumbnail;
         public ImageSource Thumbnail { get => _thumbnail; set => Set(ref _thumbnail, value); }
 

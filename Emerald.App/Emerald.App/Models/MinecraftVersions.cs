@@ -2,36 +2,41 @@
 using Microsoft.UI.Xaml;
 using System.Collections.ObjectModel;
 using System.Linq;
+using ProjBobcat.Class.Model.Optifine;
 namespace Emerald.WinUI.Models
 {
     public class MinecraftVersion : Model
     {
-        private string _Block;
         public string BlockImageLocation
         {
-            get
-            {
-                if (SubVersions.Count > 0)
-                {
-                    return SubVersions.Count <= 2 ? (SubVersions.FirstOrDefault().SubVersions.Count > 0 ? "/Assets/Blocks/Furnace_Burn.png" : "/Assets/Blocks/Furnace.png") : "/Assets/Blocks/Furnace_Burn.png";
-                }
-                else
-                {
-                    if (Version == null)
-                    {
-                        return "/Assets/Blocks/Dirt.png";
-                    }
-                    else if (_Version.Contains("fabric"))
-                    {
-                        return "/Assets/Blocks/Redstone.png";
-                    }
-                    else
-                    {
-                        return "/Assets/Blocks/Dirt.png";
-                    }
-                }
-            }
-            set => Set(ref _Block, value);
+            get => (MISC != null && MISC.GetType() == typeof(OptifineDownloadVersionModel)) || DisplayVersion == "Optifine"?
+                        "/Assets/Blocks/CraftingTable.png"
+                        :
+                        (SubVersions.Count > 0 ?
+                            (SubVersions.Count <= 3 ? 
+                                (SubVersions.FirstOrDefault().SubVersions.Count > 0 ? 
+                                    "/Assets/Blocks/Furnace_Burn.png" 
+                                    : 
+                                    "/Assets/Blocks/Furnace.png"
+                                ) 
+                            : 
+                            "/Assets/Blocks/Furnace_Burn.png"
+                            )
+                        :
+                        (Version == null ? 
+                            "/Assets/Blocks/Dirt.png" 
+                            : 
+                            (Version.ToLower().Contains("fabric") ? 
+                                "/Assets/Blocks/Redstone.png" 
+                                :
+                                (Version.ToLower().Contains("optifine") ? 
+                                    "/Assets/Blocks/CraftingTable.png" 
+                                    :
+                                    "/Assets/Blocks/Dirt.png"
+                                )
+                            )
+                        )
+                        );
         }
 
         public Visibility DescriptionVisibility
@@ -41,6 +46,7 @@ namespace Emerald.WinUI.Models
 
         private CmlLib.Core.Version.MVersionType? _Type;
         public CmlLib.Core.Version.MVersionType? Type { get => _Type; set => Set(ref _Type, value); }
+        public string TypeString =>  ("Type" + Type.ToString()).ToLocalizedString();
 
         private string _Version;
         public string Version { get => _Version; set => Set(ref _Version, value); }
@@ -50,15 +56,11 @@ namespace Emerald.WinUI.Models
 
         private ObservableCollection<MinecraftVersion> _SubVersions;
         public ObservableCollection<MinecraftVersion> SubVersions { get => _SubVersions ?? new(); set => Set(ref _SubVersions, value); }
-
+        public object MISC { get; set; }
         public string GetLaunchVersion()
         {
-            return Version.IsNullEmptyOrWhiteSpace() ? null :
-                (Version.StartsWith("fabricMC-") ? Version.Replace("fabricMC-", "") :
-                (Version.StartsWith("vanilla-") ? Version.Replace("vanilla-", "") :
-                Version
-                )
-                );
+            return Version.IsNullEmptyOrWhiteSpace()
+                ? null : (Version.StartsWith("fabricMC-") ? Version.Replace("fabricMC-", "") : (Version.StartsWith("vanilla-") ? Version.Replace("vanilla-", "") : Version));
         }
     }
 }

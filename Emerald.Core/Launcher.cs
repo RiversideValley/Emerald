@@ -7,6 +7,7 @@ using CmlLib.Utils;
 using Emerald.Core.Args;
 using Emerald.Core.Clients;
 using Emerald.Core.Tasks;
+using ProjBobcat.Class.Model.Optifine;
 using System.ComponentModel;
 using ProgressChangedEventArgs = Emerald.Core.Args.ProgressChangedEventArgs;
 
@@ -35,35 +36,27 @@ namespace Emerald.Core
         private bool _UIState;
         public bool UIState
         {
-            get => _UIState;
+            get => GameRuns ? false : _UIState;
             set => Set(ref _UIState, value);
+        }
+
+        private bool _GameRuns;
+        public bool GameRuns
+        {
+            get => _GameRuns;
+            set => Set(ref _GameRuns, value);
         }
         /// <summary>
         /// Checks whether the launcher is in Offline mode
         /// </summary>
-        public bool UseOfflineLoader { get { return offlineloader; } set { offlineloader = value; VersionLoaderChanged(this, new EventArgs()); } }
+        public bool UseOfflineLoader { get { return offlineloader; } private set { offlineloader = value; VersionLoaderChanged(this, new EventArgs()); } }
 
         /// <summary>
         /// The stirng list of Available Minecraft versions
         /// </summary>
         public List<string> MCVerNames
         {
-            get
-            {
-                if (MCVersions != null)
-                {
-                    List<string> temp = new List<string>();
-                    foreach (var item in MCVersions)
-                    {
-                        temp.Add(item.Name);
-                    }
-                    return temp;
-                }
-                else
-                {
-                    return new List<string>();
-                }
-            }
+            get => MCVersions != null ? MCVersions.Select(x => x.Name).ToList() : new();
         }
 
 
@@ -72,30 +65,24 @@ namespace Emerald.Core
         /// </summary>
         public List<string> FabricMCVerNames
         {
-            get
-            {
-                if (FabricMCVersions != null)
-                {
-                    List<string> temp = new List<string>();
-                    foreach (var item in FabricMCVersions)
-                    {
-                        temp.Add(item.Name);
-                    }
-                    return temp;
-                }
-                else
-                {
-                    return new List<string>();
-                }
-            }
+            get => FabricMCVersions != null ? FabricMCVersions.Select(x => x.Name).ToList() : new();
+        }
+
+        /// <summary>
+        /// The stirng list of Available Optifine versions
+        /// </summary>
+        public List<string> OptiFineMCVerNames
+        {
+            get => OptifineMCVersions != null ? OptifineMCVersions.Select(x => x.ToFullVersion()).ToList() : new();
         }
         public MVersionCollection MCVersions { get; private set; }
         public MVersionCollection FabricMCVersions { get; private set; }
+        public List<ProjBobcat.Class.Model.Optifine.OptifineDownloadVersionModel> OptifineMCVersions { get; private set; }
         public CMLauncher Launcher { get; set; }
         public GlacierClient GlacierClient { get; set; }
+        public Optifine Optifine { get; set; }
         public Emerald()
         {
-
             GlacierClient = new GlacierClient();
             GlacierClient.StatusChanged += GlacierClient_StatusChanged;
             GlacierClient.ProgressChanged += GlacierClient_ProgressChanged;
@@ -106,20 +93,23 @@ namespace Emerald.Core
         /// <summary>
         /// Creates a Minecraft <see cref="System.Diagnostics.Process"/> using the given <paramref name="ver"/> and <paramref name="launchOption"/>
         /// </summary>
-        public async Task<System.Diagnostics.Process?> CreateProcessAsync(string ver, MLaunchOption launchOption)
+        public async Task<System.Diagnostics.Process?> CreateProcessAsync(string ver, MLaunchOption launchOption,bool createTask = true)
         {
-            var id = TasksHelper.AddProgressTask(Localized.LaunchMC);
+            var id = createTask ? TasksHelper.AddProgressTask(Localized.LaunchMC) : default;
             int prog = 0;
             string message = "";
             void ProgChange(object sender, System.ComponentModel.ProgressChangedEventArgs e)
             {
-                TasksHelper.EditProgressTask(id, prog, message: message);
+                if (createTask)
+                    TasksHelper.EditProgressTask(id, prog, message: message);
+
                 prog = e.ProgressPercentage;
             };
             void FileChange(CmlLib.Core.Downloader.DownloadFileChangedEventArgs e)
             {
                 message = $"{e.FileKind} : {e.FileName} ({e.ProgressedFileCount}/{e.TotalFileCount})";
-                TasksHelper.EditProgressTask(id, prog, message: message);
+                if (createTask)
+                    TasksHelper.EditProgressTask(id, prog, message: message);
             };
             try
             {
@@ -128,14 +118,16 @@ namespace Emerald.Core
                 var p = await Launcher.CreateProcessAsync(ver, launchOption);
                 Launcher.ProgressChanged -= ProgChange;
                 Launcher.FileChanged -= FileChange;
-                TasksHelper.CompleteTask(id, true);
+                if (createTask)
+                    TasksHelper.CompleteTask(id, true);
                 return p;
             }
             catch (Exception ex)
             {
                 Launcher.ProgressChanged -= ProgChange;
                 Launcher.FileChanged -= FileChange;
-                TasksHelper.CompleteTask(id, false, ex.Message);
+                if (createTask)
+                    TasksHelper.CompleteTask(id, false, ex.Message);
                 return null;
             }
 
@@ -173,6 +165,59 @@ namespace Emerald.Core
                 return "";
             }
         }
+        public async Task<bool> ConfigureOptifine(OptifineDownloadVersionModel model)
+        {
+            double makePrcent(double value, double CurrentMax, double NextMax) => value * NextMax / CurrentMax;
+            if (UseOfflineLoader)
+                return MCVerNames.Contains(model.ToFullVersion());
+
+            var taskID = TasksHelper.AddProgressTask(Localized.ConfigureOptifine, message: Localized.GettingInheritedVersion.ToString());
+            string msg = "";
+            int prog = 0;
+            if (!MCVerNames.Contains(model.ToFullVersion()))
+            {
+                void ProgChange(object? sender, System.ComponentModel.ProgressChangedEventArgs e)
+                {
+                    msg = Localized.GettingInheritedVersion.ToString();
+                    prog = (int)Math.Round(makePrcent(e.ProgressPercentage, 100, 35));
+                    TasksHelper.EditProgressTask(taskID, prog, message: msg);
+                }
+                Launcher.ProgressChanged += ProgChange;
+                var VMCp = await CreateProcessAsync(model.McVersion, new(), false);
+                TasksHelper.EditProgressTask(taskID, 35, message: msg);
+                if (VMCp != null)
+                {
+                    void InstallerProgChange(object? sender, int e)
+                    {
+                        msg = Localized.GettingOptifine.ToString();
+                        prog = 35 + (int)Math.Round(makePrcent(e, 100, 65));
+                        TasksHelper.EditProgressTask(taskID, prog, message: msg);
+                    }
+                    Optifine.ProgressChanged += InstallerProgChange;
+                    var r = await Optifine.Save(model);
+                    if (!r.Item1)
+                    {
+                        TasksHelper.CompleteTask(taskID, false, r.Item2);
+                        return false;
+                    }
+                    TasksHelper.CompleteTask(taskID, true, r.Item2);
+                    await RefreshVersions(false);
+                    return true;
+                }
+                else
+                {
+                    TasksHelper.CompleteTask(taskID, false, "");
+                    return false;
+                }
+            }
+            else
+            {
+                TasksHelper.CompleteTask(taskID, true, "");
+                return true;
+            }
+        }
+
+
 
 
         /// <summary>
@@ -311,6 +356,7 @@ namespace Emerald.Core
             UI(false);
             UseOfflineLoader = false;
             Launcher = new CMLauncher(path);
+            Optifine = new(path);
             UI(true);
             TasksHelper.CompleteTask(taskID);
         }
@@ -323,9 +369,11 @@ namespace Emerald.Core
         /// <see cref="true"/> if succeed,
         /// <see cref="false"/> if failed
         /// </returns>
-        public async Task<bool> RefreshVersions()
+        public async Task<bool> RefreshVersions(bool UIchange = true)
         {
-            UI(false);
+            if (UIchange)
+                UI(false);
+
             int taskID = TasksHelper.AddTask(Localized.RefreshVers);
             try
             {
@@ -335,18 +383,24 @@ namespace Emerald.Core
                 {
                     var fabricVersionLoader = new FabricVersionLoader();
                     FabricMCVersions = await fabricVersionLoader.GetVersionMetadatasAsync();
+                    OptifineMCVersions = await Optifine.GetOptifineVersions();
                 }
                 Status(Localized.Ready);
                 VersionsRefreshed(this, new VersionsRefreshedEventArgs(true));
                 TasksHelper.CompleteTask(taskID, true);
-                UI(true);
+
+                if (UIchange)
+                    UI(true);
+
                 return true;
             }
             catch (Exception ex)
             {
                 TasksHelper.CompleteTask(taskID, false, ex.Message);
                 Status(Localized.Ready);
-                UI(true);
+                if (UIchange)
+                    UI(true);
+
                 VersionsRefreshed(this, new VersionsRefreshedEventArgs(false));
                 return false;
             }
@@ -366,40 +420,31 @@ namespace Emerald.Core
         /// <summary>
         /// Checks fabric whether it exists if not install it
         /// </summary>
-        public async Task<FabricResponsoe> CheckFabric(string mcver, string modver, string displayver)
+        public async Task<bool> InitializeFabric(string mcver, string fullVer)
         {
             int taskID = TasksHelper.AddTask($"{Localized.GetFabric} " + mcver);
-            string launchVer = "";
-            string displayVer = Localized.PickVer.ToString();
             bool exists = false;
-            await RefreshVersions();
             foreach (var veritem in FabricMCVersions)
             {
-                if (veritem.Name == modver)
+                if (veritem.Name == fullVer)
                 {
                     exists = true;
                 }
             }
             if (exists)
             {
-                launchVer = modver;
-                Status(Localized.GettingFabric);
                 UI(false);
-                var fabric = FabricMCVersions.GetVersionMetadata(launchVer);
+                var fabric = FabricMCVersions.GetVersionMetadata(fullVer);
                 await fabric.SaveAsync(Launcher.MinecraftPath);
                 await RefreshVersions();
                 UI(true);
-                Status(Localized.Ready);
-                launchVer = modver;
-                displayVer = displayver;
-                Status(Localized.Ready);
                 TasksHelper.CompleteTask(taskID, true);
-                return new FabricResponsoe(launchVer, displayVer, FabricResponsoe.Responses.ExistsOrCreated);
+                return true;
             }
             else
             {
                 TasksHelper.CompleteTask(taskID, false);
-                return new FabricResponsoe(launchVer, displayVer, FabricResponsoe.Responses.NotExists);
+                return false;
             }
         }
 

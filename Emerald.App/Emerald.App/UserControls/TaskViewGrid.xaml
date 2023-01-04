@@ -6,9 +6,9 @@
     xmlns:helpers="using:Emerald.WinUI.Helpers"
     xmlns:local="using:Emerald.WinUI.UserControls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Width="330"
+    Width="350"
     MinHeight="300"
-    MaxHeight="400"
+    MaxHeight="420"
     Margin="-12"
     mc:Ignorable="d">
     <Grid.RowDefinitions>

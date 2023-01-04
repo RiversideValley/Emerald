@@ -60,6 +60,7 @@
                 <DataTemplate x:DataType="models:SquareNavigationViewItem">
                     <NavigationViewItem
                                 Height="64"
+                        IsEnabled="{x:Bind IsEnabled,Mode=OneWay}"
                                 IsSelected="{x:Bind IsSelected, Mode=TwoWay}"
                                 Tag="{x:Bind Name}">
                         <Grid
@@ -86,12 +87,12 @@
                                 Width="28"
                                 Height="28"
                                 x:Name="Image"
-                                x:Load="{x:Bind SS:SettingsSystem.Settings.App.Appearance.ShowFontIcons.Equals(x:False),Mode=OneWay}"
+                                x:Load="{x:Bind ShowFontIcons.Equals(x:False),Mode=OneWay}"
                                 Source="{x:Bind Thumbnail}" />
                             <FontIcon 
                                 FontSize="22" 
                                 x:Name="fontIcon" 
-                                x:Load="{x:Bind SS:SettingsSystem.Settings.App.Appearance.ShowFontIcons,Mode=OneWay}"
+                                x:Load="{x:Bind ShowFontIcons,Mode=OneWay}"
                                 Glyph="{x:Bind FontIconGlyph}"/>
                             <TextBlock
                                 x:Name="txtNavItemName"
@@ -112,7 +113,7 @@
             </NavigationView.MenuItems>
             <NavigationView.FooterMenuItems>
                 <models:SquareNavigationViewItem FontIconGlyph="&#xE9D5;" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Tasks}" Thumbnail="Assets/NavigationViewIcons/tasks.png" InfoBadge="{x:Bind TasksInfoBadge}" IsSelected="False"/>
-                <models:SquareNavigationViewItem FontIconGlyph="&#xE756;" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Logs}" Thumbnail="Assets/NavigationViewIcons/logs.png" IsSelected="False"/>
+                <models:SquareNavigationViewItem FontIconGlyph="&#xE756;" IsEnabled="{x:Bind SS:SettingsSystem.Settings.Minecraft.ReadLogs(),Mode=OneWay}" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Logs}" Thumbnail="Assets/NavigationViewIcons/logs.png" IsSelected="False"/>
                 <models:SquareNavigationViewItem FontIconGlyph="&#xE713;" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Settings}" Thumbnail="Assets/NavigationViewIcons/settings.png" IsSelected="False"/>
             </NavigationView.FooterMenuItems>
             <Frame x:Name="frame" />

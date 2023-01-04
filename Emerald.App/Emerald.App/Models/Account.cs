@@ -13,7 +13,6 @@ namespace Emerald.WinUI.Models
         public int Count { get; set; }
         public bool Last { get; set; }
 
-
         // For app UI
         public string TypeIconGlyph { get => Type == AccountType.Offline ? "\xF384" : "\xEC05"; }
         public string ProfilePicture { get => Type != AccountType.Offline ? "https://minotar.net/avatar/" + UUID : "https://minotar.net/avatar/MHF_Steve"; }

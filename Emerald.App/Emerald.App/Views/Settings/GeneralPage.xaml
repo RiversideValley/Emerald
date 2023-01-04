@@ -98,6 +98,17 @@
                 Description="{helpers:Localize CustomName=JVMArgsDescription,RESW=Settings}">
                 <uc:ArgumentsListView/>
             </uc:Expander>
+            <uc:Expander 
+                IsEnabled="{x:Bind Main:App.Launcher.UIState,Mode=OneWay}"
+                Title="{helpers:Localize CustomName=GameLogs,RESW=Settings}"
+                Description="{helpers:Localize CustomName=GameLogsDescription,RESW=Settings}"
+                Icon="&#xE756;" 
+                ExpanderStyle="Static">
+                <ToggleSwitch 
+                    IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.JVM.GameLogs,Mode=TwoWay}"
+                    OnContent="{helpers:Localize Name=Yes}" 
+                    OffContent="{helpers:Localize Name=No}"/>
+            </uc:Expander>
         </StackPanel>
     </Grid>
 </Page>

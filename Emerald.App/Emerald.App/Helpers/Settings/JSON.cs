@@ -57,6 +57,10 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
     }
     public class Minecraft : JSON
     {
+        public Minecraft()
+        {
+            JVM.PropertyChanged += (_, _) => InvokePropertyChanged();
+        }
         public double RAMinGB => Math.Round(RAM / Math.Pow(1024, 1), 1);
         private string _Path;
         public string Path
@@ -79,7 +83,8 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public Account[] Accounts { get; set; }
         public Downloader Downloader { get; set; }
         public MCVerionsConfiguration MCVerionsConfiguration { get; set; }
-        public JVM JVM { get; set; }
+        public JVM JVM { get; set; } = new();
+        public bool ReadLogs() => JVM.GameLogs && !IsAdmin;
     }
     public class Account : JSON
     {
@@ -102,7 +107,12 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public int ScreenWidth { get; set; }
         public int ScreenHeight { get; set; }
         public bool FullScreen { get; set; }
-        public bool GameLogs { get; set; }
+        private bool _GameLogs;
+        public bool GameLogs
+        {
+            get => _GameLogs;
+            set => Set(ref _GameLogs, value, nameof(GameLogs));
+        }
     }
 
     public class App : JSON

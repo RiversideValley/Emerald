@@ -22,7 +22,7 @@ namespace Emerald.WinUI.UserControls
             get => GetValue(LeftPaneProperty);
             set => SetValue(LeftPaneProperty, value);
         }
-        private object RealLeft => GetValue(LeftPaneProperty) == null ? (GetValue(MiddlePaneProperty) != null ? GetValue(MiddlePaneProperty) : GetValue(RightPaneProperty)) : GetValue(LeftPaneProperty);
+        private object RealLeft => GetValue(LeftPaneProperty) ?? GetValue(MiddlePaneProperty) ?? GetValue(RightPaneProperty);
         public static DependencyProperty RightPaneProperty =
             DependencyProperty.Register("RightPane", typeof(object),
                 typeof(AdaptiveItemPane), new PropertyMetadata(null));
@@ -37,7 +37,7 @@ namespace Emerald.WinUI.UserControls
         public static DependencyProperty MiddlePaneProperty =
             DependencyProperty.Register("MiddlePane", typeof(object),
                 typeof(AdaptiveItemPane), new PropertyMetadata(null));
-        private object RealMiddle => GetValue(LeftPaneProperty) == null && GetValue(MiddlePaneProperty) != null ? (GetValue(RightPaneProperty) != null ? GetValue(RightPaneProperty) : null) : (GetValue(LeftPaneProperty) == null ? null : (GetValue(MiddlePaneProperty) == null ? GetValue(RightPaneProperty) : GetValue(MiddlePaneProperty)));
+        private object RealMiddle => GetValue(MiddlePaneProperty) != null ? (GetValue(LeftPaneProperty) == null ? GetValue(RightPaneProperty) : GetValue(MiddlePaneProperty)) : (GetValue(LeftPaneProperty) == null ? null : GetValue(RightPaneProperty));
         public object MiddlePane
         {
             get => GetValue(MiddlePaneProperty);
@@ -113,7 +113,7 @@ namespace Emerald.WinUI.UserControls
         private void PerformResize(double width)
         {
             int margin = StretchContent ? (MiddlePane == null ? 12 : 24) : 0;
-            bool NoRight = RightPane == null;
+            bool NoRight = RealRight == null;
             if (width - margin < MainBreakpoint && width - margin < LeftMiddleBreakpoint)
                 VisualStateManager.GoToState(this, IsStackedCenter ? "StackedCenter" : "Stacked", false);
             else if (width - margin < MainBreakpoint)

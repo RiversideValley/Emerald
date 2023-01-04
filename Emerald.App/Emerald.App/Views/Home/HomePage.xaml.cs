@@ -10,13 +10,18 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using ProjBobcat.Class.Model;
+using ProjBobcat.Class.Model.Optifine;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
+using Windows.Security.Authentication.Web.Provider;
 using Windows.System;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 namespace Emerald.WinUI.Views.Home
@@ -38,6 +43,12 @@ namespace Emerald.WinUI.Views.Home
         {
             get => _Session;
             set => Set(ref _Session, value);
+        }
+        private string _Logs = "";
+        public string Logs
+        {
+            get => _Logs;
+            set => Set(ref _Logs, value ?? "", nameof(Logs));
         }
         public Account SessionAsAccount
         {
@@ -82,6 +93,12 @@ namespace Emerald.WinUI.Views.Home
                 SecondaryFrame.Visibility = Visibility.Collapsed;
                 AccountsPage.UpdateMainSource();
             };
+            if (SS.Settings.Minecraft.Accounts != null && SS.Settings.App.AutoLogin)
+            {
+                AccountsPage.UpdateSource();
+                var l = AccountsPage.Accounts.Where(x => x.Last);
+                Session = l.Any() ? l.FirstOrDefault().ToMSession() : null;
+            }
             if (SystemInformation.Instance.IsFirstRun)
             {
                 ShowTips();
@@ -215,9 +232,55 @@ namespace Emerald.WinUI.Views.Home
             AccountsPage.UpdateSource();
         }
         private bool UI(bool value) => App.Launcher.UIState = value;
+        private async Task Launch()
+        {
+            UI(false);
+            var verItm = (VersionButton.Content as Models.MinecraftVersion);
+            var ver = verItm.GetLaunchVersion();
+            if (verItm.Version.StartsWith("fabricMC"))
+            {
+                await App.Launcher.InitializeFabric(verItm.DisplayVersion.Replace(" Fabric", ""), ver);
+            }
+            else if (verItm.MISC != null)
+            {
+                if (verItm.MISC is OptifineDownloadVersionModel model)
+                {
+                    var r = await App.Launcher.ConfigureOptifine(model);
+                    if (r)
+                        ver = model.ToFullVersion();
+                    else
+                        return;
+                }
+            }
+            if (DirectResoucres.MinRAM == 0) { _ = await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.WrongRAM.ToLocalizedString(), MessageBoxButtons.Ok); return; }
+            if (SS.Settings.Minecraft.RAM == 0) { _ = await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.WrongRAM.ToLocalizedString(), MessageBoxButtons.Ok); return; }
+            App.Launcher.Launcher.FileDownloader = new AsyncParallelDownloader();
+            var l = new MLaunchOption
+            {
+                MinimumRamMb = DirectResoucres.MinRAM,
+                MaximumRamMb = SS.Settings.Minecraft.RAM,
+                Session = Session,
+            };
+
+            if (SS.Settings.Minecraft.JVM.ScreenWidth != 0 && SS.Settings.Minecraft.JVM.ScreenHeight != 0)
+            {
+                l.ScreenWidth = SS.Settings.Minecraft.JVM.ScreenWidth;
+                l.ScreenHeight = SS.Settings.Minecraft.JVM.ScreenHeight;
+            }
+            l.FullScreen = SS.Settings.Minecraft.JVM.FullScreen;
+            l.JVMArguments = SS.Settings.Minecraft.JVM.Arguments;
+            var process = await App.Launcher.CreateProcessAsync(ver, l);
+            if (process != null)
+            {
+                StartProcess(process);
+            }
+            UI(true);
+        }
         private async void LaunchButton_Click(object sender, RoutedEventArgs e)
         {
-            var ver = (VersionButton.Content as Models.MinecraftVersion).GetLaunchVersion();
+
+            var verItm = (VersionButton.Content as Models.MinecraftVersion);
+            var ver = verItm.GetLaunchVersion();
             if (Session == null)
             {
                 if (await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.BegLogIn.ToLocalizedString(), MessageBoxButtons.OkCancel) == MessageBoxResults.Ok)
@@ -248,30 +311,33 @@ namespace Emerald.WinUI.Views.Home
                 VersionButton_Click(null, null);
                 return;
             }
-            if (DirectResoucres.MinRAM == 0) { _ = await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.WrongRAM.ToLocalizedString(), MessageBoxButtons.Ok); return; }
-            if (SS.Settings.Minecraft.RAM == 0) { _ = await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.WrongRAM.ToLocalizedString(), MessageBoxButtons.Ok); return; }
-            App.Launcher.Launcher.FileDownloader = new AsyncParallelDownloader();
-            var l = new MLaunchOption
+            await Launch();
+        }
+        public Process GameProcess { get; private set; }
+        private void StartProcess(Process process)
+        {
+            GameProcess = process;
+            if (SS.Settings.Minecraft.ReadLogs())
             {
-                MinimumRamMb = DirectResoucres.MinRAM,
-                MaximumRamMb = SS.Settings.Minecraft.RAM,
-                Session = Session,
-            };
-
-            if (SS.Settings.Minecraft.JVM.ScreenWidth != 0 && SS.Settings.Minecraft.JVM.ScreenHeight != 0)
-            {
-                l.ScreenWidth = SS.Settings.Minecraft.JVM.ScreenWidth;
-                l.ScreenHeight = SS.Settings.Minecraft.JVM.ScreenHeight;
+                GameProcess.EnableRaisingEvents = true;
+                GameProcess.StartInfo.RedirectStandardOutput = true;
+                GameProcess.StartInfo.RedirectStandardError = true;
+                GameProcess.OutputDataReceived += (s, e) => App.MainWindow.DispatcherQueue.TryEnqueue(() => Logs += "\n" + e.Data);
+                GameProcess.ErrorDataReceived += (s, e) => App.MainWindow.DispatcherQueue.TryEnqueue(() => Logs += "\n" + e.Data);
             }
-            l.FullScreen = SS.Settings.Minecraft.JVM.FullScreen;
-            l.JVMArguments = SS.Settings.Minecraft.JVM.Arguments;
-            var process = await App.Launcher.CreateProcessAsync(ver, l);
-            if (process != null)
+            var t = new Thread(async () => 
             {
-                //StartProcess(process);
-            }
-
-            (await App.Launcher.CreateProcessAsync(ver, new() { DockName = "Test", Session = MSession.GetOfflineSession("Noob"), MaximumRamMb = 4096, MinimumRamMb = 1024 })).Start();
+                App.MainWindow.DispatcherQueue.TryEnqueue(() => App.Launcher.GameRuns = true);
+                GameProcess.Start();
+                if (SS.Settings.Minecraft.ReadLogs())
+                {
+                    GameProcess.BeginErrorReadLine();
+                    GameProcess.BeginOutputReadLine();
+                }
+                await GameProcess.WaitForExitAsync();
+                App.MainWindow.DispatcherQueue.TryEnqueue(() => App.Launcher.GameRuns = false);
+            });
+            t.Start();
         }
     }
 }

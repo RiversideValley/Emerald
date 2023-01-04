@@ -43,8 +43,8 @@
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         TextTrimming="CharacterEllipsis"
                         Visibility="{x:Bind DescriptionVisibility}">
-                        <Run Text="{x:Bind Type.Value}" />
-                        |<Run Text="{x:Bind Version}" /></TextBlock>
+                        <Run Text="{x:Bind TypeString}" />
+                        | <Run Text="{x:Bind Version}" /></TextBlock>
                 </StackPanel>
             </Grid>
         </DataTemplate>
@@ -53,7 +53,7 @@
         <SplitView
             x:Name="paneVersions"
             DisplayMode="Inline"
-            OpenPaneLength="300"
+            OpenPaneLength="350"
             CornerRadius="7"
             PaneBackground="{ThemeResource LayerFillColorDefaultBrush}"
             PanePlacement="Left">
@@ -147,22 +147,22 @@
                                     <ToggleMenuFlyoutItem
                                         Click="tglMitVerSort_Click"
                                         IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Release, Mode=TwoWay}"
-                                        Text="{helpers:Localize CustomName=Release}" />
+                                        Text="{helpers:Localize CustomName=TypeRelease}" />
                                     <ToggleMenuFlyoutItem
                                         Click="tglMitVerSort_Click"
-                                        Text="{helpers:Localize CustomName=Snapshot}"
+                                        Text="{helpers:Localize CustomName=TypeSnapshot}"
                                         IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Snapshot, Mode=TwoWay}" />
                                     <ToggleMenuFlyoutItem
                                         Click="tglMitVerSort_Click"
-                                        Text="{helpers:Localize CustomName=OldBeta}"
+                                        Text="{helpers:Localize CustomName=TypeOldBeta}"
                                         IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.OldBeta, Mode=TwoWay}" />
                                     <ToggleMenuFlyoutItem
                                         Click="tglMitVerSort_Click"
-                                        Text="{helpers:Localize CustomName=OldAlpha}"
+                                        Text="{helpers:Localize CustomName=TypeOldAlpha}"
                                         IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.OldAlpha, Mode=TwoWay}" />
                                     <ToggleMenuFlyoutItem
                                         Click="tglMitVerSort_Click"
-                                        Text="{helpers:Localize CustomName=Custom}"
+                                        Text="{helpers:Localize CustomName=TypeCustom}"
                                         IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Custom, Mode=TwoWay}" />
                                 </MenuFlyout>
                             </DropDownButton.Flyout>
@@ -264,6 +264,7 @@
                                                     FontSize="20"
                                                     FontWeight="SemiBold" />
                                                 <TextBlock
+                                            TextTrimming="CharacterEllipsis"
                                                     x:Name="type"
                                                     Text="{x:Bind TypeString}"
                                                     Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
@@ -273,12 +274,13 @@
                                 </HyperlinkButton.ContentTemplate>
                             </HyperlinkButton>
                         </uc:AdaptiveItemPane.LeftPane>
-                        <uc:AdaptiveItemPane.MiddlePane>
+                        <uc:AdaptiveItemPane.RightPane>
                             <StackPanel
                                 Spacing="3"
-                                HorizontalAlignment="Right"
+                                HorizontalAlignment="Left"
                                 VerticalAlignment="Center">
-                                <Button
+                                <HyperlinkButton
+                                    Foreground="{ThemeResource ApplicationForegroundThemeBrush}"
                                     Grid.Row="0"
                                     Height="30"
                                     HorizontalContentAlignment="Left"
@@ -300,8 +302,9 @@
                                             Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
                                             Text="News" />
                                     </StackPanel>
-                                </Button>
-                                <Button
+                                </HyperlinkButton>
+                                <HyperlinkButton
+                                    Foreground="{ThemeResource ApplicationForegroundThemeBrush}"
                                     HorizontalContentAlignment="Left"
                                     HorizontalAlignment="Stretch"
                                     Grid.Row="0"
@@ -323,9 +326,9 @@
                                             Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
                                             Text="Changelogs" />
                                     </StackPanel>
-                                </Button>
+                                </HyperlinkButton>
                             </StackPanel>
-                        </uc:AdaptiveItemPane.MiddlePane>
+                        </uc:AdaptiveItemPane.RightPane>
                     </uc:AdaptiveItemPane>
                 </Grid>
                 <Grid

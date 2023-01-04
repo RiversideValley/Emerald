@@ -1,15 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
-    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-    <RootNamespace>Emerald.WinUI</RootNamespace>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Platforms>x86;x64;arm64</Platforms>
-    <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
-    <UseWinUI>true</UseWinUI>
-    <Configurations>Debug;Release;SkipOld</Configurations>
-    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+	  <OutputType>WinExe</OutputType>
+	  <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
+	  <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+	  <RootNamespace>Emerald.WinUI</RootNamespace>
+	  <ApplicationManifest>app.manifest</ApplicationManifest>
+	  <Platforms>x86;x64;arm64</Platforms>
+	  <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
+	  <UseWinUI>true</UseWinUI>
+	  <Configurations>Debug;Release</Configurations>
 	  <Nullable>enable</Nullable>
 	  <DefineConstants>DISABLE_XAML_GENERATED_MAIN</DefineConstants>
   </PropertyGroup>
@@ -27,6 +26,7 @@
     <None Remove="Views\HomePage.xaml" />
     <None Remove="Views\Home\AccountsPage.xaml" />
     <None Remove="Views\Home\NewsPage.xaml" />
+    <None Remove="Views\LogsPage.xaml" />
     <None Remove="Views\Settings\AboutPage.xaml" />
     <None Remove="Views\Settings\AccountPage.xaml" />
     <None Remove="Views\Settings\AppearancePage.xaml" />
@@ -43,6 +43,7 @@
 	  <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.221209.1" />
 	  <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.25267-preview" />
 	  <PackageReference Include="PInvoke.User32" Version="0.7.124" />
+	  <PackageReference Include="ProjBobcat" Version="1.16.0" />
 	  <PackageReference Include="WinUIEx" Version="2.0.0" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
@@ -71,6 +72,12 @@
     <Content Update="Assets\icon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\LogsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <ItemGroup>
