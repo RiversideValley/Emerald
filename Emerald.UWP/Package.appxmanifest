@@ -9,7 +9,7 @@
   IgnorableNamespaces="uap mp rescap uap5">
 
   <Identity
-    Name="Depth.EmeraldLauncher"
+    Name="Andrexial.EmeraldLauncher"
     Version="0.5.3.0"  Publisher="CN=Depth"/>
 
   <mp:PhoneIdentity PhoneProductId="9b2d8a86-7ce1-4016-bf2c-24e12b903639" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
@@ -36,9 +36,9 @@
         DisplayName="Emerald"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
-        Description="A powerful redesigned Minecraft Launcher"
+        Description="A swift Minecraft launcher made using UWP technologies in the fast C# language that really pushes the boundary of the platform."
         BackgroundColor="transparent">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png" ShortName="SDLauncher">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png" ShortName="Emerald">
           <uap:ShowNameOnTiles>
             <uap:ShowOn Tile="square150x150Logo"/>
           </uap:ShowNameOnTiles>
