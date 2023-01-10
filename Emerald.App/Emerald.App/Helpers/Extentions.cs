@@ -64,6 +64,7 @@ namespace Emerald.WinUI.Helpers
                 DefaultButton = defaultButton,
                 Content = content
             };
+            dialog.RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme;
             return dialog;
         }
         public static int Remove<T>(this ObservableCollection<T> coll, Func<T, bool> condition)
@@ -113,7 +114,7 @@ namespace Emerald.WinUI.Helpers
 
             return sb.ToString();
         }
-        public static string ToLocalizedString(this string resourceKey, string resw = null)
+        public static string Localize(this string resourceKey, string resw = null)
         {
             try
             {
@@ -133,7 +134,7 @@ namespace Emerald.WinUI.Helpers
                 return resourceKey.ToString();
             }
         }
-        public static string ToLocalizedString(this Core.Localized resourceKey, string resw = null)
+        public static string Localize(this Core.Localized resourceKey, string resw = null)
         {
             try
             {

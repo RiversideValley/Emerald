@@ -3,21 +3,6 @@ using Newtonsoft.Json;
 
 namespace Emerald.Core
 {
-    public static class JSONConverter
-    {
-        public static LabrinthResults.SearchResult ConvertToLabrinthSearchResult(string json)
-        {
-            return JsonConvert.DeserializeObject<LabrinthResults.SearchResult>(json);
-        }
-        public static LabrinthResults.ModrinthProject ConvertToLabrinthProject(string json)
-        {
-            return JsonConvert.DeserializeObject<LabrinthResults.ModrinthProject>(json);
-        }
-        public static List<LabrinthResults.DownloadManager.DownloadLink> ConvertDownloadLinksToCS(string json)
-        {
-            return JsonConvert.DeserializeObject<List<LabrinthResults.DownloadManager.DownloadLink>>(json);
-        }
-    }
     public static class Util
     {
         public static bool FolderExists(string path)
@@ -66,7 +51,7 @@ namespace Emerald.Core
 
         private HttpClient _httpClient;
 
-        public delegate void ProgressChangedHandler(long? totalFileSize, long totalBytesDownloaded, double? progressPercentage);
+        public delegate void ProgressChangedHandler(long? totalFileSize, long totalBytesDownloaded, double progressPercentage);
 
         public event ProgressChangedHandler ProgressChanged;
 
@@ -130,7 +115,7 @@ namespace Emerald.Core
             if (ProgressChanged == null)
                 return;
 
-            double? progressPercentage = null;
+            double progressPercentage = double.NaN;
             if (totalDownloadSize.HasValue)
                 progressPercentage = Math.Round((double)totalBytesRead / totalDownloadSize.Value * 100, 2);
 

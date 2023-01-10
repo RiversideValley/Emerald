@@ -71,7 +71,7 @@ namespace Emerald.WinUI.Views.Settings
         {
             var VerData = new DataPackage();
             VerData.RequestedOperation = DataPackageOperation.Copy;
-            VerData.SetText($"{"Version".ToLocalizedString()}: {DirectResoucres.AppVersion}\n{"BuildType".ToLocalizedString()}: {DirectResoucres.BuildType}");
+            VerData.SetText($"{"Version".Localize()}: {DirectResoucres.AppVersion}\n{"BuildType".Localize()}: {DirectResoucres.BuildType}");
             Clipboard.SetContent(VerData);
         }
 
@@ -95,7 +95,7 @@ namespace Emerald.WinUI.Views.Settings
                 if (!await WindowsHello.Authenticate())
                 {
                     tglWinHello.IsOn = true;
-                    _ = MessageBox.Show("Error".ToLocalizedString("Settings"), "WinHelloChangeFailed".ToLocalizedString("Settings"), MessageBoxButtons.Ok);
+                    _ = MessageBox.Show("Error".Localize("Settings"), "WinHelloChangeFailed".Localize("Settings"), MessageBoxButtons.Ok);
                 }
                 else
                 {
@@ -135,7 +135,7 @@ namespace Emerald.WinUI.Views.Settings
                         Text = $"```json\n{b.Backup}\n```",
                         TextWrapping = TextWrapping.WrapWholeWords
                     }
-                }.ToContentDialog($"{b.Time.ToLongDateString()} {b.Time.ToShortTimeString()}", Localized.OK.ToLocalizedString()).ShowAsync();
+                }.ToContentDialog($"{b.Time.ToLongDateString()} {b.Time.ToShortTimeString()}", Localized.OK.Localize()).ShowAsync();
             }
         }
     }

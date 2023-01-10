@@ -7,14 +7,14 @@ using System.Linq;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 namespace Emerald.WinUI.Helpers
 {
-    public static class MCVersionsCreator
+    public class MCVersionsCreator
     {
-        private static ObservableCollection<MinecraftVersion> Collection;
-        public static MinecraftVersion GetNotSelectedVersion()
+        private ObservableCollection<MinecraftVersion> Collection;
+        public MinecraftVersion GetNotSelectedVersion()
         {
-            return new MinecraftVersion() { DisplayVersion = Core.Localized.PickVer.ToLocalizedString() };
+            return new MinecraftVersion() { DisplayVersion = Core.Localized.PickVer.Localize() };
         }
-        public static ObservableCollection<MinecraftVersion> CreateVersions()
+        public ObservableCollection<MinecraftVersion> CreateVersions()
         {
             Collection = new();
             if (App.Launcher.MCVersions != null && App.Launcher.MCVersions.Any())
@@ -27,15 +27,15 @@ namespace Emerald.WinUI.Helpers
                 {
                     var lr = App.Launcher.MCVersions.LatestReleaseVersion?.Name;
                     var ls = App.Launcher.MCVersions.LatestSnapshotVersion;
-                    var l = CreateItem("Latest", "latest");
+                    var l = CreateItem("Latest".Localize(), "latest");
                     l.SubVersions = new();
                     if (lr != null)
                     {
-                        l.SubVersions.Add(ReturnMCWithModLoaders(lr, "Latest Release", CmlLib.Core.Version.MVersionType.Release));
+                        l.SubVersions.Add(ReturnMCWithModLoaders(lr, $"{"Latest".Localize()} {"TypeRelease".Localize()}", CmlLib.Core.Version.MVersionType.Release));
                     }
                     if (ls != null && ls.MType == CmlLib.Core.Version.MVersionType.Snapshot)
                     {
-                        l.SubVersions.Add(ReturnMCWithModLoaders(ls.Name, "Latest Snapshot", CmlLib.Core.Version.MVersionType.Snapshot));
+                        l.SubVersions.Add(ReturnMCWithModLoaders(ls.Name, $"{"Latest".Localize()} {"TypeSnapshot".Localize()}", CmlLib.Core.Version.MVersionType.Snapshot));
                     }
                     if (l.SubVersions.Count > 0)
                     {
@@ -66,7 +66,7 @@ namespace Emerald.WinUI.Helpers
             }
             return Collection;
         }
-        public static ObservableCollection<MinecraftVersion> CreateAllVersions()
+        public ObservableCollection<MinecraftVersion> CreateAllVersions()
         {
             if (App.Launcher.UseOfflineLoader)
             {
@@ -111,7 +111,7 @@ namespace Emerald.WinUI.Helpers
                 return new ObservableCollection<MinecraftVersion>(l);
             }
         }
-        private static void AddItem(string ver)
+        private void AddItem(string ver)
         {
             var m = GetFromStrings(ver);
             if (m != null && !(m.Type == null && m.SubVersions.Count == 0))
@@ -119,9 +119,9 @@ namespace Emerald.WinUI.Helpers
                 Collection.Add(m);
             }
         }
-        private static MinecraftVersion LoadCustomVers()
+        private MinecraftVersion LoadCustomVers()
         {
-            var m = CreateItem("Custom", "custom");
+            var m = CreateItem("TypeCustom".Localize(), "custom");
             var sub = App.Launcher.MCVersions.Where(x => x.MType == CmlLib.Core.Version.MVersionType.Custom);
             m.SubVersions = new();
             if (sub != null && sub.Any())
@@ -140,7 +140,7 @@ namespace Emerald.WinUI.Helpers
                 return null;
             }
         }
-        private static List<CmlLib.Core.Version.MVersionType> ConfigToList(bool custom = false)
+        private List<CmlLib.Core.Version.MVersionType> ConfigToList(bool custom = false)
         {
             var list = new List<CmlLib.Core.Version.MVersionType>();
             if (SS.Settings.Minecraft.MCVerionsConfiguration.Release) { list.Add(CmlLib.Core.Version.MVersionType.Release); }
@@ -150,7 +150,7 @@ namespace Emerald.WinUI.Helpers
             if (SS.Settings.Minecraft.MCVerionsConfiguration.Custom && custom) { list.Add(CmlLib.Core.Version.MVersionType.Custom); }
             return list;
         }
-        private static MinecraftVersion GetFromStrings(string ver)
+        private MinecraftVersion GetFromStrings(string ver)
         {
             if (App.Launcher.MCVerNames.Contains(ver))
             {
@@ -215,7 +215,7 @@ namespace Emerald.WinUI.Helpers
                 }
             }
         }
-        private static MinecraftVersion ReturnMCWithModLoaders(string ver, string displayVer = null, CmlLib.Core.Version.MVersionType? type = null)
+        private MinecraftVersion ReturnMCWithModLoaders(string ver, string displayVer = null, CmlLib.Core.Version.MVersionType? type = null)
         {
             string fabricVer = App.Launcher.SearchFabric(ver);
             var verMdata = App.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
@@ -258,6 +258,6 @@ namespace Emerald.WinUI.Helpers
                 return i;
             }
         }
-        private static MinecraftVersion CreateItem(string DisplayVer, string ver, CmlLib.Core.Version.MVersionType? type = null, string blockPath = "/Assets/icon.png",object misc = null) => new() { MISC = misc, Type = type, Version = ver, DisplayVersion = DisplayVer };
+        private MinecraftVersion CreateItem(string DisplayVer, string ver, CmlLib.Core.Version.MVersionType? type = null, string blockPath = "/Assets/icon.png",object misc = null) => new() { MISC = misc, Type = type, Version = ver, DisplayVersion = DisplayVer };
     }
 }

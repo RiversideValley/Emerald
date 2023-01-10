@@ -6,6 +6,7 @@ using CmlLib.Core.VersionLoader;
 using CmlLib.Utils;
 using Emerald.Core.Args;
 using Emerald.Core.Clients;
+using Emerald.Core.News;
 using Emerald.Core.Tasks;
 using ProjBobcat.Class.Model.Optifine;
 using System.ComponentModel;
@@ -77,10 +78,11 @@ namespace Emerald.Core
         }
         public MVersionCollection MCVersions { get; private set; }
         public MVersionCollection FabricMCVersions { get; private set; }
-        public List<ProjBobcat.Class.Model.Optifine.OptifineDownloadVersionModel> OptifineMCVersions { get; private set; }
-        public CMLauncher Launcher { get; set; }
+        public List<OptifineDownloadVersionModel> OptifineMCVersions { get; private set; }
+        public CMLauncher Launcher { get; private set; }
         public GlacierClient GlacierClient { get; set; }
-        public Optifine Optifine { get; set; }
+        public Optifine Optifine { get; private set; }
+        public NewsHelper News { get; private set; } = new();
         public Emerald()
         {
             GlacierClient = new GlacierClient();
@@ -91,7 +93,7 @@ namespace Emerald.Core
         }
 
         /// <summary>
-        /// Creates a Minecraft <see cref="System.Diagnostics.Process"/> using the given <paramref name="ver"/> and <paramref name="launchOption"/>
+        /// Creates a Minecraft <see cref="System.Diagnostics.Process"/> using the given <paramref name="ver"/> and <paramref name="launchOption"/>(s)
         /// </summary>
         public async Task<System.Diagnostics.Process?> CreateProcessAsync(string ver, MLaunchOption launchOption,bool createTask = true)
         {

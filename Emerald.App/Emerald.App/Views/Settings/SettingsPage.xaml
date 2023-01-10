@@ -10,7 +10,7 @@
     mc:Ignorable="d">
 
     <Grid>
-        <NavigationView IsBackButtonVisible="Collapsed" IsSettingsVisible="False" AlwaysShowHeader="True" ItemInvoked="navView_ItemInvoked" x:Name="navView" PaneDisplayMode="Top">
+        <NavigationView Background="Transparent" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" AlwaysShowHeader="True" ItemInvoked="navView_ItemInvoked" x:Name="navView" PaneDisplayMode="Top">
             <NavigationView.HeaderTemplate>
                 <DataTemplate x:DataType="x:String">
                     <TextBlock Text="{x:Bind}" Margin="-25,-25,0,0"/>

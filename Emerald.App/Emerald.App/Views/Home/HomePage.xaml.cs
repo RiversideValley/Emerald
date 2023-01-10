@@ -52,7 +52,7 @@ namespace Emerald.WinUI.Views.Home
         }
         public Account SessionAsAccount
         {
-            get => Session == null ? new MSession(Localized.Login.ToLocalizedString(), "fake", null).ToAccount(false) : Session.ToAccount(false);
+            get => Session == null ? new MSession(Localized.Login.Localize(), "fake", null).ToAccount(false) : Session.ToAccount(false);
         }
         public AccountsPage AccountsPage { get; private set; }
         public HomePage()
@@ -72,12 +72,12 @@ namespace Emerald.WinUI.Views.Home
                 if (e.PropertyName == "Path")
                 {
                     App.Launcher.InitializeLauncher(new MinecraftPath(SS.Settings.Minecraft.Path));
-                    VersionButton.Content = MCVersionsCreator.GetNotSelectedVersion();
+                    VersionButton.Content = new MCVersionsCreator().GetNotSelectedVersion();
                     _ = App.Launcher.RefreshVersions();
                 }
             };
             App.Launcher.VersionsRefreshed += Launcher_VersionsRefreshed;
-            VersionButton.Content = MCVersionsCreator.GetNotSelectedVersion();
+            VersionButton.Content = new MCVersionsCreator().GetNotSelectedVersion();
             btnCloseVerPane.Click += (_, _) => paneVersions.IsPaneOpen = false;
             _ = App.Launcher.RefreshVersions();
             AccountsPage = new();
@@ -109,10 +109,10 @@ namespace Emerald.WinUI.Views.Home
             var tip = new TeachingTip()
             {
                 IsLightDismissEnabled = true,
-                Title = Localized.Welcome.ToLocalizedString(),
-                Subtitle = Localized.NewHere.ToLocalizedString(),
-                ActionButtonContent = Localized.Sure.ToLocalizedString(),
-                CloseButtonContent = Localized.NoThanks.ToLocalizedString(),
+                Title = Localized.Welcome.Localize(),
+                Subtitle = Localized.NewHere.Localize(),
+                ActionButtonContent = Localized.Sure.Localize(),
+                CloseButtonContent = Localized.NoThanks.Localize(),
                 ActionButtonStyle = App.Current.Resources["AccentButtonStyle"] as Style,
                 Background = App.Current.Resources["AcrylicInAppFillColorDefaultBrush"] as AcrylicBrush
             };
@@ -147,7 +147,7 @@ namespace Emerald.WinUI.Views.Home
             {
                 if (!App.Launcher.UseOfflineLoader)
                 {
-                    var r = await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.RefreshVerFailed.ToLocalizedString(), MessageBoxButtons.Custom, Localized.Retry.ToLocalizedString(), Localized.SwitchOffline.ToLocalizedString());
+                    var r = await MessageBox.Show(Localized.Error.Localize(), Localized.RefreshVerFailed.Localize(), MessageBoxButtons.Custom, Localized.Retry.Localize(), Localized.SwitchOffline.Localize());
                     // MessageBox.Show(Helpers.Settings.SettingsSystem.Serialize());
                     if (r == MessageBoxResults.CustomResult1)
                     {
@@ -161,7 +161,7 @@ namespace Emerald.WinUI.Views.Home
                 }
                 else
                 {
-                    await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.UnexpectedRestart.ToLocalizedString(), MessageBoxButtons.Ok);
+                    await MessageBox.Show(Localized.Error.Localize(), Localized.UnexpectedRestart.Localize(), MessageBoxButtons.Ok);
                     await CoreApplication.RequestRestartAsync("");
                 }
             }
@@ -185,28 +185,29 @@ namespace Emerald.WinUI.Views.Home
             btnVerSort.IsEnabled = !App.Launcher.UseOfflineLoader;
             txtVerOfflineMode.Visibility = App.Launcher.UseOfflineLoader ? Visibility.Visible : Visibility.Collapsed;
             treeVer.ItemsSource = null;
-            treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
-            txtEmptyVers.Visibility = !(treeVer.ItemsSource as IEnumerable<Models.MinecraftVersion>).Any() ? Visibility.Visible : Visibility.Collapsed;
+            treeVer.ItemsSource = new MCVersionsCreator().CreateVersions();
+            txtEmptyVers.Visibility = !(treeVer.ItemsSource as ObservableCollection<Models.MinecraftVersion>).Any() ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void txtbxFindVer_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
+            var vers = new MCVersionsCreator().CreateVersions();
             var suitableItems = new ObservableCollection<Models.MinecraftVersion>();
             var splitText = sender.Text.ToLower().Split(" ");
-            foreach (var cat in MCVersionsCreator.CreateAllVersions())
+            foreach (var ver in vers)
             {
                 var found = splitText.All((key) =>
                 {
-                    return cat.Version.ToLower().Contains(key);
+                    return ver.Version.ToLower().Contains(key);
                 });
                 if (found)
                 {
-                    suitableItems.Add(cat);
+                    suitableItems.Add(ver);
                 }
             }
             if (string.IsNullOrEmpty(txtbxFindVer.Text))
             {
-                treeVer.ItemsSource = MCVersionsCreator.CreateVersions();
+                treeVer.ItemsSource = new MCVersionsCreator().CreateVersions();
             }
             else
             {
@@ -252,8 +253,8 @@ namespace Emerald.WinUI.Views.Home
                         return;
                 }
             }
-            if (DirectResoucres.MinRAM == 0) { _ = await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.WrongRAM.ToLocalizedString(), MessageBoxButtons.Ok); return; }
-            if (SS.Settings.Minecraft.RAM == 0) { _ = await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.WrongRAM.ToLocalizedString(), MessageBoxButtons.Ok); return; }
+            if (DirectResoucres.MinRAM == 0) { _ = await MessageBox.Show(Localized.Error.Localize(), Localized.WrongRAM.Localize(), MessageBoxButtons.Ok); return; }
+            if (SS.Settings.Minecraft.RAM == 0) { _ = await MessageBox.Show(Localized.Error.Localize(), Localized.WrongRAM.Localize(), MessageBoxButtons.Ok); return; }
             App.Launcher.Launcher.FileDownloader = new AsyncParallelDownloader();
             var l = new MLaunchOption
             {
@@ -283,7 +284,7 @@ namespace Emerald.WinUI.Views.Home
             var ver = verItm.GetLaunchVersion();
             if (Session == null)
             {
-                if (await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.BegLogIn.ToLocalizedString(), MessageBoxButtons.OkCancel) == MessageBoxResults.Ok)
+                if (await MessageBox.Show(Localized.Error.Localize(), Localized.BegLogIn.Localize(), MessageBoxButtons.OkCancel) == MessageBoxResults.Ok)
                 {
                     void Cancel(object sender, EventArgs e)
                     {
@@ -307,7 +308,7 @@ namespace Emerald.WinUI.Views.Home
             if (ver == null)
             {
                 UI(true);
-                _ = await MessageBox.Show(Localized.Error.ToLocalizedString(), Localized.BegVer.ToLocalizedString(), MessageBoxButtons.Ok);
+                _ = await MessageBox.Show(Localized.Error.Localize(), Localized.BegVer.Localize(), MessageBoxButtons.Ok);
                 VersionButton_Click(null, null);
                 return;
             }
@@ -338,6 +339,20 @@ namespace Emerald.WinUI.Views.Home
                 App.MainWindow.DispatcherQueue.TryEnqueue(() => App.Launcher.GameRuns = false);
             });
             t.Start();
+        }
+
+        private void NewsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var n = new NewsPage();
+            n.BackRequested += (_, _) =>
+            {
+                SecondaryFrame.Content = null;
+                paneVersions.Visibility = Visibility.Visible;
+                SecondaryFrame.Visibility = Visibility.Collapsed;
+            };
+            SecondaryFrame.Content= n;
+            paneVersions.Visibility = Visibility.Collapsed;
+            SecondaryFrame.Visibility = Visibility.Visible;
         }
     }
 }

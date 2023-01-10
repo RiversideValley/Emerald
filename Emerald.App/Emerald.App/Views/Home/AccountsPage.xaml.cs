@@ -79,7 +79,7 @@ namespace Emerald.WinUI.Views.Home
                 }
                 catch { }
             }
-            btnSelect.Label = Accounts.Where(x => x.IsChecked).Any() ? Core.Localized.SelectNone.ToLocalizedString() : Core.Localized.SelectAll.ToLocalizedString();
+            btnSelect.Label = Accounts.Where(x => x.IsChecked).Any() ? Core.Localized.SelectNone.Localize() : Core.Localized.SelectAll.Localize();
             btnSelect.Icon = new SymbolIcon(Accounts.Where(x => x.IsChecked).Any() ? Symbol.ClearSelection : Symbol.SelectAll);
         }
         private void CheckBox_Click(object sender, RoutedEventArgs e)
@@ -220,7 +220,7 @@ namespace Emerald.WinUI.Views.Home
                 Accounts.Add(EditorAccount);
                 SetEditor(null);
             }
-            SetEditor(MSession.GetOfflineSession(Localized.NewAccount.ToLocalizedString()).ToAccount());
+            SetEditor(MSession.GetOfflineSession(Localized.NewAccount.Localize()).ToAccount());
         }
 
         private async void mitMicrosoftAdd_Click(object sender, RoutedEventArgs e)

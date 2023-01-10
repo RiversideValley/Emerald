@@ -15,7 +15,7 @@ namespace Emerald.WinUI.Helpers
         public static async Task<bool> IsAvailable() => await KeyCredentialManager.IsSupportedAsync();
         public static async Task<bool> Authenticate()
         {
-            var d = new ProgressBar() { IsIndeterminate = true }.ToContentDialog(Localized.AuthWindowshello.ToLocalizedString());
+            var d = new ProgressBar() { IsIndeterminate = true }.ToContentDialog(Localized.AuthWindowshello.Localize());
             
             if (await IsAvailable())
             {

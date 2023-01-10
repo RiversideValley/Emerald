@@ -14,7 +14,7 @@
     mc:Ignorable="d">
     <Page.Resources>
         <DataTemplate x:Key="MCVersionTemplate" x:DataType="models:MinecraftVersion">
-            <Grid>
+            <Grid VerticalAlignment="Center">
                 <Grid.ChildrenTransitions>
                     <TransitionCollection>
                         <EntranceThemeTransition />
@@ -25,7 +25,7 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Image
-                    Height="40"
+                    Height="30"
                     VerticalAlignment="Top"
                     Source="{x:Bind BlockImageLocation}"
                     Stretch="Fill" />
@@ -200,6 +200,7 @@
                 </Grid>
             </SplitView.Pane>
             <Grid
+                ChildrenTransitions="{StaticResource EntranceThemeTransition}"
                 x:Name="MainGrid">
                 <Grid.RowDefinitions>
                     <RowDefinition
@@ -282,6 +283,7 @@
                                 <HyperlinkButton
                                     Foreground="{ThemeResource ApplicationForegroundThemeBrush}"
                                     Grid.Row="0"
+                                    Click="NewsButton_Click"
                                     Height="30"
                                     HorizontalContentAlignment="Left"
                                     BorderBrush="Transparent"
@@ -300,7 +302,7 @@
                                             VerticalAlignment="Center"
                                             FontSize="14"
                                             Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
-                                            Text="News" />
+                                            Text="{helpers:Localize Name=News}" />
                                     </StackPanel>
                                 </HyperlinkButton>
                                 <HyperlinkButton
@@ -324,7 +326,7 @@
                                             VerticalAlignment="Center"
                                             FontSize="14"
                                             Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
-                                            Text="Changelogs" />
+                                            Text="{helpers:Localize Name=Changelogs}" />
                                     </StackPanel>
                                 </HyperlinkButton>
                             </StackPanel>

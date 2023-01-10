@@ -21,7 +21,13 @@ namespace Emerald.Core.Tasks
             TaskAddRequested(null, new TaskAddRequestedEventArgs(name.ToString(), AllTaksCount));
             return AllTaksCount;
         }
-        public static int AddProgressTask(Localized name, int value = 0, int maxVal = 100, int minVal = 0,string message = null)
+        public static int AddProgressTask(Localized name, int value = 0, int maxVal = 100, int minVal = 0, string message = null)
+        {
+            AllTaksCount++;
+            TaskAddRequested(null, new ProgressTaskEventArgs(name.ToString(), AllTaksCount, maxVal, minVal, value, message));
+            return AllTaksCount;
+        }
+        public static int AddProgressTask(string name, int value = 0, int maxVal = 100, int minVal = 0, string message = null)
         {
             AllTaksCount++;
             TaskAddRequested(null, new ProgressTaskEventArgs(name.ToString(), AllTaksCount, maxVal, minVal, value, message));

@@ -141,6 +141,9 @@
   <data name="BegVer" xml:space="preserve">
     <value>Please enter a version</value>
   </data>
+  <data name="Changelogs" xml:space="preserve">
+    <value>Changelogs</value>
+  </data>
   <data name="ChooseAccount" xml:space="preserve">
     <value>Choose an account</value>
   </data>
@@ -225,6 +228,9 @@
   <data name="InitializeCore" xml:space="preserve">
     <value>Initialize Launcher Core</value>
   </data>
+  <data name="Latest" xml:space="preserve">
+    <value>Latest</value>
+  </data>
   <data name="Launch" xml:space="preserve">
     <value>Launch!</value>
   </data>
@@ -285,6 +291,9 @@
   <data name="NewHere" xml:space="preserve">
     <value>Looks like you are new here. Shall we go on a quick check out?</value>
   </data>
+  <data name="News" xml:space="preserve">
+    <value>News</value>
+  </data>
   <data name="NoNetwork" xml:space="preserve">
     <value>Seems like you don't have good internet...</value>
   </data>
@@ -324,6 +333,9 @@
   </data>
   <data name="Save" xml:space="preserve">
     <value>Save</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search</value>
   </data>
   <data name="SearchingStore" xml:space="preserve">
     <value>Searching Store</value>

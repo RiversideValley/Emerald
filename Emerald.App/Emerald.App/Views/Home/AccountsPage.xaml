@@ -12,7 +12,7 @@
     xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals" 
     xmlns:uc="using:Emerald.WinUI.UserControls"
     mc:Ignorable="d">
-    <Grid>
+    <Grid ChildrenTransitions="{StaticResource EntranceThemeTransition}">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />

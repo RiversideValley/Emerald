@@ -20,9 +20,7 @@ namespace Emerald.Core
             Launcher.UIChangeRequested += UIChangedEvent;
             //
             Labrinth = new Labrinth();
-            Labrinth.ProgressChanged += ProgressChangedEvent;
             Labrinth.MainUIChangeRequested += UIChangedEvent;
-            Labrinth.StatusChanged += (s, _) => StatusChanged(Labrinth, new StatusChangedEventArgs(s.ToString()));
 
         }
 

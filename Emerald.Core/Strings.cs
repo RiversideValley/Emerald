@@ -83,6 +83,9 @@
         GettingOptifine,
         LaunchingMinecraft,
         ConfigureOptifine,
-        GameIsRunning
+        GameIsRunning,
+        Changelogs,
+        News,
+        Search
     }
 }

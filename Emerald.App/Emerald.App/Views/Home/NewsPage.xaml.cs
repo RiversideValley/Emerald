@@ -26,9 +26,13 @@ namespace Emerald.WinUI.Views.Home
     /// </summary>
     public sealed partial class NewsPage : Page
     {
+        public event EventHandler? BackRequested;
         public NewsPage()
         {
             this.InitializeComponent();
         }
+        private void BackButton_Click(object sender, RoutedEventArgs e) =>
+            BackRequested?.Invoke(this, new EventArgs());
+        
     }
 }

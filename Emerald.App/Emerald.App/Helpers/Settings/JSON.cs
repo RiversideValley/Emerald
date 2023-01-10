@@ -61,6 +61,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         {
             JVM.PropertyChanged += (_, _) => InvokePropertyChanged();
         }
+        [JsonIgnore]
         public double RAMinGB => Math.Round(RAM / Math.Pow(1024, 1), 1);
         private string _Path;
         public string Path
@@ -118,7 +119,6 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
     public class App : JSON
     {
         public Appearance Appearance { get; set; }
-        public bool Tips { get; set; }
         public bool AutoLogin { get; set; }
         public Discord Discord { get; set; }
         public bool AutoClose { get; set; }

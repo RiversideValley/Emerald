@@ -116,7 +116,9 @@
                 <models:SquareNavigationViewItem FontIconGlyph="&#xE756;" IsEnabled="{x:Bind SS:SettingsSystem.Settings.Minecraft.ReadLogs(),Mode=OneWay}" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Logs}" Thumbnail="Assets/NavigationViewIcons/logs.png" IsSelected="False"/>
                 <models:SquareNavigationViewItem FontIconGlyph="&#xE713;" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Settings}" Thumbnail="Assets/NavigationViewIcons/settings.png" IsSelected="False"/>
             </NavigationView.FooterMenuItems>
-            <Frame x:Name="frame" />
+            <Frame 
+                IsEnabled="{x:Bind local:App.Launcher.UIState,Mode=OneWay}"
+                x:Name="frame" />
         </NavigationView>
 
 

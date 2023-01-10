@@ -1,5 +1,8 @@
-﻿using Microsoft.UI.Xaml.Controls;
+﻿using Emerald.Core;
+using Emerald.WinUI.Helpers;
+using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Windows.UI;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 
@@ -13,7 +16,7 @@ namespace Emerald.WinUI.Views.Settings
     /// </summary>
     public sealed partial class AppearancePage : Page
     {
-        public List<Color> TintColorsList { get; } = new()
+        public ObservableCollection<Color> TintColorsList { get; } = new()
         {
             Color.FromArgb(255, 255, 185, 0),
             Color.FromArgb(255, 255, 140, 0),
@@ -91,6 +94,39 @@ namespace Emerald.WinUI.Views.Settings
             var c = TintColorsList[GVColorList.SelectedIndex];
             SS.Settings.App.Appearance.MicaTintColor = (int)Helpers.Settings.Enums.MicaTintColor.CustomColor;
             SS.Settings.App.Appearance.CustomMicaTintColor = (c.A, c.R, c.G, c.B);
+        }
+
+        private void CustomTintColor_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+            var c = SS.Settings.App.Appearance.CustomMicaTintColor;
+            var cp = new ColorPicker()
+            {
+                ColorSpectrumShape = ColorSpectrumShape.Box,
+                IsMoreButtonVisible = false,
+                IsColorSliderVisible = true,
+                IsColorChannelTextInputVisible = true,
+                IsHexInputVisible = true,
+                IsAlphaEnabled = true,
+                IsAlphaSliderVisible = true,
+                IsAlphaTextInputVisible = false,
+                Color = Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B)
+        };
+            var d = cp.ToContentDialog("CreateAColor".Localize("Settings"), Localized.Cancel.Localize(), ContentDialogButton.Primary);
+            d.PrimaryButtonText = Localized.OK.Localize();
+            d.PrimaryButtonClick += (_, _) =>
+            {
+                var cl = cp.Color;
+                if (TintColorsList.Contains(cl))
+                {
+                    GVColorList.SelectedIndex = TintColorsList.IndexOf(cl);
+                }
+                else
+                {
+                    TintColorsList.Add(cl);
+                    GVColorList.SelectedIndex = TintColorsList.Count - 1;
+                }
+            };
+            _ = d.ShowAsync();
         }
     }
 }

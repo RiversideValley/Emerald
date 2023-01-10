@@ -21,7 +21,7 @@ namespace Emerald.WinUI.Models
         public AccountType Type { get => UUID == null ? AccountType.Offline : AccountType.Microsoft; }
         private bool _CheckBoxLoaded;
         public bool CheckBoxLoaded { get => _CheckBoxLoaded; set => Set(ref _CheckBoxLoaded, value); }
-        public string TypeString => IsFake ? Localized.MicrosoftOrOffline.ToLocalizedString() : (IsOffline ? Localized.OfflineAccount.ToLocalizedString() : Localized.MicrosoftAccount.ToLocalizedString());
+        public string TypeString => IsFake ? Localized.MicrosoftOrOffline.Localize() : (IsOffline ? Localized.OfflineAccount.Localize() : Localized.MicrosoftAccount.Localize());
         private bool _IsChecked;
         public bool IsChecked { get => _IsChecked; set => Set(ref _IsChecked, value); }
         public bool IsOffline => UUID == null;

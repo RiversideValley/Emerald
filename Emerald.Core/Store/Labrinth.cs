@@ -1,5 +1,9 @@
 ﻿using Emerald.Core.Args;
+using Emerald.Core.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System.Net.Http.Headers;
+using System.Text.Json.Serialization;
 using System.Web;
 namespace Emerald.Core.Store
 {
@@ -7,16 +11,15 @@ namespace Emerald.Core.Store
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
     public class Labrinth
     {
-        public event EventHandler StatusChanged = delegate { };
-        public event EventHandler<UIChangeRequestedEventArgs> UIChangeRequested = delegate { };
         public event EventHandler<UIChangeRequestedEventArgs> MainUIChangeRequested = delegate { };
-        public event EventHandler<ProgressChangedEventArgs> ProgressChanged = delegate { };
         public HttpClient Client;
         //ModrinthClient c = new ModrinthClient();
         public Labrinth()
         {
-            Client = new HttpClient();
-            Client.BaseAddress = new Uri("https://api.modrinth.com/");
+            Client = new()
+            {
+                BaseAddress = new Uri("https://api.modrinth.com/v2/")
+            };
             Client.DefaultRequestHeaders.Accept.Clear();
             Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
@@ -39,18 +42,13 @@ namespace Emerald.Core.Store
                 throw new Exception("Failed to get: " + code);
             }
         }
-        private void UI(bool UI)
-        {
-            UIChangeRequested(this, new UIChangeRequestedEventArgs(UI));
-        }
         int DownloadTaskID;
-        public void DownloadMod(LabrinthResults.DownloadManager.File file, CmlLib.Core.MinecraftPath mcPath)
+        public void DownloadMod(LabrinthResults.File file, CmlLib.Core.MinecraftPath mcPath)
         {
             this.MainUIChangeRequested(this, new UIChangeRequestedEventArgs(false));
-            DownloadTaskID = Tasks.TasksHelper.AddTask($"{Localized.Download} {file.filename}");
-            MainUIChangeRequested(this, new UIChangeRequestedEventArgs(false));
+            DownloadTaskID = Tasks.TasksHelper.AddProgressTask($"{Localized.Download} {file.Filename}");
             var mods = System.IO.Directory.CreateDirectory(mcPath.BasePath + "\\mods").FullName;
-            ModrinthDownload(file.url, mods, file.filename);
+            ModrinthDownload(file.Url, mods, file.Filename);
         }
         private async void ModrinthDownload(string link, string folderdir, string fileName)
         {
@@ -59,43 +57,33 @@ namespace Emerald.Core.Store
                 client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
                 {
                     this.MainUIChangeRequested(this, new UIChangeRequestedEventArgs(false));
-                    StatusChanged($"{Localized.Downloading} : {fileName}", new EventArgs());
-                    this.ProgressChanged(this, new ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
+                    TasksHelper.EditProgressTask(DownloadTaskID, Convert.ToInt32(progressPercentage));
                     if (progressPercentage == 100)
                     {
-                        this.DownloadFileCompleted();
                         client.Dispose();
                         this.MainUIChangeRequested(this, new UIChangeRequestedEventArgs(true));
-                        Tasks.TasksHelper.CompleteTask(DownloadTaskID, true);
+                        TasksHelper.CompleteTask(DownloadTaskID, true);
                     }
                 };
 
                 await client.StartDownload();
             }
         }
-        private void DownloadFileCompleted()
-        {
-            StatusChanged(Localized.Ready, new EventArgs());
-            ProgressChanged(this, new ProgressChangedEventArgs(currentProg: 0, currentfile: 0));
-            MainUIChangeRequested(this, new UIChangeRequestedEventArgs(true));
-        }
         public async Task<LabrinthResults.SearchResult> Search(string name, int? limit = null, LabrinthResults.SearchSortOptions sortOptions = LabrinthResults.SearchSortOptions.Relevance, LabrinthResults.SearchCategories[] categories = null)
         {
             int taskID = 0;
             if (name == "")
             {
-                StatusChanged(Localized.GettingMods, new EventArgs());
                 taskID = Tasks.TasksHelper.AddTask(Localized.GettingMods);
             }
             else
             {
                 taskID = Tasks.TasksHelper.AddTask(Localized.SearchStore);
-                StatusChanged(Localized.SearchingStore, new EventArgs());
             }
             string categouriesString = "";
             if (categories != null)
             {
-                if (categories.Count() > 0)
+                if (categories.Any())
                 {
                     categouriesString = string.Join("\"],[\"categories:", categories);
                     categouriesString = ",[\"categories:" + categouriesString + "\"]";
@@ -115,70 +103,47 @@ namespace Emerald.Core.Store
                 {
                     l = "limit=";
                 }
-                var json = await Get("v2/search?query=" + q + "&index=" + sortOptions.ToString().ToLower() + "&facets=[[\"categories:fabric\"]" + categouriesString + ",[\"project_type:mod\"]]&" + l);
-                s = JSONConverter.ConvertToLabrinthSearchResult(json);
-                StatusChanged(Localized.Ready, new EventArgs());
+                var json = await Get("search?query=" + q + "&index=" + sortOptions.ToString().ToLower() + "&facets=[[\"categories:fabric\"]" + categouriesString + ",[\"project_type:mod\"]]&" + l);
+                s = JsonConvert.DeserializeObject<LabrinthResults.SearchResult>(json);
                 Tasks.TasksHelper.CompleteTask(taskID, true);
                 return s;
             }
             catch
             {
-                StatusChanged(Localized.Ready, new EventArgs());
                 Tasks.TasksHelper.CompleteTask(taskID, false);
                 return null;
             }
         }
-        public async Task<LabrinthResults.ModrinthProject> GetProject(string id, bool UIChange = true)
+        public async Task<LabrinthResults.ModrinthProject> GetProject(string id)
         {
             int taskID = Tasks.TasksHelper.AddTask(Localized.LoadMod);
-            if (UIChange)
-            {
-                UI(false);
-            }
-            StatusChanged(Localized.LoadingMod, new EventArgs());
             LabrinthResults.ModrinthProject s = null;
             try
             {
-                var json = await Get("v2/project/" + id);
-                s = JSONConverter.ConvertToLabrinthProject(json);
-                StatusChanged(Localized.Ready, new EventArgs());
-                if (UIChange)
-                {
-                    UI(true);
-                }
+                var json = await Get("project/" + id);
+                s = JsonConvert.DeserializeObject<LabrinthResults.ModrinthProject>(json);
                 Tasks.TasksHelper.CompleteTask(taskID, true);
                 return s;
             }
             catch
             {
-                StatusChanged(Localized.Ready, new EventArgs());
-                if (UIChange)
-                {
-                    UI(true);
-                }
                 Tasks.TasksHelper.CompleteTask(taskID, false);
                 return null;
             }
         }
-        public async Task<List<LabrinthResults.DownloadManager.DownloadLink>> GetVersions(string id)
+        public async Task<List<LabrinthResults.Version>> GetVersions(string id)
         {
             int taskID = Tasks.TasksHelper.AddTask(Localized.LoadDownloadVers);
-            UI(false);
-            StatusChanged(Localized.LoadingDownloadVers, new EventArgs());
-            List<LabrinthResults.DownloadManager.DownloadLink> s = null;
+            List<LabrinthResults.Version> s = null;
             try
             {
-                var json = await Get("v2/project/" + id + "/version");
-                s = JSONConverter.ConvertDownloadLinksToCS(json);
-                StatusChanged(Localized.Ready, new EventArgs());
-                UI(true);
+                var json = await Get("project/" + id + "/version");
+                s = JsonConvert.DeserializeObject<List<LabrinthResults.Version>>(json);
                 Tasks.TasksHelper.CompleteTask(taskID, true);
                 return s;
             }
             catch
             {
-                StatusChanged(Localized.Ready, new EventArgs());
-                UI(true);
                 Tasks.TasksHelper.CompleteTask(taskID, false);
                 return null;
             }
@@ -187,40 +152,6 @@ namespace Emerald.Core.Store
 
     public class LabrinthResults
     {
-        public class DownloadManager
-        {
-            public class File
-            {
-                public Hashes hashes { get; set; }
-                public string url { get; set; }
-                public string filename { get; set; }
-                public bool primary { get; set; }
-                public int size { get; set; }
-            }
-            public class DownloadLink
-            {
-                public string id { get; set; }
-                public string project_id { get; set; }
-                public string author_id { get; set; }
-                public bool featured { get; set; }
-                public string name { get; set; }
-                public string version_number { get; set; }
-                public string changelog { get; set; }
-                public object changelog_url { get; set; }
-                public DateTime date_published { get; set; }
-                public int downloads { get; set; }
-                public string version_type { get; set; }
-                public List<File> files { get; set; }
-                public List<object> dependencies { get; set; }
-                public List<string> game_versions { get; set; }
-                public List<string> loaders { get; set; }
-            }
-            public class Hashes
-            {
-                public string sha512 { get; set; }
-                public string sha1 { get; set; }
-            }
-        }
         public enum SearchSortOptions
         {
             Relevance,
@@ -247,67 +178,153 @@ namespace Emerald.Core.Store
             Worldgen
 
         }
-        public class Version
-        {
-            public string id { get; set; }
-            public string project_id { get; set; }
-            public string author_id { get; set; }
-            public bool featured { get; set; }
-            public string name { get; set; }
-            public string version_number { get; set; }
-            public string changelog { get; set; }
-            public object changelog_url { get; set; }
-            public DateTime date_published { get; set; }
-            public int downloads { get; set; }
-            public string version_type { get; set; }
-            public File[] files { get; set; }
-            public object[] dependencies { get; set; }
-            public string[] game_versions { get; set; }
-            public string[] loaders { get; set; }
-        }
 
         public class File
         {
-            public Hashes hashes { get; set; }
-            public string url { get; set; }
-            public string filename { get; set; }
-            public bool primary { get; set; }
+
+            [JsonPropertyName("hashes")]
+            public Hashes Hashes { get; set; }
+
+            [JsonPropertyName("url")]
+            public string Url { get; set; }
+
+            [JsonPropertyName("filename")]
+            public string Filename { get; set; }
+
+            [JsonPropertyName("primary")]
+            public bool Primary { get; set; }
+
+            [JsonPropertyName("size")]
             public int size { get; set; }
         }
+        public class Version
+        {
+            [JsonPropertyName("id")]
+            public string ID { get; set; }
 
+            [JsonPropertyName("project_id")]
+            public string Project_id { get; set; }
+
+            [JsonPropertyName("author_id")]
+            public string Author_id { get; set; }
+
+            [JsonPropertyName("featured")]
+            public bool Featured { get; set; }
+
+            [JsonPropertyName("name")]
+            public string Name { get; set; }
+
+            [JsonPropertyName("version_number")]
+            public string Version_number { get; set; }
+
+            [JsonPropertyName("changelog")]
+            public string Changelog { get; set; }
+
+            [JsonPropertyName("changelog_url")]
+            public object Changelog_url { get; set; }
+
+            [JsonPropertyName("date_published")]
+            public DateTime Date_published { get; set; }
+
+            [JsonPropertyName("downloads")]
+            public int Downloads { get; set; }
+
+            [JsonPropertyName("version_type")]
+            public string Version_type { get; set; }
+
+            [JsonPropertyName("files")]
+            public File[] Files { get; set; }
+
+            [JsonPropertyName("dependencies")]
+            public object[] Dependencies { get; set; }
+
+            [JsonPropertyName("game_versions")]
+            public string[] Game_versions { get; set; }
+
+            [JsonPropertyName("loaders")]
+            public string[] Loaders { get; set; }
+        }
         public class Hashes
         {
-            public string sha512 { get; set; }
-            public string sha1 { get; set; }
+
+            [JsonPropertyName("sha512")]
+            public string Sha512 { get; set; }
+
+            [JsonPropertyName("sha1")]
+            public string Sha1 { get; set; }
         }
         public class SearchResult
         {
-            public Hit[] hits { get; set; }
-            public int offset { get; set; }
-            public int limit { get; set; }
-            public int total_hits { get; set; }
+
+            [JsonPropertyName("hits")]
+            public Hit[] Hits { get; set; }
+
+            [JsonPropertyName("offset")]
+            public int Offset { get; set; }
+
+            [JsonPropertyName("limit")]
+            public int Limit { get; set; }
+
+            [JsonPropertyName("total_hits")]
+            public int Total_hits { get; set; }
         }
 
         public class Hit
         {
-            public string slug { get; set; }
-            public string title { get; set; }
-            public string description { get; set; }
-            public string[] categories { get; set; }
-            public string client_side { get; set; }
-            public string server_side { get; set; }
-            public string project_type { get; set; }
-            public int downloads { get; set; }
-            public string icon_url { get; set; }
-            public string project_id { get; set; }
-            public string author { get; set; }
-            public string[] versions { get; set; }
-            public int follows { get; set; }
-            public DateTime date_created { get; set; }
-            public DateTime date_modified { get; set; }
-            public string latest_version { get; set; }
-            public string license { get; set; }
-            public string[] gallery { get; set; }
+
+            [JsonPropertyName("slug")]
+            public string Slug { get; set; }
+
+            [JsonPropertyName("title")]
+            public string Title { get; set; }
+
+            [JsonPropertyName("description")]
+            public string Description { get; set; }
+
+            [JsonPropertyName("categories")]
+            public string[] Categories { get; set; }
+
+            [JsonPropertyName("client_side")]
+            public string Client_side { get; set; }
+
+            [JsonPropertyName("server_side")]
+            public string Server_side { get; set; }
+
+            [JsonPropertyName("project_type")]
+            public string Project_type { get; set; }
+
+            [JsonPropertyName("downloads")]
+            public int Downloads { get; set; }
+
+            [JsonPropertyName("icon_url")]
+            public string Icon_url { get; set; }
+
+            [JsonPropertyName("project_id")]
+            public string Project_ID { get; set; }
+
+            [JsonPropertyName("author")]
+            public string Author { get; set; }
+
+            [JsonPropertyName("versions")]
+            public string[] Versions { get; set; }
+
+            [JsonPropertyName("follows")]
+            public int Follows { get; set; }
+
+            [JsonPropertyName("date_created")]
+            public DateTime Date_created { get; set; }
+
+            [JsonPropertyName("date_modified")]
+            public DateTime Date_modified { get; set; }
+
+            [JsonPropertyName("latest_version")]
+            public string Latest_version { get; set; }
+
+            [JsonPropertyName("license")]
+            public string License { get; set; }
+
+            [JsonPropertyName("gallery")]
+            public string[] Gallery { get; set; }
         }
 
 
@@ -318,46 +335,108 @@ namespace Emerald.Core.Store
 
         public class ModrinthProject
         {
-            public string id { get; set; }
-            public string slug { get; set; }
-            public string project_type { get; set; }
-            public string team { get; set; }
-            public string title { get; set; }
-            public string description { get; set; }
-            public string body { get; set; }
-            public string body_url { get; set; }
-            public DateTime published { get; set; }
-            public DateTime updated { get; set; }
-            public string status { get; set; }
-            public object moderator_message { get; set; }
-            public License license { get; set; }
-            public string client_side { get; set; }
-            public string server_side { get; set; }
-            public int downloads { get; set; }
-            public int followers { get; set; }
-            public string[] categories { get; set; }
-            public string[] versions { get; set; }
-            public string icon_url { get; set; }
-            public string issues_url { get; set; }
-            public string source_url { get; set; }
-            public object wiki_url { get; set; }
-            public string discord_url { get; set; }
-            public Donation_Urls[] donation_urls { get; set; }
-            public object[] gallery { get; set; }
+            [JsonPropertyName("id")]
+            public string ID { get; set; }
+
+            [JsonPropertyName("slug")]
+            public string Slug { get; set; }
+
+            [JsonPropertyName("project_type")]
+            public string Project_Type { get; set; }
+
+            [JsonPropertyName("team")]
+            public string Team { get; set; }
+
+            [JsonPropertyName("title")]
+            public string Title { get; set; }
+
+            [JsonPropertyName("description")]
+            public string Description { get; set; }
+
+            [JsonPropertyName("body")]
+            public string Body { get; set; }
+
+            [JsonPropertyName("body_url")]
+            public string Body_Url { get; set; }
+
+            [JsonPropertyName("published")]
+            public DateTime PublishedDate { get; set; }
+
+            [JsonPropertyName("updated")]
+            public DateTime UpdatedDate { get; set; }
+
+            [JsonPropertyName("status")]
+            public string Status { get; set; }
+
+            [JsonPropertyName("moderator_message")]
+            public object ModeratorMessage { get; set; }
+
+            [JsonPropertyName("license")]
+            public License License { get; set; }
+
+            [JsonPropertyName("client_side")]
+            public string Client_Side { get; set; }
+
+            [JsonPropertyName("server_side")]
+            public string Server_Side { get; set; }
+
+            [JsonPropertyName("downloads")]
+            public int Downloads { get; set; }
+
+            [JsonPropertyName("followers")]
+            public int Followers { get; set; }
+
+            [JsonPropertyName("categories")]
+            public string[] Categories { get; set; }
+
+            [JsonPropertyName("versions")]
+            public string[] Versions { get; set; }
+
+            [JsonPropertyName("icon_url")]
+            public string Icon_Url { get; set; }
+
+            [JsonPropertyName("issues_url")]
+            public string Issues_Url { get; set; }
+
+            [JsonPropertyName("source_url")]
+            public string Source_Url { get; set; }
+
+            [JsonPropertyName("wiki_url")]
+            public object Wiki_Url { get; set; }
+
+            [JsonPropertyName("discord_url")]
+            public string Discord_Url { get; set; }
+
+            [JsonPropertyName("donation_urls")]
+            public Donation_Urls[] Donation_Urls { get; set; }
+
+            [JsonPropertyName("gallery")]
+            public object[] Gallery { get; set; }
         }
 
         public class License
         {
-            public string id { get; set; }
-            public string name { get; set; }
-            public string url { get; set; }
+            [JsonPropertyName("id")]
+            public string ID { get; set; }
+
+            [JsonPropertyName("name")]
+            public string Name { get; set; }
+
+            [JsonPropertyName("url")]
+            public string Url { get; set; }
         }
 
         public class Donation_Urls
         {
-            public string id { get; set; }
-            public string platform { get; set; }
-            public string url { get; set; }
+
+            [JsonPropertyName("id")]
+            public string ID { get; set; }
+
+            [JsonPropertyName("platform")]
+            public string Platform { get; set; }
+
+            [JsonPropertyName("url")]
+            public string Url { get; set; }
         }
 
 

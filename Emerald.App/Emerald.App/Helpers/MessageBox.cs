@@ -24,19 +24,19 @@ namespace Emerald.WinUI.Helpers
             if (buttons == MessageBoxButtons.Ok)
             {
                 PrimaryButtonText = "";
-                SecondaryButtonText = Localized.OK.ToLocalizedString();
+                SecondaryButtonText = Localized.OK.Localize();
                 DefaultButton = ContentDialogButton.None;
             }
             else if (buttons == MessageBoxButtons.OkCancel)
             {
-                PrimaryButtonText = Localized.OK.ToLocalizedString();
-                SecondaryButtonText = Localized.Cancel.ToLocalizedString();
+                PrimaryButtonText = Localized.OK.Localize();
+                SecondaryButtonText = Localized.Cancel.Localize();
                 DefaultButton = ContentDialogButton.Primary;
             }
             else if (buttons == MessageBoxButtons.YesNo)
             {
-                PrimaryButtonText = Localized.Yes.ToLocalizedString();
-                SecondaryButtonText = Localized.No.ToLocalizedString();
+                PrimaryButtonText = Localized.Yes.Localize();
+                SecondaryButtonText = Localized.No.Localize();
                 DefaultButton = ContentDialogButton.Primary;
             }
             else if (buttons == MessageBoxButtons.Custom)
@@ -51,8 +51,8 @@ namespace Emerald.WinUI.Helpers
                 }
                 if (string.IsNullOrEmpty(cusbtn2) && string.IsNullOrEmpty(cusbtn1))
                 {
-                    PrimaryButtonText = Localized.Yes.ToLocalizedString();
-                    SecondaryButtonText = Localized.No.ToLocalizedString();
+                    PrimaryButtonText = Localized.Yes.Localize();
+                    SecondaryButtonText = Localized.No.Localize();
                     DefaultButton = ContentDialogButton.Primary;
                 }
             }
@@ -69,21 +69,21 @@ namespace Emerald.WinUI.Helpers
                 if (string.IsNullOrEmpty(cusbtn2) && string.IsNullOrEmpty(cusbtn1))
                 {
                     DefaultButton = ContentDialogButton.Primary;
-                    PrimaryButtonText = Localized.Yes.ToLocalizedString();
-                    SecondaryButtonText = Localized.No.ToLocalizedString();
+                    PrimaryButtonText = Localized.Yes.Localize();
+                    SecondaryButtonText = Localized.No.Localize();
                 }
-                CloseButtonText = Localized.Cancel.ToLocalizedString();
+                CloseButtonText = Localized.Cancel.Localize();
             }
             PrimaryButtonClick += ContentDialog_PrimaryButtonClick;
             SecondaryButtonClick += ContentDialog_SecondaryButtonClick;
         }
         private void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
-            if (sender.PrimaryButtonText == Localized.OK.ToLocalizedString())
+            if (sender.PrimaryButtonText == Localized.OK.Localize())
             {
                 Result = MessageBoxResults.Ok;
             }
-            else if (sender.PrimaryButtonText == Localized.Yes.ToLocalizedString())
+            else if (sender.PrimaryButtonText == Localized.Yes.Localize())
             {
                 Result = MessageBoxResults.Yes;
             }
@@ -95,15 +95,15 @@ namespace Emerald.WinUI.Helpers
 
         private void ContentDialog_SecondaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
-            if (sender.SecondaryButtonText == Localized.OK.ToLocalizedString())
+            if (sender.SecondaryButtonText == Localized.OK.Localize())
             {
                 Result = MessageBoxResults.Ok;
             }
-            else if (sender.SecondaryButtonText == Localized.Cancel.ToLocalizedString())
+            else if (sender.SecondaryButtonText == Localized.Cancel.Localize())
             {
                 Result = MessageBoxResults.Cancel;
             }
-            else if (sender.SecondaryButtonText == Localized.No.ToLocalizedString())
+            else if (sender.SecondaryButtonText == Localized.No.Localize())
             {
                 Result = MessageBoxResults.No;
             }

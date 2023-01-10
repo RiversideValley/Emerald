@@ -3,9 +3,11 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+
 namespace Emerald.WinUI.Models
 {
-    public interface ITask
+    public interface ITask : INotifyPropertyChanged
     {
         public string Content { get; set; }
         public string Description { get; set; }

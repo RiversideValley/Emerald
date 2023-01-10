@@ -41,7 +41,7 @@ namespace Emerald.WinUI
             mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
             SS.Settings.App.Appearance.PropertyChanged += (s, e) =>
                 mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
-            NavView.Header = new NavViewHeader() { HeaderText = "Home".ToLocalizedString(), HeaderMargin = GetNavViewHeaderMargin() };
+            NavView.Header = new NavViewHeader() { HeaderText = "Home".Localize(), HeaderMargin = GetNavViewHeaderMargin() };
             NavView.DisplayModeChanged += (_, _) => (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
             WindowManager.SetTitleBar(this, AppTitleBar);
             WinUIEx.WindowManager.Get(this).MinHeight = 400;
@@ -50,11 +50,11 @@ namespace Emerald.WinUI
             {
 
                 var r = await MessageBox.Show(
-                     Localized.Error.ToLocalizedString(),
-                     Localized.LoadSettingsFailed.ToLocalizedString(),
+                     Localized.Error.Localize(),
+                     Localized.LoadSettingsFailed.Localize(),
                      Enums.MessageBoxButtons.Custom,
-                     Localized.OK.ToLocalizedString(),
-                     Localized.CreateOldSettingsBackup.ToLocalizedString());
+                     Localized.OK.Localize(),
+                     Localized.CreateOldSettingsBackup.Localize());
                 if (r == Enums.MessageBoxResults.CustomResult2)
                 {
                     SS.CreateBackup(BackupState.Backup);
@@ -76,14 +76,14 @@ namespace Emerald.WinUI
                         {
                             if (e is TaskAddRequestedEventArgs task)
                             {
-                                TaskView.AddProgressTask(string.Join(" ", (task.Name ?? "").Split(" ").Select(s => s.ToLocalizedString())), 0, InfoBarSeverity.Informational, true, task.ID);
+                                TaskView.AddProgressTask(string.Join(" ", (task.Name ?? "").Split(" ").Select(s => s.Localize())), 0, InfoBarSeverity.Informational, true, task.ID);
                                 TasksInfoBadge.Value++;
                                 UpdateTasksInfoBadge();
                             }
                             else if(e is ProgressTaskEventArgs Ptask)
                             { 
                                 var val = Ptask.Value / Ptask.MaxValue * 100;
-                                TaskView.AddProgressTask(string.Join(" ", (Ptask.Name ?? "").Split(" ").Select(s => s.ToLocalizedString())), val, InfoBarSeverity.Informational, false, Ptask.ID);
+                                TaskView.AddProgressTask(string.Join(" ", (Ptask.Name ?? "").Split(" ").Select(s => s.Localize())), val, InfoBarSeverity.Informational, false, Ptask.ID);
                                 TasksInfoBadge.Value++;
                                 UpdateTasksInfoBadge();
                             }
@@ -94,7 +94,7 @@ namespace Emerald.WinUI
                     int? ID = TaskView.SearchByUniqueThingsToString(e.ID.ToString()).First();
                     if (ID != null)
                     {
-                        TaskView.ChangeDescription(ID.Value, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.ToLocalizedString())));
+                        TaskView.ChangeDescription(ID.Value, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.Localize())));
                         TaskView.ChangeProgress(ID.Value, e.Value);
                     }
                 };
@@ -105,7 +105,7 @@ namespace Emerald.WinUI
                     {
                         TaskView.ChangeProgress(ID.Value, 100);
                         TaskView.ChangeIndeterminate(ID.Value, false);
-                        TaskView.ChangeDescription(ID.Value, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.ToLocalizedString())));
+                        TaskView.ChangeDescription(ID.Value, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.Localize())));
                         TaskView.ChangeSeverty(ID.Value, e.Success ? InfoBarSeverity.Success : InfoBarSeverity.Error);
                     }
                 };
@@ -170,7 +170,7 @@ namespace Emerald.WinUI
         private void UpdateSelectedItem() =>
             SelectedItemIndex = NavView.SelectedItem is SquareNavigationViewItem item ?
                 (
-                 ((NavView.SelectedItem as SquareNavigationViewItem).Name.ToString() == "Tasks".ToLocalizedString()) ?
+                 ((NavView.SelectedItem as SquareNavigationViewItem).Name.ToString() == "Tasks".Localize()) ?
                     SelectedItemIndex
                     :
                     (NavView.MenuItems.IndexOf(NavView.MenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)) == -1 ?
@@ -198,27 +198,27 @@ namespace Emerald.WinUI
                 try
                 {
                     var h = itm.Name.ToString();
-                    if (h == "Home".ToLocalizedString())
+                    if (h == "Home".Localize())
                     {
                         MainFrame.Content = HomePage;
                     }
-                    else if (h == "Store".ToLocalizedString())
+                    else if (h == "Store".Localize())
                     { }
-                    else if (h == "Tasks".ToLocalizedString())
+                    else if (h == "Tasks".Localize())
                     {
                         TaskViewFlyout.ShowAt(args.InvokedItemContainer, new() { Placement = FlyoutPlacementMode.Right, ShowMode = FlyoutShowMode.Standard });
                         TasksInfoBadge.Value = 0;
                     }
-                    else if (h == "Logs".ToLocalizedString())
+                    else if (h == "Logs".Localize())
                     {
                         NavigateOnce(typeof(Views.LogsPage));
                     }
-                    else if (h == "Settings".ToLocalizedString())
+                    else if (h == "Settings".Localize())
                     {
                         NavigateOnce(typeof(Views.Settings.SettingsPage));
                     }
                     UpdateTasksInfoBadge();
-                    (NavView.Header as NavViewHeader).HeaderText = h == "Tasks".ToLocalizedString() ? (NavView.Header as NavViewHeader).HeaderText : h;
+                    (NavView.Header as NavViewHeader).HeaderText = h == "Tasks".Localize() ? (NavView.Header as NavViewHeader).HeaderText : h;
                     (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
                 }
                 catch
