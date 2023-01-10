@@ -12,22 +12,12 @@
                 <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
             <!--  Other app resources here  -->
-            <Style TargetType="Border" x:Key="ExpanderBorderStyle">
-                <Setter
-                        Property="Margin"
-                        Value="10,0,10,10" />
-                <Setter
-                        Property="Background"
-                        Value="{ThemeResource ExpanderHeaderBackground}" />
-                <Setter
-                        Property="BorderBrush"
-                        Value="{ThemeResource ExpanderHeaderBorderBrush}" />
-                <Setter
-                        Property="BorderThickness"
-                        Value="{ThemeResource ExpanderHeaderBorderThickness}" />
-                <Setter
-                        Property="CornerRadius"
-                        Value="{ThemeResource ControlCornerRadius}" />
+            <Style x:Key="ExpanderBorderStyle" TargetType="Border">
+                <Setter Property="Margin" Value="10,0,10,10" />
+                <Setter Property="Background" Value="{ThemeResource ExpanderHeaderBackground}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource ExpanderHeaderBorderBrush}" />
+                <Setter Property="BorderThickness" Value="{ThemeResource ExpanderHeaderBorderThickness}" />
+                <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
             </Style>
             <ResourceDictionary x:Key="TransparentButton">
                 <SolidColorBrush x:Key="ButtonBackground" Color="Transparent" />
@@ -39,15 +29,18 @@
                 <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
             </ResourceDictionary>
             <TransitionCollection x:Key="EntranceThemeTransitionStaggeringEnabled">
-                <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                <EntranceThemeTransition IsStaggeringEnabled="True" />
             </TransitionCollection>
             <TransitionCollection x:Key="EntranceThemeTransition">
-                <EntranceThemeTransition/>
+                <EntranceThemeTransition />
             </TransitionCollection>
             <TransitionCollection x:Key="AddDeleteThemeTransition">
-                <AddDeleteThemeTransition/>
+                <AddDeleteThemeTransition />
             </TransitionCollection>
-            <Style x:Key="TransparentButtonStyle" BasedOn="{StaticResource DefaultButtonStyle}" TargetType="Button">
+            <Style
+                x:Key="TransparentButtonStyle"
+                BasedOn="{StaticResource DefaultButtonStyle}"
+                TargetType="Button">
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="BorderThickness" Value="0" />
             </Style>

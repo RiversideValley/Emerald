@@ -2,38 +2,37 @@
     x:Class="Emerald.WinUI.UserControls.TaskView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Controls="using:Microsoft.UI.Xaml.Controls"
     xmlns:converters="using:Emerald.WinUI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helpers="using:Emerald.WinUI.Helpers"
     xmlns:local="using:Emerald.WinUI.UserControls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Emerald.WinUI.Models"
-    xmlns:Controls="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d">
     <UserControl.Resources>
-        <converters:InfobarServertyToBackground
-                        x:Key="ServertyToBackground">
+        <converters:InfobarServertyToBackground x:Key="ServertyToBackground">
             <converters:InfobarServertyToBackground.Light>
                 <models:InfobarBrushSet
-                        ErrorBrush="#FFFDE7E9"
-                        InformationalBrush="#80F6F6F6"
-                        SuccessBrush="#FFDFF6DD"
-                        WarningBrush="#FFFFF4CE"/>
+                    ErrorBrush="#FFFDE7E9"
+                    InformationalBrush="#80F6F6F6"
+                    SuccessBrush="#FFDFF6DD"
+                    WarningBrush="#FFFFF4CE" />
             </converters:InfobarServertyToBackground.Light>
             <converters:InfobarServertyToBackground.Dark>
                 <models:InfobarBrushSet
-                        ErrorBrush="#FF442726"
-                        InformationalBrush="#08FFFFFF"
-                        SuccessBrush="#FF393D1B"
-                        WarningBrush="#FF433519"/>
+                    ErrorBrush="#FF442726"
+                    InformationalBrush="#08FFFFFF"
+                    SuccessBrush="#FF393D1B"
+                    WarningBrush="#FF433519" />
             </converters:InfobarServertyToBackground.Dark>
         </converters:InfobarServertyToBackground>
         <converters:InfobarServertyToIconGlyph
-                x:Key="SevertyToGlyph"
-                ErrorString="&#xEA39;"
-                InformationalString="&#xE946;"
-                SuccessString="&#xE73E;"
-                WarningString="&#xE783;" />
+            x:Key="SevertyToGlyph"
+            ErrorString="&#xEA39;"
+            InformationalString="&#xE946;"
+            SuccessString="&#xE73E;"
+            WarningString="&#xE783;" />
         <converters:NotBoolToVisibility x:Key="NotBoolToVisibility" />
     </UserControl.Resources>
     <Grid>
@@ -61,23 +60,28 @@
 
                             <Grid Margin="0,5,0,0">
                                 <SwipeControl Margin="0">
-                                    <SwipeControl.RightItems>       
+                                    <SwipeControl.RightItems>
                                         <SwipeItems Mode="Execute">
-                                            <SwipeItem Text="{helpers:Localize Name=Remove}" Foreground="{ThemeResource ApplicationForegroundThemeBrush}" Background="{ThemeResource InfoBarErrorSeverityBackgroundBrush}" BehaviorOnInvoked="Close" Invoked="delete_Invoked">
+                                            <SwipeItem
+                                                Background="{ThemeResource InfoBarErrorSeverityBackgroundBrush}"
+                                                BehaviorOnInvoked="Close"
+                                                Foreground="{ThemeResource ApplicationForegroundThemeBrush}"
+                                                Invoked="delete_Invoked"
+                                                Text="{helpers:Localize Name=Remove}">
                                                 <SwipeItem.IconSource>
-                                                    <FontIconSource Glyph="&#xEDAE;"/>
+                                                    <FontIconSource Glyph="&#xEDAE;" />
                                                 </SwipeItem.IconSource>
                                             </SwipeItem>
                                         </SwipeItems>
                                     </SwipeControl.RightItems>
                                     <Grid
-                                Padding="10"
-                                HorizontalAlignment="Stretch"
-                                x:DefaultBindMode="OneWay"
-                                Background="{x:Bind Severity, Converter={StaticResource ServertyToBackground}}"
-                                CornerRadius="5"
-                                PointerEntered="btnIcon_PointerEntered"
-                                PointerExited="btnIcon_PointerExited">
+                                        Padding="10"
+                                        HorizontalAlignment="Stretch"
+                                        x:DefaultBindMode="OneWay"
+                                        Background="{x:Bind Severity, Converter={StaticResource ServertyToBackground}}"
+                                        CornerRadius="5"
+                                        PointerEntered="btnIcon_PointerEntered"
+                                        PointerExited="btnIcon_PointerExited">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="auto" />
@@ -99,34 +103,34 @@
                                                     <RowDefinition Height="auto" />
                                                 </Grid.RowDefinitions>
                                                 <TextBlock
-                                            Grid.Row="0"
-                                            HorizontalAlignment="Left"
-                                            FontSize="13"
-                                            Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
-                                            Text="{x:Bind Time.ToLongTimeString()}" />
+                                                    Grid.Row="0"
+                                                    HorizontalAlignment="Left"
+                                                    FontSize="13"
+                                                    Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                                    Text="{x:Bind Time.ToLongTimeString()}" />
                                                 <TextBlock
-                                            Grid.Row="1"
-                                            Margin="0,3,0,0"
-                                            Text="{x:Bind Content}"
-                                            TextTrimming="CharacterEllipsis" />
+                                                    Grid.Row="1"
+                                                    Margin="0,3,0,0"
+                                                    Text="{x:Bind Content}"
+                                                    TextTrimming="CharacterEllipsis" />
                                                 <TextBlock
-                                            Grid.Row="2"
-                                            HorizontalAlignment="Left"
-                                                    TextWrapping="WrapWholeWords"
                                                     x:Name="txtDescription"
+                                                    Grid.Row="2"
+                                                    HorizontalAlignment="Left"
                                                     x:Load="{x:Bind HasDescription()}"
-                                            FontSize="13"
-                                            Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
-                                            Text="{x:Bind Description}" />
+                                                    FontSize="13"
+                                                    Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                                    Text="{x:Bind Description}"
+                                                    TextWrapping="WrapWholeWords" />
 
                                             </Grid>
                                             <GridView
-                                        Grid.Row="1"
-                                        Margin="5,0,0,0"
-                                        VerticalAlignment="Center"
-                                        IsItemClickEnabled="False"
-                                        ItemsSource="{x:Bind CustomControls}"
-                                        SelectionMode="None">
+                                                Grid.Row="1"
+                                                Margin="5,0,0,0"
+                                                VerticalAlignment="Center"
+                                                IsItemClickEnabled="False"
+                                                ItemsSource="{x:Bind CustomControls}"
+                                                SelectionMode="None">
                                                 <GridView.ItemContainerStyle>
                                                     <Style TargetType="GridViewItem">
                                                         <Setter Property="Margin" Value="0" />
@@ -146,35 +150,42 @@
                                             </GridView>
                                         </Grid>
                                         <Button
-                                    Margin="8,0"
-                                    Padding="7"
                                             Grid.Column="1"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Center"
-                                    BorderBrush="Transparent"
-                                    Click="btnRemoveTask_Click"
-                                    Visibility="{x:Bind RemoveButtonVisibility}">
+                                            Margin="8,0"
+                                            Padding="7"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            BorderBrush="Transparent"
+                                            Click="btnRemoveTask_Click"
+                                            Visibility="{x:Bind RemoveButtonVisibility}">
                                             <Grid>
                                                 <FontIcon Glyph="&#xEDAE;" />
                                             </Grid>
                                         </Button>
                                         <FontIcon
-                                    Margin="15,0"
                                             Grid.Column="1"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Center"
-                                    Glyph="{x:Bind Severity, Converter={StaticResource SevertyToGlyph}}"
-                                    Visibility="{x:Bind IconVisibility}" />
-                                        <Grid Grid.Column="1" Margin="15,0" Visibility="{x:Bind ProgressVisibility}">
+                                            Margin="15,0"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            Glyph="{x:Bind Severity, Converter={StaticResource SevertyToGlyph}}"
+                                            Visibility="{x:Bind IconVisibility}" />
+                                        <Grid
+                                            Grid.Column="1"
+                                            Margin="15,0"
+                                            Visibility="{x:Bind ProgressVisibility}">
                                             <TextBlock
-                                            FontSize="13"
-                                            Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
-                                                Visibility="{x:Bind ProgressTextVisibility}"
                                                 HorizontalAlignment="Center"
-                                                VerticalAlignment="Center">
-                                                <Run Text="{x:Bind Progress}" />%
-                                            </TextBlock>
-                                            <ProgressRing Height="35" Width="35" IsIndeterminate="{x:Bind IsIndeterminate}" Value="{x:Bind Progress}"/>
+                                                VerticalAlignment="Center"
+                                                FontSize="13"
+                                                Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                                Visibility="{x:Bind ProgressTextVisibility}">
+                                                <Run Text="{x:Bind Progress}" />
+                                                %</TextBlock>
+                                            <ProgressRing
+                                                Width="35"
+                                                Height="35"
+                                                IsIndeterminate="{x:Bind IsIndeterminate}"
+                                                Value="{x:Bind Progress}" />
                                         </Grid>
                                     </Grid>
                                 </SwipeControl>
@@ -187,21 +198,26 @@
                                 <SwipeControl Margin="0">
                                     <SwipeControl.RightItems>
                                         <SwipeItems Mode="Execute">
-                                            <SwipeItem Text="{helpers:Localize Name=Remove}" Foreground="{ThemeResource ApplicationForegroundThemeBrush}" Background="{ThemeResource InfoBarErrorSeverityBackgroundBrush}" BehaviorOnInvoked="Close" Invoked="delete_Invoked">
+                                            <SwipeItem
+                                                Background="{ThemeResource InfoBarErrorSeverityBackgroundBrush}"
+                                                BehaviorOnInvoked="Close"
+                                                Foreground="{ThemeResource ApplicationForegroundThemeBrush}"
+                                                Invoked="delete_Invoked"
+                                                Text="{helpers:Localize Name=Remove}">
                                                 <SwipeItem.IconSource>
-                                                    <FontIconSource Glyph="&#xEDAE;"/>
+                                                    <FontIconSource Glyph="&#xEDAE;" />
                                                 </SwipeItem.IconSource>
                                             </SwipeItem>
                                         </SwipeItems>
                                     </SwipeControl.RightItems>
                                     <Grid
-                                Padding="10,10,10,0"
-                                HorizontalAlignment="Stretch"
-                                x:DefaultBindMode="OneWay"
-                                Background="{x:Bind Severity, Converter={StaticResource ServertyToBackground}}"
-                                CornerRadius="5"
-                                PointerEntered="btnIcon_PointerEntered"
-                                PointerExited="btnIcon_PointerExited">
+                                        Padding="10,10,10,0"
+                                        HorizontalAlignment="Stretch"
+                                        x:DefaultBindMode="OneWay"
+                                        Background="{x:Bind Severity, Converter={StaticResource ServertyToBackground}}"
+                                        CornerRadius="5"
+                                        PointerEntered="btnIcon_PointerEntered"
+                                        PointerExited="btnIcon_PointerExited">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="auto" />
@@ -223,33 +239,33 @@
                                                     <RowDefinition Height="auto" />
                                                 </Grid.RowDefinitions>
                                                 <TextBlock
-                                            Grid.Row="0"
-                                            HorizontalAlignment="Left"
-                                            FontSize="13"
-                                            Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
-                                            Text="{x:Bind Time.ToLongTimeString()}" />
+                                                    Grid.Row="0"
+                                                    HorizontalAlignment="Left"
+                                                    FontSize="13"
+                                                    Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                                    Text="{x:Bind Time.ToLongTimeString()}" />
                                                 <TextBlock
-                                            Grid.Row="1"
-                                            Margin="0,3,0,0"
-                                            Text="{x:Bind Content}"
-                                            TextTrimming="CharacterEllipsis" />
+                                                    Grid.Row="1"
+                                                    Margin="0,3,0,0"
+                                                    Text="{x:Bind Content}"
+                                                    TextTrimming="CharacterEllipsis" />
                                                 <TextBlock
-                                            Grid.Row="2"
-                                            HorizontalAlignment="Left"
-                                            FontSize="13"
                                                     x:Name="txtDescription"
+                                                    Grid.Row="2"
+                                                    HorizontalAlignment="Left"
                                                     x:Load="{x:Bind HasDescription()}"
-                                                    TextWrapping="WrapWholeWords"
-                                            Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
-                                            Text="{x:Bind Description}" />
+                                                    FontSize="13"
+                                                    Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                                    Text="{x:Bind Description}"
+                                                    TextWrapping="WrapWholeWords" />
                                             </Grid>
                                             <GridView
-                                        Grid.Row="1"
-                                        Margin="5,0,0,0"
-                                        VerticalAlignment="Center"
-                                        IsItemClickEnabled="False"
-                                        ItemsSource="{x:Bind CustomControls}"
-                                        SelectionMode="None">
+                                                Grid.Row="1"
+                                                Margin="5,0,0,0"
+                                                VerticalAlignment="Center"
+                                                IsItemClickEnabled="False"
+                                                ItemsSource="{x:Bind CustomControls}"
+                                                SelectionMode="None">
                                                 <GridView.ItemContainerStyle>
                                                     <Style TargetType="GridViewItem">
                                                         <Setter Property="Margin" Value="0" />
@@ -264,25 +280,25 @@
                                             </GridView>
                                         </Grid>
                                         <Button
-                                    Margin="8,0"
                                             Grid.Column="1"
-                                    Padding="7"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Center"
-                                    BorderBrush="Transparent"
-                                    Click="btnRemoveTask_Click"
-                                    Visibility="{x:Bind RemoveButtonVisibility}">
+                                            Margin="8,0"
+                                            Padding="7"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            BorderBrush="Transparent"
+                                            Click="btnRemoveTask_Click"
+                                            Visibility="{x:Bind RemoveButtonVisibility}">
                                             <Grid>
                                                 <FontIcon Glyph="&#xEDAE;" />
                                             </Grid>
                                         </Button>
                                         <FontIcon
-                                    Margin="15,0"
                                             Grid.Column="1"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Center"
-                                    Glyph="{x:Bind Severity, Converter={StaticResource SevertyToGlyph}}"
-                                    Visibility="{x:Bind IconVisibility}" />
+                                            Margin="15,0"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            Glyph="{x:Bind Severity, Converter={StaticResource SevertyToGlyph}}"
+                                            Visibility="{x:Bind IconVisibility}" />
                                     </Grid>
                                 </SwipeControl>
                             </Grid>

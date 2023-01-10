@@ -2,30 +2,50 @@
     x:Class="Emerald.WinUI.Views.LogsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Emerald.WinUI.Views"
     xmlns:App="using:Emerald.WinUI"
-    xmlns:helpers="using:Emerald.WinUI.Helpers"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:helpers="using:Emerald.WinUI.Helpers"
+    xmlns:local="using:Emerald.WinUI.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <ScrollViewer x:Name="sv" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Margin="10,0" CornerRadius="{StaticResource ControlCornerRadius}" Padding="5" Background="{ThemeResource LayerOnAcrylicFillColorDefault}">
+        <ScrollViewer
+            x:Name="sv"
+            Margin="10,0"
+            Padding="5"
+            Background="{ThemeResource LayerOnAcrylicFillColorDefault}"
+            CornerRadius="{StaticResource ControlCornerRadius}"
+            HorizontalScrollBarVisibility="Auto"
+            VerticalScrollBarVisibility="Auto">
             <Grid>
-                <RichTextBlock x:Name="txt" TextWrapping="NoWrap" FontFamily="Cascadia Code">
+                <RichTextBlock
+                    x:Name="txt"
+                    FontFamily="Cascadia Code"
+                    TextWrapping="NoWrap">
                     <Paragraph>
-                        <Run Text="{x:Bind App:MainWindow.HomePage.Logs,Mode=OneWay}"/>
+                        <Run Text="{x:Bind App:MainWindow.HomePage.Logs, Mode=OneWay}" />
                     </Paragraph>
                 </RichTextBlock>
             </Grid>
         </ScrollViewer>
-        <CommandBar HorizontalAlignment="Right" Margin="0,5" DefaultLabelPosition="Right" Grid.Row="1">
-            <AppBarButton Icon="Clear" Click="Clear_Click" Label="{helpers:Localize Name=Clear}"/>
-            <AppBarButton Icon="Save" Click="Save_Click"  Label="{helpers:Localize Name=Save}"/>
+        <CommandBar
+            Grid.Row="1"
+            Margin="0,5"
+            HorizontalAlignment="Right"
+            DefaultLabelPosition="Right">
+            <AppBarButton
+                Click="Clear_Click"
+                Icon="Clear"
+                Label="{helpers:Localize Name=Clear}" />
+            <AppBarButton
+                Click="Save_Click"
+                Icon="Save"
+                Label="{helpers:Localize Name=Save}" />
         </CommandBar>
     </Grid>
 </Page>

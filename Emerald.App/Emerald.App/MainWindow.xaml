@@ -2,13 +2,14 @@
     x:Class="Emerald.WinUI.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:SS="using:Emerald.WinUI.Helpers.Settings"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:helpers="using:Emerald.WinUI.Helpers"
     xmlns:local="using:Emerald.WinUI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Emerald.WinUI.Models"
-    xmlns:helpers="using:Emerald.WinUI.Helpers"
-    xmlns:SS="using:Emerald.WinUI.Helpers.Settings"
-    xmlns:uc="using:Emerald.WinUI.UserControls" xmlns:toolkit="using:CommunityToolkit.WinUI.UI.Controls"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.UI.Controls"
+    xmlns:uc="using:Emerald.WinUI.UserControls"
     mc:Ignorable="d">
 
     <Grid>
@@ -17,8 +18,8 @@
         </Grid.Background>
         <uc:TitleBar
             x:Name="AppTitleBar"
-            Margin="12,0,0,0"
             Height="45"
+            Margin="12,0,0,0"
             VerticalAlignment="Top" />
         <NavigationView
             x:Name="NavView"
@@ -28,8 +29,8 @@
             IsPaneToggleButtonVisible="False"
             IsSettingsVisible="False"
             ItemInvoked="NavView_ItemInvoked"
-                    OpenPaneLength="80"
-                    PaneDisplayMode="Left">
+            OpenPaneLength="80"
+            PaneDisplayMode="Left">
             <NavigationView.HeaderTemplate>
                 <DataTemplate x:DataType="models:NavViewHeader">
                     <Grid Margin="{x:Bind HeaderMargin}" x:DefaultBindMode="OneWay">
@@ -59,15 +60,15 @@
             <NavigationView.MenuItemTemplate>
                 <DataTemplate x:DataType="models:SquareNavigationViewItem">
                     <NavigationViewItem
-                                Height="64"
-                        IsEnabled="{x:Bind IsEnabled,Mode=OneWay}"
-                                IsSelected="{x:Bind IsSelected, Mode=TwoWay}"
-                                Tag="{x:Bind Name}">
+                        Height="64"
+                        IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
+                        IsSelected="{x:Bind IsSelected, Mode=TwoWay}"
+                        Tag="{x:Bind Name}">
                         <Grid
-                            x:DefaultBindMode="OneWay"
                             Margin="-5,4,-9,0"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch"
+                            x:DefaultBindMode="OneWay"
                             RowSpacing="2">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -76,24 +77,24 @@
                             <Grid.ChildrenTransitions>
                                 <TransitionCollection>
                                     <RepositionThemeTransition />
-                                    <AddDeleteThemeTransition/>
+                                    <AddDeleteThemeTransition />
                                 </TransitionCollection>
                             </Grid.ChildrenTransitions>
-                            <ContentPresenter 
-                                VerticalAlignment="Top" 
+                            <ContentPresenter
                                 HorizontalAlignment="Right"
-                                Content="{x:Bind InfoBadge}"/>
+                                VerticalAlignment="Top"
+                                Content="{x:Bind InfoBadge}" />
                             <toolkit:ImageEx
+                                x:Name="Image"
                                 Width="28"
                                 Height="28"
-                                x:Name="Image"
-                                x:Load="{x:Bind ShowFontIcons.Equals(x:False),Mode=OneWay}"
+                                x:Load="{x:Bind ShowFontIcons.Equals(x:False), Mode=OneWay}"
                                 Source="{x:Bind Thumbnail}" />
-                            <FontIcon 
-                                FontSize="22" 
-                                x:Name="fontIcon" 
-                                x:Load="{x:Bind ShowFontIcons,Mode=OneWay}"
-                                Glyph="{x:Bind FontIconGlyph}"/>
+                            <FontIcon
+                                x:Name="fontIcon"
+                                x:Load="{x:Bind ShowFontIcons, Mode=OneWay}"
+                                FontSize="22"
+                                Glyph="{x:Bind FontIconGlyph}" />
                             <TextBlock
                                 x:Name="txtNavItemName"
                                 Grid.Row="1"
@@ -108,17 +109,42 @@
                 </DataTemplate>
             </NavigationView.MenuItemTemplate>
             <NavigationView.MenuItems>
-                <models:SquareNavigationViewItem FontIconGlyph="&#xE80F;" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Home}" Thumbnail="Assets/NavigationViewIcons/home.png" IsSelected="True"/>
-                <models:SquareNavigationViewItem FontIconGlyph="&#xE7BF;" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Store}" Thumbnail="Assets/NavigationViewIcons/store.png" IsSelected="False"/>
+                <models:SquareNavigationViewItem
+                    Name="{helpers:Localize CustomName=Home}"
+                    FontIconGlyph="&#xE80F;"
+                    IsSelected="True"
+                    ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
+                    Thumbnail="Assets/NavigationViewIcons/home.png" />
+                <models:SquareNavigationViewItem
+                    Name="{helpers:Localize CustomName=Store}"
+                    FontIconGlyph="&#xE7BF;"
+                    IsSelected="False"
+                    ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
+                    Thumbnail="Assets/NavigationViewIcons/store.png" />
             </NavigationView.MenuItems>
             <NavigationView.FooterMenuItems>
-                <models:SquareNavigationViewItem FontIconGlyph="&#xE9D5;" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Tasks}" Thumbnail="Assets/NavigationViewIcons/tasks.png" InfoBadge="{x:Bind TasksInfoBadge}" IsSelected="False"/>
-                <models:SquareNavigationViewItem FontIconGlyph="&#xE756;" IsEnabled="{x:Bind SS:SettingsSystem.Settings.Minecraft.ReadLogs(),Mode=OneWay}" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Logs}" Thumbnail="Assets/NavigationViewIcons/logs.png" IsSelected="False"/>
-                <models:SquareNavigationViewItem FontIconGlyph="&#xE713;" ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0),Mode=OneWay}" Name="{helpers:Localize CustomName=Settings}" Thumbnail="Assets/NavigationViewIcons/settings.png" IsSelected="False"/>
+                <models:SquareNavigationViewItem
+                    Name="{helpers:Localize CustomName=Tasks}"
+                    FontIconGlyph="&#xE9D5;"
+                    InfoBadge="{x:Bind TasksInfoBadge}"
+                    IsSelected="False"
+                    ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
+                    Thumbnail="Assets/NavigationViewIcons/tasks.png" />
+                <models:SquareNavigationViewItem
+                    Name="{helpers:Localize CustomName=Logs}"
+                    FontIconGlyph="&#xE756;"
+                    IsEnabled="{x:Bind SS:SettingsSystem.Settings.Minecraft.ReadLogs(), Mode=OneWay}"
+                    IsSelected="False"
+                    ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
+                    Thumbnail="Assets/NavigationViewIcons/logs.png" />
+                <models:SquareNavigationViewItem
+                    Name="{helpers:Localize CustomName=Settings}"
+                    FontIconGlyph="&#xE713;"
+                    IsSelected="False"
+                    ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
+                    Thumbnail="Assets/NavigationViewIcons/settings.png" />
             </NavigationView.FooterMenuItems>
-            <Frame 
-                IsEnabled="{x:Bind local:App.Launcher.UIState,Mode=OneWay}"
-                x:Name="frame" />
+            <Frame x:Name="frame" IsEnabled="{x:Bind local:App.Launcher.UIState, Mode=OneWay}" />
         </NavigationView>
 
 
