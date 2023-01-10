@@ -57,7 +57,7 @@ namespace Emerald.WinUI.UserControls
             get => (bool)GetValue(IsStackedCenterProperty);
             set => SetValue(IsStackedCenterProperty, value);
         }
-        
+
         public static DependencyProperty StretchContentProperty =
             DependencyProperty.Register("StretchContent", typeof(bool),
                 typeof(AdaptiveItemPane), new PropertyMetadata(false));
@@ -68,6 +68,15 @@ namespace Emerald.WinUI.UserControls
             set => SetValue(StretchContentProperty, value);
         }
 
+        public static DependencyProperty OnlyStackedProperty =
+            DependencyProperty.Register("OnlyStacked", typeof(bool),
+                typeof(AdaptiveItemPane), new PropertyMetadata(false));
+
+        public bool OnlyStacked
+        {
+            get => (bool)GetValue(OnlyStackedProperty);
+            set => SetValue(OnlyStackedProperty, value);
+        }
         private long _leftToken;
         private long _rightToken;
 
@@ -114,7 +123,7 @@ namespace Emerald.WinUI.UserControls
         {
             int margin = StretchContent ? (MiddlePane == null ? 12 : 24) : 0;
             bool NoRight = RealRight == null;
-            if (width - margin < MainBreakpoint && width - margin < LeftMiddleBreakpoint)
+            if ((width - margin < MainBreakpoint && width - margin < LeftMiddleBreakpoint) || OnlyStacked)
                 VisualStateManager.GoToState(this, IsStackedCenter ? "StackedCenter" : "Stacked", false);
             else if (width - margin < MainBreakpoint)
                 VisualStateManager.GoToState(this, StretchContent ? "MiddleStateStretch" : "MiddleState", false);

@@ -31,7 +31,6 @@ namespace Emerald.Core.News
             get => _Entries ?? new();
             set => Set(ref _Entries, value, nameof(Entries));
         }
-        public NewsHelper() { }
         public ObservableCollection<JSON.Entry> Search(string key)
         {
             if(string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key))
@@ -64,7 +63,7 @@ namespace Emerald.Core.News
                     response = await wc.GetStringAsync(url);
                 }
                 var json = JsonConvert.DeserializeObject<JSON.Root>(response);
-                Entries = AllEntries = json?.entries != null ? new(json.entries.Where(x => x.Category == "Minecraft: Java Edition").ToList()) : new();
+                Entries = AllEntries = json?.entries != null ? new(json.entries.ToList()) : new();
                 return Entries;
             }
             catch

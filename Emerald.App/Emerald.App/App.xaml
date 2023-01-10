@@ -12,6 +12,23 @@
                 <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
             <!--  Other app resources here  -->
+            <Style TargetType="Border" x:Key="ExpanderBorderStyle">
+                <Setter
+                        Property="Margin"
+                        Value="10,0,10,10" />
+                <Setter
+                        Property="Background"
+                        Value="{ThemeResource ExpanderHeaderBackground}" />
+                <Setter
+                        Property="BorderBrush"
+                        Value="{ThemeResource ExpanderHeaderBorderBrush}" />
+                <Setter
+                        Property="BorderThickness"
+                        Value="{ThemeResource ExpanderHeaderBorderThickness}" />
+                <Setter
+                        Property="CornerRadius"
+                        Value="{ThemeResource ControlCornerRadius}" />
+            </Style>
             <ResourceDictionary x:Key="TransparentButton">
                 <SolidColorBrush x:Key="ButtonBackground" Color="Transparent" />
                 <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="Transparent" />

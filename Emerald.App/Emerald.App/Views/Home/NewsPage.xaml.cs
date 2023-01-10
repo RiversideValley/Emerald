@@ -30,9 +30,13 @@ namespace Emerald.WinUI.Views.Home
         public NewsPage()
         {
             this.InitializeComponent();
+            _ = App.Launcher.News.LoadEntries();
         }
         private void BackButton_Click(object sender, RoutedEventArgs e) =>
             BackRequested?.Invoke(this, new EventArgs());
+
+        private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)=>
+            App.Launcher.News.Search(sender.Text);
         
     }
 }
