@@ -41,7 +41,7 @@ namespace Emerald.Core.News
 
             var s = new ObservableCollection<JSON.Entry>();
             var splitText = key.Split(" ");
-            foreach (var itm in AllEntries)
+            foreach (var itm in AllEntries ?? new())
             {
                 var found = splitText.All((key) => itm.Title.ToLower().Contains(key));
                 if (found)
