@@ -1,4 +1,4 @@
-**Depth Nightshade Vexillum License**
+**Nightshade Vexillum License**
 
 ```
 Emoji are used within this document to outwardly express conventions of easy-to-read documents, and/or help other cultures read the text at their convenience, if some words may be unclear to them.
