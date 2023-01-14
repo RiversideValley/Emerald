@@ -62,7 +62,7 @@ There are multiple ways to participate in the community:
 
 ## 🔨 Building the Code
 
-##### 1. Prerequisites
+### 1️⃣ Prerequisites
 
 Ensure you have following components:
 
@@ -77,7 +77,7 @@ Ensure you have following components:
 - At least 4gb of RAM
 - [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)
 
-### 2. Git
+### 2️⃣ Git
 
 Clone the repository:
 
@@ -86,7 +86,7 @@ git clone https://github.com/OpenAndrexial/Emerald
 ```
 (`redesign` is the latest branch)
 
-### 4. Build the project
+### 3️⃣ Build the project
 
 - Open `Emerald.sln`.
 - Set the Startup Project to `Emerald.Package`
