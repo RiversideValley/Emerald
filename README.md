@@ -96,4 +96,4 @@ git clone https://github.com/OpenAndrexial/Emerald
 
 Copyright (c) 2022-2023 Depth
 
-Licensed under the MIT license as stated in the [LICENSE](LICENSE.md).
+Licensed under the Nightshade Vexillum license as stated in the [LICENSE](LICENSE.md).
