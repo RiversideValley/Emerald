@@ -9,7 +9,6 @@ using Emerald.WinUI.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using ProjBobcat.Class.Model;
 using ProjBobcat.Class.Model.Optifine;
 using System;
 using System.Collections.Generic;
@@ -17,48 +16,48 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
-using Windows.Security.Authentication.Web.Provider;
-using Windows.System;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
+
 namespace Emerald.WinUI.Views.Home
 {
     public sealed partial class HomePage : Page, INotifyPropertyChanged
     {
+        public Process GameProcess { get; private set; }
+
+        public AccountsPage AccountsPage { get; private set; }
+
         public event PropertyChangedEventHandler? PropertyChanged;
+
         internal void Set<T>(ref T obj, T value, string name = null)
         {
             obj = value;
             InvokePropertyChanged(name);
         }
+
         public void InvokePropertyChanged(string name = null)
         {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
+
         private MSession _Session;
-        public MSession Session
-        {
-            get => _Session;
-            set => Set(ref _Session, value);
-        }
+        public MSession Session { get => _Session; set => Set(ref _Session, value); }
+
         private string _Logs = "";
-        public string Logs
-        {
-            get => _Logs;
-            set => Set(ref _Logs, value ?? "", nameof(Logs));
-        }
+        public string Logs { get => _Logs; set => Set(ref _Logs, value ?? "", nameof(Logs)); }
+
         public Account SessionAsAccount
         {
             get => Session == null ? new MSession(Localized.Login.Localize(), "fake", null).ToAccount(false) : Session.ToAccount(false);
         }
-        public AccountsPage AccountsPage { get; private set; }
+
         public HomePage()
         {
-            this.InitializeComponent();
-            this.Loaded += InitializeWhenLoad;
+            InitializeComponent();
+
+            Loaded += InitializeWhenLoad;
         }
 
         private void InitializeWhenLoad(object sender, RoutedEventArgs e) => Initialize();
@@ -104,6 +103,7 @@ namespace Emerald.WinUI.Views.Home
                 ShowTips();
             }
         }
+
         public void ShowTips()
         {
             var tip = new TeachingTip()
@@ -137,6 +137,7 @@ namespace Emerald.WinUI.Views.Home
             };
             tip.ShowAt(null);
         }
+
         private async void Launcher_VersionsRefreshed(object sender, Core.Args.VersionsRefreshedEventArgs e)
         {
             if (e.Success)
@@ -232,7 +233,10 @@ namespace Emerald.WinUI.Views.Home
             SecondaryFrame.Visibility = Visibility.Visible;
             AccountsPage.UpdateSource();
         }
-        private bool UI(bool value) => App.Launcher.UIState = value;
+
+        private bool UI(bool value)
+            => App.Launcher.UIState = value;
+
         private async Task Launch()
         {
             UI(false);
@@ -277,6 +281,7 @@ namespace Emerald.WinUI.Views.Home
             }
             UI(true);
         }
+
         private async void LaunchButton_Click(object sender, RoutedEventArgs e)
         {
 
@@ -314,7 +319,7 @@ namespace Emerald.WinUI.Views.Home
             }
             await Launch();
         }
-        public Process GameProcess { get; private set; }
+
         private void StartProcess(Process process)
         {
             GameProcess = process;

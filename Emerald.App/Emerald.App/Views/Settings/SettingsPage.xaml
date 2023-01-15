@@ -9,20 +9,34 @@
     xmlns:uc="using:Emerald.WinUI.UserControls"
     mc:Ignorable="d">
 
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary>
+                    <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+                    <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
+                    <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
+                    <Thickness x:Key="NavigationViewTopPaneHeight">40</Thickness>
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
         <NavigationView
             x:Name="navView"
-            AlwaysShowHeader="True"
+            Margin="8,-8,8,0"
             Background="Transparent"
             IsBackButtonVisible="Collapsed"
             IsSettingsVisible="False"
             ItemInvoked="navView_ItemInvoked"
             PaneDisplayMode="Top">
-            <NavigationView.HeaderTemplate>
-                <DataTemplate x:DataType="x:String">
-                    <TextBlock Margin="-25,-25,0,0" Text="{x:Bind}" />
-                </DataTemplate>
-            </NavigationView.HeaderTemplate>
+
             <NavigationView.MenuItems>
                 <uc:NavViewItem
                     Content="{helpers:Localize CustomName=General,
@@ -41,9 +55,17 @@
                     IconGlyph="&#xE946;"
                     Tag="About" />
             </NavigationView.MenuItems>
-            <ScrollViewer>
-                <Frame x:Name="contentframe" Margin="10,-5,10,0" />
-            </ScrollViewer>
+
         </NavigationView>
+
+        <Grid
+            Grid.Row="1"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+            <ScrollViewer>
+                <Frame x:Name="contentframe" />
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </Page>

@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Collections.Generic;
 using Windows.System.Diagnostics;
+using CommunityToolkit.WinUI;
 
 namespace Emerald.WinUI.Helpers
 {
@@ -27,6 +28,7 @@ namespace Emerald.WinUI.Helpers
                 tip.CloseButtonClick += (_, _) => tip.IsOpen = false;
             }
         }
+
         public static int GetMemoryGB()
         {
             SystemMemoryUsageReport systemMemoryUsageReport = SystemDiagnosticInfo.GetForCurrentSystem().MemoryUsage.GetReport();
@@ -34,6 +36,7 @@ namespace Emerald.WinUI.Helpers
             long memkb = Convert.ToInt64(systemMemoryUsageReport.TotalPhysicalSizeInBytes);
             return Convert.ToInt32(memkb / Math.Pow(1024, 3));
         }
+
         public static string KiloFormat(this int num)
         {
             if (num >= 100000000)
@@ -53,6 +56,7 @@ namespace Emerald.WinUI.Helpers
 
             return num.ToString("#,0");
         }
+
         public static ContentDialog ToContentDialog(this UIElement content, string title, string closebtnText = null, ContentDialogButton defaultButton = ContentDialogButton.Close)
         {
             ContentDialog dialog = new()
@@ -67,6 +71,7 @@ namespace Emerald.WinUI.Helpers
             dialog.RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme;
             return dialog;
         }
+
         public static int Remove<T>(this ObservableCollection<T> coll, Func<T, bool> condition)
         {
             var itemsToRemove = coll.Where(condition).ToList();
@@ -78,6 +83,7 @@ namespace Emerald.WinUI.Helpers
 
             return itemsToRemove.Count;
         }
+
         public static int Remove<T>(this List<T> coll, Func<T, bool> condition)
         {
             var itemsToRemove = coll.Where(condition).ToList();
@@ -89,6 +95,7 @@ namespace Emerald.WinUI.Helpers
 
             return itemsToRemove.Count;
         }
+
         public static string ToBinaryString(this string str)
         {
             var binary = "";
@@ -98,6 +105,7 @@ namespace Emerald.WinUI.Helpers
             }
             return binary;
         }
+
         public static string ToMD5(this string s)
         {
             StringBuilder sb = new();
@@ -114,39 +122,22 @@ namespace Emerald.WinUI.Helpers
 
             return sb.ToString();
         }
+
         public static string Localize(this string resourceKey, string resw = null)
         {
             try
             {
                 string s;
+
                 if (resw == null)
                 {
-                    s = new ResourceLoader().GetString(resourceKey);
+                    s = resourceKey.ToString().GetLocalized();
                 }
                 else
                 {
-                    s = new Windows.ApplicationModel.Resources.ResourceLoader(resw).GetString(resourceKey);
+                    s = resourceKey.ToString().GetLocalized(resw);
                 }
-                return string.IsNullOrEmpty(s) ? resourceKey : s;
-            }
-            catch
-            {
-                return resourceKey.ToString();
-            }
-        }
-        public static string Localize(this Core.Localized resourceKey, string resw = null)
-        {
-            try
-            {
-                string s;
-                if (resw == null)
-                {
-                    s = new ResourceLoader().GetString(resourceKey.ToString());
-                }
-                else
-                {
-                    s = new ResourceLoader(resw).GetString(resourceKey.ToString());
-                }
+
                 return string.IsNullOrEmpty(s) ? resourceKey.ToString() : s;
             }
             catch
@@ -154,15 +145,41 @@ namespace Emerald.WinUI.Helpers
                 return resourceKey.ToString();
             }
         }
+
+        public static string Localize(this Core.Localized resourceKey, string resw = null)
+        {
+            try
+            {
+                string s;
+
+                if (resw == null)
+                {
+                    s = resourceKey.ToString().GetLocalized();
+                }
+                else
+                {
+                    s = resourceKey.ToString().GetLocalized(resw);
+                }
+
+                return string.IsNullOrEmpty(s) ? resourceKey.ToString() : s;
+            }
+            catch
+            {
+                return resourceKey.ToString();
+            }
+        }
+
         public static bool IsNullEmptyOrWhiteSpace(this string str)
         {
             return string.IsNullOrEmpty(str) || string.IsNullOrWhiteSpace(str);
         }
+
         public static Models.Account ToAccount(this CmlLib.Core.Auth.MSession session,bool plusCount = true)
         {
             bool isOffline = session.UUID == "user_uuid";
             return new Models.Account(session.Username, isOffline ? null : session.AccessToken, isOffline ? null : session.UUID, plusCount ? MainWindow.HomePage.AccountsPage.AllCount++ : 0, false);
         }
+
         public static CmlLib.Core.Auth.MSession ToMSession(this Models.Account account)
         {
             bool isOffline = account.UUID == null;

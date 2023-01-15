@@ -8,7 +8,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emerald.App", "Emerald.App\
 EndProject
 Project("{C7167F0D-BC9F-4E6E-AFE1-012C56B48DB5}") = "Package.WinUI", "Emerald.App\Emerald.App.Package\Package.WinUI.wapproj", "{59A6F3D1-B6E1-48AD-80D3-215DF2791AC1}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2BB1A64C-5C5D-415D-B816-66E2152E2703}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "project", "project", "{2BB1A64C-5C5D-415D-B816-66E2152E2703}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection

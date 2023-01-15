@@ -12,144 +12,148 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="using:Emerald.WinUI.UserControls"
     mc:Ignorable="d">
-    <Grid Margin="0,0,0,0">
+
+    <Grid Margin="16">
         <Grid.Resources>
             <ResourceDictionary Source="/ResourceDictionaries/Expanders.xaml" />
         </Grid.Resources>
-        <StackPanel Spacing="3">
-            <TextBlock
-                Margin="0,5"
-                FontWeight="SemiBold"
-                Text="{helpers:Localize CustomName=MinecraftSettings,
-                                        RESW=Settings}" />
-            <uc:Expander
-                Title="{helpers:Localize CustomName=MinecraftPath,
-                                         RESW=Settings}"
-                Description="{helpers:Localize CustomName=MinecraftPathDescription,
-                                               RESW=Settings}"
-                ExpanderStyle="Static"
-                Icon="&#xE838;">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock
-                        MaxWidth="250"
-                        VerticalAlignment="Center"
-                        Text="{x:Bind SS:SettingsSystem.Settings.Minecraft.Path, Mode=OneWay}"
-                        TextTrimming="CharacterEllipsis" />
-                    <Button
-                        x:Name="btnChangeMPath"
-                        Margin="5,0,0,0"
-                        Padding="7,7"
-                        Click="btnChangeMPath_Click"
-                        ToolTipService.ToolTip="Change">
-                        <FontIcon FontSize="16" Glyph="&#xE19C;" />
-                    </Button>
-                </StackPanel>
-            </uc:Expander>
-            <uc:Expander
-                Title="{helpers:Localize CustomName=RAM,
-                                         RESW=Settings}"
-                Description="{helpers:Localize CustomName=RAMDescription,
-                                               RESW=Settings}"
-                Icon="&#xE964;"
-                IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
-                <uc:Expander.HeaderControls>
-                    <StackPanel Orientation="Horizontal" Spacing="5">
-                        <TextBlock x:Name="txtRam" VerticalAlignment="Center">
-                            <Run Text="{x:Bind SS:SettingsSystem.Settings.Minecraft.RAMinGB, Mode=OneWay}" />
-                            GB</TextBlock>
-                        <RepeatButton
-                            Padding="5"
-                            Click="btnRamPlus_Click"
-                            Content="{helpers:FontIcon Glyph=&#xE948;}"
-                            FontWeight="SemiBold" />
-                        <RepeatButton
-                            Padding="5"
-                            Click="btnRamMinus_Click"
-                            Content="{helpers:FontIcon Glyph=&#xE949;}"
-                            FontWeight="SemiBold" />
-                    </StackPanel>
-                </uc:Expander.HeaderControls>
-                <uc:Expander.Controls>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="auto" />
-                        </Grid.ColumnDefinitions>
-                        <Slider
-                            Grid.Column="0"
-                            Maximum="{x:Bind Main:DirectResoucres.MaxRAM}"
-                            Minimum="{x:Bind Main:DirectResoucres.MinRAM}"
-                            TickFrequency="{x:Bind Main:DirectResoucres.MinRAM}"
-                            Value="{x:Bind SS:SettingsSystem.Settings.Minecraft.RAM, Mode=TwoWay}" />
+
+        <StackPanel Spacing="16">
+            <StackPanel Spacing="4">
+                <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=MinecraftSettings, RESW=Settings}" />
+                <uc:Expander
+                    Title="{helpers:Localize CustomName=MinecraftPath,
+                                             RESW=Settings}"
+                    Description="{helpers:Localize CustomName=MinecraftPathDescription,
+                                                   RESW=Settings}"
+                    ExpanderStyle="Static"
+                    Icon="&#xE838;">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock
+                            MaxWidth="250"
+                            VerticalAlignment="Center"
+                            Text="{x:Bind SS:SettingsSystem.Settings.Minecraft.Path, Mode=OneWay}"
+                            TextTrimming="CharacterEllipsis" />
                         <Button
-                            x:Name="btnAutoRAM"
-                            Grid.Column="1"
+                            x:Name="btnChangeMPath"
                             Margin="5,0,0,0"
-                            Click="btnAutoRAM_Click"
-                            Content="Auto Suggest" />
-                    </Grid>
-                </uc:Expander.Controls>
-            </uc:Expander>
-            <uc:Expander
-                Title="{helpers:Localize CustomName=DownloadSettings,
-                                         RESW=Settings}"
-                Description="{helpers:Localize CustomName=DownloadSettingsDescription,
-                                               RESW=Settings}"
-                Icon="&#xE896;"
-                IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
-                <StackPanel Spacing="5">
-                    <uc:ExpanderItem
-                        Title="{helpers:Localize CustomName=AssetsCheck,
-                                                 RESW=Settings}"
-                        Margin="0,-10,0,0"
-                        BorderVisibility="Collapsed">
-                        <ToggleSwitch IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.Downloader.AssetsCheck, Mode=TwoWay}" />
-                    </uc:ExpanderItem>
-                    <uc:ExpanderItem Title="{helpers:Localize CustomName=HashCheck, RESW=Settings}" Margin="0,0,0,-10">
-                        <ToggleSwitch IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.Downloader.HashCheck, Mode=TwoWay}" />
-                    </uc:ExpanderItem>
-                </StackPanel>
-            </uc:Expander>
-            <TextBlock
-                Margin="0,20,0,5"
-                FontWeight="SemiBold"
-                Text="{helpers:Localize CustomName=AdvancedMinecraftSettings,
-                                        RESW=Settings}" />
-            <uc:Expander
-                Title="{helpers:Localize CustomName=MCasAdmin,
-                                         RESW=Settings}"
-                Description="{helpers:Localize CustomName=MCasAdminDescription,
-                                               RESW=Settings}"
-                ExpanderStyle="Static"
-                Icon="&#xe83d;"
-                IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
-                <ToggleSwitch
-                    IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.IsAdmin, Mode=TwoWay}"
-                    OffContent="{helpers:Localize Name=No}"
-                    OnContent="{helpers:Localize Name=Yes}" />
-            </uc:Expander>
-            <uc:Expander
-                Title="{helpers:Localize CustomName=JVMArgs,
-                                         RESW=Settings}"
-                Description="{helpers:Localize CustomName=JVMArgsDescription,
-                                               RESW=Settings}"
-                Icon="&#xec7a;"
-                IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
-                <uc:ArgumentsListView />
-            </uc:Expander>
-            <uc:Expander
-                Title="{helpers:Localize CustomName=GameLogs,
-                                         RESW=Settings}"
-                Description="{helpers:Localize CustomName=GameLogsDescription,
-                                               RESW=Settings}"
-                ExpanderStyle="Static"
-                Icon="&#xE756;"
-                IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
-                <ToggleSwitch
-                    IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.JVM.GameLogs, Mode=TwoWay}"
-                    OffContent="{helpers:Localize Name=No}"
-                    OnContent="{helpers:Localize Name=Yes}" />
-            </uc:Expander>
+                            Padding="7,7"
+                            Click="btnChangeMPath_Click"
+                            ToolTipService.ToolTip="Change">
+                            <FontIcon FontSize="16" Glyph="&#xE19C;" />
+                        </Button>
+                    </StackPanel>
+                </uc:Expander>
+
+                <uc:Expander
+                    Title="{helpers:Localize CustomName=RAM,
+                                             RESW=Settings}"
+                    Description="{helpers:Localize CustomName=RAMDescription,
+                                                   RESW=Settings}"
+                    Icon="&#xE964;"
+                    IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
+                    <uc:Expander.HeaderControls>
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock x:Name="txtRam" VerticalAlignment="Center">
+                                <Run Text="{x:Bind SS:SettingsSystem.Settings.Minecraft.RAMinGB, Mode=OneWay}" />
+                                GB</TextBlock>
+                            <RepeatButton
+                                Padding="5"
+                                Click="btnRamPlus_Click"
+                                Content="{helpers:FontIcon Glyph=&#xE948;}"
+                                FontWeight="SemiBold" />
+                            <RepeatButton
+                                Padding="5"
+                                Click="btnRamMinus_Click"
+                                Content="{helpers:FontIcon Glyph=&#xE949;}"
+                                FontWeight="SemiBold" />
+                        </StackPanel>
+                    </uc:Expander.HeaderControls>
+                    <uc:Expander.Controls>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+                            <Slider
+                                Grid.Column="0"
+                                Maximum="{x:Bind Main:DirectResoucres.MaxRAM}"
+                                Minimum="{x:Bind Main:DirectResoucres.MinRAM}"
+                                TickFrequency="{x:Bind Main:DirectResoucres.MinRAM}"
+                                Value="{x:Bind SS:SettingsSystem.Settings.Minecraft.RAM, Mode=TwoWay}" />
+                            <Button
+                                x:Name="btnAutoRAM"
+                                Grid.Column="1"
+                                Margin="5,0,0,0"
+                                Click="btnAutoRAM_Click"
+                                Content="Auto Suggest" />
+                        </Grid>
+                    </uc:Expander.Controls>
+                </uc:Expander>
+
+                <uc:Expander
+                    Title="{helpers:Localize CustomName=DownloadSettings,
+                                             RESW=Settings}"
+                    Description="{helpers:Localize CustomName=DownloadSettingsDescription,
+                                                   RESW=Settings}"
+                    Icon="&#xE896;"
+                    IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
+                    <StackPanel Spacing="5">
+                        <uc:ExpanderItem
+                            Title="{helpers:Localize CustomName=AssetsCheck,
+                                                     RESW=Settings}"
+                            Margin="0,-10,0,0"
+                            BorderVisibility="Collapsed">
+                            <ToggleSwitch IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.Downloader.AssetsCheck, Mode=TwoWay}" />
+                        </uc:ExpanderItem>
+                        <uc:ExpanderItem Title="{helpers:Localize CustomName=HashCheck, RESW=Settings}" Margin="0,0,0,-10">
+                            <ToggleSwitch IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.Downloader.HashCheck, Mode=TwoWay}" />
+                        </uc:ExpanderItem>
+                    </StackPanel>
+                </uc:Expander>
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+                <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=AdvancedMinecraftSettings, RESW=Settings}" />
+
+                <uc:Expander
+                    Title="{helpers:Localize CustomName=MCasAdmin,
+                                             RESW=Settings}"
+                    Description="{helpers:Localize CustomName=MCasAdminDescription,
+                                                   RESW=Settings}"
+                    ExpanderStyle="Static"
+                    Icon="&#xe83d;"
+                    IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
+                    <ToggleSwitch
+                        IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.IsAdmin, Mode=TwoWay}"
+                        OffContent="{helpers:Localize Name=No}"
+                        OnContent="{helpers:Localize Name=Yes}" />
+                </uc:Expander>
+
+                <uc:Expander
+                    Title="{helpers:Localize CustomName=JVMArgs,
+                                             RESW=Settings}"
+                    Description="{helpers:Localize CustomName=JVMArgsDescription,
+                                                   RESW=Settings}"
+                    Icon="&#xec7a;"
+                    IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
+                    <uc:ArgumentsListView />
+                </uc:Expander>
+
+                <uc:Expander
+                    Title="{helpers:Localize CustomName=GameLogs,
+                                             RESW=Settings}"
+                    Description="{helpers:Localize CustomName=GameLogsDescription,
+                                                   RESW=Settings}"
+                    ExpanderStyle="Static"
+                    Icon="&#xE756;"
+                    IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
+                    <ToggleSwitch
+                        IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.JVM.GameLogs, Mode=TwoWay}"
+                        OffContent="{helpers:Localize Name=No}"
+                        OnContent="{helpers:Localize Name=Yes}" />
+                </uc:Expander>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </Page>
