@@ -8,16 +8,16 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
 {
     public class JSON : Models.Model
     {
-        public string Serialize() => JsonConvert.SerializeObject(this, Formatting.Indented);
-
+        public string Serialize()
+            => JsonConvert.SerializeObject(this, Formatting.Indented);
     }
 
     public class SettingsBackup : JSON
     {
         public string Backup { get; set; }
+
         public DateTime Time { get; set; }
     }
-
 
     public class Backups : JSON
     {
@@ -51,42 +51,58 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
                 }
             }
         };
+
         public string APIVersion { get; set; } = "1.2";
+
         public Minecraft Minecraft { get; set; }
+
         public App App { get; set; }
     }
+
     public class Minecraft : JSON
     {
         public Minecraft()
         {
-            JVM.PropertyChanged += (_, _) => InvokePropertyChanged();
+            JVM.PropertyChanged += (_, _)
+                => InvokePropertyChanged();
         }
+
         [JsonIgnore]
         public double RAMinGB => Math.Round(RAM / Math.Pow(1024, 1), 1);
+
         private string _Path;
         public string Path
         {
             get => _Path;
             set => Set(ref _Path, value,nameof(Path));
         }
+
         private int _RAM;
         public int RAM
         {
             get => _RAM;
             set => Set(ref _RAM, value);
         }
+
         private bool _IsAdmin;
         public bool IsAdmin
         {
             get => _IsAdmin;
             set => Set(ref _IsAdmin, value);
         }
+
         public Account[] Accounts { get; set; }
+
         public Downloader Downloader { get; set; }
+
         public MCVerionsConfiguration MCVerionsConfiguration { get; set; }
+
         public JVM JVM { get; set; } = new();
-        public bool ReadLogs() => JVM.GameLogs && !IsAdmin;
+
+        public bool ReadLogs()
+            => JVM.GameLogs && !IsAdmin;
     }
+
     public class Account : JSON
     {
         public string Type { get; set; }
@@ -108,6 +124,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public int ScreenWidth { get; set; }
         public int ScreenHeight { get; set; }
         public bool FullScreen { get; set; }
+
         private bool _GameLogs;
         public bool GameLogs
         {
@@ -129,6 +146,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
     public class Discord : JSON
     {
     }
+
     public class MCVerionsConfiguration : JSON
     {
         private bool _Release = true;
@@ -137,24 +155,28 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
             get => _Release;
             set => Set(ref _Release, value);
         }
+
         private bool _Custom = false;
         public bool Custom
         {
             get => _Custom;
             set => Set(ref _Custom, value);
         }
+
         private bool _OldBeta = false;
         public bool OldBeta
         {
             get => _OldBeta;
             set => Set(ref _OldBeta, value);
         }
+
         private bool _OldAlpha = false;
         public bool OldAlpha
         {
             get => _OldAlpha;
             set => Set(ref _OldAlpha, value);
         }
+
         private bool _Snapshot = false;
         public bool Snapshot
         {
@@ -162,11 +184,14 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
             set => Set(ref _Snapshot, value);
         }
     }
+
     public class Appearance : JSON
     {
         private int _NavIconType = 1;
         public int NavIconType { get => _NavIconType; set => Set(ref _NavIconType, value); }
-        public bool ShowFontIcons => NavIconType == 0;
+
+        public bool ShowFontIcons
+            => NavIconType == 0;
 
         private int _Theme;
         public int Theme { get => _Theme; set => Set(ref _Theme, value, nameof(Theme)); }

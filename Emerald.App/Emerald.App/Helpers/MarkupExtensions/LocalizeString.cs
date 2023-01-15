@@ -17,6 +17,7 @@ namespace Emerald.WinUI.Helpers
 
         public ResourceFile RESW { get; set; } = ResourceFile.Main;
 
-        protected override object ProvideValue() => CustomName == null ? Name.Localize() : CustomName.Localize(RESW switch { ResourceFile.Settings => "Settings", _ => null });
+        protected override object ProvideValue()
+            => CustomName == null ? Name.Localize() : CustomName.Localize(RESW switch { ResourceFile.Settings => "Settings", _ => null });
     }
 }

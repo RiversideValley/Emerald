@@ -2,9 +2,9 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
+// https://social.msdn.microsoft.com/Forums/windowsapps/en-US/b2e0f948-df35-49da-a70f-1892205b8570/contenttemplateselector-datatemplateselectorselecttemplatecore-item-parameter-is-always-null?forum=winappswithcsharp
 namespace Emerald.WinUI.Converters
 {
-    #region TaskViewTemplateSelector
     public class TaskViewTemplateSelector : DataTemplateSelector
     {
         public DataTemplate String { get; set; }
@@ -20,8 +20,7 @@ namespace Emerald.WinUI.Converters
             return ((Models.ITask)item is Models.StringTask) ? String : Progress;
         }
     }
-    #endregion
-    #region ExpanderTemplateSelector
+
     public class ExpanderTemplateSelector : DataTemplateSelector
     {
         public ExpanderStyles Style { get; set; }
@@ -55,6 +54,4 @@ namespace Emerald.WinUI.Converters
             };
         }
     }
-    // https://social.msdn.microsoft.com/Forums/windowsapps/en-US/b2e0f948-df35-49da-a70f-1892205b8570/contenttemplateselector-datatemplateselectorselecttemplatecore-item-parameter-is-always-null?forum=winappswithcsharp
-    #endregion
 }

@@ -82,6 +82,7 @@ namespace Emerald.WinUI.ViewModels
             }
 
             PropertyChangedEventArgs args = new(propertyName);
+
             foreach (KeyValuePair<PropertyChangedEventHandler, SynchronizationContext> @event in PropertyChangedEvents)
             {
                 if (@event.Value == null)

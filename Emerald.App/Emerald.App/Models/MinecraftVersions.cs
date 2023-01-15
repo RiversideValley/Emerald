@@ -48,7 +48,8 @@ namespace Emerald.WinUI.Models
         private CmlLib.Core.Version.MVersionType? _Type;
         public CmlLib.Core.Version.MVersionType? Type { get => _Type; set => Set(ref _Type, value); }
 
-        public string TypeString => ("Type" + Type == null ? CmlLib.Core.Version.MVersionType.OldAlpha.ToString() : Type.ToString()).Localize();
+        public string TypeString
+            => ("Type" + Type == null ? CmlLib.Core.Version.MVersionType.OldAlpha.ToString() : Type.ToString()).Localize();
 
         private string _Version;
         public string Version { get => _Version; set => Set(ref _Version, value); }

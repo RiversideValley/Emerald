@@ -5,11 +5,13 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using PInvoke;
 using System;
-using System.Runtime.InteropServices; // For DllImport
+using System.Runtime.InteropServices;
 using Windows.ApplicationModel;
 using WinRT;
 using WinRT.Interop;
+
 #pragma warning disable CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+
 namespace Emerald.WinUI.Helpers
 {
     public static class WindowManager
@@ -28,11 +30,14 @@ namespace Emerald.WinUI.Helpers
                 cy: 0,
                 fuLoad: User32.LoadImageFlags.LR_LOADFROMFILE | User32.LoadImageFlags.LR_DEFAULTSIZE | User32.LoadImageFlags.LR_SHARED
             );
+
             var Handle = WindowNative.GetWindowHandle(window);
             User32.SendMessage(Handle, User32.WindowMessage.WM_SETICON, (IntPtr)1, icon);
             User32.SendMessage(Handle, User32.WindowMessage.WM_SETICON, (IntPtr)0, icon);
+
             var s = new MicaBackground(window);
             s.TrySetMicaBackdrop();
+
             return s;
         }
 
@@ -49,6 +54,7 @@ namespace Emerald.WinUI.Helpers
                 AppWindow AppWindow = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(WindowNative.GetWindowHandle(window)));
                 var titlebar = AppWindow.TitleBar;
                 titlebar.ExtendsContentIntoTitleBar = true;
+
                 void SetColor(ElementTheme acualTheme)
                 {
                     titlebar.ButtonBackgroundColor = titlebar.ButtonInactiveBackgroundColor = titlebar.ButtonPressedBackgroundColor = Colors.Transparent;
@@ -68,6 +74,7 @@ namespace Emerald.WinUI.Helpers
                             break;
                     }
                 }
+
                 RootUI.ActualThemeChanged += (s, _) => SetColor(s.ActualTheme);
                 window.SetTitleBar(AppTitleBar);
                 SetColor(RootUI.ActualTheme);
@@ -79,6 +86,7 @@ namespace Emerald.WinUI.Helpers
             }
         }
     }
+
     public class WindowsSystemDispatcherQueueHelper
     {
         private object? _dispatcherQueueController;
@@ -113,6 +121,7 @@ namespace Emerald.WinUI.Helpers
             }
         }
     }
+
     public class MicaBackground
     {
         private readonly Window _window;
@@ -134,6 +143,7 @@ namespace Emerald.WinUI.Helpers
                 _window.Closed += WindowOnClosed;
                 ((FrameworkElement)_window.Content).ActualThemeChanged += MicaBackground_ActualThemeChanged;
                 _backdropConfiguration.IsInputActive = true;
+
                 _backdropConfiguration.Theme = _window.Content switch
                 {
                     FrameworkElement { ActualTheme: ElementTheme.Dark } => SystemBackdropTheme.Dark,
@@ -144,6 +154,7 @@ namespace Emerald.WinUI.Helpers
 
                 MicaController.AddSystemBackdropTarget(_window.As<ICompositionSupportsSystemBackdrop>());
                 MicaController.SetSystemBackdropConfiguration(_backdropConfiguration);
+
                 return true;
             }
 
@@ -158,6 +169,7 @@ namespace Emerald.WinUI.Helpers
             }
 
         }
+
         private void SetConfigurationSourceTheme()
         {
             switch (((FrameworkElement)_window.Content).ActualTheme)
@@ -167,6 +179,7 @@ namespace Emerald.WinUI.Helpers
                 case ElementTheme.Default: _backdropConfiguration.Theme = SystemBackdropTheme.Default; break;
             }
         }
+
         private void WindowOnClosed(object sender, WindowEventArgs args)
         {
             MicaController.Dispose();

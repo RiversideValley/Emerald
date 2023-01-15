@@ -26,6 +26,7 @@ namespace Emerald.WinUI.Converters
                 "A string is very likely unnecessary in this case.");
         }
     }
+
     public class BoolToVisibility : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
@@ -38,6 +39,7 @@ namespace Emerald.WinUI.Converters
             return (value is bool b && b) ? Visibility.Visible : Visibility.Collapsed;
         }
     }
+
     public class NotBoolToVisibility : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
@@ -50,14 +52,17 @@ namespace Emerald.WinUI.Converters
             return (value is bool b && b) ? Visibility.Collapsed : Visibility.Visible;
         }
     }
+
     public class InfobarServertyToBackground : IValueConverter
     {
         public Models.InfobarBrushSet Dark { get; set; }
         public Models.InfobarBrushSet Light { get; set; }
+
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             var theme = (App.MainWindow.Content as FrameworkElement).ActualTheme;
             bool isdark = theme == ElementTheme.Dark;
+
             return (Microsoft.UI.Xaml.Controls.InfoBarSeverity)value switch
             {
                 Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error => isdark ? Dark.ErrorBrush : Light.ErrorBrush,
@@ -72,12 +77,14 @@ namespace Emerald.WinUI.Converters
             throw new InvalidOperationException("Error lol.");
         }
     }
+
     public class InfobarServertyToIconGlyph : IValueConverter
     {
         public string ErrorString { get; set; }
         public string WarningString { get; set; }
         public string SuccessString { get; set; }
         public string InformationalString { get; set; }
+
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             return (Microsoft.UI.Xaml.Controls.InfoBarSeverity)value switch

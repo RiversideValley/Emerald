@@ -37,6 +37,7 @@ namespace Emerald.WinUI.Helpers
         public async Task<bool> Logout()
         {
             await handler.ClearCache();
+
             return true;
         }
 
@@ -45,8 +46,10 @@ namespace Emerald.WinUI.Helpers
             try
             {
                 var s = await handler.LoginFromOAuth();
+
                 return s.GameSession;
-            }catch (Exception)
+            }
+            catch (Exception)
             {
                 throw;
             }

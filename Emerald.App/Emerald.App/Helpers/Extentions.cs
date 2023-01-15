@@ -1,5 +1,4 @@
-﻿using CommunityToolkit.WinUI;
-using Microsoft.UI.Xaml.Controls;
+﻿using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;

@@ -16,11 +16,13 @@ namespace Emerald.WinUI.Helpers
     public class MessageBox : ContentDialog
     {
         public MessageBoxResults? Result { get; set; } = null;
+
         public MessageBox(string title, string caption, MessageBoxButtons buttons, string cusbtn1 = null, string cusbtn2 = null)
         {
             Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style;
             Title = title;
-            this.Content = new CommunityToolkit.WinUI.UI.Controls.MarkdownTextBlock() { Text = caption, Background = new SolidColorBrush(Colors.Transparent) };
+            Content = new CommunityToolkit.WinUI.UI.Controls.MarkdownTextBlock() { Text = caption, Background = new SolidColorBrush(Colors.Transparent) };
+
             if (buttons == MessageBoxButtons.Ok)
             {
                 PrimaryButtonText = "";
@@ -72,11 +74,14 @@ namespace Emerald.WinUI.Helpers
                     PrimaryButtonText = Localized.Yes.Localize();
                     SecondaryButtonText = Localized.No.Localize();
                 }
+
                 CloseButtonText = Localized.Cancel.Localize();
             }
+
             PrimaryButtonClick += ContentDialog_PrimaryButtonClick;
             SecondaryButtonClick += ContentDialog_SecondaryButtonClick;
         }
+
         private void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
             if (sender.PrimaryButtonText == Localized.OK.Localize())
@@ -112,11 +117,13 @@ namespace Emerald.WinUI.Helpers
                 Result = MessageBoxResults.CustomResult2;
             }
         }
+
         public static async Task<MessageBoxResults> Show(string title, string caption, MessageBoxButtons buttons, string customResult1 = null, string customResult2 = null)
         {
             var d = new MessageBox(title, caption, buttons, customResult1, customResult2);
             d.XamlRoot = MainWindow.MainFrame.XamlRoot;
             d.RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme;
+
             try
             {
                 await d.ShowAsync();
@@ -125,13 +132,16 @@ namespace Emerald.WinUI.Helpers
             {
                 return MessageBoxResults.OpenFailed;
             }
+
             return d.Result == null ? MessageBoxResults.Cancel : d.Result.Value;
         }
+
         public static async Task<MessageBoxResults> Show(string text)
         {
             var d = new MessageBox("Information", text, MessageBoxButtons.Ok);
             d.XamlRoot = MainWindow.MainFrame.XamlRoot;
             d.RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme;
+
             try
             {
                 await d.ShowAsync();
@@ -140,6 +150,7 @@ namespace Emerald.WinUI.Helpers
             {
                 return MessageBoxResults.OpenFailed;
             }
+
             return d.Result == null ? MessageBoxResults.Cancel : d.Result.Value;
         }
     }
