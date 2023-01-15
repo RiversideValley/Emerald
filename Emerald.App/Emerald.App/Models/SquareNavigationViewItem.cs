@@ -1,12 +1,14 @@
 ﻿using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace Emerald.WinUI.Models
 {
     public class SquareNavigationViewItem : Model
     {
-        public SquareNavigationViewItem() { }
+        public SquareNavigationViewItem()
+        {
+        }
+
         public SquareNavigationViewItem(string name, bool isSelected = false, ImageSource image = null, InfoBadge infoBadge = null)
         {
             Name = name;

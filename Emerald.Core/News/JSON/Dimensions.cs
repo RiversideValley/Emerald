@@ -5,5 +5,4 @@ namespace Emerald.Core.News.JSON{
         public int width { get; set; }
         public int height { get; set; }
     }
-
 }

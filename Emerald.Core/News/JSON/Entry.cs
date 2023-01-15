@@ -1,5 +1,3 @@
-using Newtonsoft.Json.Serialization;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Emerald.Core.News.JSON{
@@ -42,7 +40,9 @@ namespace Emerald.Core.News.JSON{
         [JsonPropertyName("highlight")]
         public Highlight Highlight { get; set; }
 
-        public string ImageUri => "https://launchercontent.mojang.com" + NewsPageImage.url;
+        public string ImageUri
+            => "https://launchercontent.mojang.com" + NewsPageImage.url;
+
         public DateTime DateReadable
         {
             get
@@ -52,5 +52,4 @@ namespace Emerald.Core.News.JSON{
             }
         }
     }
-
 }

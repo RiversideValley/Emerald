@@ -9,8 +9,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using Windows.UI;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
@@ -20,32 +18,54 @@ namespace Emerald.WinUI
     public sealed partial class MainWindow : Window
     {
         public static Views.Home.HomePage HomePage { get; private set; }
+
         public static Color BGTintColor { get; private set; }
+
         public static TaskView TaskView { get; private set; } = new();
+
         private Flyout TaskViewFlyout = new();
+
         public static Frame MainFrame { get; private set; }
+
         private InfoBadge TasksInfoBadge = new() { Value = 0 };
+
+        private (bool WantBackup, string Backup) BackupState = (false, "");
+
+        /// <summary>
+        /// <para>Item1 - The Index.<br/>
+        /// Item2 - The source (0-Menu, 1-Footer, 2-Unknown).</para>
+        /// </summary>
+        private (int Index, int Source) SelectedItemIndex;
+
         public MainWindow()
         {
-            this.InitializeComponent();
+            InitializeComponent();
+            Title = "Emerald";
+
             MainFrame = frame;
             SS.APINoMatch += (_, e) => BackupState = (true, e);
             SS.LoadData();
-            Title = "Emerald";
-            (this.Content as FrameworkElement).Loaded += Initialize;
+
+            (Content as FrameworkElement).Loaded += Initialize;
         }
-        private (bool WantBackup, string Backup) BackupState = (false, "");
+
         public async void Initialize(object s, RoutedEventArgs e)
         {
             MicaBackground mica = WindowManager.IntializeWindow(this);
+
             mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
-            SS.Settings.App.Appearance.PropertyChanged += (s, e) =>
-                mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
+
+            SS.Settings.App.Appearance.PropertyChanged += (s, e)
+                => mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
+
             NavView.Header = new NavViewHeader() { HeaderText = "Home".Localize(), HeaderMargin = GetNavViewHeaderMargin() };
             NavView.DisplayModeChanged += (_, _) => (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
+
             WindowManager.SetTitleBar(this, AppTitleBar);
+
             WinUIEx.WindowManager.Get(this).MinHeight = 400;
             WinUIEx.WindowManager.Get(this).MinWidth = 500;
+
             if (BackupState.WantBackup)
             {
 
@@ -55,39 +75,47 @@ namespace Emerald.WinUI
                      Enums.MessageBoxButtons.Custom,
                      Localized.OK.Localize(),
                      Localized.CreateOldSettingsBackup.Localize());
+
                 if (r == Enums.MessageBoxResults.CustomResult2)
                 {
                     SS.CreateBackup(BackupState.Backup);
                 }
             }
+
             NavView.SelectedItem = NavView.MenuItems[0];
+
             void Tasks()
             {
                 var g = new TaskViewGrid(TaskView);
-                g.ClearAllClicked += (_, _) => TaskView.ClearAll();
+
+                g.ClearAllClicked += (_, _)
+                    => TaskView.ClearAll();
+
                 TaskViewFlyout.Content = g;
-                TaskViewFlyout.Closed += (s, e) =>
-                NavView.SelectedItem = SelectedItemIndex.Source == 0 ?
+                TaskViewFlyout.Closed += (s, e)
+                    => NavView.SelectedItem = SelectedItemIndex.Source == 0 ?
                     NavView.MenuItems[SelectedItemIndex.Index] :
                     (SelectedItemIndex.Source == 1 ?
                         NavView.FooterMenuItems[SelectedItemIndex.Index] :
                         NavView.SelectedItem);
+
                 TasksHelper.TaskAddRequested += (_, e) =>
-                        {
-                            if (e is TaskAddRequestedEventArgs task)
-                            {
-                                TaskView.AddProgressTask(string.Join(" ", (task.Name ?? "").Split(" ").Select(s => s.Localize())), 0, InfoBarSeverity.Informational, true, task.ID);
-                                TasksInfoBadge.Value++;
-                                UpdateTasksInfoBadge();
-                            }
-                            else if(e is ProgressTaskEventArgs Ptask)
-                            { 
-                                var val = Ptask.Value / Ptask.MaxValue * 100;
-                                TaskView.AddProgressTask(string.Join(" ", (Ptask.Name ?? "").Split(" ").Select(s => s.Localize())), val, InfoBarSeverity.Informational, false, Ptask.ID);
-                                TasksInfoBadge.Value++;
-                                UpdateTasksInfoBadge();
-                            }
-                        };
+                {
+                    if (e is TaskAddRequestedEventArgs task)
+                    {
+                        TaskView.AddProgressTask(string.Join(" ", (task.Name ?? "").Split(" ").Select(s => s.Localize())), 0, InfoBarSeverity.Informational, true, task.ID);
+                        TasksInfoBadge.Value++;
+                        UpdateTasksInfoBadge();
+                    }
+                    else if (e is ProgressTaskEventArgs Ptask)
+                    {
+                        var val = Ptask.Value / Ptask.MaxValue * 100;
+                        TaskView.AddProgressTask(string.Join(" ", (Ptask.Name ?? "").Split(" ").Select(s => s.Localize())), val, InfoBarSeverity.Informational, false, Ptask.ID);
+                        TasksInfoBadge.Value++;
+                        UpdateTasksInfoBadge();
+                    }
+                };
+
                 TasksHelper.ProgressTaskEditRequested += (_, e) =>
                 {
                     var val = e.Value / e.MaxValue * 100;
@@ -98,6 +126,7 @@ namespace Emerald.WinUI
                         TaskView.ChangeProgress(ID.Value, e.Value);
                     }
                 };
+
                 TasksHelper.TaskCompleteRequested += (_, e) =>
                 {
                     int? ID = TaskView.SearchByUniqueThingsToString(e.ID.ToString()).First();
@@ -110,7 +139,9 @@ namespace Emerald.WinUI
                     }
                 };
             }
+
             Tasks();
+
             void Settings()
             {
                 void TintColor()
@@ -132,22 +163,29 @@ namespace Emerald.WinUI
                             break;
                     }
                 }
+
                 SS.Settings.App.Appearance.PropertyChanged += (s, e) =>
                 {
                     TintColor();
                     (this.Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
 
                 };
+
                 TintColor();
                 (this.Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
             }
+
             Settings();
+
             HomePage = new();
             MainFrame.Content = HomePage;
+
             (this.Content as FrameworkElement).Loaded -= Initialize;
         }
+
         private void UpdateTasksInfoBadge() =>
             TasksInfoBadge.Visibility = MainFrame.Content == TaskView || TasksInfoBadge.Value == 0 ? Visibility.Collapsed : Visibility.Visible;
+
         private Thickness GetNavViewHeaderMargin()
         {
             if (NavView.DisplayMode == NavigationViewDisplayMode.Minimal)
@@ -162,11 +200,6 @@ namespace Emerald.WinUI
             }
         }
 
-        /// <summary>
-        /// <para>Item1 - The Index.<br/>
-        /// Item2 - The source (0-Menu, 1-Footer, 2-Unknown).</para>
-        /// </summary>
-        private (int Index, int Source) SelectedItemIndex;
         private void UpdateSelectedItem() =>
             SelectedItemIndex = NavView.SelectedItem is SquareNavigationViewItem item ?
                 (
@@ -184,6 +217,7 @@ namespace Emerald.WinUI
                         (NavView.MenuItems.IndexOf(NavView.MenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)), 0))
                 )
                 : (1, 2);
+
         private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
             void NavigateOnce(Type type)
@@ -193,17 +227,20 @@ namespace Emerald.WinUI
                     MainFrame.Navigate(type);
                 }
             }
+
             if (!args.IsSettingsInvoked && NavView.SelectedItem is SquareNavigationViewItem itm)
             {
                 try
                 {
                     var h = itm.Name.ToString();
+
                     if (h == "Home".Localize())
                     {
                         MainFrame.Content = HomePage;
                     }
                     else if (h == "Store".Localize())
-                    { }
+                    {
+                    }
                     else if (h == "Tasks".Localize())
                     {
                         TaskViewFlyout.ShowAt(args.InvokedItemContainer, new() { Placement = FlyoutPlacementMode.Right, ShowMode = FlyoutShowMode.Standard });
@@ -217,13 +254,14 @@ namespace Emerald.WinUI
                     {
                         NavigateOnce(typeof(Views.Settings.SettingsPage));
                     }
+
                     UpdateTasksInfoBadge();
+
                     (NavView.Header as NavViewHeader).HeaderText = h == "Tasks".Localize() ? (NavView.Header as NavViewHeader).HeaderText : h;
                     (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
                 }
                 catch
                 {
-
                 }
 
                 var pitm = ((SquareNavigationViewItem)(SelectedItemIndex.Source == 0 ?
@@ -232,6 +270,7 @@ namespace Emerald.WinUI
                             NavView.FooterMenuItems[SelectedItemIndex.Index] :
                             NavView.SelectedItem)));
                 pitm.IsSelected = pitm == itm;
+
                 UpdateSelectedItem();
             }
         }

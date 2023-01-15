@@ -6,8 +6,10 @@ namespace Emerald.WinUI.Helpers
     public sealed class FontIcon : MarkupExtension
     {
         public string Glyph { get; set; }
+
         public int FontSize { get; set; } = 16;
 
-        protected override object ProvideValue() => new Microsoft.UI.Xaml.Controls.FontIcon() { Glyph = Glyph, FontSize = FontSize };
+        protected override object ProvideValue()
+            => new Microsoft.UI.Xaml.Controls.FontIcon() { Glyph = Glyph, FontSize = FontSize };
     }
 }

@@ -12,7 +12,10 @@ namespace Emerald.WinUI.Helpers
     public static class WindowsHello
     {
         private static DateTime LastSucessedTime = DateTime.MaxValue;
-        public static async Task<bool> IsAvailable() => await KeyCredentialManager.IsSupportedAsync();
+
+        public static async Task<bool> IsAvailable()
+            => await KeyCredentialManager.IsSupportedAsync();
+
         public static async Task<bool> Authenticate()
         {
             var d = new ProgressBar() { IsIndeterminate = true }.ToContentDialog(Localized.AuthWindowshello.Localize());
@@ -33,6 +36,7 @@ namespace Emerald.WinUI.Helpers
                 return false;
             }
         }
+
         public static bool IsRecentlyAuthenticated(int Minutes) =>
            LastSucessedTime != DateTime.MaxValue && (DateTime.Now.Date == LastSucessedTime.Date) && (LastSucessedTime.AddMinutes(Minutes).Minute >= DateTime.Now.Minute) && (DateTime.Now.Minute >= LastSucessedTime.Minute);
     }

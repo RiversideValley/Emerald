@@ -1,202 +1,40 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-	  <OutputType>WinExe</OutputType>
-	  <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
-	  <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-	  <RootNamespace>Emerald.WinUI</RootNamespace>
-	  <ApplicationManifest>app.manifest</ApplicationManifest>
-	  <Platforms>x86;x64;arm64</Platforms>
-	  <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
-	  <UseWinUI>true</UseWinUI>
-	  <Configurations>Debug;Release</Configurations>
-	  <Nullable>enable</Nullable>
-	  <DefineConstants>DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>Emerald.WinUI</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x86;x64;arm64</Platforms>
+    <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
+    <UseWinUI>true</UseWinUI>
+    <Configurations>Debug;Release</Configurations>
+    <Nullable>enable</Nullable>
+    <DefineConstants>DISABLE_XAML_GENERATED_MAIN</DefineConstants>
   </PropertyGroup>
-  <ItemGroup>
-    <None Remove="Assets\icon.ico" />
-    <None Remove="MsalClientID.txt" />
-    <None Remove="ResourceDictionaries\Expanders.xaml" />
-    <None Remove="ResourceDictionaries\RightAlignedToggleSwitch.xaml" />
-    <None Remove="UserControls\AdaptiveItemPane.xaml" />
-    <None Remove="UserControls\ArgumentsListView.xaml" />
-    <None Remove="UserControls\Expander.xaml" />
-    <None Remove="UserControls\ExpanderItem.xaml" />
-    <None Remove="UserControls\TaskViewGrid.xaml" />
-    <None Remove="UserControls\TitleBar.xaml" />
-    <None Remove="Views\HomePage.xaml" />
-    <None Remove="Views\Home\AccountsPage.xaml" />
-    <None Remove="Views\Home\NewsPage.xaml" />
-    <None Remove="Views\LogsPage.xaml" />
-    <None Remove="Views\Settings\AboutPage.xaml" />
-    <None Remove="Views\Settings\AccountPage.xaml" />
-    <None Remove="Views\Settings\AppearancePage.xaml" />
-    <None Remove="Views\Settings\GeneralPage.xaml" />
-    <None Remove="Views\Settings\SettingsPage.xaml" />
-    <None Remove="Views\Store\StorePage.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
-	  <PackageReference Include="CmlLib.Core.Auth.Microsoft" Version="2.2.0" />
-	  <PackageReference Include="CmlLib.Core.Auth.Microsoft.MsalClient" Version="2.0.0" />
-	  <PackageReference Include="CommunityToolkit.WinUI.UI.Animations" Version="7.1.2" />
-	  <PackageReference Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
-	  <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.221209.1" />
-	  <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.25267-preview" />
-	  <PackageReference Include="PInvoke.User32" Version="0.7.124" />
-	  <PackageReference Include="ProjBobcat" Version="1.16.0" />
-	  <PackageReference Include="WinUIEx" Version="2.0.0" />
-    <Manifest Include="$(ApplicationManifest)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\.editorconfig" Link=".editorconfig" />
-  </ItemGroup>
 
   <ItemGroup>
     <Content Include="MsalClientID.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CmlLib.Core.Auth.Microsoft" Version="2.2.0" />
+    <PackageReference Include="CmlLib.Core.Auth.Microsoft.MsalClient" Version="2.0.0" />
+    <PackageReference Include="CommunityToolkit.WinUI.UI.Animations" Version="7.1.2" />
+    <PackageReference Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.221209.1" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.25267-preview" />
+    <PackageReference Include="PInvoke.User32" Version="0.7.124" />
+    <PackageReference Include="ProjBobcat" Version="1.16.0" />
+    <PackageReference Include="WinUIEx" Version="2.0.0" />
+    <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Emerald.Core\Emerald.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Update="Assets\icon.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="Assets\icon.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\LogsPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Home\NewsPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="MainWindow.xaml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Page>
-    <Page Update="UserControls\ArgumentsListView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="UserControls\ExpanderItem.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="UserControls\AdaptiveItemPane.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Settings\SettingsPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Home\AccountsPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="UserControls\TaskViewGrid.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Update="UserControls\TaskViewGrid.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="UserControls\TaskView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Settings\AboutPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Settings\GeneralPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Settings\AccountPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="ResourceDictionaries\Expanders.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="UserControls\Expander.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="UserControls\TitleBar.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Home\HomePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="ResourceDictionaries\RightAlignedToggleSwitch.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PRIResource Update="Strings\en-US\Resources.resw">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </PRIResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Settings\AppearancePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Store\StorePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
 </Project>

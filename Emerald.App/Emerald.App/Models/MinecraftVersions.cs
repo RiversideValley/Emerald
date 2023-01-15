@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using System.Collections.ObjectModel;
 using System.Linq;
 using ProjBobcat.Class.Model.Optifine;
+
 namespace Emerald.WinUI.Models
 {
     public class MinecraftVersion : Model
@@ -46,7 +47,9 @@ namespace Emerald.WinUI.Models
 
         private CmlLib.Core.Version.MVersionType? _Type;
         public CmlLib.Core.Version.MVersionType? Type { get => _Type; set => Set(ref _Type, value); }
-        public string TypeString =>  ("Type" + Type.ToString()).Localize();
+
+        public string TypeString
+            => ("Type" + Type == null ? CmlLib.Core.Version.MVersionType.OldAlpha.ToString() : Type.ToString()).Localize();
 
         private string _Version;
         public string Version { get => _Version; set => Set(ref _Version, value); }
@@ -56,7 +59,9 @@ namespace Emerald.WinUI.Models
 
         private ObservableCollection<MinecraftVersion> _SubVersions;
         public ObservableCollection<MinecraftVersion> SubVersions { get => _SubVersions ?? new(); set => Set(ref _SubVersions, value); }
+
         public object MISC { get; set; }
+
         public string GetLaunchVersion()
         {
             return Version.IsNullEmptyOrWhiteSpace()

@@ -5,18 +5,22 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
+
 namespace Emerald.WinUI.Helpers
 {
     public class MCVersionsCreator
     {
         private ObservableCollection<MinecraftVersion> Collection;
+
         public MinecraftVersion GetNotSelectedVersion()
         {
-            return new MinecraftVersion() { DisplayVersion = Core.Localized.PickVer.Localize() };
+            return new MinecraftVersion() { DisplayVersion = Localized.PickVer.Localize() };
         }
+
         public ObservableCollection<MinecraftVersion> CreateVersions()
         {
             Collection = new();
+
             if (App.Launcher.MCVersions != null && App.Launcher.MCVersions.Any())
             {
                 if (App.Launcher.UseOfflineLoader)
@@ -29,22 +33,27 @@ namespace Emerald.WinUI.Helpers
                     var ls = App.Launcher.MCVersions.LatestSnapshotVersion;
                     var l = CreateItem("Latest".Localize(), "latest");
                     l.SubVersions = new();
+
                     if (lr != null)
                     {
                         l.SubVersions.Add(ReturnMCWithModLoaders(lr, $"{"Latest".Localize()} {"TypeRelease".Localize()}", CmlLib.Core.Version.MVersionType.Release));
                     }
+
                     if (ls != null && ls.MType == CmlLib.Core.Version.MVersionType.Snapshot)
                     {
                         l.SubVersions.Add(ReturnMCWithModLoaders(ls.Name, $"{"Latest".Localize()} {"TypeSnapshot".Localize()}", CmlLib.Core.Version.MVersionType.Snapshot));
                     }
+
                     if (l.SubVersions.Count > 0)
                     {
                         Collection.Add(l);
                     }
+
                     if (SS.Settings.Minecraft.MCVerionsConfiguration.Custom && LoadCustomVers() != null)
                     {
                         Collection.Add(LoadCustomVers());
                     }
+
                     AddItem("1.19");
                     AddItem("1.18");
                     AddItem("1.17");
@@ -64,22 +73,27 @@ namespace Emerald.WinUI.Helpers
                     AddItem("1.1");
                 }
             }
+
             return Collection;
         }
+
         public ObservableCollection<MinecraftVersion> CreateAllVersions()
         {
             if (App.Launcher.UseOfflineLoader)
             {
                 var c = LoadCustomVers();
+
                 return c == null ? new() : c.SubVersions;
             }
             else
             {
                 var l = new List<MinecraftVersion>();
+
                 MinecraftVersion[] GetVers(string ver)
                 {
                     string fabricVer = App.Launcher.SearchFabric(ver);
                     var verMdata = App.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
+
                     if (string.IsNullOrEmpty(fabricVer))
                     {
                         if (ConfigToList(true).Contains(verMdata.MType))
@@ -108,9 +122,11 @@ namespace Emerald.WinUI.Helpers
                 {
                     l.AddRange(GetVers(item));
                 }
+
                 return new ObservableCollection<MinecraftVersion>(l);
             }
         }
+
         private void AddItem(string ver)
         {
             var m = GetFromStrings(ver);
@@ -119,11 +135,13 @@ namespace Emerald.WinUI.Helpers
                 Collection.Add(m);
             }
         }
+
         private MinecraftVersion LoadCustomVers()
         {
             var m = CreateItem("TypeCustom".Localize(), "custom");
             var sub = App.Launcher.MCVersions.Where(x => x.MType == CmlLib.Core.Version.MVersionType.Custom);
             m.SubVersions = new();
+
             if (sub != null && sub.Any())
             {
                 foreach (var item in sub)
@@ -131,6 +149,7 @@ namespace Emerald.WinUI.Helpers
                     m.SubVersions.Add(CreateItem(item.Name, item.Name, CmlLib.Core.Version.MVersionType.Custom));
                 }
             }
+
             if (m.SubVersions.Count > 0)
             {
                 return m;
@@ -140,6 +159,7 @@ namespace Emerald.WinUI.Helpers
                 return null;
             }
         }
+
         private List<CmlLib.Core.Version.MVersionType> ConfigToList(bool custom = false)
         {
             var list = new List<CmlLib.Core.Version.MVersionType>();
@@ -150,6 +170,7 @@ namespace Emerald.WinUI.Helpers
             if (SS.Settings.Minecraft.MCVerionsConfiguration.Custom && custom) { list.Add(CmlLib.Core.Version.MVersionType.Custom); }
             return list;
         }
+
         private MinecraftVersion GetFromStrings(string ver)
         {
             if (App.Launcher.MCVerNames.Contains(ver))
@@ -159,12 +180,15 @@ namespace Emerald.WinUI.Helpers
                 {
                     return null;
                 }
+
                 var subVers = App.Launcher.GetSubVersions(ver);
                 subVers = subVers.Where(x => !x.ToLower().Contains("optifine")).ToArray();
+
                 if (subVers.Length > 1)
                 {
                     MinecraftVersion f = CreateItem(ver, ver);
                     f.SubVersions = new();
+
                     foreach (var item in subVers)
                     {
                         var SverMdata = App.Launcher.MCVersions.Where(x => x.Name == item).FirstOrDefault();
@@ -173,6 +197,7 @@ namespace Emerald.WinUI.Helpers
                             f.SubVersions.Add(ReturnMCWithModLoaders(item));
                         }
                     }
+
                     return f;
                 }
                 else
@@ -187,6 +212,7 @@ namespace Emerald.WinUI.Helpers
                 {
                     MinecraftVersion f = CreateItem(ver, ver);
                     f.SubVersions = new();
+
                     foreach (var item in subVers)
                     {
                         var SverMdata = App.Launcher.MCVersions.Where(x => x.Name == item).FirstOrDefault();
@@ -195,6 +221,7 @@ namespace Emerald.WinUI.Helpers
                             f.SubVersions.Add(ReturnMCWithModLoaders(item));
                         }
                     }
+
                     return f;
                 }
                 else if (subVers.Length == 1)
@@ -215,11 +242,13 @@ namespace Emerald.WinUI.Helpers
                 }
             }
         }
+
         private MinecraftVersion ReturnMCWithModLoaders(string ver, string displayVer = null, CmlLib.Core.Version.MVersionType? type = null)
         {
             string fabricVer = App.Launcher.SearchFabric(ver);
             var verMdata = App.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
             MinecraftVersion Optifines = new();
+
             if(App.Launcher.OptifineMCVersions != null && App.Launcher.OptifineMCVersions.Any())
             {
                 var Optfvers = App.Launcher.OptifineMCVersions.Where(x => x.McVersion == ver);
@@ -229,6 +258,7 @@ namespace Emerald.WinUI.Helpers
                     Optifines.SubVersions = new(Optfvers.Select(x => CreateItem($"{displayVer ?? x.McVersion} Optifine {x.Type}-{x.Patch}", x.ToFullVersion(), type ?? verMdata.MType, misc: x)).ToArray());
                 }
             }
+
             if (string.IsNullOrEmpty(fabricVer) && (Optifines == null || !Optifines.SubVersions.Any()))
             {
                 return CreateItem($"{displayVer ?? ver} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType);
@@ -241,11 +271,13 @@ namespace Emerald.WinUI.Helpers
                     CreateItem($"{displayVer ?? ver} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType),
                     Optifines
                 };
+
                 return i;
             }
             else
             {
                 var i = CreateItem(displayVer ?? ver, ver);
+
                 i.SubVersions = new()
                 {
                     CreateItem($"{displayVer ?? ver} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType),
@@ -255,9 +287,16 @@ namespace Emerald.WinUI.Helpers
                 {
                     i.SubVersions.Add(Optifines);
                 }
+
                 return i;
             }
         }
-        private MinecraftVersion CreateItem(string DisplayVer, string ver, CmlLib.Core.Version.MVersionType? type = null, string blockPath = "/Assets/icon.png",object misc = null) => new() { MISC = misc, Type = type, Version = ver, DisplayVersion = DisplayVer };
+
+        private MinecraftVersion CreateItem(
+            string DisplayVer,
+            string ver, CmlLib.Core.Version.MVersionType? type = null,
+            string blockPath = "/Assets/icon.png",
+            object misc = null)
+            => new() { MISC = misc, Type = type, Version = ver, DisplayVersion = DisplayVer };
     }
 }

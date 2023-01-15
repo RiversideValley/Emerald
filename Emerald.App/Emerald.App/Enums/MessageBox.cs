@@ -10,6 +10,7 @@
         CustomResult2,
         OpenFailed
     }
+
     public enum MessageBoxButtons
     {
         Ok,

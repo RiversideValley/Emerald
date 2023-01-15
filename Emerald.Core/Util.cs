@@ -11,12 +11,14 @@ namespace Emerald.Core
 
             return Directory.Exists(p);
         }
+
         public static string NormalizePath(string path)
         {
             return Path.GetFullPath(path)
                 .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
                 .TrimEnd(Path.DirectorySeparatorChar);
         }
+
         public static string KiloFormat(this int num)
         {
             if (num >= 100000000)
@@ -41,12 +43,15 @@ namespace Emerald.Core
         {
             var c = new System.Net.WebClient();
             var s = await c.DownloadStringTaskAsync(new Uri(url));
+
             return s;
         }
     }
+
     public class FileDownloader : IDisposable
     {
         private readonly string _downloadUrl;
+
         private readonly string _destinationFilePath;
 
         private HttpClient _httpClient;
@@ -116,6 +121,7 @@ namespace Emerald.Core
                 return;
 
             double progressPercentage = double.NaN;
+
             if (totalDownloadSize.HasValue)
                 progressPercentage = Math.Round((double)totalBytesRead / totalDownloadSize.Value * 100, 2);
 

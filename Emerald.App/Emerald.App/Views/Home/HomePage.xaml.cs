@@ -9,7 +9,6 @@ using Emerald.WinUI.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using ProjBobcat.Class.Model;
 using ProjBobcat.Class.Model.Optifine;
 using System;
 using System.Collections.Generic;
@@ -17,56 +16,70 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
-using Windows.Security.Authentication.Web.Provider;
-using Windows.System;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
+
 namespace Emerald.WinUI.Views.Home
 {
     public sealed partial class HomePage : Page, INotifyPropertyChanged
     {
+        public Process GameProcess { get; private set; }
+
+        public AccountsPage AccountsPage { get; private set; }
+
         public event PropertyChangedEventHandler? PropertyChanged;
-        internal void Set<T>(ref T obj, T value, string name = null)
+
+        public void Set<T>(ref T obj, T value, string name = null)
         {
             obj = value;
             InvokePropertyChanged(name);
         }
+
         public void InvokePropertyChanged(string name = null)
         {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
+
         private MSession _Session;
-        public MSession Session
-        {
-            get => _Session;
-            set => Set(ref _Session, value);
-        }
+        public MSession Session { get => _Session; set => Set(ref _Session, value); }
+
         private string _Logs = "";
-        public string Logs
+        public string Logs { get => _Logs; set => Set(ref _Logs, value ?? "", nameof(Logs)); }
+
+        private bool _paneIsOpen = false;
+        public bool PaneIsOpen
         {
-            get => _Logs;
-            set => Set(ref _Logs, value ?? "", nameof(Logs));
+            get => _paneIsOpen;
+            set
+            {
+                Set(ref _paneIsOpen, value, nameof(PaneIsOpen));
+                VersionsSelectorPanelColumnDefinition.Width = value ? new(362) : new(0);
+            }
         }
+
         public Account SessionAsAccount
         {
             get => Session == null ? new MSession(Localized.Login.Localize(), "fake", null).ToAccount(false) : Session.ToAccount(false);
         }
-        public AccountsPage AccountsPage { get; private set; }
+
         public HomePage()
         {
-            this.InitializeComponent();
-            this.Loaded += InitializeWhenLoad;
+            InitializeComponent();
+
+            Loaded += InitializeWhenLoad;
         }
 
-        private void InitializeWhenLoad(object sender, RoutedEventArgs e) => Initialize();
+        private void InitializeWhenLoad(object sender, RoutedEventArgs e)
+            => Initialize();
 
         public void Initialize()
         {
-            this.Loaded -= InitializeWhenLoad;
+            Loaded -= InitializeWhenLoad;
+
             App.Launcher.InitializeLauncher(new MinecraftPath(SS.Settings.Minecraft.Path));
+
             SS.Settings.Minecraft.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == "Path")
@@ -76,34 +89,43 @@ namespace Emerald.WinUI.Views.Home
                     _ = App.Launcher.RefreshVersions();
                 }
             };
+
             App.Launcher.VersionsRefreshed += Launcher_VersionsRefreshed;
+
             VersionButton.Content = new MCVersionsCreator().GetNotSelectedVersion();
-            btnCloseVerPane.Click += (_, _) => paneVersions.IsPaneOpen = false;
+
             _ = App.Launcher.RefreshVersions();
+
             AccountsPage = new();
+
             AccountsPage.BackRequested += (_, _) =>
             {
-                paneVersions.Visibility = Visibility.Visible;
+                PrimaryFrameGrid.Visibility = Visibility.Visible;
                 SecondaryFrame.Visibility = Visibility.Collapsed;
                 AccountsPage.UpdateMainSource();
             };
+
             AccountsPage.AccountLogged += (_, _) =>
             {
-                paneVersions.Visibility = Visibility.Visible;
+                PrimaryFrameGrid.Visibility = Visibility.Visible;
                 SecondaryFrame.Visibility = Visibility.Collapsed;
                 AccountsPage.UpdateMainSource();
             };
+
             if (SS.Settings.Minecraft.Accounts != null && SS.Settings.App.AutoLogin)
             {
                 AccountsPage.UpdateSource();
+
                 var l = AccountsPage.Accounts.Where(x => x.Last);
                 Session = l.Any() ? l.FirstOrDefault().ToMSession() : null;
             }
+
             if (SystemInformation.Instance.IsFirstRun)
             {
                 ShowTips();
             }
         }
+
         public void ShowTips()
         {
             var tip = new TeachingTip()
@@ -137,6 +159,7 @@ namespace Emerald.WinUI.Views.Home
             };
             tip.ShowAt(null);
         }
+
         private async void Launcher_VersionsRefreshed(object sender, Core.Args.VersionsRefreshedEventArgs e)
         {
             if (e.Success)
@@ -169,11 +192,13 @@ namespace Emerald.WinUI.Views.Home
 
         private void VersionButton_Click(object sender, RoutedEventArgs e)
         {
-            paneVersions.IsPaneOpen = !paneVersions.IsPaneOpen;
-            if (paneVersions.IsPaneOpen)
+            PaneIsOpen = !PaneIsOpen;
+
+            if (PaneIsOpen)
             {
                 txtbxFindVer.Focus(FocusState.Programmatic);
             }
+
             UpdateVerTreeSource();
         }
 
@@ -221,18 +246,21 @@ namespace Emerald.WinUI.Views.Home
             VersionButton.Content = ((Models.MinecraftVersion)args.InvokedItem).SubVersions.Count > 0 ? VersionButton.Content : ((Models.MinecraftVersion)args.InvokedItem);
             if (((Models.MinecraftVersion)args.InvokedItem).SubVersions.Count == 0)
             {
-                paneVersions.IsPaneOpen = false;
+                PaneIsOpen = false;
             }
         }
 
         private void AccountButton_Click(object sender, RoutedEventArgs e)
         {
             SecondaryFrame.Content = AccountsPage;
-            paneVersions.Visibility = Visibility.Collapsed;
+            PrimaryFrameGrid.Visibility = Visibility.Collapsed;
             SecondaryFrame.Visibility = Visibility.Visible;
             AccountsPage.UpdateSource();
         }
-        private bool UI(bool value) => App.Launcher.UIState = value;
+
+        private bool UI(bool value)
+            => App.Launcher.UIState = value;
+
         private async Task Launch()
         {
             UI(false);
@@ -277,44 +305,53 @@ namespace Emerald.WinUI.Views.Home
             }
             UI(true);
         }
+
         private async void LaunchButton_Click(object sender, RoutedEventArgs e)
         {
-
             var verItm = (VersionButton.Content as Models.MinecraftVersion);
             var ver = verItm.GetLaunchVersion();
+
             if (Session == null)
             {
-                if (await MessageBox.Show(Localized.Error.Localize(), Localized.BegLogIn.Localize(), MessageBoxButtons.OkCancel) == MessageBoxResults.Ok)
+                if (await MessageBox.Show(Localized.Error.Localize(), Localized.BegLogIn.Localize(), MessageBoxButtons.Ok) == MessageBoxResults.Ok)
                 {
                     void Cancel(object sender, EventArgs e)
                     {
                         AccountsPage.AccountLogged -= LoggedIn;
                         AccountsPage.BackRequested -= Cancel;
                     }
+
                     void LoggedIn(object sender, EventArgs e)
                     {
                         AccountsPage.AccountLogged -= LoggedIn;
                         AccountsPage.BackRequested -= Cancel;
                         LaunchButton_Click(null, null);
                     }
+
                     AccountsPage.AccountLogged += LoggedIn;
                     AccountsPage.BackRequested += Cancel;
+
                     AccountButton_Click(null, null);
                     UI(true);
                 }
+
                 UI(true);
+
                 return;
             }
             if (ver == null)
             {
                 UI(true);
+
                 _ = await MessageBox.Show(Localized.Error.Localize(), Localized.BegVer.Localize(), MessageBoxButtons.Ok);
+
                 VersionButton_Click(null, null);
+
                 return;
             }
             await Launch();
         }
-        public Process GameProcess { get; private set; }
+
         private void StartProcess(Process process)
         {
             GameProcess = process;
@@ -347,12 +384,17 @@ namespace Emerald.WinUI.Views.Home
             n.BackRequested += (_, _) =>
             {
                 SecondaryFrame.Content = null;
-                paneVersions.Visibility = Visibility.Visible;
+                PrimaryFrameGrid.Visibility = Visibility.Visible;
                 SecondaryFrame.Visibility = Visibility.Collapsed;
             };
             SecondaryFrame.Content= n;
-            paneVersions.Visibility = Visibility.Collapsed;
+            PrimaryFrameGrid.Visibility = Visibility.Collapsed;
             SecondaryFrame.Visibility = Visibility.Visible;
+        }
+
+        private void btnCloseVerPane_Click(object sender, RoutedEventArgs e)
+        {
+            PaneIsOpen = false;
         }
     }
 }

@@ -2,17 +2,20 @@
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Collections.Generic;
 using Windows.System.Diagnostics;
 
 namespace Emerald.WinUI.Helpers
 {
     public static class Extentions
     {
+        private static readonly ConcurrentDictionary<string, string> cachedResources = new();
+
         public static void ShowAt(this TeachingTip tip, FrameworkElement element, TeachingTipPlacementMode placement = TeachingTipPlacementMode.Auto, bool closeWhenClick = true,bool addToMainGrid = true)
         {
             if (addToMainGrid)
@@ -27,6 +30,7 @@ namespace Emerald.WinUI.Helpers
                 tip.CloseButtonClick += (_, _) => tip.IsOpen = false;
             }
         }
+
         public static int GetMemoryGB()
         {
             SystemMemoryUsageReport systemMemoryUsageReport = SystemDiagnosticInfo.GetForCurrentSystem().MemoryUsage.GetReport();
@@ -34,6 +38,7 @@ namespace Emerald.WinUI.Helpers
             long memkb = Convert.ToInt64(systemMemoryUsageReport.TotalPhysicalSizeInBytes);
             return Convert.ToInt32(memkb / Math.Pow(1024, 3));
         }
+
         public static string KiloFormat(this int num)
         {
             if (num >= 100000000)
@@ -53,6 +58,7 @@ namespace Emerald.WinUI.Helpers
 
             return num.ToString("#,0");
         }
+
         public static ContentDialog ToContentDialog(this UIElement content, string title, string closebtnText = null, ContentDialogButton defaultButton = ContentDialogButton.Close)
         {
             ContentDialog dialog = new()
@@ -67,6 +73,7 @@ namespace Emerald.WinUI.Helpers
             dialog.RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme;
             return dialog;
         }
+
         public static int Remove<T>(this ObservableCollection<T> coll, Func<T, bool> condition)
         {
             var itemsToRemove = coll.Where(condition).ToList();
@@ -78,6 +85,7 @@ namespace Emerald.WinUI.Helpers
 
             return itemsToRemove.Count;
         }
+
         public static int Remove<T>(this List<T> coll, Func<T, bool> condition)
         {
             var itemsToRemove = coll.Where(condition).ToList();
@@ -89,6 +97,7 @@ namespace Emerald.WinUI.Helpers
 
             return itemsToRemove.Count;
         }
+
         public static string ToBinaryString(this string str)
         {
             var binary = "";
@@ -98,6 +107,7 @@ namespace Emerald.WinUI.Helpers
             }
             return binary;
         }
+
         public static string ToMD5(this string s)
         {
             StringBuilder sb = new();
@@ -114,55 +124,57 @@ namespace Emerald.WinUI.Helpers
 
             return sb.ToString();
         }
+
         public static string Localize(this string resourceKey, string resw = null)
         {
             try
             {
+                ResourceManager rl;
                 string s;
+
+                if (cachedResources.TryGetValue(resourceKey, out var value))
+                {
+                    return value;
+                }
+
                 if (resw == null)
                 {
-                    s = new ResourceLoader().GetString(resourceKey);
+                    rl = new ResourceManager();
                 }
                 else
                 {
-                    s = new Windows.ApplicationModel.Resources.ResourceLoader(resw).GetString(resourceKey);
+                    rl = new ResourceManager(resw);
                 }
+
+                ResourceMap resourcesTree = rl.MainResourceMap.TryGetSubtree("Resources");
+                value = resourcesTree?.TryGetValue(resourceKey)?.ValueAsString;
+                cachedResources[resourceKey] = value ?? string.Empty;
+                s = value;
+
                 return string.IsNullOrEmpty(s) ? resourceKey : s;
             }
             catch
             {
-                return resourceKey.ToString();
+                return resourceKey;
             }
         }
+
         public static string Localize(this Core.Localized resourceKey, string resw = null)
         {
-            try
-            {
-                string s;
-                if (resw == null)
-                {
-                    s = new ResourceLoader().GetString(resourceKey.ToString());
-                }
-                else
-                {
-                    s = new ResourceLoader(resw).GetString(resourceKey.ToString());
-                }
-                return string.IsNullOrEmpty(s) ? resourceKey.ToString() : s;
-            }
-            catch
-            {
-                return resourceKey.ToString();
-            }
+            return resourceKey.ToString().Localize(resw);
         }
+
         public static bool IsNullEmptyOrWhiteSpace(this string str)
         {
             return string.IsNullOrEmpty(str) || string.IsNullOrWhiteSpace(str);
         }
+
         public static Models.Account ToAccount(this CmlLib.Core.Auth.MSession session,bool plusCount = true)
         {
             bool isOffline = session.UUID == "user_uuid";
             return new Models.Account(session.Username, isOffline ? null : session.AccessToken, isOffline ? null : session.UUID, plusCount ? MainWindow.HomePage.AccountsPage.AllCount++ : 0, false);
         }
+
         public static CmlLib.Core.Auth.MSession ToMSession(this Models.Account account)
         {
             bool isOffline = account.UUID == null;

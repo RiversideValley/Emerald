@@ -4,10 +4,6 @@ using CmlLib.Core.Auth.Microsoft.Mojang;
 using CmlLib.Core.Auth.Microsoft.MsalClient;
 using Microsoft.Identity.Client;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Emerald.WinUI.Helpers
@@ -16,9 +12,11 @@ namespace Emerald.WinUI.Helpers
     {
         IPublicClientApplication app;
         JavaEditionLoginHandler handler;
+
         public MSLoginHelper()
         {
         }
+
         public enum Exceptions
         {
             Success,
@@ -26,6 +24,7 @@ namespace Emerald.WinUI.Helpers
             Cancelled,
             ConnectFailed
         }
+
         public async Task Initialize(string cId)
         {
             var app = await MsalMinecraftLoginHelper.BuildApplicationWithCache(cId);
@@ -34,18 +33,23 @@ namespace Emerald.WinUI.Helpers
                 .WithMsalOAuth(app, factory => factory.CreateWithEmbeddedWebView())
                 .Build();
         }
+
         public async Task<bool> Logout()
         {
             await handler.ClearCache();
+
             return true;
         }
+
         public async Task<MSession> Login()
         {
             try
             {
                 var s = await handler.LoginFromOAuth();
+
                 return s.GameSession;
-            }catch (Exception)
+            }
+            catch (Exception)
             {
                 throw;
             }

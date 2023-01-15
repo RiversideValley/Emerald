@@ -6,14 +6,8 @@ using System.Collections.ObjectModel;
 using Windows.UI;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace Emerald.WinUI.Views.Settings
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class AppearancePage : Page
     {
         public ObservableCollection<Color> TintColorsList { get; } = new()
@@ -67,15 +61,18 @@ namespace Emerald.WinUI.Views.Settings
             Color.FromArgb(255, 132, 117, 69),
             Color.FromArgb(255, 126, 115, 95)
         };
+
         public AppearancePage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
+
             if (SS.Settings.App.Appearance.MicaTintColor == (int)Helpers.Settings.Enums.MicaTintColor.CustomColor)
             {
                 if (SS.Settings.App.Appearance.CustomMicaTintColor != null)
                 {
                     var c = SS.Settings.App.Appearance.CustomMicaTintColor;
                     var cl = Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B);
+
                     if (TintColorsList.Contains(cl))
                     {
                         GVColorList.SelectedIndex = TintColorsList.IndexOf(cl);
@@ -92,6 +89,7 @@ namespace Emerald.WinUI.Views.Settings
         private void GVColorList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var c = TintColorsList[GVColorList.SelectedIndex];
+
             SS.Settings.App.Appearance.MicaTintColor = (int)Helpers.Settings.Enums.MicaTintColor.CustomColor;
             SS.Settings.App.Appearance.CustomMicaTintColor = (c.A, c.R, c.G, c.B);
         }
@@ -110,9 +108,12 @@ namespace Emerald.WinUI.Views.Settings
                 IsAlphaSliderVisible = true,
                 IsAlphaTextInputVisible = false,
                 Color = Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B)
-        };
+            };
+
             var d = cp.ToContentDialog("CreateAColor".Localize("Settings"), Localized.Cancel.Localize(), ContentDialogButton.Primary);
+
             d.PrimaryButtonText = Localized.OK.Localize();
+
             d.PrimaryButtonClick += (_, _) =>
             {
                 var cl = cp.Color;
@@ -126,6 +127,7 @@ namespace Emerald.WinUI.Views.Settings
                     GVColorList.SelectedIndex = TintColorsList.Count - 1;
                 }
             };
+
             _ = d.ShowAsync();
         }
     }

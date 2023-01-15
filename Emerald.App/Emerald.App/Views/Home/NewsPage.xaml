@@ -20,29 +20,32 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Border Height="auto" Padding="12,12,12,0">
-            <Border.Style>
-                <Style TargetType="Border">
-                    <Setter Property="Margin" Value="10,0,10,10" />
-                    <Setter Property="Background" Value="{ThemeResource ExpanderHeaderBackground}" />
-                    <Setter Property="BorderBrush" Value="{ThemeResource ExpanderHeaderBorderBrush}" />
-                    <Setter Property="BorderThickness" Value="{ThemeResource ExpanderHeaderBorderThickness}" />
-                    <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
-                </Style>
-            </Border.Style>
+
+        <Border
+            Height="Auto"
+            Margin="12,0,12,12"
+            Padding="12,12,12,0"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="4">
+
             <uc:AdaptiveItemPane
                 HorizontalAlignment="Stretch"
                 IsStackedCenter="True"
                 StretchContent="True">
+
                 <uc:AdaptiveItemPane.LeftPane>
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+
                         <Button
-                            Width="35"
-                            Padding="5"
+                            Width="36"
+                            Height="32"
+                            Padding="0"
                             Background="Transparent"
                             BorderThickness="0"
                             Click="BackButton_Click">
-                            <AnimatedIcon>
+                            <AnimatedIcon Height="20">
                                 <AnimatedIcon.Source>
                                     <animatedvisuals:AnimatedBackVisualSource />
                                 </AnimatedIcon.Source>
@@ -51,14 +54,16 @@
                                 </AnimatedIcon.FallbackIconSource>
                             </AnimatedIcon>
                         </Button>
+
                         <TextBlock
-                            Margin="5,0,0,0"
                             VerticalAlignment="Center"
                             FontWeight="SemiBold"
                             Style="{ThemeResource SubtitleTextBlockStyle}"
                             Text="{helpers:Localize Name=News}" />
+
                     </StackPanel>
                 </uc:AdaptiveItemPane.LeftPane>
+
                 <uc:AdaptiveItemPane.RightPane>
                     <AutoSuggestBox
                         MinWidth="250"
@@ -68,15 +73,20 @@
                         QueryIcon="Find"
                         TextChanged="SearchBox_TextChanged" />
                 </uc:AdaptiveItemPane.RightPane>
+
             </uc:AdaptiveItemPane>
+
         </Border>
+
         <toolkit:AdaptiveGridView
             Grid.Row="1"
+            Padding="12,0"
             animations:ItemsReorderAnimation.Duration="00:00:00.4000000"
             DesiredWidth="400"
             ItemsSource="{x:Bind Main:App.Launcher.News.Entries, Mode=OneWay}"
             SelectionMode="None"
             StretchContentForSingleRow="True">
+
             <toolkit:AdaptiveGridView.ItemTemplate>
                 <DataTemplate x:DataType="news:Entry">
                     <HyperlinkButton
@@ -88,53 +98,65 @@
                         Background="Transparent"
                         Foreground="{ThemeResource ApplicationForegroundThemeBrush}"
                         NavigateUri="{x:Bind ReadMoreLink}">
-                        <Border Height="auto" Style="{StaticResource ExpanderBorderStyle}">
+                        <Border
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4">
                             <uc:AdaptiveItemPane
                                 HorizontalAlignment="Stretch"
                                 IsStackedCenter="False"
                                 OnlyStacked="True"
                                 StretchContent="True">
+
                                 <uc:AdaptiveItemPane.LeftPane>
-                                    <Image
-                                        Height="160"
-                                        Margin="0,0,-30,0"
-                                        Source="{x:Bind ImageUri}"
-                                        Stretch="UniformToFill" />
+                                    <Border Margin="0,0,-28,0" CornerRadius="4,4,0,0">
+                                        <Image Source="{x:Bind ImageUri}" Stretch="UniformToFill" />
+                                    </Border>
                                 </uc:AdaptiveItemPane.LeftPane>
+
                                 <uc:AdaptiveItemPane.RightPane>
-                                    <StackPanel Margin="12,0">
+                                    <StackPanel Margin="12,0" Spacing="6">
+
                                         <TextBlock
                                             FontWeight="SemiBold"
                                             MaxLines="2"
                                             Style="{ThemeResource TitleTextBlockStyle}"
                                             Text="{x:Bind Title}"
                                             TextTrimming="CharacterEllipsis" />
-                                        <StackPanel Margin="0,10,0,5" Orientation="Horizontal">
+
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
                                             <Border
-                                                Margin="0,0,3,0"
-                                                Padding="3"
+                                                Margin="-4,0,0,0"
+                                                Padding="4,2"
                                                 Style="{StaticResource ExpanderBorderStyle}">
                                                 <TextBlock Style="{ThemeResource CaptionTextBlockStyle}" Text="{x:Bind Category}" />
                                             </Border>
+
                                             <TextBlock
                                                 VerticalAlignment="Center"
                                                 Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
                                                 Style="{ThemeResource CaptionTextBlockStyle}"
                                                 Text="{x:Bind DateReadable.ToShortDateString()}" />
                                         </StackPanel>
+
                                         <TextBlock
                                             Margin="0,0,0,10"
                                             Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
                                             Style="{ThemeResource CaptionTextBlockStyle}"
                                             Text="{x:Bind Text}"
                                             TextTrimming="CharacterEllipsis" />
+
                                     </StackPanel>
                                 </uc:AdaptiveItemPane.RightPane>
+
                             </uc:AdaptiveItemPane>
                         </Border>
                     </HyperlinkButton>
                 </DataTemplate>
             </toolkit:AdaptiveGridView.ItemTemplate>
+
         </toolkit:AdaptiveGridView>
+
     </Grid>
 </Page>

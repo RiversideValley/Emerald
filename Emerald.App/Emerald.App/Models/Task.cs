@@ -20,6 +20,7 @@ namespace Emerald.WinUI.Models
         public Visibility IconVisibility { get; }
         public bool HasDescription();
     }
+
     public class StringTask : Model, ITask
     {
         private string _Content;
@@ -51,12 +52,11 @@ namespace Emerald.WinUI.Models
             Content = content;
             Time = time;
             ID = iD;
-            this.Severity = severity;
+            Severity = severity;
             UniqueThings = uniqueThings;
             CustomControls = customCOntrols;
             (App.MainWindow.Content as FrameworkElement).ActualThemeChanged += (_, _) => this.InvokePropertyChanged();
         }
-
     }
 
     public class ProgressTask : Model, ITask
@@ -79,7 +79,10 @@ namespace Emerald.WinUI.Models
         private bool _IsIndeterminate;
         public bool IsIndeterminate { get => _IsIndeterminate; set => Set(ref _IsIndeterminate, value); }
 
-        public Visibility ProgressVisibility { get => RemoveButtonVisibility == Visibility.Visible ? Visibility.Collapsed : (Progress != 100 || IsIndeterminate ? Visibility.Visible : Visibility.Collapsed); }
+        public Visibility ProgressVisibility
+        {
+            get => RemoveButtonVisibility == Visibility.Visible ? Visibility.Collapsed : (Progress != 100 || IsIndeterminate ? Visibility.Visible : Visibility.Collapsed);
+        }
 
         private InfoBarSeverity _Severty;
         public InfoBarSeverity Severity { get => _Severty; set => Set(ref _Severty, value); }
@@ -90,9 +93,16 @@ namespace Emerald.WinUI.Models
         public Visibility _RemoveButtonVisibility = Visibility.Collapsed;
         public Visibility RemoveButtonVisibility { get => _RemoveButtonVisibility; set => Set(ref _RemoveButtonVisibility, value); }
 
-        public Visibility IconVisibility { get => ProgressVisibility == Visibility.Visible || RemoveButtonVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible; }
+        public Visibility IconVisibility
+        {
+            get => ProgressVisibility == Visibility.Visible || RemoveButtonVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+        }
+
         public Visibility ProgressTextVisibility => !IsIndeterminate ? Visibility.Visible : Visibility.Collapsed;
-        public bool HasDescription() => !Description.IsNullEmptyOrWhiteSpace();
+
+        public bool HasDescription()
+            => !Description.IsNullEmptyOrWhiteSpace();
+
         public ProgressTask(string content, DateTime time, int iD, int progress = 0, InfoBarSeverity severity = InfoBarSeverity.Informational, bool isIndeterminate = false, object uniquethings = null, ObservableCollection<UIElement> customCOntrols = null)
         {
             Content = content;

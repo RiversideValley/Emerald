@@ -1,17 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
-	  <ImplicitUsings>enable</ImplicitUsings>
-	  <Nullable>enable</Nullable>
-	  <RootNamespace>Emerald.Core</RootNamespace>
-	  <Configurations>Debug;Release</Configurations>
-	  <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+      <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
+      <ImplicitUsings>enable</ImplicitUsings>
+      <Nullable>enable</Nullable>
+      <RootNamespace>Emerald.Core</RootNamespace>
+      <Configurations>Debug;Release</Configurations>
+      <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="..\.editorconfig" Link=".editorconfig" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CmlLib.Core" Version="3.3.5" />
