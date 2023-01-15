@@ -11,6 +11,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "project", "project", "{2BB1A64C-5C5D-415D-B816-66E2152E2703}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		.github\azp\azp.yml = .github\azp\azp.yml
+		README.md = README.md
 	EndProjectSection
 EndProject
 Global

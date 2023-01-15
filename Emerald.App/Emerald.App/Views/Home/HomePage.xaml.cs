@@ -55,7 +55,7 @@ namespace Emerald.WinUI.Views.Home
             set
             {
                 Set(ref _paneIsOpen, value, nameof(PaneIsOpen));
-                VersionsSelectorPanelColumnDefinition.Width = value ? new(364) : new(0);
+                VersionsSelectorPanelColumnDefinition.Width = value ? new(362) : new(0);
             }
         }
 
@@ -308,37 +308,45 @@ namespace Emerald.WinUI.Views.Home
 
         private async void LaunchButton_Click(object sender, RoutedEventArgs e)
         {
-
             var verItm = (VersionButton.Content as Models.MinecraftVersion);
             var ver = verItm.GetLaunchVersion();
+
             if (Session == null)
             {
-                if (await MessageBox.Show(Localized.Error.Localize(), Localized.BegLogIn.Localize(), MessageBoxButtons.OkCancel) == MessageBoxResults.Ok)
+                if (await MessageBox.Show(Localized.Error.Localize(), Localized.BegLogIn.Localize(), MessageBoxButtons.Ok) == MessageBoxResults.Ok)
                 {
                     void Cancel(object sender, EventArgs e)
                     {
                         AccountsPage.AccountLogged -= LoggedIn;
                         AccountsPage.BackRequested -= Cancel;
                     }
+
                     void LoggedIn(object sender, EventArgs e)
                     {
                         AccountsPage.AccountLogged -= LoggedIn;
                         AccountsPage.BackRequested -= Cancel;
                         LaunchButton_Click(null, null);
                     }
+
                     AccountsPage.AccountLogged += LoggedIn;
                     AccountsPage.BackRequested += Cancel;
+
                     AccountButton_Click(null, null);
                     UI(true);
                 }
+
                 UI(true);
+
                 return;
             }
             if (ver == null)
             {
                 UI(true);
+
                 _ = await MessageBox.Show(Localized.Error.Localize(), Localized.BegVer.Localize(), MessageBoxButtons.Ok);
+
                 VersionButton_Click(null, null);
+
                 return;
             }
             await Launch();
