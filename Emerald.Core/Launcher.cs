@@ -17,11 +17,17 @@ namespace Emerald.Core
     public class Emerald : INotifyPropertyChanged
     {
         public event EventHandler<UIChangeRequestedEventArgs> UIChangeRequested = delegate { };
+
         public event EventHandler<StatusChangedEventArgs> StatusChanged = delegate { };
+
         public event EventHandler<ProgressChangedEventArgs> FileOrProgressChanged = delegate { };
+
         public event EventHandler VersionLoaderChanged = delegate { };
+
         public event EventHandler<VersionsRefreshedEventArgs> VersionsRefreshed = delegate { };
+
         public event EventHandler LogsUpdated = delegate { };
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         internal void Set<T>(ref T obj, T value, string name = null)
@@ -29,11 +35,14 @@ namespace Emerald.Core
             obj = value;
             InvokePropertyChanged(name);
         }
+
         public void InvokePropertyChanged(string name = null)
         {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
+
         private bool offlineloader = false;
+
         private bool _UIState;
         public bool UIState
         {
@@ -47,6 +56,7 @@ namespace Emerald.Core
             get => _GameRuns;
             set => Set(ref _GameRuns, value);
         }
+
         /// <summary>
         /// Checks whether the launcher is in Offline mode
         /// </summary>
@@ -59,7 +69,6 @@ namespace Emerald.Core
         {
             get => MCVersions != null ? MCVersions.Select(x => x.Name).ToList() : new();
         }
-
 
         /// <summary>
         /// The stirng list of Available FabricMC versions
@@ -76,20 +85,27 @@ namespace Emerald.Core
         {
             get => OptifineMCVersions != null ? OptifineMCVersions.Select(x => x.ToFullVersion()).ToList() : new();
         }
+
         public MVersionCollection MCVersions { get; private set; }
+
         public MVersionCollection FabricMCVersions { get; private set; }
+
         public List<OptifineDownloadVersionModel> OptifineMCVersions { get; private set; }
+
         public CMLauncher Launcher { get; private set; }
+
         public GlacierClient GlacierClient { get; set; }
+
         public Optifine Optifine { get; private set; }
+
         public NewsHelper News { get; private set; } = new();
+
         public Emerald()
         {
             GlacierClient = new GlacierClient();
             GlacierClient.StatusChanged += GlacierClient_StatusChanged;
             GlacierClient.ProgressChanged += GlacierClient_ProgressChanged;
             GlacierClient.UIChangedReqested += GlacierClient_UIChangedReqested;
-
         }
 
         /// <summary>
@@ -100,6 +116,7 @@ namespace Emerald.Core
             var id = createTask ? TasksHelper.AddProgressTask(Localized.LaunchMC) : default;
             int prog = 0;
             string message = "";
+
             void ProgChange(object sender, System.ComponentModel.ProgressChangedEventArgs e)
             {
                 if (createTask)
@@ -107,12 +124,14 @@ namespace Emerald.Core
 
                 prog = e.ProgressPercentage;
             };
+
             void FileChange(CmlLib.Core.Downloader.DownloadFileChangedEventArgs e)
             {
                 message = $"{e.FileKind} : {e.FileName} ({e.ProgressedFileCount}/{e.TotalFileCount})";
                 if (createTask)
                     TasksHelper.EditProgressTask(id, prog, message: message);
             };
+
             try
             {
                 Launcher.ProgressChanged += ProgChange;
@@ -132,18 +151,17 @@ namespace Emerald.Core
                     TasksHelper.CompleteTask(id, false, ex.Message);
                 return null;
             }
-
         }
+
         private void Labrinth_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            this.FileOrProgressChanged(sender, e);
+            FileOrProgressChanged(sender, e);
         }
 
         private void Labrinth_MainUIChangeRequested(object sender, UIChangeRequestedEventArgs e)
         {
             UI(e.UI);
         }
-
 
         /// <summary>
         /// Gets the FabricMC version name using the given Minecraft <paramref name="ver"/>
@@ -167,15 +185,18 @@ namespace Emerald.Core
                 return "";
             }
         }
+
         public async Task<bool> ConfigureOptifine(OptifineDownloadVersionModel model)
         {
             double makePrcent(double value, double CurrentMax, double NextMax) => value * NextMax / CurrentMax;
+
             if (UseOfflineLoader)
                 return MCVerNames.Contains(model.ToFullVersion());
 
             var taskID = TasksHelper.AddProgressTask(Localized.ConfigureOptifine, message: Localized.GettingInheritedVersion.ToString());
             string msg = "";
             int prog = 0;
+
             if (!MCVerNames.Contains(model.ToFullVersion()))
             {
                 void ProgChange(object? sender, System.ComponentModel.ProgressChangedEventArgs e)
@@ -184,9 +205,11 @@ namespace Emerald.Core
                     prog = (int)Math.Round(makePrcent(e.ProgressPercentage, 100, 35));
                     TasksHelper.EditProgressTask(taskID, prog, message: msg);
                 }
+
                 Launcher.ProgressChanged += ProgChange;
                 var VMCp = await CreateProcessAsync(model.McVersion, new(), false);
                 TasksHelper.EditProgressTask(taskID, 35, message: msg);
+
                 if (VMCp != null)
                 {
                     void InstallerProgChange(object? sender, int e)
@@ -195,15 +218,20 @@ namespace Emerald.Core
                         prog = 35 + (int)Math.Round(makePrcent(e, 100, 65));
                         TasksHelper.EditProgressTask(taskID, prog, message: msg);
                     }
+
                     Optifine.ProgressChanged += InstallerProgChange;
+
                     var r = await Optifine.Save(model);
                     if (!r.Item1)
                     {
                         TasksHelper.CompleteTask(taskID, false, r.Item2);
                         return false;
                     }
+
                     TasksHelper.CompleteTask(taskID, true, r.Item2);
+
                     await RefreshVersions(false);
+
                     return true;
                 }
                 else
@@ -218,9 +246,6 @@ namespace Emerald.Core
                 return true;
             }
         }
-
-
-
 
         /// <summary>
         /// Gets the subversions of the given <paramref name="ver"/> as an <see cref="string"/>[]
@@ -239,7 +264,6 @@ namespace Emerald.Core
             }
         }
 
-
         private string changeLogsHTMLBody = "";
         /// <summary>
         /// Changelogs HTML
@@ -257,6 +281,7 @@ namespace Emerald.Core
         {
             var taskID = TasksHelper.AddTask(Localized.LoadChangeLogs);
             string html = "";
+
             try
             {
                 if (Launcher.Versions?.LatestSnapshotVersion?.Name != Launcher.Versions?.LatestReleaseVersion?.Name)
@@ -271,6 +296,7 @@ namespace Emerald.Core
                 }
             }
             catch { }
+
             try
             {
                 html += await GetChangelog("1.19");
@@ -285,6 +311,7 @@ namespace Emerald.Core
                 UpdateLogs(html);
                 html += await GetChangelog("1.16.5");
                 UpdateLogs(html);
+
                 TasksHelper.CompleteTask(taskID, true);
             }
             catch (Exception ex)
@@ -300,22 +327,26 @@ namespace Emerald.Core
             }
         }
 
-
         /// <summary>
         /// Get the changelog HTML of the given <paramref name="version"/>
         /// </summary>
         public async Task<string> GetChangelog(string version)
         {
             Status($"{Localized.LoadingChangeLogs} v:" + version);
+
             Changelogs changelogs = await Changelogs.GetChangelogs(); // get changelog informations
+
             string[] versions = changelogs.GetAvailableVersions(); // get all available versions
+
             var changelogHtml = await changelogs.GetChangelogHtml(version);
 
             var fullbody = "<style>\np,h1,li,span,body,html {\nfont-family:\"Segoe UI\";\n}\n</style>\n" + "<h1>Version " + version + "</h1>" + changelogHtml;
-            Status(Localized.Ready);
-            return fullbody.Replace("h1", "h2").ToString();
 
+            Status(Localized.Ready);
+
+            return fullbody.Replace("h1", "h2").ToString();
         }
+
         private void GlacierClient_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             FileOrProgressChanged(sender, e);
@@ -336,6 +367,7 @@ namespace Emerald.Core
         {
             var l = new Emerald();
             l.InitializeLauncher(mcpath);
+
             return l;
         }
 
@@ -344,14 +376,17 @@ namespace Emerald.Core
             UIState = ui;
             UIChangeRequested(this, new UIChangeRequestedEventArgs(ui));
         }
+
         private void Status(string stats)
         {
             StatusChanged(this, new StatusChangedEventArgs(stats));
         }
+
         private void Status(Localized stats)
         {
             StatusChanged(this, new StatusChangedEventArgs(stats.ToString()));
         }
+
         public void InitializeLauncher(MinecraftPath path)
         {
             var taskID = TasksHelper.AddTask(Localized.InitializeCore);
@@ -362,7 +397,6 @@ namespace Emerald.Core
             UI(true);
             TasksHelper.CompleteTask(taskID);
         }
-
 
         /// <summary>
         /// Refreshes the available Minecraft/Fabric Versions
@@ -377,16 +411,19 @@ namespace Emerald.Core
                 UI(false);
 
             int taskID = TasksHelper.AddTask(Localized.RefreshVers);
+
             try
             {
                 Status(Localized.GettingVers);
                 MCVersions = await Launcher.GetAllVersionsAsync();
+
                 if (!UseOfflineLoader)
                 {
                     var fabricVersionLoader = new FabricVersionLoader();
                     FabricMCVersions = await fabricVersionLoader.GetVersionMetadatasAsync();
                     OptifineMCVersions = await Optifine.GetOptifineVersions();
                 }
+
                 Status(Localized.Ready);
                 VersionsRefreshed(this, new VersionsRefreshedEventArgs(true));
                 TasksHelper.CompleteTask(taskID, true);
@@ -407,6 +444,7 @@ namespace Emerald.Core
                 return false;
             }
         }
+
         /// <summary>
         /// Switches the launcher to offline mode, can't get back online until restart
         /// </summary>
@@ -418,7 +456,6 @@ namespace Emerald.Core
             TasksHelper.CompleteTask(offTask, true);
         }
 
-
         /// <summary>
         /// Checks fabric whether it exists if not install it
         /// </summary>
@@ -426,6 +463,7 @@ namespace Emerald.Core
         {
             int taskID = TasksHelper.AddTask($"{Localized.GetFabric} " + mcver);
             bool exists = false;
+
             foreach (var veritem in FabricMCVersions)
             {
                 if (veritem.Name == fullVer)
@@ -433,14 +471,21 @@ namespace Emerald.Core
                     exists = true;
                 }
             }
+
             if (exists)
             {
                 UI(false);
+
                 var fabric = FabricMCVersions.GetVersionMetadata(fullVer);
+
                 await fabric.SaveAsync(Launcher.MinecraftPath);
+
                 await RefreshVersions();
+
                 UI(true);
+
                 TasksHelper.CompleteTask(taskID, true);
+
                 return true;
             }
             else
@@ -463,6 +508,7 @@ namespace Emerald.Core
                 ExistsOrCreated,
                 NotExists
             }
+
             public FabricResponsoe(string launchver, string displayver, Responses response)
             {
                 this.LaunchVer = launchver;
@@ -470,6 +516,5 @@ namespace Emerald.Core
                 this.Response = response;
             }
         }
-
     }
 }

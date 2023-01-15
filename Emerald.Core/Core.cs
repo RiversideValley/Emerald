@@ -7,23 +7,27 @@ namespace Emerald.Core
     public static class MainCore
     {
         public static event EventHandler<StatusChangedEventArgs> StatusChanged = delegate { };
+
         public static event EventHandler<UIChangeRequestedEventArgs> UIChanged = delegate { };
+
         public static event EventHandler<ProgressChangedEventArgs> ProgressChanged = delegate { };
+
         public static Emerald Launcher { get; set; }
+
         public static Labrinth Labrinth { get; set; }
+
         public static string GlacierClientVersion { get; set; } = "";
+
         public static void Intialize()
         {
             Launcher = new Emerald();
             Launcher.FileOrProgressChanged += ProgressChangedEvent;
             Launcher.StatusChanged += (s, e) => StatusChanged(s, e);
             Launcher.UIChangeRequested += UIChangedEvent;
-            //
+
             Labrinth = new Labrinth();
             Labrinth.MainUIChangeRequested += UIChangedEvent;
-
         }
-
 
         private static void UIChangedEvent(object sender, UIChangeRequestedEventArgs e)
         {

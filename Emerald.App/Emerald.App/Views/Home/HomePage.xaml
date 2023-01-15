@@ -16,7 +16,10 @@
     <Page.Resources>
 
         <DataTemplate x:Key="MCVersionTemplate" x:DataType="models:MinecraftVersion">
-            <Grid VerticalAlignment="Center" ColumnSpacing="8">
+            <Grid
+                Margin="0,4"
+                VerticalAlignment="Center"
+                ColumnSpacing="8">
                 <Grid.ChildrenTransitions>
                     <TransitionCollection>
                         <EntranceThemeTransition />
@@ -39,13 +42,13 @@
                         Text="{x:Bind DisplayVersion}"
                         TextTrimming="CharacterEllipsis" />
                     <TextBlock
-                        Margin="0,0,0,8"
                         FontSize="12"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         TextTrimming="CharacterEllipsis"
                         Visibility="{x:Bind DescriptionVisibility}">
                         <Run Text="{x:Bind TypeString}" />
-                        |<Run Text="{x:Bind Version}" />
+                        <Run Text="|" />
+                        <Run Text="{x:Bind Version}" />
                     </TextBlock>
                 </StackPanel>
 
@@ -56,167 +59,178 @@
 
     <Grid>
 
-        <SplitView
-            x:Name="paneVersions"
-            Margin="24"
-            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="1"
-            CornerRadius="4"
-            DisplayMode="Inline"
-            OpenPaneLength="350"
-            PaneBackground="{ThemeResource LayerFillColorDefaultBrush}"
-            PanePlacement="Left">
+        <Grid x:Name="PrimaryFrameGrid" Margin="24,0,24,24">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="VersionsSelectorPanelColumnDefinition" Width="0" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-            <SplitView.Pane>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+            <SplitView
+                x:Name="paneVersions"
+                Margin="0,0,12,0"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                DisplayMode="Inline"
+                IsPaneOpen="{x:Bind PaneIsOpen, Mode=OneWay}"
+                OpenPaneLength="350"
+                PaneBackground="{ThemeResource LayerFillColorDefaultBrush}"
+                PanePlacement="Left">
 
-                    <Grid Padding="8,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="auto" />
-                        </Grid.ColumnDefinitions>
+                <SplitView.Pane>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
-                        <StackPanel
-                            Grid.Column="0"
-                            Margin="8"
-                            Orientation="Vertical">
-                            <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{helpers:Localize Name=PickVer}" />
-                            <TextBlock
-                                x:Name="txtVerOfflineMode"
-                                VerticalAlignment="Bottom"
-                                FontSize="13"
-                                FontWeight="SemiBold"
-                                Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
-                                Text="{helpers:Localize Name=OfflineMode}" />
-                        </StackPanel>
+                        <Grid Padding="8,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
 
-                        <Button
-                            x:Name="btnCloseVerPane"
-                            Grid.Column="1"
-                            Padding="8,6"
+                            <StackPanel
+                                Grid.Column="0"
+                                Margin="8"
+                                Orientation="Vertical">
+                                <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{helpers:Localize Name=PickVer}" />
+                                <TextBlock
+                                    x:Name="txtVerOfflineMode"
+                                    VerticalAlignment="Bottom"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                    Text="{helpers:Localize Name=OfflineMode}" />
+                            </StackPanel>
+
+                            <Button
+                                x:Name="btnCloseVerPane"
+                                Grid.Column="1"
+                                Padding="8,6"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Click="btnCloseVerPane_Click">
+                                <FontIcon Glyph="&#xE711;" />
+                            </Button>
+
+                        </Grid>
+
+                        <Grid
+                            Grid.Row="1"
+                            Padding="8,0"
+                            ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <AutoSuggestBox
+                                x:Name="txtbxFindVer"
+                                VerticalAlignment="Center"
+                                IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}"
+                                PlaceholderText="Search for a version"
+                                QueryIcon="Find"
+                                TextChanged="txtbxFindVer_TextChanged" />
+
+                            <DropDownButton
+                                x:Name="btnVerSort"
+                                Grid.Column="1"
+                                Height="32"
+                                VerticalAlignment="Center"
+                                IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
+                                <FontIcon FontSize="14" Glyph="&#xE71C;" />
+                                <DropDownButton.Flyout>
+                                    <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                        <ToggleMenuFlyoutItem
+                                            Click="tglMitVerSort_Click"
+                                            IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Release, Mode=TwoWay}"
+                                            Text="{helpers:Localize CustomName=TypeRelease}" />
+                                        <ToggleMenuFlyoutItem
+                                            Click="tglMitVerSort_Click"
+                                            IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Snapshot, Mode=TwoWay}"
+                                            Text="{helpers:Localize CustomName=TypeSnapshot}" />
+                                        <ToggleMenuFlyoutItem
+                                            Click="tglMitVerSort_Click"
+                                            IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.OldBeta, Mode=TwoWay}"
+                                            Text="{helpers:Localize CustomName=TypeOldBeta}" />
+                                        <ToggleMenuFlyoutItem
+                                            Click="tglMitVerSort_Click"
+                                            IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.OldAlpha, Mode=TwoWay}"
+                                            Text="{helpers:Localize CustomName=TypeOldAlpha}" />
+                                        <ToggleMenuFlyoutItem
+                                            Click="tglMitVerSort_Click"
+                                            IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Custom, Mode=TwoWay}"
+                                            Text="{helpers:Localize CustomName=TypeCustom}" />
+                                    </MenuFlyout>
+                                </DropDownButton.Flyout>
+                            </DropDownButton>
+
+                        </Grid>
+
+                        <Border
+                            Grid.Row="2"
+                            Height="1"
+                            Margin="0,8,0,0"
+                            Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                        <ScrollViewer
+                            Grid.Row="3"
+                            HorizontalScrollBarVisibility="Auto"
+                            HorizontalScrollMode="Auto">
+                            <TreeView
+                                x:Name="treeVer"
+                                Margin="0,4"
+                                CanDragItems="False"
+                                CanReorderItems="False"
+                                IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}"
+                                ItemInvoked="treeVer_ItemInvoked"
+                                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                ScrollViewer.HorizontalScrollMode="Disabled"
+                                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                ScrollViewer.VerticalScrollMode="Disabled"
+                                SelectionMode="None">
+
+                                <TreeView.ItemContainerStyle>
+                                    <Style TargetType="TreeViewItem">
+                                        <Setter Property="CollapsedGlyph" Value="&#xE70D;" />
+                                        <Setter Property="ExpandedGlyph" Value="&#xE70E;" />
+                                    </Style>
+                                </TreeView.ItemContainerStyle>
+
+                                <TreeView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:MinecraftVersion">
+                                        <TreeViewItem
+                                            x:DefaultBindMode="OneWay"
+                                            Content="{x:Bind}"
+                                            ContentTemplate="{StaticResource MCVersionTemplate}"
+                                            GlyphSize="11"
+                                            ItemsSource="{x:Bind SubVersions}" />
+                                    </DataTemplate>
+                                </TreeView.ItemTemplate>
+
+                            </TreeView>
+                        </ScrollViewer>
+
+                        <TextBlock
+                            x:Name="txtEmptyVers"
+                            Grid.Row="3"
+                            HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            Background="Transparent"
-                            BorderThickness="0">
-                            <FontIcon Glyph="&#xE711;" />
-                        </Button>
+                            Text="{helpers:Localize Name=Empty}"
+                            Visibility="Collapsed" />
 
                     </Grid>
+                </SplitView.Pane>
 
-                    <Grid
-                        Grid.Row="1"
-                        Padding="8,0"
-                        ColumnSpacing="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <AutoSuggestBox
-                            x:Name="txtbxFindVer"
-                            VerticalAlignment="Center"
-                            IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}"
-                            PlaceholderText="Search for a version"
-                            QueryIcon="Find"
-                            TextChanged="txtbxFindVer_TextChanged" />
-
-                        <DropDownButton
-                            x:Name="btnVerSort"
-                            Grid.Column="1"
-                            Height="32"
-                            VerticalAlignment="Center"
-                            IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
-                            <FontIcon FontSize="14" Glyph="&#xE71C;" />
-                            <DropDownButton.Flyout>
-                                <MenuFlyout Placement="BottomEdgeAlignedLeft">
-                                    <ToggleMenuFlyoutItem
-                                        Click="tglMitVerSort_Click"
-                                        IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Release, Mode=TwoWay}"
-                                        Text="{helpers:Localize CustomName=TypeRelease}" />
-                                    <ToggleMenuFlyoutItem
-                                        Click="tglMitVerSort_Click"
-                                        IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Snapshot, Mode=TwoWay}"
-                                        Text="{helpers:Localize CustomName=TypeSnapshot}" />
-                                    <ToggleMenuFlyoutItem
-                                        Click="tglMitVerSort_Click"
-                                        IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.OldBeta, Mode=TwoWay}"
-                                        Text="{helpers:Localize CustomName=TypeOldBeta}" />
-                                    <ToggleMenuFlyoutItem
-                                        Click="tglMitVerSort_Click"
-                                        IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.OldAlpha, Mode=TwoWay}"
-                                        Text="{helpers:Localize CustomName=TypeOldAlpha}" />
-                                    <ToggleMenuFlyoutItem
-                                        Click="tglMitVerSort_Click"
-                                        IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Custom, Mode=TwoWay}"
-                                        Text="{helpers:Localize CustomName=TypeCustom}" />
-                                </MenuFlyout>
-                            </DropDownButton.Flyout>
-                        </DropDownButton>
-
-                    </Grid>
-
-                    <Border
-                        Grid.Row="2"
-                        Height="1"
-                        Margin="0,8,0,0"
-                        Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
-
-                    <ScrollViewer
-                        Grid.Row="3"
-                        HorizontalScrollBarVisibility="Auto"
-                        HorizontalScrollMode="Auto">
-                        <TreeView
-                            x:Name="treeVer"
-                            Margin="0,4"
-                            CanDragItems="False"
-                            CanReorderItems="False"
-                            IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}"
-                            ItemInvoked="treeVer_ItemInvoked"
-                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                            ScrollViewer.HorizontalScrollMode="Disabled"
-                            ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                            ScrollViewer.VerticalScrollMode="Disabled"
-                            SelectionMode="None">
-
-                            <TreeView.ItemContainerStyle>
-                                <Style TargetType="TreeViewItem">
-                                    <Setter Property="CollapsedGlyph" Value="&#xE70D;" />
-                                    <Setter Property="ExpandedGlyph" Value="&#xE70E;" />
-                                </Style>
-                            </TreeView.ItemContainerStyle>
-
-                            <TreeView.ItemTemplate>
-                                <DataTemplate x:DataType="models:MinecraftVersion">
-                                    <TreeViewItem
-                                        x:DefaultBindMode="OneWay"
-                                        Content="{x:Bind}"
-                                        ContentTemplate="{StaticResource MCVersionTemplate}"
-                                        GlyphSize="11"
-                                        ItemsSource="{x:Bind SubVersions}" />
-                                </DataTemplate>
-                            </TreeView.ItemTemplate>
-
-                        </TreeView>
-                    </ScrollViewer>
-
-                    <TextBlock
-                        x:Name="txtEmptyVers"
-                        Grid.Row="3"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Text="{helpers:Localize Name=Empty}"
-                        Visibility="Collapsed" />
-
-                </Grid>
-            </SplitView.Pane>
+            </SplitView>
 
             <Grid
                 x:Name="MainGrid"
+                Grid.Column="1"
                 ChildrenTransitions="{StaticResource EntranceThemeTransition}"
                 RowSpacing="12">
                 <Grid.RowDefinitions>
@@ -395,7 +409,7 @@
 
             </Grid>
 
-        </SplitView>
+        </Grid>
 
         <Frame
             x:Name="SecondaryFrame"

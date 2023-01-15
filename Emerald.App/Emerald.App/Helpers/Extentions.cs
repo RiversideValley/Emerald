@@ -1,19 +1,22 @@
-﻿using Microsoft.UI.Xaml.Controls;
+﻿using CommunityToolkit.WinUI;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Collections.Generic;
 using Windows.System.Diagnostics;
-using CommunityToolkit.WinUI;
 
 namespace Emerald.WinUI.Helpers
 {
     public static class Extentions
     {
+        private static readonly ConcurrentDictionary<string, string> cachedResources = new();
+
         public static void ShowAt(this TeachingTip tip, FrameworkElement element, TeachingTipPlacementMode placement = TeachingTipPlacementMode.Auto, bool closeWhenClick = true,bool addToMainGrid = true)
         {
             if (addToMainGrid)
@@ -127,45 +130,45 @@ namespace Emerald.WinUI.Helpers
         {
             try
             {
+                ResourceManager rl;
                 string s;
+
+                if (cachedResources.TryGetValue(resourceKey, out var value))
+                {
+                    return value;
+                }
 
                 if (resw == null)
                 {
-                    s = resourceKey.ToString().GetLocalized();
+                    rl = new ResourceManager();
                 }
                 else
                 {
-                    s = resourceKey.ToString().GetLocalized(resw);
+                    rl = new ResourceManager(resw);
                 }
 
-                return string.IsNullOrEmpty(s) ? resourceKey.ToString() : s;
+                ResourceMap resourcesTree = rl.MainResourceMap.TryGetSubtree("Resources");
+                value = resourcesTree?.TryGetValue(resourceKey)?.ValueAsString;
+                cachedResources[resourceKey] = value ?? string.Empty;
+                s = value;
+
+                return string.IsNullOrEmpty(s) ? resourceKey : s;
             }
             catch
             {
-                return resourceKey.ToString();
+                return resourceKey;
             }
         }
 
         public static string Localize(this Core.Localized resourceKey, string resw = null)
         {
-            try
+            if (resw == null)
             {
-                string s;
-
-                if (resw == null)
-                {
-                    s = resourceKey.ToString().GetLocalized();
-                }
-                else
-                {
-                    s = resourceKey.ToString().GetLocalized(resw);
-                }
-
-                return string.IsNullOrEmpty(s) ? resourceKey.ToString() : s;
+                return resourceKey.ToString().Localize();
             }
-            catch
+            else
             {
-                return resourceKey.ToString();
+                return resourceKey.ToString().Localize(resw);
             }
         }
 

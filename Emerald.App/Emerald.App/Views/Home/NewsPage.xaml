@@ -110,11 +110,8 @@
                                 StretchContent="True">
 
                                 <uc:AdaptiveItemPane.LeftPane>
-                                    <Border CornerRadius="4,4,0,0">
-                                        <Image
-                                            Margin="0,0,-30,0"
-                                            Source="{x:Bind ImageUri}"
-                                            Stretch="UniformToFill" />
+                                    <Border Margin="0,0,-28,0" CornerRadius="4,4,0,0">
+                                        <Image Source="{x:Bind ImageUri}" Stretch="UniformToFill" />
                                     </Border>
                                 </uc:AdaptiveItemPane.LeftPane>
 
