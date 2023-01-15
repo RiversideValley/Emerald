@@ -121,6 +121,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public Appearance Appearance { get; set; }
         public bool AutoLogin { get; set; }
         public Discord Discord { get; set; }
+        public NewsFilter NewsFilter { get; set; } = new();
         public bool AutoClose { get; set; }
         public bool HideOnLaunch { get; set; }
         public bool WindowsHello { get; set; }
@@ -128,6 +129,42 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
 
     public class Discord : JSON
     {
+    }
+    public class NewsFilter : JSON
+    {
+        private bool _Java = true;
+        public bool Java
+        {
+            get => _Java;
+            set => Set(ref _Java, value);
+        }
+        private bool _Bedrock = true;
+        public bool Bedrock
+        {
+            get => _Bedrock;
+            set => Set(ref _Bedrock, value);
+        }
+        private bool _Dungeons = true;
+        public bool Dungeons
+        {
+            get => _Dungeons;
+            set => Set(ref _Dungeons, value);
+        }
+        private bool _Legends = true;
+        public bool Legends
+        {
+            get => _Legends;
+            set => Set(ref _Legends, value);
+        }
+        public bool All
+        {
+            get => Java && Bedrock && Dungeons && Legends;
+            set
+            {
+                if (value)
+                    Java = Bedrock = Dungeons = Legends = true;
+            }
+        }
     }
     public class MCVerionsConfiguration : JSON
     {
