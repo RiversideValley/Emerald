@@ -29,6 +29,6 @@ namespace Emerald.WinUI
             => $"{SystemInformation.Instance.ApplicationVersion.Major}.{SystemInformation.Instance.ApplicationVersion.Minor}.{SystemInformation.Instance.ApplicationVersion.Build}.{SystemInformation.Instance.ApplicationVersion.Revision}";
 
         public static Color LayerFillColorDefaultColor
-            => (Color)Current.Resources["LayerFillColorDefault"];
+            => (Color)App.Current.Resources["LayerFillColorDefault"];
     }
 }
