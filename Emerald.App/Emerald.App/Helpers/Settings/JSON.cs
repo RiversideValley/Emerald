@@ -144,6 +144,42 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public bool WindowsHello { get; set; }
     }
 
+    public class NewsFilter : JSON
+    {
+        private bool _Java = true;
+        public bool Java
+        {
+            get => _Java;
+            set => Set(ref _Java, value);
+        }
+        private bool _Bedrock = true;
+        public bool Bedrock
+        {
+            get => _Bedrock;
+            set => Set(ref _Bedrock, value);
+        }
+        private bool _Dungeons = true;
+        public bool Dungeons
+        {
+            get => _Dungeons;
+            set => Set(ref _Dungeons, value);
+        }
+        private bool _Legends = true;
+        public bool Legends
+        {
+            get => _Legends;
+            set => Set(ref _Legends, value);
+        }
+        public bool All
+        {
+            get => Java && Bedrock && Dungeons && Legends;
+            set
+            {
+                if (value)
+                    Java = Bedrock = Dungeons = Legends = true;
+            }
+        }
+    }
     public class Discord : JSON
     {
     }
