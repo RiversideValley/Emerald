@@ -5,29 +5,34 @@ using Newtonsoft.Json.Serialization;
 using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
 using System.Web;
+
 namespace Emerald.Core.Store
 {
-#pragma warning disable CS8603 // Possible null reference return.
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
     public class Labrinth
     {
         public event EventHandler<UIChangeRequestedEventArgs> MainUIChangeRequested = delegate { };
+
         public HttpClient Client;
+
         //ModrinthClient c = new ModrinthClient();
+
         public Labrinth()
         {
             Client = new()
             {
                 BaseAddress = new Uri("https://api.modrinth.com/v2/")
             };
+
             Client.DefaultRequestHeaders.Accept.Clear();
             Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
+
         public async Task<string> Get(string code)
         {
             try
             {
                 HttpResponseMessage response = await Client.GetAsync(code);
+
                 if (response.IsSuccessStatusCode)
                 {
                     return await response.Content.ReadAsStringAsync();
@@ -42,26 +47,30 @@ namespace Emerald.Core.Store
                 throw new Exception("Failed to get: " + code);
             }
         }
-        int DownloadTaskID;
+
+        private int DownloadTaskID;
+
         public void DownloadMod(LabrinthResults.File file, CmlLib.Core.MinecraftPath mcPath)
         {
-            this.MainUIChangeRequested(this, new UIChangeRequestedEventArgs(false));
+            MainUIChangeRequested(this, new UIChangeRequestedEventArgs(false));
             DownloadTaskID = Tasks.TasksHelper.AddProgressTask($"{Localized.Download} {file.Filename}");
             var mods = System.IO.Directory.CreateDirectory(mcPath.BasePath + "\\mods").FullName;
             ModrinthDownload(file.Url, mods, file.Filename);
         }
+
         private async void ModrinthDownload(string link, string folderdir, string fileName)
         {
             using (var client = new FileDownloader(link, folderdir + "\\" + fileName))
             {
                 client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
                 {
-                    this.MainUIChangeRequested(this, new UIChangeRequestedEventArgs(false));
+                    MainUIChangeRequested(this, new UIChangeRequestedEventArgs(false));
                     TasksHelper.EditProgressTask(DownloadTaskID, Convert.ToInt32(progressPercentage));
+
                     if (progressPercentage == 100)
                     {
                         client.Dispose();
-                        this.MainUIChangeRequested(this, new UIChangeRequestedEventArgs(true));
+                        MainUIChangeRequested(this, new UIChangeRequestedEventArgs(true));
                         TasksHelper.CompleteTask(DownloadTaskID, true);
                     }
                 };
@@ -69,9 +78,11 @@ namespace Emerald.Core.Store
                 await client.StartDownload();
             }
         }
+
         public async Task<LabrinthResults.SearchResult> Search(string name, int? limit = null, LabrinthResults.SearchSortOptions sortOptions = LabrinthResults.SearchSortOptions.Relevance, LabrinthResults.SearchCategories[] categories = null)
         {
             int taskID = 0;
+
             if (name == "")
             {
                 taskID = Tasks.TasksHelper.AddTask(Localized.GettingMods);
@@ -80,7 +91,9 @@ namespace Emerald.Core.Store
             {
                 taskID = Tasks.TasksHelper.AddTask(Localized.SearchStore);
             }
+
             string categouriesString = "";
+
             if (categories != null)
             {
                 if (categories.Any())
@@ -90,7 +103,9 @@ namespace Emerald.Core.Store
                     categouriesString = categouriesString.ToLower();
                 }
             }
+
             LabrinthResults.SearchResult s = null;
+
             try
             {
                 var q = HttpUtility.UrlEncode(name);
@@ -103,9 +118,11 @@ namespace Emerald.Core.Store
                 {
                     l = "limit=";
                 }
+
                 var json = await Get("search?query=" + q + "&index=" + sortOptions.ToString().ToLower() + "&facets=[[\"categories:fabric\"]" + categouriesString + ",[\"project_type:mod\"]]&" + l);
                 s = JsonConvert.DeserializeObject<LabrinthResults.SearchResult>(json);
                 Tasks.TasksHelper.CompleteTask(taskID, true);
+
                 return s;
             }
             catch
@@ -114,10 +131,12 @@ namespace Emerald.Core.Store
                 return null;
             }
         }
+
         public async Task<LabrinthResults.ModrinthProject> GetProject(string id)
         {
             int taskID = Tasks.TasksHelper.AddTask(Localized.LoadMod);
             LabrinthResults.ModrinthProject s = null;
+
             try
             {
                 var json = await Get("project/" + id);
@@ -131,10 +150,12 @@ namespace Emerald.Core.Store
                 return null;
             }
         }
+
         public async Task<List<LabrinthResults.Version>> GetVersions(string id)
         {
             int taskID = Tasks.TasksHelper.AddTask(Localized.LoadDownloadVers);
             List<LabrinthResults.Version> s = null;
+
             try
             {
                 var json = await Get("project/" + id + "/version");
@@ -197,6 +218,7 @@ namespace Emerald.Core.Store
             [JsonPropertyName("size")]
             public int size { get; set; }
         }
+
         public class Version
         {
             [JsonPropertyName("id")]
@@ -244,6 +266,7 @@ namespace Emerald.Core.Store
             [JsonPropertyName("loaders")]
             public string[] Loaders { get; set; }
         }
+
         public class Hashes
         {
 
@@ -253,6 +276,7 @@ namespace Emerald.Core.Store
             [JsonPropertyName("sha1")]
             public string Sha1 { get; set; }
         }
+
         public class SearchResult
         {
 
@@ -326,12 +350,6 @@ namespace Emerald.Core.Store
             [JsonPropertyName("gallery")]
             public string[] Gallery { get; set; }
         }
-
-
-        ///
-        ///
-        ///
-
 
         public class ModrinthProject
         {
@@ -438,7 +456,5 @@ namespace Emerald.Core.Store
             [JsonPropertyName("url")]
             public string Url { get; set; }
         }
-
-
     }
 }

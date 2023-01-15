@@ -38,7 +38,7 @@ namespace Emerald.Core
 
         public void InvokePropertyChanged(string name = null)
         {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
         private bool offlineloader = false;
@@ -125,9 +125,10 @@ namespace Emerald.Core
                 prog = e.ProgressPercentage;
             };
 
-            void FileChange(CmlLib.Core.Downloader.DownloadFileChangedEventArgs e)
+            void FileChange(DownloadFileChangedEventArgs e)
             {
                 message = $"{e.FileKind} : {e.FileName} ({e.ProgressedFileCount}/{e.TotalFileCount})";
+
                 if (createTask)
                     TasksHelper.EditProgressTask(id, prog, message: message);
             };
@@ -136,19 +137,25 @@ namespace Emerald.Core
             {
                 Launcher.ProgressChanged += ProgChange;
                 Launcher.FileChanged += FileChange;
+
                 var p = await Launcher.CreateProcessAsync(ver, launchOption);
+
                 Launcher.ProgressChanged -= ProgChange;
                 Launcher.FileChanged -= FileChange;
+
                 if (createTask)
                     TasksHelper.CompleteTask(id, true);
+
                 return p;
             }
             catch (Exception ex)
             {
                 Launcher.ProgressChanged -= ProgChange;
                 Launcher.FileChanged -= FileChange;
+
                 if (createTask)
                     TasksHelper.CompleteTask(id, false, ex.Message);
+
                 return null;
             }
         }
@@ -270,8 +277,12 @@ namespace Emerald.Core
         /// </summary>
         public string ChangeLogsHTMLBody
         {
-            get { return string.IsNullOrEmpty(changeLogsHTMLBody) ? "" : changeLogsHTMLBody; }
-            set { changeLogsHTMLBody = value; LogsUpdated(this, new EventArgs()); }
+            get => string.IsNullOrEmpty(changeLogsHTMLBody) ? "" : changeLogsHTMLBody;
+            set
+            {
+                changeLogsHTMLBody = value;
+                LogsUpdated(this, new EventArgs());
+            }
         }
 
         /// <summary>
@@ -295,7 +306,9 @@ namespace Emerald.Core
                     UpdateLogs(html);
                 }
             }
-            catch { }
+            catch
+            {
+            }
 
             try
             {
@@ -319,6 +332,7 @@ namespace Emerald.Core
                 TasksHelper.CompleteTask(taskID, false, ex.Message);
             }
         }
+
         private void UpdateLogs(string html)
         {
             if (!string.IsNullOrEmpty(html.Replace(" ", "")))
@@ -334,9 +348,11 @@ namespace Emerald.Core
         {
             Status($"{Localized.LoadingChangeLogs} v:" + version);
 
-            Changelogs changelogs = await Changelogs.GetChangelogs(); // get changelog informations
+            // Get changelog informations
+            Changelogs changelogs = await Changelogs.GetChangelogs();
 
-            string[] versions = changelogs.GetAvailableVersions(); // get all available versions
+            // Get all available versions
+            string[] versions = changelogs.GetAvailableVersions();
 
             var changelogHtml = await changelogs.GetChangelogHtml(version);
 
@@ -477,7 +493,6 @@ namespace Emerald.Core
                 UI(false);
 
                 var fabric = FabricMCVersions.GetVersionMetadata(fullVer);
-
                 await fabric.SaveAsync(Launcher.MinecraftPath);
 
                 await RefreshVersions();
@@ -511,9 +526,9 @@ namespace Emerald.Core
 
             public FabricResponsoe(string launchver, string displayver, Responses response)
             {
-                this.LaunchVer = launchver;
-                this.DisplayVer = displayver;
-                this.Response = response;
+                LaunchVer = launchver;
+                DisplayVer = displayver;
+                Response = response;
             }
         }
     }

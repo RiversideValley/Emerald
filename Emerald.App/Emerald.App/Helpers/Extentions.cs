@@ -161,14 +161,7 @@ namespace Emerald.WinUI.Helpers
 
         public static string Localize(this Core.Localized resourceKey, string resw = null)
         {
-            if (resw == null)
-            {
-                return resourceKey.ToString().Localize();
-            }
-            else
-            {
-                return resourceKey.ToString().Localize(resw);
-            }
+            return resourceKey.ToString().Localize(resw);
         }
 
         public static bool IsNullEmptyOrWhiteSpace(this string str)

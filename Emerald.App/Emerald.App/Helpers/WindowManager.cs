@@ -10,13 +10,10 @@ using Windows.ApplicationModel;
 using WinRT;
 using WinRT.Interop;
 
-#pragma warning disable CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-
 namespace Emerald.WinUI.Helpers
 {
     public static class WindowManager
     {
-
         /// <summary>
         /// Add mica and the icon to the <paramref name="window"/>
         /// </summary>
