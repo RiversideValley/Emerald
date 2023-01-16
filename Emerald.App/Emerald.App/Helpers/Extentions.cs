@@ -68,9 +68,9 @@ namespace Emerald.WinUI.Helpers
                 Title = title,
                 CloseButtonText = closebtnText,
                 DefaultButton = defaultButton,
-                Content = content
+                Content = content,
+                RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme
             };
-            dialog.RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme;
             return dialog;
         }
 
@@ -137,18 +137,10 @@ namespace Emerald.WinUI.Helpers
                     return value;
                 }
 
-                if (resw == null)
-                {
-                    rl = new ResourceManager();
-                }
-                else
-                {
-                    rl = new ResourceManager(resw);
-                }
-
-                ResourceMap resourcesTree = rl.MainResourceMap.TryGetSubtree("Resources");
+                rl = new ResourceManager();
+                ResourceMap resourcesTree = rl.MainResourceMap.TryGetSubtree(resw ?? "Resources");
                 value = resourcesTree?.TryGetValue(resourceKey)?.ValueAsString;
-                cachedResources[resourceKey] = value ?? string.Empty;
+                cachedResources[resourceKey] = value ?? resourceKey;
                 s = value;
 
                 return string.IsNullOrEmpty(s) ? resourceKey : s;

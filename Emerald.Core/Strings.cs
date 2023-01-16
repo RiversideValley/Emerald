@@ -1,5 +1,6 @@
 ﻿namespace Emerald.Core
 {
+    //The nooobest way ever
     public enum Localized
     {
         Welcome,
