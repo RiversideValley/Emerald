@@ -3,11 +3,11 @@
 #### A swift Minecraft launcher made using WinUI technologies in the fast C# language really pushes the boundary of the platform.
 
 <p align="center">
-  <a title="GitHub Releases" target="_blank" href="https://github.com/OpenAndrexial/Emerald/releases">
-    <img align="left" src="https://img.shields.io/github/v/release/OpenAndrexial/Emerald?include_prereleases" alt="Release" />
+  <a title="GitHub Releases" target="_blank" href="https://github.com/RiversideValley/Emerald/releases">
+    <img align="left" src="https://img.shields.io/github/v/release/RiversideValley/Emerald?include_prereleases" alt="Release" />
   </a>
-  <a title="GitHub Releases" target="_blank" href="https://github.com/OpenAndrexial/Emerald/releases">
-    <img align="left" src="https://img.shields.io/github/repo-size/OpenAndrexial/Emerald?color=%23cc0000" alt="Release" />
+  <a title="GitHub Releases" target="_blank" href="https://github.com/RiversideValley/Emerald/releases">
+    <img align="left" src="https://img.shields.io/github/repo-size/RiversideValley/Emerald?color=%23cc0000" alt="Release" />
   </a>
 </p>
 
@@ -19,7 +19,7 @@
 
 ### Via GitHub
 
-See the [releases page](https://github.com/OpenAndrexial/Emerald/releases)
+See the [releases page](https://github.com/RiversideValley/Emerald/releases)
 
 ### Building from source
 ###### ⭐Recommended⭐
@@ -29,20 +29,20 @@ See [this section](#-building-the-code)
 
 ### 📸 Screenshots
 
-<a title="Emerald Screenshot" target="_blank" href="https://github.com/OpenAndrexial/Emerald">
+<a title="Emerald Screenshot" target="_blank" href="https://github.com/RiversideValley/Emerald">
   <img align="left" src="https://user-images.githubusercontent.com/71598437/212673147-54e79843-76aa-44ff-9db3-60b025334f07.png" alt="Release" />
 </a>
 
-###### 📝 This screenshot is from [`redesign`](https://github.com/OpenAndrexial/Emerald/pull/19)
+###### 📝 This screenshot is from [`redesign`](https://github.com/RiversideValley/Emerald/pull/19)
 
 ## 🦜 Contributing & Feedback
 
 There are multiple ways to participate in the community:
 
 - Upvote popular feature requests
-- [Submit a new feature](https://github.com/OpenAndrexial/Emerald/pulls)
-- [File bugs and feature requests](https://github.com/OpenAndrexial/Emerald/issues/new/choose).
-- Review source [code changes](https://github.com/OpenAndrexial/Emerald/commits)
+- [Submit a new feature](https://github.com/RiversideValley/Emerald/pulls)
+- [File bugs and feature requests](https://github.com/RiversideValley/Emerald/issues/new/choose).
+- Review source [code changes](https://github.com/RiversideValley/Emerald/commits)
 
 ### 🏗️ Codebase Structure
 
@@ -56,8 +56,8 @@ There are multiple ways to participate in the community:
 
 ### 🗃️ Contributors
 
-<a href="https://github.com/OpenAndrexial/Emerald/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=OpenAndrexial/Emerald" />
+<a href="https://github.com/RiversideValley/Emerald/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=RiversideValley/Emerald" />
 </a>
 
 ## 🔨 Building the Code
@@ -82,7 +82,7 @@ Ensure you have following components:
 Clone the repository:
 
 ```git
-git clone https://github.com/OpenAndrexial/Emerald
+git clone https://github.com/RiversideValley/Emerald
 ```
 (`redesign` is the latest branch)
 
