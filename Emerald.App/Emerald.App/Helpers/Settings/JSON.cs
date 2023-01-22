@@ -170,6 +170,8 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
             get => _Legends;
             set => Set(ref _Legends, value);
         }
+
+        [JsonIgnore]
         public bool All
         {
             get => Java && Bedrock && Dungeons && Legends;

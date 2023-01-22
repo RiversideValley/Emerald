@@ -246,7 +246,7 @@
                     CornerRadius="4">
 
                     <uc:AdaptiveItemPane
-                        Margin="12,12,0,0"
+                        Margin="12,12,0,12"
                         VerticalAlignment="Center"
                         IsStackedCenter="False"
                         StretchContent="True">

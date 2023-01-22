@@ -10,7 +10,6 @@ namespace Emerald.WinUI.Helpers
 {
     public sealed class MSLoginHelper
     {
-        IPublicClientApplication app;
         JavaEditionLoginHandler handler;
 
         public MSLoginHelper()

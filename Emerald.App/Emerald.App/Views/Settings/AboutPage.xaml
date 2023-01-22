@@ -23,7 +23,7 @@
 
             <Border
                 Height="auto"
-                Padding="12,12,12,0"
+                Padding="12"
                 Style="{StaticResource SettingsCard}">
                 <uc:AdaptiveItemPane IsStackedCenter="True" StretchContent="True">
                     <uc:AdaptiveItemPane.LeftPane>

@@ -24,7 +24,7 @@
         <Border
             Height="Auto"
             Margin="12,0,12,12"
-            Padding="12,12,12,0"
+            Padding="12"
             Background="{ThemeResource LayerFillColorDefaultBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="1"
@@ -65,13 +65,23 @@
                 </uc:AdaptiveItemPane.LeftPane>
 
                 <uc:AdaptiveItemPane.RightPane>
-                    <AutoSuggestBox
-                        MinWidth="250"
-                        VerticalAlignment="Center"
-                        Background="Transparent"
-                        PlaceholderText="{helpers:Localize Name=Search}"
-                        QueryIcon="Find"
-                        TextChanged="SearchBox_TextChanged" />
+                    <StackPanel Spacing="8" Orientation="Horizontal">
+                        <AutoSuggestBox
+                            BorderThickness="0,0,0,1"
+                            MinWidth="250"
+                            VerticalAlignment="Center"
+                            PlaceholderText="{helpers:Localize Name=Search}"
+                            QueryIcon="Find"
+                            TextChanged="SearchBox_TextChanged" />
+
+                        <DropDownButton
+                            x:Name="btnVerSort"
+                            Grid.Column="1"
+                            Height="32"
+                            VerticalAlignment="Center">
+                            <FontIcon FontSize="14" Glyph="&#xE71C;" />
+                        </DropDownButton>
+                    </StackPanel>
                 </uc:AdaptiveItemPane.RightPane>
 
             </uc:AdaptiveItemPane>

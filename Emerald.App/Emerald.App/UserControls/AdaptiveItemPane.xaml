@@ -17,7 +17,7 @@
 
     <Grid
         x:Name="MainGrid"
-        Margin="0,0,0,-12"
+        Margin="0,0,0,-24"
         HorizontalAlignment="Stretch"
         ColumnSpacing="6"
         RowSpacing="12">
@@ -87,7 +87,7 @@
 
                         <Setter Target="LeftColumn.Width" Value="*" />
 
-                        <Setter Target="MainGrid.Margin" Value="0,0,0,12" />
+                        <Setter Target="MainGrid.Margin" Value="0" />
 
                         <Setter Target="Middle.(Grid.Column)" Value="0" />
                         <Setter Target="Middle.(Grid.Row)" Value="1" />
@@ -107,7 +107,7 @@
 
                         <Setter Target="LeftColumn.Width" Value="*" />
 
-                        <Setter Target="MainGrid.Margin" Value="0,0,0,12" />
+                        <Setter Target="MainGrid.Margin" Value="0" />
 
                         <Setter Target="Middle.(Grid.Column)" Value="0" />
                         <Setter Target="Middle.(Grid.Row)" Value="1" />
@@ -121,7 +121,7 @@
                         <Setter Target="LeftSpaceColumn.Width" Value="auto" />
                         <Setter Target="RightSpaceColumn.Width" Value="auto" />
 
-                        <Setter Target="MainGrid.Margin" Value="0" />
+                        <Setter Target="MainGrid.Margin" Value="-12" />
 
                         <Setter Target="Right.(Grid.Column)" Value="0" />
                         <Setter Target="Right.(Grid.Row)" Value="1" />
@@ -132,7 +132,7 @@
                         <Setter Target="MainGrid.Margin" Value="0" />
                         <Setter Target="RightSpaceColumn.Width" Value="auto" />
 
-                        <Setter Target="Right.(Grid.Column)" Value="0" />
+                        <Setter Target="Right.(Grid.Column)" Value="-12" />
                         <Setter Target="Right.(Grid.Row)" Value="1" />
                     </VisualState.Setters>
                 </VisualState>
