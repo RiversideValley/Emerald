@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <Content Include="MsalClientID.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
