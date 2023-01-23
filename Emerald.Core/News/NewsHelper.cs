@@ -29,11 +29,11 @@ namespace Emerald.Core.News
             set => Set(ref _Entries, value, nameof(Entries));
         }
 
-        public ObservableCollection<JSON.Entry> Search(string key)
+        public ObservableCollection<JSON.Entry> Search(string key,string[] filter = null)
         {
             if(string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key))
             {
-                Entries = AllEntries;
+                Entries = new(AllEntries.Where(x=> filter == null || filter.Contains(x.Category)));
                 return Entries;
             }
 
@@ -49,12 +49,12 @@ namespace Emerald.Core.News
                 }
             }
 
-            Entries = s;
+            Entries = new(s.Where(x => filter == null || filter.Contains(x.Category)));
 
             return Entries;
         }
 
-        public async Task<ObservableCollection<JSON.Entry>> LoadEntries()
+        public async Task<ObservableCollection<JSON.Entry>> LoadEntries(string[] filter = null)
         {
             try
             {
@@ -67,8 +67,8 @@ namespace Emerald.Core.News
                 }
 
                 var json = JsonConvert.DeserializeObject<JSON.Root>(response);
-                Entries = AllEntries = json?.entries != null ? new(json.entries.ToList()) : new();
-
+                AllEntries = json?.entries != null ? new(json.entries.ToList()) : new();
+                Entries = new(AllEntries.Where(x => filter == null || filter.Contains(x.Category)));
                 return Entries;
             }
             catch

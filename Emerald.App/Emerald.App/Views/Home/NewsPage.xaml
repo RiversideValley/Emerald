@@ -12,6 +12,7 @@
     xmlns:models="using:Emerald.WinUI.Models"
     xmlns:news="using:Emerald.Core.News.JSON"
     xmlns:toolkit="using:CommunityToolkit.WinUI.UI.Controls"
+    xmlns:SS="using:Emerald.WinUI.Helpers.Settings"
     xmlns:uc="using:Emerald.WinUI.UserControls"
     mc:Ignorable="d">
 
@@ -67,6 +68,7 @@
                 <uc:AdaptiveItemPane.RightPane>
                     <StackPanel Spacing="8" Orientation="Horizontal">
                         <AutoSuggestBox
+                            x:Name="SearchBox"
                             BorderThickness="0,0,0,1"
                             MinWidth="250"
                             VerticalAlignment="Center"
@@ -80,6 +82,31 @@
                             Height="32"
                             VerticalAlignment="Center">
                             <FontIcon FontSize="14" Glyph="&#xE71C;" />
+                            <DropDownButton.Flyout>
+                                <MenuFlyout>
+                                    <ToggleMenuFlyoutItem
+                                        Click="FilterButton_Click"
+                                        Text="{helpers:Localize CustomName=All}" 
+                                        IsChecked="{x:Bind SS:SettingsSystem.Settings.App.NewsFilter.All,Mode=TwoWay}"/>
+                                    <MenuFlyoutSeparator/>
+                                    <ToggleMenuFlyoutItem
+                                        Click="FilterButton_Click"
+                                        Text="{helpers:Localize CustomName=MCJava}" 
+                                        IsChecked="{x:Bind SS:SettingsSystem.Settings.App.NewsFilter.Java,Mode=TwoWay}"/>
+                                    <ToggleMenuFlyoutItem
+                                        Click="FilterButton_Click"
+                                        Text="{helpers:Localize CustomName=MCBedrock}" 
+                                        IsChecked="{x:Bind SS:SettingsSystem.Settings.App.NewsFilter.Bedrock,Mode=TwoWay}"/>
+                                    <ToggleMenuFlyoutItem
+                                        Click="FilterButton_Click"
+                                        Text="{helpers:Localize CustomName=MCDungeons}" 
+                                        IsChecked="{x:Bind SS:SettingsSystem.Settings.App.NewsFilter.Dungeons,Mode=TwoWay}"/>
+                                    <ToggleMenuFlyoutItem
+                                        Click="FilterButton_Click"
+                                        Text="{helpers:Localize CustomName=MCLegends}" 
+                                        IsChecked="{x:Bind SS:SettingsSystem.Settings.App.NewsFilter.Legends,Mode=TwoWay}"/>
+                                </MenuFlyout>
+                            </DropDownButton.Flyout>
                         </DropDownButton>
                     </StackPanel>
                 </uc:AdaptiveItemPane.RightPane>

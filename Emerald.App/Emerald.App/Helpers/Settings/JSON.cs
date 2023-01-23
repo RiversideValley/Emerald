@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Shapes;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace Emerald.WinUI.Helpers.Settings.JSON
 {
@@ -174,12 +175,30 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         [JsonIgnore]
         public bool All
         {
-            get => Java && Bedrock && Dungeons && Legends;
+            get => false;
             set
             {
                 if (value)
                     Java = Bedrock = Dungeons = Legends = true;
             }
+        }
+        public string[] GetResult()
+        {
+            var r = new List<string>();
+
+            if (_Java)
+                r.Add("Minecraft: Java Edition");
+
+            if (_Bedrock)
+                r.Add("Minecraft for Windows");
+
+            if (_Dungeons)
+                r.Add("Minecraft Dungeons");
+
+            if (_Legends)
+                r.Add("Minecraft Legends");
+
+            return r.ToArray();
         }
     }
     public class Discord : JSON

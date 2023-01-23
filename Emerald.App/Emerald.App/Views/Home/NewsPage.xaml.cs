@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation and Contributors.
-// Licensed under the MIT License.
-
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -15,28 +12,26 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace Emerald.WinUI.Views.Home
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class NewsPage : Page
     {
         public event EventHandler? BackRequested;
         public NewsPage()
         {
             this.InitializeComponent();
-            _ = App.Launcher.News.LoadEntries();
+            _ = App.Launcher.News.LoadEntries(SS.Settings.App.NewsFilter.GetResult());
         }
         private void BackButton_Click(object sender, RoutedEventArgs e) =>
             BackRequested?.Invoke(this, new EventArgs());
 
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)=>
-            App.Launcher.News.Search(sender.Text);
-        
+            App.Launcher.News.Search(sender.Text, SS.Settings.App.NewsFilter.GetResult());
+
+        private void FilterButton_Click(object sender, RoutedEventArgs e) =>
+            App.Launcher.News.Search(SearchBox.Text, SS.Settings.App.NewsFilter.GetResult());
     }
 }

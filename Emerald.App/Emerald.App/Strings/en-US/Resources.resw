@@ -132,6 +132,9 @@
   <data name="Add" xml:space="preserve">
     <value>Add</value>
   </data>
+  <data name="All" xml:space="preserve">
+    <value>All</value>
+  </data>
   <data name="AuthWindowshello" xml:space="preserve">
     <value>Authenticating using Windows Hello...</value>
   </data>
@@ -278,6 +281,18 @@
   </data>
   <data name="MainPage_txtStatus.Text" xml:space="preserve">
     <value>Status:</value>
+  </data>
+  <data name="MCBedrock" xml:space="preserve">
+    <value>Minecraft for Windows</value>
+  </data>
+  <data name="MCDungeons" xml:space="preserve">
+    <value>Minecraft Dungeons</value>
+  </data>
+  <data name="MCJava" xml:space="preserve">
+    <value>Minecraft: Java Edition</value>
+  </data>
+  <data name="MCLegends" xml:space="preserve">
+    <value>Minecraft Legends</value>
   </data>
   <data name="MicrosoftAccount" xml:space="preserve">
     <value>Microsoft Account</value>
