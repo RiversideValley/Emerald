@@ -225,6 +225,9 @@
   <data name="GotIt" xml:space="preserve">
     <value>Got it!</value>
   </data>
+  <data name="GotoLinkAndEnterDeviceCode" xml:space="preserve">
+    <value>Go to {Link} and enter the code below to sign-in</value>
+  </data>
   <data name="Home" xml:space="preserve">
     <value>Home</value>
   </data>
@@ -373,6 +376,9 @@
   <data name="SettingsPage_txtSettings.Text" xml:space="preserve">
     <value>Settings</value>
   </data>
+  <data name="SignInWithMS" xml:space="preserve">
+    <value>Sign-in with Microsoft</value>
+  </data>
   <data name="Store" xml:space="preserve">
     <value>Store</value>
   </data>
@@ -387,6 +393,9 @@
   </data>
   <data name="ThatsIt" xml:space="preserve">
     <value>That's it! Go to settings for more options</value>
+  </data>
+  <data name="TimeLeft" xml:space="preserve">
+    <value>{Time} left</value>
   </data>
   <data name="TypeCustom" xml:space="preserve">
     <value>Local</value>

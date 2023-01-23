@@ -63,7 +63,7 @@ namespace Emerald.WinUI.Helpers
         {
             ContentDialog dialog = new()
             {
-                XamlRoot = MainWindow.MainFrame.XamlRoot,
+                XamlRoot = App.MainWindow.Content.XamlRoot,
                 Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
                 Title = title,
                 CloseButtonText = closebtnText,
