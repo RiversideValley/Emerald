@@ -67,10 +67,25 @@
                     Label="{helpers:Localize Name=Add}">
                     <AppBarButton.Flyout>
                         <MenuFlyout Placement="Bottom">
-                            <MenuFlyoutItem
-                                Click="mitMicrosoftAdd_Click"
+                            <MenuFlyoutSubItem
                                 Icon="{helpers:FontIcon Glyph=}"
-                                Text="{helpers:Localize Name=MicrosoftAccount}" />
+                                Text="{helpers:Localize Name=MicrosoftAccount}">
+                                <MenuFlyoutItem
+                                    Tag="Embeded"
+                                    Click="mitMicrosoftAdd_Click"
+                                    Icon="{helpers:FontIcon Glyph=&#xE78B;}"
+                                    Text="{helpers:Localize CustomName=EmbededView}"/>
+                                <MenuFlyoutItem
+                                    Tag="Browser"
+                                    Click="mitMicrosoftAdd_Click"
+                                    Icon="{helpers:FontIcon Glyph=&#xE12B;}"
+                                    Text="{helpers:Localize CustomName=UsingBrowser}"/>
+                                <MenuFlyoutItem
+                                    Tag="DeviceCode"
+                                    Click="mitMicrosoftAdd_Click"
+                                    Icon="{helpers:FontIcon Glyph=&#xE943;}"
+                                    Text="{helpers:Localize CustomName=DeviceCode}"/>
+                            </MenuFlyoutSubItem>
                             <MenuFlyoutItem
                                 Click="mitOfflineAdd_Click"
                                 Icon="{helpers:FontIcon Glyph=}"

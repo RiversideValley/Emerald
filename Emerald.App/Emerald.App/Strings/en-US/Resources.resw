@@ -165,6 +165,9 @@
   <data name="CreateOldSettingsBackup" xml:space="preserve">
     <value>Create a backup of the old settings</value>
   </data>
+  <data name="DeviceCode" xml:space="preserve">
+    <value>Using DeviceCode API</value>
+  </data>
   <data name="Discord" xml:space="preserve">
     <value>Discord</value>
   </data>
@@ -176,6 +179,9 @@
   </data>
   <data name="Duplicate" xml:space="preserve">
     <value>Duplicate</value>
+  </data>
+  <data name="EmbededView" xml:space="preserve">
+    <value>Using an embeded webview</value>
   </data>
   <data name="Empty" xml:space="preserve">
     <value>Empty</value>
@@ -417,6 +423,9 @@
   </data>
   <data name="Username" xml:space="preserve">
     <value>Username</value>
+  </data>
+  <data name="UsingBrowser" xml:space="preserve">
+    <value>Using the default browser</value>
   </data>
   <data name="UUID" xml:space="preserve">
     <value>UUID</value>

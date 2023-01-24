@@ -227,7 +227,13 @@ namespace Emerald.WinUI.Views.Home
             var taskID = Core.Tasks.TasksHelper.AddTask(Localized.LoginWithMicrosoft);
             var cId = await FileIO.ReadTextAsync(await StorageFile.GetFileFromPathAsync($"{Windows.ApplicationModel.Package.Current.InstalledPath}\\MsalClientID.txt"));
             var msl = new MSLoginHelper();
-            await msl.Initialize(cId);
+            await msl.Initialize(cId, (sender as MenuFlyoutItem).Tag.ToString() 
+                switch
+                {
+                    "DeviceCode" => MSLoginHelper.OAuthMode.DeviceCode,
+                    "Browser" => MSLoginHelper.OAuthMode.FromBrowser,
+                    _ => MSLoginHelper.OAuthMode.EmbededDialog
+                });
             try
             {
                 var r = await msl.Login();
