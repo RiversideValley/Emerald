@@ -120,7 +120,7 @@
             Padding="12,0"
             animations:ItemsReorderAnimation.Duration="00:00:00.4000000"
             DesiredWidth="400"
-            ItemsSource="{x:Bind Main:App.Launcher.News.Entries, Mode=OneWay}"
+            ItemsSource="{x:Bind Main:App.Current.Launcher.News.Entries, Mode=OneWay}"
             SelectionMode="None"
             StretchContentForSingleRow="True">
 

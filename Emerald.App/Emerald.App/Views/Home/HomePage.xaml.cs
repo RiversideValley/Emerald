@@ -78,23 +78,23 @@ namespace Emerald.WinUI.Views.Home
         {
             Loaded -= InitializeWhenLoad;
 
-            App.Launcher.InitializeLauncher(new MinecraftPath(SS.Settings.Minecraft.Path));
+            App.Current.Launcher.InitializeLauncher(new MinecraftPath(SS.Settings.Minecraft.Path));
 
             SS.Settings.Minecraft.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == "Path")
                 {
-                    App.Launcher.InitializeLauncher(new MinecraftPath(SS.Settings.Minecraft.Path));
+                    App.Current.Launcher.InitializeLauncher(new MinecraftPath(SS.Settings.Minecraft.Path));
                     VersionButton.Content = new MCVersionsCreator().GetNotSelectedVersion();
-                    _ = App.Launcher.RefreshVersions();
+                    _ = App.Current.Launcher.RefreshVersions();
                 }
             };
 
-            App.Launcher.VersionsRefreshed += Launcher_VersionsRefreshed;
+            App.Current.Launcher.VersionsRefreshed += Launcher_VersionsRefreshed;
 
             VersionButton.Content = new MCVersionsCreator().GetNotSelectedVersion();
 
-            _ = App.Launcher.RefreshVersions();
+            _ = App.Current.Launcher.RefreshVersions();
 
             AccountsPage = new();
 
@@ -168,18 +168,18 @@ namespace Emerald.WinUI.Views.Home
             }
             else
             {
-                if (!App.Launcher.UseOfflineLoader)
+                if (!App.Current.Launcher.UseOfflineLoader)
                 {
                     var r = await MessageBox.Show(Localized.Error.Localize(), Localized.RefreshVerFailed.Localize(), MessageBoxButtons.Custom, Localized.Retry.Localize(), Localized.SwitchOffline.Localize());
                     // MessageBox.Show(Helpers.Settings.SettingsSystem.Serialize());
                     if (r == MessageBoxResults.CustomResult1)
                     {
-                        _ = App.Launcher.RefreshVersions();
+                        _ = App.Current.Launcher.RefreshVersions();
                     }
                     else
                     {
-                        App.Launcher.SwitchToOffilineMode();
-                        _ = App.Launcher.RefreshVersions();
+                        App.Current.Launcher.SwitchToOffilineMode();
+                        _ = App.Current.Launcher.RefreshVersions();
                     }
                 }
                 else
@@ -207,8 +207,8 @@ namespace Emerald.WinUI.Views.Home
 
         private void UpdateVerTreeSource()
         {
-            btnVerSort.IsEnabled = !App.Launcher.UseOfflineLoader;
-            txtVerOfflineMode.Visibility = App.Launcher.UseOfflineLoader ? Visibility.Visible : Visibility.Collapsed;
+            btnVerSort.IsEnabled = !App.Current.Launcher.UseOfflineLoader;
+            txtVerOfflineMode.Visibility = App.Current.Launcher.UseOfflineLoader ? Visibility.Visible : Visibility.Collapsed;
             treeVer.ItemsSource = null;
             treeVer.ItemsSource = new MCVersionsCreator().CreateVersions();
             txtEmptyVers.Visibility = !(treeVer.ItemsSource as ObservableCollection<Models.MinecraftVersion>).Any() ? Visibility.Visible : Visibility.Collapsed;
@@ -259,7 +259,7 @@ namespace Emerald.WinUI.Views.Home
         }
 
         private bool UI(bool value)
-            => App.Launcher.UIState = value;
+            => App.Current.Launcher.UIState = value;
 
         private async Task Launch()
         {
@@ -268,13 +268,13 @@ namespace Emerald.WinUI.Views.Home
             var ver = verItm.GetLaunchVersion();
             if (verItm.Version.StartsWith("fabricMC"))
             {
-                await App.Launcher.InitializeFabric(verItm.DisplayVersion.Replace(" Fabric", ""), ver);
+                await App.Current.Launcher.InitializeFabric(verItm.DisplayVersion.Replace(" Fabric", ""), ver);
             }
             else if (verItm.MISC != null)
             {
                 if (verItm.MISC is OptifineDownloadVersionModel model)
                 {
-                    var r = await App.Launcher.ConfigureOptifine(model);
+                    var r = await App.Current.Launcher.ConfigureOptifine(model);
                     if (r)
                         ver = model.ToFullVersion();
                     else
@@ -283,7 +283,7 @@ namespace Emerald.WinUI.Views.Home
             }
             if (DirectResoucres.MinRAM == 0) { _ = await MessageBox.Show(Localized.Error.Localize(), Localized.WrongRAM.Localize(), MessageBoxButtons.Ok); return; }
             if (SS.Settings.Minecraft.RAM == 0) { _ = await MessageBox.Show(Localized.Error.Localize(), Localized.WrongRAM.Localize(), MessageBoxButtons.Ok); return; }
-            App.Launcher.Launcher.FileDownloader = new AsyncParallelDownloader();
+            App.Current.Launcher.Launcher.FileDownloader = new AsyncParallelDownloader();
             var l = new MLaunchOption
             {
                 MinimumRamMb = DirectResoucres.MinRAM,
@@ -298,7 +298,7 @@ namespace Emerald.WinUI.Views.Home
             }
             l.FullScreen = SS.Settings.Minecraft.JVM.FullScreen;
             l.JVMArguments = SS.Settings.Minecraft.JVM.Arguments;
-            var process = await App.Launcher.CreateProcessAsync(ver, l);
+            var process = await App.Current.Launcher.CreateProcessAsync(ver, l);
             if (process != null)
             {
                 StartProcess(process);
@@ -360,12 +360,12 @@ namespace Emerald.WinUI.Views.Home
                 GameProcess.EnableRaisingEvents = true;
                 GameProcess.StartInfo.RedirectStandardOutput = true;
                 GameProcess.StartInfo.RedirectStandardError = true;
-                GameProcess.OutputDataReceived += (s, e) => App.MainWindow.DispatcherQueue.TryEnqueue(() => Logs += "\n" + e.Data);
-                GameProcess.ErrorDataReceived += (s, e) => App.MainWindow.DispatcherQueue.TryEnqueue(() => Logs += "\n" + e.Data);
+                GameProcess.OutputDataReceived += (s, e) => App.Current.MainWindow.DispatcherQueue.TryEnqueue(() => Logs += "\n" + e.Data);
+                GameProcess.ErrorDataReceived += (s, e) => App.Current.MainWindow.DispatcherQueue.TryEnqueue(() => Logs += "\n" + e.Data);
             }
             var t = new Thread(async () => 
             {
-                App.MainWindow.DispatcherQueue.TryEnqueue(() => App.Launcher.GameRuns = true);
+                App.Current.MainWindow.DispatcherQueue.TryEnqueue(() => App.Current.Launcher.GameRuns = true);
                 GameProcess.Start();
                 if (SS.Settings.Minecraft.ReadLogs())
                 {
@@ -373,7 +373,7 @@ namespace Emerald.WinUI.Views.Home
                     GameProcess.BeginOutputReadLine();
                 }
                 await GameProcess.WaitForExitAsync();
-                App.MainWindow.DispatcherQueue.TryEnqueue(() => App.Launcher.GameRuns = false);
+                App.Current.MainWindow.DispatcherQueue.TryEnqueue(() => App.Current.Launcher.GameRuns = false);
             });
             t.Start();
         }

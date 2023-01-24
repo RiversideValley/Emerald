@@ -51,7 +51,7 @@
                     Description="{helpers:Localize CustomName=RAMDescription,
                                                    RESW=Settings}"
                     Icon="&#xE964;"
-                    IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
+                    IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">
                     <uc:Expander.HeaderControls>
                         <StackPanel Orientation="Horizontal" Spacing="5">
                             <TextBlock x:Name="txtRam" VerticalAlignment="Center">
@@ -97,7 +97,7 @@
                     Description="{helpers:Localize CustomName=DownloadSettingsDescription,
                                                    RESW=Settings}"
                     Icon="&#xE896;"
-                    IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
+                    IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">
                     <StackPanel Spacing="5">
                         <uc:ExpanderItem
                             Title="{helpers:Localize CustomName=AssetsCheck,
@@ -123,7 +123,7 @@
                                                    RESW=Settings}"
                     ExpanderStyle="Static"
                     Icon="&#xe83d;"
-                    IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
+                    IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">
                     <ToggleSwitch
                         IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.IsAdmin, Mode=TwoWay}"
                         OffContent="{helpers:Localize Name=No}"
@@ -136,7 +136,7 @@
                     Description="{helpers:Localize CustomName=JVMArgsDescription,
                                                    RESW=Settings}"
                     Icon="&#xec7a;"
-                    IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
+                    IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">
                     <uc:ArgumentsListView />
                 </uc:Expander>
 
@@ -147,7 +147,7 @@
                                                    RESW=Settings}"
                     ExpanderStyle="Static"
                     Icon="&#xE756;"
-                    IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
+                    IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">
                     <ToggleSwitch
                         IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.JVM.GameLogs, Mode=TwoWay}"
                         OffContent="{helpers:Localize Name=No}"

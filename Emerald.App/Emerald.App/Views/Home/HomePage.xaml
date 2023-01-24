@@ -131,7 +131,7 @@
                             <AutoSuggestBox
                                 x:Name="txtbxFindVer"
                                 VerticalAlignment="Center"
-                                IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}"
+                                IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}"
                                 PlaceholderText="Search for a version"
                                 QueryIcon="Find"
                                 TextChanged="txtbxFindVer_TextChanged" />
@@ -141,7 +141,7 @@
                                 Grid.Column="1"
                                 Height="32"
                                 VerticalAlignment="Center"
-                                IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}">
+                                IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">
                                 <FontIcon FontSize="14" Glyph="&#xE71C;" />
                                 <DropDownButton.Flyout>
                                     <MenuFlyout Placement="BottomEdgeAlignedLeft">
@@ -186,7 +186,7 @@
                                 Margin="0,4"
                                 CanDragItems="False"
                                 CanReorderItems="False"
-                                IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}"
+                                IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}"
                                 ItemInvoked="treeVer_ItemInvoked"
                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                 ScrollViewer.HorizontalScrollMode="Disabled"
@@ -362,7 +362,7 @@
                         VerticalAlignment="Stretch"
                         Click="VersionButton_Click"
                         ContentTemplate="{StaticResource MCVersionTemplate}"
-                        IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}" />
+                        IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}" />
 
                     <Button
                         x:Name="LaunchButton"
@@ -370,7 +370,7 @@
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
                         Click="LaunchButton_Click"
-                        IsEnabled="{x:Bind Main:App.Launcher.UIState, Mode=OneWay}"
+                        IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}"
                         Style="{ThemeResource AccentButtonStyle}">
                         <TextBlock
                             HorizontalAlignment="Center"

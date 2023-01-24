@@ -30,7 +30,7 @@ namespace Emerald.WinUI.Views.Settings
         private async void btnChangeMPath_Click(object sender, RoutedEventArgs e)
         {
             var fop = new FolderPicker();
-            WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow));
+            WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
             var f = await fop.PickSingleFolderAsync();
             if(f != null)
             {

@@ -55,7 +55,7 @@ namespace Emerald.WinUI.Models
             Severity = severity;
             UniqueThings = uniqueThings;
             CustomControls = customCOntrols;
-            (App.MainWindow.Content as FrameworkElement).ActualThemeChanged += (_, _) => this.InvokePropertyChanged();
+            (App.Current.MainWindow.Content as FrameworkElement).ActualThemeChanged += (_, _) => this.InvokePropertyChanged();
         }
     }
 
@@ -113,7 +113,7 @@ namespace Emerald.WinUI.Models
             UniqueThings = uniquethings;
             Severity = severity;
             CustomControls = customCOntrols;
-            (App.MainWindow.Content as FrameworkElement).ActualThemeChanged += (_, _) => this.InvokePropertyChanged();
+            (App.Current.MainWindow.Content as FrameworkElement).ActualThemeChanged += (_, _) => this.InvokePropertyChanged();
         }
     }
 }

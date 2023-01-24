@@ -46,7 +46,7 @@ namespace Emerald.WinUI.Views
 
         private async void Save_Click(object sender, RoutedEventArgs e)
         {
-            var p = App.MainWindow.CreateSaveFilePicker();
+            var p = App.Current.MainWindow.CreateSaveFilePicker();
             p.FileTypeChoices.Add("Logs File", new List<string> { ".log" });
             p.FileTypeChoices.Add("Text File", new List<string> { ".txt" });
             var f = await p.PickSaveFileAsync();

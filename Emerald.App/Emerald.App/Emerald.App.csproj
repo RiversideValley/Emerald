@@ -11,7 +11,6 @@
     <UseWinUI>true</UseWinUI>
     <Configurations>Debug;Release</Configurations>
     <Nullable>enable</Nullable>
-    <DefineConstants>DISABLE_XAML_GENERATED_MAIN</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

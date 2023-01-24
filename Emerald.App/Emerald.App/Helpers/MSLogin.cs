@@ -43,7 +43,7 @@ namespace Emerald.WinUI.Helpers
         }
         private void InitializeDeviceCodeDialog(DeviceCodeResult result)
         {
-            App.MainWindow.DispatcherQueue.TryEnqueue(() =>
+            App.Current.MainWindow.DispatcherQueue.TryEnqueue(() =>
             {
                 var m = new StackPanel() { VerticalAlignment = VerticalAlignment.Stretch };
                 var lt = "GotoLinkAndEnterDeviceCode".Localize();

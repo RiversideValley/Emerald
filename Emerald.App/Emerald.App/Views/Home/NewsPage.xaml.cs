@@ -23,15 +23,15 @@ namespace Emerald.WinUI.Views.Home
         public NewsPage()
         {
             this.InitializeComponent();
-            _ = App.Launcher.News.LoadEntries(SS.Settings.App.NewsFilter.GetResult());
+            _ = App.Current.Launcher.News.LoadEntries(SS.Settings.App.NewsFilter.GetResult());
         }
         private void BackButton_Click(object sender, RoutedEventArgs e) =>
             BackRequested?.Invoke(this, new EventArgs());
 
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)=>
-            App.Launcher.News.Search(sender.Text, SS.Settings.App.NewsFilter.GetResult());
+            App.Current.Launcher.News.Search(sender.Text, SS.Settings.App.NewsFilter.GetResult());
 
         private void FilterButton_Click(object sender, RoutedEventArgs e) =>
-            App.Launcher.News.Search(SearchBox.Text, SS.Settings.App.NewsFilter.GetResult());
+            App.Current.Launcher.News.Search(SearchBox.Text, SS.Settings.App.NewsFilter.GetResult());
     }
 }
