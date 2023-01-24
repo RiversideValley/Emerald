@@ -1,20 +1,19 @@
-﻿using System.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System.ComponentModel;
 
 namespace Emerald.WinUI.Models
 {
-    public class Model : INotifyPropertyChanged
+    [ObservableObject]
+    public partial class Model
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-
         internal void Set<T>(ref T obj, T value, string name = null)
         {
-            obj = value;
-            InvokePropertyChanged(name);
+            SetProperty(ref obj, value, name);
         }
 
         public void InvokePropertyChanged(string name = null)
         {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            OnPropertyChanged(new PropertyChangedEventArgs(name));
         }
     }
 }

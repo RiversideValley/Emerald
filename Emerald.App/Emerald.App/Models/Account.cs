@@ -1,13 +1,16 @@
-﻿using Emerald.Core;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Emerald.Core;
 using Emerald.WinUI.Enums;
 using Emerald.WinUI.Helpers;
+using Newtonsoft.Json;
 
 namespace Emerald.WinUI.Models
 {
-    public class Account : Model
+    public partial class Account : Model
     {
-        private string userName;
-        public string UserName { get => userName; set => Set(ref userName, value); }
+
+        [ObservableProperty]
+        private string _UserName;
 
         public string AccessToken { get; set; }
 
@@ -28,14 +31,14 @@ namespace Emerald.WinUI.Models
 
         public AccountType Type { get => UUID == null ? AccountType.Offline : AccountType.Microsoft; }
 
+        [ObservableProperty]
         private bool _CheckBoxLoaded;
-        public bool CheckBoxLoaded { get => _CheckBoxLoaded; set => Set(ref _CheckBoxLoaded, value); }
 
         public string TypeString
             => IsFake ? Localized.MicrosoftOrOffline.Localize() : (IsOffline ? Localized.OfflineAccount.Localize() : Localized.MicrosoftAccount.Localize());
-
+        
+        [ObservableProperty]
         private bool _IsChecked;
-        public bool IsChecked { get => _IsChecked; set => Set(ref _IsChecked, value); }
 
         public bool IsOffline => UUID == null;
 

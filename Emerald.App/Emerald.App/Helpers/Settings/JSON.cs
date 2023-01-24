@@ -4,6 +4,8 @@ using Microsoft.UI.Xaml.Shapes;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using CommunityToolkit.Mvvm;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Emerald.WinUI.Helpers.Settings.JSON
 {
@@ -46,8 +48,8 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
                 MCVerionsConfiguration = new(),
                 JVM = new(),
                 Downloader = new()
-                { 
-                    AssetsCheck= true,
+                {
+                    AssetsCheck = true,
                     HashCheck = true
                 }
             }
@@ -55,46 +57,40 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
 
         public string APIVersion { get; set; } = "1.2";
 
-        public Minecraft Minecraft { get; set; }
+        public Minecraft Minecraft { get; set; } = new();
 
-        public App App { get; set; }
+        public App App { get; set; } =new();
     }
 
-    public class Minecraft : JSON
+    public partial class Minecraft : JSON
     {
         public Minecraft()
         {
             JVM.PropertyChanged += (_, _)
                 => InvokePropertyChanged();
+            this.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName != null)
+                    InvokePropertyChanged();
+            };
         }
 
         [JsonIgnore]
         public double RAMinGB => Math.Round(RAM / Math.Pow(1024, 1), 1);
 
+
+        [ObservableProperty]
         private string _Path;
-        public string Path
-        {
-            get => _Path;
-            set => Set(ref _Path, value,nameof(Path));
-        }
 
+        [ObservableProperty]
         private int _RAM;
-        public int RAM
-        {
-            get => _RAM;
-            set => Set(ref _RAM, value);
-        }
 
+        [ObservableProperty]
         private bool _IsAdmin;
-        public bool IsAdmin
-        {
-            get => _IsAdmin;
-            set => Set(ref _IsAdmin, value);
-        }
 
         public Account[] Accounts { get; set; }
 
-        public Downloader Downloader { get; set; }
+        public Downloader Downloader { get; set; } = new();
 
         public MCVerionsConfiguration MCVerionsConfiguration { get; set; }
 
@@ -113,25 +109,33 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public bool LastAccessed { get; set; }
     }
 
-    public class Downloader : JSON
+    public partial class Downloader : JSON
     {
-        public bool HashCheck { get; set; }
-        public bool AssetsCheck { get; set; }
+
+        [ObservableProperty]
+        public bool _HashCheck;
+
+        [ObservableProperty]
+        public bool _AssetsCheck;
     }
 
-    public class JVM : JSON
+    public partial class JVM : JSON
     {
-        public string[] Arguments { get; set; }
-        public int ScreenWidth { get; set; }
-        public int ScreenHeight { get; set; }
-        public bool FullScreen { get; set; }
 
+        [ObservableProperty]
+        public string[] _Arguments;
+
+        [ObservableProperty]
+        public int _ScreenWidth;
+
+        [ObservableProperty]
+        public int _ScreenHeight;
+
+        [ObservableProperty]
+        public bool _FullScreen;
+
+        [ObservableProperty]
         private bool _GameLogs;
-        public bool GameLogs
-        {
-            get => _GameLogs;
-            set => Set(ref _GameLogs, value, nameof(GameLogs));
-        }
     }
 
     public class App : JSON
@@ -145,32 +149,19 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public bool WindowsHello { get; set; }
     }
 
-    public class NewsFilter : JSON
+    public partial class NewsFilter : JSON
     {
+        [ObservableProperty]
         private bool _Java = true;
-        public bool Java
-        {
-            get => _Java;
-            set => Set(ref _Java, value);
-        }
+
+        [ObservableProperty]
         private bool _Bedrock = true;
-        public bool Bedrock
-        {
-            get => _Bedrock;
-            set => Set(ref _Bedrock, value);
-        }
+
+        [ObservableProperty]
         private bool _Dungeons = true;
-        public bool Dungeons
-        {
-            get => _Dungeons;
-            set => Set(ref _Dungeons, value);
-        }
+
+        [ObservableProperty]
         private bool _Legends = true;
-        public bool Legends
-        {
-            get => _Legends;
-            set => Set(ref _Legends, value);
-        }
 
         [JsonIgnore]
         public bool All
@@ -186,16 +177,16 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         {
             var r = new List<string>();
 
-            if (_Java)
+            if (Java)
                 r.Add("Minecraft: Java Edition");
 
-            if (_Bedrock)
+            if (Bedrock)
                 r.Add("Minecraft for Windows");
 
-            if (_Dungeons)
+            if (Dungeons)
                 r.Add("Minecraft Dungeons");
 
-            if (_Legends)
+            if (Legends)
                 r.Add("Minecraft Legends");
 
             return r.ToArray();
@@ -204,63 +195,42 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
     public class Discord : JSON
     {
     }
-    public class MCVerionsConfiguration : JSON
+    public partial class MCVerionsConfiguration : JSON
     {
+        [ObservableProperty]
         private bool _Release = true;
-        public bool Release
-        {
-            get => _Release;
-            set => Set(ref _Release, value);
-        }
 
+        [ObservableProperty]
         private bool _Custom = false;
-        public bool Custom
-        {
-            get => _Custom;
-            set => Set(ref _Custom, value);
-        }
 
+        [ObservableProperty]
         private bool _OldBeta = false;
-        public bool OldBeta
-        {
-            get => _OldBeta;
-            set => Set(ref _OldBeta, value);
-        }
 
+        [ObservableProperty]
         private bool _OldAlpha = false;
-        public bool OldAlpha
-        {
-            get => _OldAlpha;
-            set => Set(ref _OldAlpha, value);
-        }
 
+        [ObservableProperty]
         private bool _Snapshot = false;
-        public bool Snapshot
-        {
-            get => _Snapshot;
-            set => Set(ref _Snapshot, value);
-        }
     }
 
-    public class Appearance : JSON
+    public partial class Appearance : JSON
     {
+        [ObservableProperty]
         private int _NavIconType = 1;
-        public int NavIconType { get => _NavIconType; set => Set(ref _NavIconType, value); }
 
-        public bool ShowFontIcons
-            => NavIconType == 0;
+        public bool ShowFontIcons => NavIconType == 0;
 
+        [ObservableProperty]
         private int _Theme;
-        public int Theme { get => _Theme; set => Set(ref _Theme, value, nameof(Theme)); }
 
+        [ObservableProperty]
         private int _MicaTintColor;
-        public int MicaTintColor { get => _MicaTintColor; set => Set(ref _MicaTintColor, value, nameof(MicaTintColor)); }
 
+        [ObservableProperty]
         private int _MicaType = 0;
-        public int MicaType { get => _MicaType; set => Set(ref _MicaType, value, nameof(_MicaType)); }
+
+        [ObservableProperty]
 
         private (int A, int R, int G, int B)? _CustomMicaTintColor;
-        public (int A, int R, int G, int B)? CustomMicaTintColor { get => _CustomMicaTintColor; set => Set(ref _CustomMicaTintColor, value, nameof(CustomMicaTintColor)); }
-
     }
 }

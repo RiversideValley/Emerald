@@ -1,18 +1,20 @@
-﻿using Microsoft.UI.Xaml;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.UI.Xaml;
 
 namespace Emerald.WinUI.Models
 {
-    public class NavViewHeader : Model
+    public partial class NavViewHeader : Model
     {
-        private string _HeaderText;
-        public string HeaderText { get => _HeaderText; set => Set(ref _HeaderText, value); }
 
+        [ObservableProperty]
+        private string _HeaderText;
+
+        [ObservableProperty]
         private string _CustomButtonText;
-        public string CustomButtonText { get => _CustomButtonText; set => Set(ref _CustomButtonText, value); }
 
         public Visibility CustomButtonVisibility { get => CustomButtonText == null ? Visibility.Collapsed : Visibility.Visible; }
 
+        [ObservableProperty]
         private Thickness _HeaderMargin;
-        public Thickness HeaderMargin { get => _HeaderMargin; set => Set(ref _HeaderMargin, value); }
     }
 }

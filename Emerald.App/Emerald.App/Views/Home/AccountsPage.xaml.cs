@@ -10,7 +10,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using Windows.Storage;
-using Account = Emerald.WinUI.Models.Account;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 
 namespace Emerald.WinUI.Views.Home

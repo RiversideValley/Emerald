@@ -3,10 +3,10 @@ using Microsoft.UI.Xaml;
 using System.Collections.ObjectModel;
 using System.Linq;
 using ProjBobcat.Class.Model.Optifine;
-
+using CommunityToolkit.Mvvm.ComponentModel;
 namespace Emerald.WinUI.Models
 {
-    public class MinecraftVersion : Model
+    public partial class MinecraftVersion : ObservableObject
     {
         public string BlockImageLocation
         {
@@ -42,23 +42,24 @@ namespace Emerald.WinUI.Models
 
         public Visibility DescriptionVisibility
         {
-            get => SubVersions.Count > 0 || _Version == null ? Visibility.Collapsed : Visibility.Visible;
+            get => SubVersions.Count > 0 || Version == null ? Visibility.Collapsed : Visibility.Visible;
         }
 
-        private CmlLib.Core.Version.MVersionType? _Type;
-        public CmlLib.Core.Version.MVersionType? Type { get => _Type; set => Set(ref _Type, value); }
+
+        [ObservableProperty]
+        private CmlLib.Core.Version.MVersionType? type;
 
         public string TypeString
             => ("Type" + Type == null ? CmlLib.Core.Version.MVersionType.OldAlpha.ToString() : Type.ToString()).Localize();
 
-        private string _Version;
-        public string Version { get => _Version; set => Set(ref _Version, value); }
+        [ObservableProperty]
+        private string version;
 
-        private string _DisplayVersion;
-        public string DisplayVersion { get => _DisplayVersion; set => Set(ref _DisplayVersion, value); }
+        [ObservableProperty]
+        private string displayVersion;
 
-        private ObservableCollection<MinecraftVersion> _SubVersions;
-        public ObservableCollection<MinecraftVersion> SubVersions { get => _SubVersions ?? new(); set => Set(ref _SubVersions, value); }
+        [ObservableProperty]
+        private ObservableCollection<MinecraftVersion> subVersions = new();
 
         public object MISC { get; set; }
 
