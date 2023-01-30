@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Emerald.Core.Store.Enums;
+using ColorCode.Compilation.Languages;
 
 namespace Emerald.WinUI.Helpers.Settings.JSON
 {
@@ -140,15 +142,158 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
 
     public class App : JSON
     {
-        public Appearance Appearance { get; set; }
+        public Appearance Appearance { get; set; } = new();
         public bool AutoLogin { get; set; }
-        public Discord Discord { get; set; }
+        public Discord Discord { get; set; } = new();
         public NewsFilter NewsFilter { get; set; } = new();
+        public Store Store { get; set; } = new();
         public bool AutoClose { get; set; }
         public bool HideOnLaunch { get; set; }
         public bool WindowsHello { get; set; }
     }
+    public partial class StoreFilter : JSON
+    {
+        [ObservableProperty]
+        private bool _Fabric;
 
+        [ObservableProperty]
+        private bool _Forge;
+
+        [ObservableProperty]
+        private bool _Adventure;
+
+        [ObservableProperty]
+        private bool _Cursed;
+
+        [ObservableProperty]
+        private bool _Decoration;
+
+        [ObservableProperty]
+        private bool _Equipment;
+
+        [ObservableProperty]
+        private bool _Food;
+
+        [ObservableProperty]
+        private bool _Library;
+
+        [ObservableProperty]
+        private bool _Magic;
+
+        [ObservableProperty]
+        private bool _Misc;
+
+        [ObservableProperty]
+        private bool _Optimization;
+
+        [ObservableProperty]
+        private bool _Storage;
+
+        [ObservableProperty]
+        private bool _Technology;
+
+        [ObservableProperty]
+        private bool _Utility;
+
+        [ObservableProperty]
+        private bool _Worldgen;
+
+        [JsonIgnore]
+        public bool All
+        {
+            get => GetResult().Length == 0;
+            set
+            {
+                _Fabric = _Forge = _Adventure = _Cursed = _Decoration = _Equipment = _Food = _Library = _Magic = _Misc = _Optimization = _Storage = _Technology = _Utility = _Worldgen = false;
+                InvokePropertyChanged(null);
+            }
+        }
+        public SearchCategories[] GetResult()
+        {
+            if (Fabric & Forge & Adventure & Cursed & Decoration & Equipment & Food & Library & Magic & Misc & Optimization & Storage & Technology & Utility & Worldgen)
+                return Array.Empty<SearchCategories>();
+            
+            var r = new List<SearchCategories>();
+
+            if (Fabric)
+                r.Add(SearchCategories.Fabric);
+
+            if (Forge)
+                r.Add(SearchCategories.Forge);
+
+            if (Adventure)
+                r.Add(SearchCategories.Adventure);
+
+            if (Cursed)
+                r.Add(SearchCategories.Cursed);
+
+            if (Decoration)
+                r.Add(SearchCategories.Decoration);
+
+            if (Equipment)
+                r.Add(SearchCategories.Equipment);
+
+            if (Food)
+                r.Add(SearchCategories.Food);
+
+            if (Library)
+                r.Add(SearchCategories.Library);
+
+            if (Magic)
+                r.Add(SearchCategories.Magic);
+
+            if (Misc)
+                r.Add(SearchCategories.Misc);
+
+            if (Optimization)
+                r.Add(SearchCategories.Optimization);
+
+            if (Storage)
+                r.Add(SearchCategories.Storage);
+
+            if (Technology)
+                r.Add(SearchCategories.Technology);
+
+            if (Utility)
+                r.Add(SearchCategories.Utility);
+
+            if (Worldgen)
+                r.Add(SearchCategories.Worldgen);
+
+            return r.ToArray();
+        }
+    }
+    public class Store : JSON
+    {
+        public StoreFilter Filter { get; set; } = new();
+        public StoreSortOptions SortOptions { get; set; } = new();
+    }
+    public partial class StoreSortOptions : JSON
+    {
+
+        [ObservableProperty]
+        private bool _Relevance = true;
+
+        [ObservableProperty]
+        private bool _Downloads;
+
+        [ObservableProperty]
+        private bool _Follows;
+
+        [ObservableProperty]
+        private bool _Updated;
+
+        [ObservableProperty]
+        private bool _Newest;
+
+        public SearchSortOptions GetResult()
+        {
+            if (!(Relevance || Downloads || Follows || Updated || Newest))
+                return SearchSortOptions.Relevance;
+            else
+                return Relevance ? SearchSortOptions.Relevance : (Downloads ? SearchSortOptions.Downloads : (Follows ? SearchSortOptions.Follows : (Updated ? SearchSortOptions.Updated : SearchSortOptions.Newest)));
+        }
+    }
     public partial class NewsFilter : JSON
     {
         [ObservableProperty]

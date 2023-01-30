@@ -14,6 +14,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Views\Store\InstallerPage.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="MsalClientID.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -24,7 +28,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.1.0" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Animations" Version="7.1.2" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.221209.1" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.230118.102" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.25281-preview" />
     <PackageReference Include="PInvoke.User32" Version="0.7.124" />
     <PackageReference Include="ProjBobcat" Version="1.16.0" />
@@ -34,6 +38,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Emerald.Core\Emerald.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\Store\InstallerPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
 </Project>

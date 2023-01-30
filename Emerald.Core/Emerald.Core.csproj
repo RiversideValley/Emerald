@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="CmlLib.Core.Auth.Microsoft" Version="2.2.0" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.221209.1" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.230118.102" />
     <PackageReference Include="ProjBobcat" Version="1.16.0" />
   </ItemGroup>
 

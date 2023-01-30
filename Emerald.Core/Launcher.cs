@@ -7,6 +7,7 @@ using CmlLib.Utils;
 using Emerald.Core.Args;
 using Emerald.Core.Clients;
 using Emerald.Core.News;
+using Emerald.Core.Store;
 using Emerald.Core.Tasks;
 using ProjBobcat.Class.Model.Optifine;
 using System.ComponentModel;
@@ -97,6 +98,8 @@ namespace Emerald.Core
         public GlacierClient GlacierClient { get; set; }
 
         public Optifine Optifine { get; private set; }
+
+        public Labrinth Labrinth { get; private set; }
 
         public NewsHelper News { get; private set; } = new();
 
@@ -410,6 +413,7 @@ namespace Emerald.Core
             UseOfflineLoader = false;
             Launcher = new CMLauncher(path);
             Optifine = new(path);
+            Labrinth = new(path);
             UI(true);
             TasksHelper.CompleteTask(taskID);
         }

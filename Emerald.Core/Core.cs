@@ -26,7 +26,6 @@ namespace Emerald.Core
             Launcher.UIChangeRequested += UIChangedEvent;
 
             Labrinth = new Labrinth();
-            Labrinth.MainUIChangeRequested += UIChangedEvent;
         }
 
         private static void UIChangedEvent(object sender, UIChangeRequestedEventArgs e)

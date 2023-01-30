@@ -103,7 +103,10 @@ namespace Emerald.WinUI
                 {
                     if (e is TaskAddRequestedEventArgs task)
                     {
-                        TaskView.AddProgressTask(string.Join(" ", (task.Name ?? "").Split(" ").Select(s => s.Localize())), 0, InfoBarSeverity.Informational, true, task.ID);
+                        var id =  TaskView.AddProgressTask(string.Join(" ", (task.Name ?? "").Split(" ").Select(s => s.Localize())), 0, InfoBarSeverity.Informational, true, task.ID);
+                        if (task.Message != null)
+                            TaskView.ChangeDescription(id, task.Message);
+
                         TasksInfoBadge.Value++;
                         UpdateTasksInfoBadge();
                     }
@@ -240,6 +243,7 @@ namespace Emerald.WinUI
                     }
                     else if (h == "Store".Localize())
                     {
+                        NavigateOnce(typeof(Views.Store.StorePage));
                     }
                     else if (h == "Tasks".Localize())
                     {

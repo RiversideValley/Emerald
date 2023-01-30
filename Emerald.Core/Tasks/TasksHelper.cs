@@ -10,18 +10,18 @@
 
         private static int AllTaksCount { get; set; } = 0;
 
-        public static int AddTask(string name)
+        public static int AddTask(string name,string message= null)
         {
             AllTaksCount++;
-            TaskAddRequested(null, new TaskAddRequestedEventArgs(name, AllTaksCount));
+            TaskAddRequested(null, new TaskAddRequestedEventArgs(name, AllTaksCount, message));
 
             return AllTaksCount;
         }
 
-        public static int AddTask(Localized name)
+        public static int AddTask(Localized name,string message = null)
         {
             AllTaksCount++;
-            TaskAddRequested(null, new TaskAddRequestedEventArgs(name.ToString(), AllTaksCount));
+            TaskAddRequested(null, new TaskAddRequestedEventArgs(name.ToString(), AllTaksCount, message));
 
             return AllTaksCount;
         }
@@ -75,10 +75,12 @@
     {
         public int ID { get; private set; }
         public string Name { get; private set; }
-        public TaskAddRequestedEventArgs(string name, int taskID)
+        public string Message { get; private set; }
+        public TaskAddRequestedEventArgs(string name, int taskID, string message)
         {
             ID = taskID;
             Name = name;
+            Message = message;
         }
     }
 
