@@ -17,11 +17,19 @@
 
 ## 🎁 Installation
 
-### Via GitHub
+<!--### 🪟 Microsoft Store
 
-See the [releases page](https://github.com/RiversideValley/Emerald/releases)
+<a title="Microsoft Store" href="https://apps.microsoft.com/store/detail/9PPC02GP33FT">
+  <img src="https://user-images.githubusercontent.com/76810494/189479518-fc0f18a9-b0a4-4a63-8e7b-27a4284d93af.png" alt="Release" />
+</a>-->
 
-### Building from source
+### 😺 GitHub
+
+<a title="GitHub" href='https://github.com/RiversideValley/Emerald/releases/latest'>
+  <img src='https://user-images.githubusercontent.com/74561130/160255105-5e32f911-574f-4cc4-b90b-8769099086e4.png'alt='Get it from GitHub' />
+</a>
+
+### 🔨 Building from source
 ###### ⭐Recommended⭐
 
 This is our preferred method.
