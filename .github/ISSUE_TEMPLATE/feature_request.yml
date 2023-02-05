@@ -1,12 +1,13 @@
-name: ➕ Feature Request
-description: Request a new feature for SDLauncher
+name: ✨ Feature Request
+description: Request a new feature for Emerald
 labels: [feature request]
+title: "✨ "
 body:
   - type: checkboxes
     attributes:
       label: ⏱️ Before you start...
       options:
-        - label: I have checked whether a similar feature request has already been reported.
+        - label: Have you checked whether or not a similar feature request has already been reported?
           required: true
   - type: textarea
     attributes:
