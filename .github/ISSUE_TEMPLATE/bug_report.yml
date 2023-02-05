@@ -1,6 +1,7 @@
 name: 🐛 Bug Report
 description: Create a bug report to help improve Emerald
 labels: [bug]
+title: "🐛 "
 body:
   - type: checkboxes
     attributes:
