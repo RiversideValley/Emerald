@@ -8,7 +8,7 @@ body:
       options:
         - label: Are you on the latest version of Emerald? You might be using an old version.
           required: true
-        - label:  I have checked if a similar issue has not already been reported
+        - label: Have you checked whether or not a similar issue has already been reported?
           required: true
   - type: textarea
     attributes:
