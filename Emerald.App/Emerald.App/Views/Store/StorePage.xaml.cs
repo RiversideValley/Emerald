@@ -53,5 +53,10 @@ namespace Emerald.WinUI.Views.Store
             SettingsSystem.Settings.App.Store.Filter.All = true;
             All.IsChecked = true;
         }
+
+        private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            InstallerPane.OpenPaneLength = InstallerPane.ActualWidth * 30 / 100;
+        }
     }
 }
