@@ -3,12 +3,11 @@ description: Request a new feature for Emerald
 labels: [feature request]
 title: "✨ "
 body:
-  - type: checkboxes
+  - type: markdown
     attributes:
-      label: ⏱️ Before you start...
-      options:
-        - label: Have you checked whether or not a similar feature request has already been reported?
-          required: true
+      value: |
+        ##### ⏱️ Before you start...
+        - [ ] Have you checked whether or not a similar feature request has already been reported?
   - type: textarea
     attributes:
       label: 📄 Description
@@ -21,6 +20,23 @@ body:
       description: Describe more ways this idea could be implemented.
     validations:
       required: false
+  - type: textarea
+    attributes:
+      label: ✅ Tasks
+      description: Give an overview of all the specific things you would like to be changed or implemented.
+      value: |
+        ```[tasklist]
+        ### High Priority
+        - [ ] Something
+        - [ ] Another thing
+        - [ ] https://github.com/link/to/an/issue
+        ```
+        ```[tasklist]
+        ### Nice to have
+        - [ ] Something
+        - [ ] Another thing
+        - [ ] https://github.com/link/to/an/issue
+        ```
   - type: textarea
     attributes:
       label: 📸 Assets
