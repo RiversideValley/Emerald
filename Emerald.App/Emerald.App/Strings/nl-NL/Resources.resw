@@ -118,46 +118,46 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="About" xml:space="preserve">
-    <value>About</value>
+    <value>Informatie</value>
   </data>
   <data name="AccentColor" xml:space="preserve">
-    <value>Accent color</value>
+    <value>Accent kleur</value>
   </data>
   <data name="Add" xml:space="preserve">
     <value>Add</value>
   </data>
   <data name="AdvancedMinecraftSettings" xml:space="preserve">
-    <value>Advanced Settings</value>
+    <value>Geavanceerde opties</value>
   </data>
   <data name="Appearance" xml:space="preserve">
-    <value>Appearance</value>
+    <value>Uiterlijk</value>
   </data>
   <data name="AssetsCheck" xml:space="preserve">
-    <value>Assets check</value>
+    <value>Controle van assets</value>
   </data>
   <data name="BuildType" xml:space="preserve">
-    <value>Build type</value>
+    <value>Bouw soort</value>
   </data>
   <data name="CheckForUpdates" xml:space="preserve">
-    <value>Check for updates</value>
+    <value>Versies checken</value>
   </data>
   <data name="Colorful" xml:space="preserve">
-    <value>Colorful</value>
+    <value>Kleurrijk</value>
   </data>
   <data name="ColorMode" xml:space="preserve">
-    <value>Color Mode</value>
+    <value>Kleuren</value>
   </data>
   <data name="ColorModeDescription" xml:space="preserve">
-    <value>Choose your color</value>
+    <value>Kies een kleur</value>
   </data>
   <data name="Contribute" xml:space="preserve">
-    <value>Contribute</value>
+    <value>Meedoen</value>
   </data>
   <data name="CopyVersion" xml:space="preserve">
-    <value>Copy version</value>
+    <value>Versie kopiëren</value>
   </data>
   <data name="CreateAColor" xml:space="preserve">
-    <value>Create a color</value>
+    <value>Maak een kleur</value>
   </data>
   <data name="CreateBackup" xml:space="preserve">
     <value>Create Backup</value>
