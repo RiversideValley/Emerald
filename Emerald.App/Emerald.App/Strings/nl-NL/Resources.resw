@@ -160,16 +160,16 @@
     <value>Maak een kleur</value>
   </data>
   <data name="CreateBackup" xml:space="preserve">
-    <value>Create Backup</value>
+    <value>Maak een back-up</value>
   </data>
   <data name="Credits" xml:space="preserve">
-    <value>Credits</value>
+    <value>Kredieten</value>
   </data>
   <data name="CreditsDescription" xml:space="preserve">
     <value>Respect...</value>
   </data>
   <data name="CustomColor" xml:space="preserve">
-    <value>Custom color</value>
+    <value>Eigen kleur</value>
   </data>
   <data name="CustomColors" xml:space="preserve">
     <value>Custom colors</value>
