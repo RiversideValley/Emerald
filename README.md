@@ -77,11 +77,10 @@ Ensure you have following components:
 - [Git](https://git-scm.com/)
 - [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) with following individual components:
   - Universal Windows Platform Software Development Kit
-  - .NET 6+
+  - .NET 7
   - Windows App Software Development Kit
   - Windows 11 SDK
 - [Windows 11 or Windows 10](https://www.microsoft.com/en-us/windows) (version 1809+)
-- [.NET Core Desktop Runtime 3.1](https://dotnet.microsoft.com/en-us/download/dotnet/3.1)
 - At least 4gb of RAM
 - [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)
 
