@@ -8,8 +8,8 @@
 
   <Identity
     Name="Andrexial.EmeraldLauncher"
-    Publisher="CN=Depth"
-    Version="0.6.0.0" />
+    Publisher="CN=NoobNotFound"
+    Version="0.6.1.0" />
 
   <Properties>
     <DisplayName>Emerald</DisplayName>

@@ -1,9 +1,13 @@
-﻿namespace Emerald.WinUI.Models
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace Emerald.WinUI.Models
 {
     //Copied from Emerald.UWP
-    public class ArgTemplate
+    [ObservableObject]
+    public partial class ArgTemplate
     {
-        public string Arg { get; set; }
+        [ObservableProperty]
+        private string arg;
 
         public int Count { get; set; }
     }

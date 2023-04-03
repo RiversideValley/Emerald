@@ -16,6 +16,14 @@ namespace Emerald.WinUI.Models
             IsSelected = isSelected;
             Thumbnail = image;
             InfoBadge = infoBadge;
+            this.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(IsSelected))
+                {
+                    InvokePropertyChanged(nameof(ShowFontIcons));
+                    InvokePropertyChanged(nameof(ShowSolidFontIcons));
+                }
+            };
         }
 
 
@@ -26,10 +34,10 @@ namespace Emerald.WinUI.Models
         private string _FontIconGlyph;
 
         [ObservableProperty]
-        private bool _IsSelected;
+        private string _SolidFontIconGlyph;
 
         [ObservableProperty]
-        private bool _ShowFontIcons;
+        private bool _IsSelected;
 
         [ObservableProperty]
         private bool _IsEnabled = true;
@@ -39,5 +47,15 @@ namespace Emerald.WinUI.Models
 
         [ObservableProperty]
         private InfoBadge _InfoBadge;
+
+
+        private bool _ShowFontIcons;
+        public bool ShowFontIcons
+        {
+            get => _ShowFontIcons ? (IsSelected ? false : true) : false;
+            set => Set(ref _ShowFontIcons, value);
+        }
+        public bool ShowSolidFontIcons => _ShowFontIcons ? (IsSelected ? true : false) : false;
+        public bool ShowThumbnail => !_ShowFontIcons;
     }
 }

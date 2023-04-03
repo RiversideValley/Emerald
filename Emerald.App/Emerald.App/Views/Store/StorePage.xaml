@@ -20,7 +20,6 @@
         CornerRadius="{StaticResource ControlCornerRadius}" 
         IsPaneOpen="True"
         x:Name="InstallerPane">
-
         <SplitView.Content>
 
             <Grid>

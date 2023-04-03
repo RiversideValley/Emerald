@@ -93,13 +93,19 @@
                                 x:Name="Image"
                                 Width="28"
                                 Height="28"
-                                x:Load="{x:Bind ShowFontIcons.Equals(x:False), Mode=OneWay}"
+                                x:Load="{x:Bind ShowThumbnail}"
                                 Source="{x:Bind Thumbnail}" />
                             <FontIcon
                                 x:Name="fontIcon"
-                                x:Load="{x:Bind ShowFontIcons, Mode=OneWay}"
+                                x:Load="{x:Bind ShowFontIcons}"
                                 FontSize="22"
                                 Glyph="{x:Bind FontIconGlyph}" />
+                            <FontIcon
+                                x:Name="fontIconSolid"
+                                x:Load="{x:Bind ShowSolidFontIcons}"
+                                FontSize="22"
+                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                Glyph="{x:Bind SolidFontIconGlyph}" />
                             <TextBlock
                                 x:Name="txtNavItemName"
                                 Grid.Row="1"
@@ -117,6 +123,7 @@
             <NavigationView.MenuItems>
                 <models:SquareNavigationViewItem
                     Name="{helpers:Localize CustomName=Home}"
+                    SolidFontIconGlyph="&#xEA8A;"
                     FontIconGlyph="&#xE80F;"
                     IsSelected="True"
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"

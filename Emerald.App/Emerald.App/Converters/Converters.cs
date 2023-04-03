@@ -29,27 +29,16 @@ namespace Emerald.WinUI.Converters
 
     public class BoolToVisibility : IValueConverter
     {
+        public bool Reversed { get; set; }
+
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            return (value is bool b && b) ? Visibility.Visible : Visibility.Collapsed;
+            return (value is bool b) ? (((Reversed || parameter == "reversed") && parameter != "normal") ? (!b ? Visibility.Visible : Visibility.Collapsed) : (b ? Visibility.Visible : Visibility.Collapsed)) : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            return (value is bool b && b) ? Visibility.Visible : Visibility.Collapsed;
-        }
-    }
-
-    public class NotBoolToVisibility : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            return (value is bool b && b) ? Visibility.Collapsed : Visibility.Visible;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            return (value is bool b && b) ? Visibility.Collapsed : Visibility.Visible;
+            throw new InvalidOperationException();
         }
     }
 
@@ -74,7 +63,7 @@ namespace Emerald.WinUI.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            throw new InvalidOperationException("Error lol.");
+            throw new InvalidOperationException();
         }
     }
 
@@ -99,7 +88,7 @@ namespace Emerald.WinUI.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            throw new InvalidOperationException("Error lol.");
+            throw new InvalidOperationException();
         }
     }
 }

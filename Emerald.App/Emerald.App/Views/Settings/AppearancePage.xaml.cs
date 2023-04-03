@@ -96,6 +96,7 @@ namespace Emerald.WinUI.Views.Settings
 
         private void CustomTintColor_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
+            
             var c = SS.Settings.App.Appearance.CustomMicaTintColor;
             var cp = new ColorPicker()
             {
@@ -107,7 +108,7 @@ namespace Emerald.WinUI.Views.Settings
                 IsAlphaEnabled = true,
                 IsAlphaSliderVisible = true,
                 IsAlphaTextInputVisible = false,
-                Color = Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B)
+                Color = Color.FromArgb((byte)(c?.A ?? 0), (byte)(c?.R ?? 0), (byte)(c?.G ?? 0), (byte)(c?.B ?? 0))
             };
 
             var d = cp.ToContentDialog("CreateAColor".Localize("Settings"), Localized.Cancel.Localize(), ContentDialogButton.Primary);

@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
 using System.Web;
 using CmlLib.Core;
+using Emerald.Core.Store.Enums;
 
 namespace Emerald.Core.Store
 {
@@ -13,7 +14,6 @@ namespace Emerald.Core.Store
     {
         private HttpClient Client;
         public MinecraftPath MCPath { get; set; }
-        //ModrinthClient c = new ModrinthClient();
 
         public Labrinth(MinecraftPath path)
         {
@@ -21,7 +21,7 @@ namespace Emerald.Core.Store
             {
                 BaseAddress = new Uri("https://api.modrinth.com/v2/")
             };
-
+            MCPath = path;
             Client.DefaultRequestHeaders.Accept.Clear();
             Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
@@ -40,12 +40,12 @@ namespace Emerald.Core.Store
                 }
                 else
                 {
-                    throw new Exception("Failed to get: " + code);
+                    throw new Exception("Failed to GET: \"" + code + "\"");
                 }
             }
             catch
             {
-                throw new Exception("Failed to get: " + code);
+                throw new Exception("Failed to GET: \"" + code + "\"");
             }
         }
 
@@ -60,53 +60,36 @@ namespace Emerald.Core.Store
 
         private async void ModrinthDownload(string link, string folderdir, string fileName)
         {
-            using (var client = new FileDownloader(link, folderdir + "\\" + fileName))
+            using var client = new FileDownloader(link, folderdir + "\\" + fileName);
+            client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
             {
-                client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
+                TasksHelper.EditProgressTask(DownloadTaskID, Convert.ToInt32(progressPercentage));
+
+                if (progressPercentage == 100)
                 {
-                    TasksHelper.EditProgressTask(DownloadTaskID, Convert.ToInt32(progressPercentage));
+                    client.Dispose();
+                    TasksHelper.CompleteTask(DownloadTaskID, true);
+                }
+            };
 
-                    if (progressPercentage == 100)
-                    {
-                        client.Dispose();
-                        TasksHelper.CompleteTask(DownloadTaskID, true);
-                    }
-                };
-
-                await client.StartDownload();
-            }
+            await client.StartDownload();
         }
 
         public async Task<Results.SearchResult> Search(string name, int limit = 15, Enums.SearchSortOptions sortOptions = Enums.SearchSortOptions.Relevance, Enums.SearchCategories[] categories = null)
         {
-            int taskID;
+            int taskID = name == "" ? Tasks.TasksHelper.AddTask(Localized.GettingMods) : TasksHelper.AddTask(Localized.SearchStore, name);
 
-            if (name == "")
-            {
-                taskID = Tasks.TasksHelper.AddTask(Localized.GettingMods);
-            }
-            else
-            {
-                taskID = Tasks.TasksHelper.AddTask(Localized.SearchStore, name);
-            }
-
-            string categouriesString = "";
-
-            if (categories != null)
-                if (categories.Any() && categories.Length != 15)
-                    categouriesString = $"[\"categories:{string.Join("\"],[\"categories:", categories)}\"],".ToLower();
-               
-            
+            string categouriesString = (categories != null && categories.Any() && categories.Length != 15) ?  $"[\"categories:{string.Join("\"],[\"categories:", categories)}\"],".ToLower() : "";
 
             Results.SearchResult s;
 
-            try
+            try 
             {
                 var fn = string.IsNullOrEmpty(name) ? "" : $"query={name}";
                 var url = $"search?{fn}&index={sortOptions.ToString().ToLower()}&facets=[{categouriesString}[\"project_type:mod\"]]&limit={limit}";
                 var json = await Get(url);
                 s = JsonConvert.DeserializeObject<Results.SearchResult>(json);
-                Tasks.TasksHelper.CompleteTask(taskID, true);
+                Tasks.TasksHelper.CompleteTask(taskID, true,name);
 
                 return s;
             }
@@ -117,29 +100,29 @@ namespace Emerald.Core.Store
             }
         }
 
-        public async Task<Results.ModrinthProject> GetProject(string id)
+        public async Task<Results.ModrinthProject> GetProject(string id,string name)
         {
-            int taskID = Tasks.TasksHelper.AddTask(Localized.LoadMod);
+            int taskID = Tasks.TasksHelper.AddTask(Localized.LoadMod,name);
             Results.ModrinthProject s = null;
 
             try
             {
                 var json = await Get("project/" + id);
                 s = JsonConvert.DeserializeObject<Results.ModrinthProject>(json);
-                Tasks.TasksHelper.CompleteTask(taskID, true);
+                Tasks.TasksHelper.CompleteTask(taskID, true,name);
                 return s;
             }
-            catch
+            catch (Exception ex)
             {
-                Tasks.TasksHelper.CompleteTask(taskID, false);
+                Tasks.TasksHelper.CompleteTask(taskID, false, ex.Message);
                 return null;
             }
         }
 
-        public async Task<List<Results.Version>> GetVersions(string id)
+        public async Task<List<Results.Version>> GetVersions(string id,string name)
         {
-            int taskID = Tasks.TasksHelper.AddTask(Localized.LoadDownloadVers);
-            List<Results.Version> s = null;
+            int taskID = Tasks.TasksHelper.AddTask(Localized.LoadDownloadVers, name);
+            List<Results.Version> s;
 
             try
             {
@@ -148,9 +131,9 @@ namespace Emerald.Core.Store
                 Tasks.TasksHelper.CompleteTask(taskID, true);
                 return s;
             }
-            catch
+            catch (Exception ex)
             {
-                Tasks.TasksHelper.CompleteTask(taskID, false);
+                Tasks.TasksHelper.CompleteTask(taskID, false,ex.Message);
                 return null;
             }
         }

@@ -17,6 +17,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Emerald.WinUI.Models;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
+using System.Collections.ObjectModel;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -30,108 +31,70 @@ namespace Emerald.WinUI.UserControls
         public ArgumentsListView()
         {
             this.InitializeComponent();
-            view.ItemsSource = source;
+            view.ItemsSource = Source;
             UpdateSource();
         }
 
 
-        private List<ArgTemplate> source = new List<ArgTemplate>();
+        private ObservableCollection<ArgTemplate> Source = new();
         private void btnAdd_Click(object sender, RoutedEventArgs e)
         {
             count++;
             var r = new ArgTemplate { Arg = "", Count = count };
-            source.Add(r);
-            RefreshView();
+            Source.Add(r);
+            UpdateMainSource();
             view.SelectedItem = r;
         }
         public void UpdateSource()
         {
-            source = new List<ArgTemplate>();
+            Source.Clear();
             if (SS.Settings.Minecraft.JVM.Arguments != null)
             {
                 foreach (var item in SS.Settings.Minecraft.JVM.Arguments)
                 {
                     count++;
                     var r = new ArgTemplate { Arg = item, Count = count };
-                    source.Add(r);
+                    r.PropertyChanged += (_, _) =>
+                    {
+                        UpdateMainSource();
+                    };
+                    Source.Add(r);
                 }
             }
-            btnRemove.IsEnabled = source.Count != 0;
-            RefreshView();
-        }
-        private void RefreshView()
-        {
-            view.ItemsSource = null;
+            btnRemove.IsEnabled = Source.Any();
             UpdateMainSource();
-            view.ItemsSource = source;
         }
         private void UpdateMainSource() =>
-            SS.Settings.Minecraft.JVM.Arguments = source.Select(x => x.Arg).ToArray();
+            SS.Settings.Minecraft.JVM.Arguments = Source.Select(x => x.Arg).ToArray();
         
         private void btnRemove_Click(object sender, RoutedEventArgs e)
         {
             foreach (var item in view.SelectedItems)
             {
-                source.Remove((ArgTemplate)item);
+                Source.Remove((ArgTemplate)item);
             }
-            RefreshView();
+            UpdateMainSource();
         }
 
         private void TextBox_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
-            if (sender is TextBox bx)
-            {
-                foreach (var item in source)
-                {
-                    if (item.Count == int.Parse(bx.Tag.ToString()))
-                    {
-                        view.SelectedItem = null;
-                        view.SelectedItem = item;
-                        return;
-                    }
-                }
-            }
+            view.SelectedIndex = Source.IndexOf(Source.FirstOrDefault(x => x.Count == ((sender as FrameworkElement).DataContext as ArgTemplate).Count));
         }
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-
-            if (sender is TextBox bx)
-            {
-                foreach (var item in source)
-                {
-                    if (item.Count == int.Parse(bx.Tag.ToString()))
-                    {
-                        item.Arg = bx.Text;
-                        view.SelectedItem = null;
-                        view.SelectedItem = item;
-                        UpdateMainSource();
-                        return;
-                    }
-                }
-            }
+            view.SelectedIndex = Source.IndexOf(Source.FirstOrDefault(x => x.Count == ((sender as FrameworkElement).DataContext as ArgTemplate).Count));
+            UpdateMainSource();
         }
 
         private void TextBox_GotFocus(object sender, RoutedEventArgs e)
         {
-
-            if (sender is TextBox bx)
-            {
-                foreach (var item in source)
-                {
-                    if (item.Count == int.Parse(bx.Tag.ToString()))
-                    {
-                        view.SelectedItem = null;
-                        view.SelectedItem = item;
-                        return;
-                    }
-                }
-            }
+            view.SelectedIndex = Source.IndexOf(Source.FirstOrDefault(x => x.Count == ((sender as FrameworkElement).DataContext as ArgTemplate).Count));
         }
 
         private void view_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            btnRemove.IsEnabled = view.SelectedItems.Count != 0;
+            btnRemove.IsEnabled = view.SelectedItems.Any();
         }
     }
 }

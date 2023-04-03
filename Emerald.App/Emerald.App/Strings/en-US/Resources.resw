@@ -319,7 +319,7 @@
     <value>News</value>
   </data>
   <data name="NoNetwork" xml:space="preserve">
-    <value>Seems like you don&apos;t have good internet...</value>
+    <value>Seems like you don't have good internet...</value>
   </data>
   <data name="NoThanks" xml:space="preserve">
     <value>No Thanks</value>
@@ -398,7 +398,7 @@
     <value>Tasks</value>
   </data>
   <data name="ThatsIt" xml:space="preserve">
-    <value>That&apos;s it! Go to settings for more options</value>
+    <value>That's it! Go to settings for more options</value>
   </data>
   <data name="TimeLeft" xml:space="preserve">
     <value>{Time} left</value>
@@ -590,7 +590,7 @@
     <value>Settings Backups</value>
   </data>
   <data name="SettingsBackupsDescription" xml:space="preserve">
-    <value>Create, delete, view, load backups of your settings and accounts</value>
+    <value>Create, delete, view and try to load backups of your settings</value>
   </data>
   <data name="SystemDefault" xml:space="preserve">
     <value>System Default</value>
@@ -618,5 +618,11 @@
   </data>
   <data name="WinHelloChangeFailed" xml:space="preserve">
     <value>Unable to change the setting because you failed to authenticate with Windows Hello</value>
+  </data>
+  <data name="Downloads" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Followers" xml:space="preserve">
+    <value>Followers</value>
   </data>
 </root>

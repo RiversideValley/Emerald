@@ -1,17 +1,33 @@
-<!-- Copyright (c) Microsoft Corporation and Contributors. -->
-<!-- Licensed under the MIT License. -->
-
 <Page
     x:Class="Emerald.WinUI.Views.Store.InstallerPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Emerald.WinUI.Views.Store"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:helpers="using:Emerald.WinUI.Helpers"
+    xmlns:json="using:Emerald.Core.Store.Results"
+    mc:Ignorable="d">
 
     <Grid>
-
+        <StackPanel Padding="12,0">
+            <Border HorizontalAlignment="Center" Margin="0,10" Padding="0" CornerRadius="4">
+                <Image Stretch="UniformToFill" HorizontalAlignment="Stretch" Source="{x:Bind Item.Icon}" Width="96" Height="96"/>
+            </Border>
+            <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="SemiBold" Text="{x:Bind Item.Name}"/>
+            <TextBlock TextAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}">
+                <Run Text="{x:Bind Item.Author}"/>
+                <LineBreak/>
+                <Run Text="{x:Bind Item.TotalDownloadsString}"/> <Run Text="{helpers:Localize CustomName=Downloads}"/> | 
+                <Run Text="{x:Bind Item.FollowersString}"/> <Run Text="{helpers:Localize CustomName=Followers}"/>
+            </TextBlock>
+            <TextBlock TextWrapping="WrapWholeWords" TextAlignment="Center" Text="{x:Bind Item.Description}"/>
+            <AutoSuggestBox>
+                <AutoSuggestBox.QueryIcon>
+                    <FontIcon Glyph="&#xE70D;" />
+                </AutoSuggestBox.QueryIcon>
+            </AutoSuggestBox>
+            <ComboBox>
+            </ComboBox>
+        </StackPanel>
     </Grid>
 </Page>

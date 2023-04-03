@@ -97,6 +97,11 @@ namespace Emerald.WinUI.Helpers
 
             return itemsToRemove.Count;
         }
+        public static void AddRange<T>(this ObservableCollection<T> cll, IEnumerable<T> items)
+        {
+            foreach (var item in items)
+                cll.Add(item);
+        }
 
         public static string ToBinaryString(this string str)
         {
@@ -138,7 +143,8 @@ namespace Emerald.WinUI.Helpers
                 }
 
                 rl = new ResourceManager();
-                ResourceMap resourcesTree = rl.MainResourceMap.TryGetSubtree(resw ?? "Resources");
+                
+                ResourceMap resourcesTree = rl.MainResourceMap.TryGetSubtree("Resources");
                 value = resourcesTree?.TryGetValue(resourceKey)?.ValueAsString;
                 cachedResources[resourceKey] = value ?? resourceKey;
                 s = value;

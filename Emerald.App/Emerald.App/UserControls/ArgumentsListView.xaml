@@ -33,11 +33,14 @@
                 </Button>
             </StackPanel>
             <ListView x:Name="view" SelectionChanged="view_SelectionChanged">
-                <ListView.Transitions>
+                <ListView.Resources>
+                    <SolidColorBrush x:Key="ListViewItemBackgroundPointerOver" Color="Transparent" />
+                </ListView.Resources>
+                <ListView.ItemContainerTransitions>
                     <TransitionCollection>
                         <AddDeleteThemeTransition />
                     </TransitionCollection>
-                </ListView.Transitions>
+                </ListView.ItemContainerTransitions>
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:ArgTemplate">
                         <TextBox
@@ -48,8 +51,7 @@
                             GotFocus="TextBox_GotFocus"
                             PlaceholderText="Empty"
                             PointerPressed="TextBox_PointerPressed"
-                            Tag="{x:Bind Count}"
-                            Text="{x:Bind Arg}"
+                            Text="{x:Bind Arg,Mode=TwoWay}"
                             TextChanged="TextBox_TextChanged" />
                     </DataTemplate>
                 </ListView.ItemTemplate>

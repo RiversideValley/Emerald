@@ -37,7 +37,6 @@ namespace Emerald.WinUI
             if (e.IsFirstLaunch)
             {
                 System.Net.ServicePointManager.DefaultConnectionLimit = 256;
-
                 MainWindow = new MainWindow();
                 MainWindow.Activate();
                 MainWindow.Closed += (_, _) => Helpers.Settings.SettingsSystem.SaveData();

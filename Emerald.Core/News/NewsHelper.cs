@@ -31,6 +31,10 @@ namespace Emerald.Core.News
 
         public ObservableCollection<JSON.Entry> Search(string key,string[] filter = null)
         {
+            if (AllEntries == null)
+                return new();
+
+
             if(string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key))
             {
                 Entries = new(AllEntries.Where(x=> filter == null || filter.Contains(x.Category)));

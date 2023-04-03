@@ -1,4 +1,5 @@
 ﻿using Emerald.WinUI.Helpers.Settings;
+using Emerald.WinUI.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace Emerald.WinUI.Views.Store
 
         private void StoreItem_Click(object sender, RoutedEventArgs e)
         {
-
+            InstallerPane.Pane = new InstallerPage() { Item = ((sender as Button).DataContext as StoreItem) };
         }
 
         private async void txtSearch_TextChanged(object sender, TextChangedEventArgs e)

@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Windows.Storage;
 
 namespace Emerald.WinUI.Helpers.Settings
@@ -10,183 +11,89 @@ namespace Emerald.WinUI.Helpers.Settings
     public static class SettingsSystem
     {
         public static JSON.Settings Settings { get; private set; }
-        public static event EventHandler<string>? APINoMatch;
+        public static JSON.Account[] Accounts { get; set; }
 
-        public static void LoadData()
+        public static event EventHandler<string>? APINoMatch;
+        public static T GetSerializedFromSettings<T>(string key,T def)
         {
             string json;
-
             try
             {
-                json = ApplicationData.Current.RoamingSettings.Values["Settings"] as string;
+
+                json = ApplicationData.Current.RoamingSettings.Values[key] as string;
+                return JsonConvert.DeserializeObject<T>(json);
             }
             catch
             {
-                json = JSON.Settings.CreateNew().Serialize();
-                ApplicationData.Current.RoamingSettings.Values["Settings"] = json;
+                json =  JsonConvert.SerializeObject(def);
+                ApplicationData.Current.RoamingSettings.Values[key] = json;
+                return def;
             }
+        }
+        public static void LoadData()
+        {
+            Settings = GetSerializedFromSettings("Settings", JSON.Settings.CreateNew());
+            Accounts = GetSerializedFromSettings("Accounts", Array.Empty<JSON.Account>());
 
-            if (json.IsNullEmptyOrWhiteSpace())
+            if (Settings.APIVersion != "1.3")
             {
-                json = JSON.Settings.CreateNew().Serialize();
-                ApplicationData.Current.RoamingSettings.Values["Settings"] = json;
-            }
-
-            Settings = JsonConvert.DeserializeObject<JSON.Settings>(json);
-
-            if (Settings.APIVersion != "1.2")
-            {
-                APINoMatch?.Invoke(null, json);
-                json = JSON.Settings.CreateNew().Serialize();
-                ApplicationData.Current.RoamingSettings.Values["Settings"] = json;
-                Settings = JsonConvert.DeserializeObject<JSON.Settings>(json);
+                APINoMatch?.Invoke(null, ApplicationData.Current.RoamingSettings.Values["Settings"] as string);
+                ApplicationData.Current.RoamingSettings.Values["Settings"] = JSON.Settings.CreateNew().Serialize();
+                Settings = JsonConvert.DeserializeObject<JSON.Settings>(ApplicationData.Current.RoamingSettings.Values["Settings"] as string);
             }
         }
 
-        public static bool CreateBackup(string system)
+        public static async Task CreateBackup(string system)
         {
-            string json;
-            var l = new Backups();
+            string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
+            var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonConvert.DeserializeObject<Backups>(json);
 
-            try
-            {
-                json = ApplicationData.Current.LocalSettings.Values["SettingsBackups"] as string;
-            }
-            catch
-            {
-                json = JsonConvert.SerializeObject(new Backups());
-                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
-            }
-
-            if (json.IsNullEmptyOrWhiteSpace())
-            {
-                json = JsonConvert.SerializeObject(new Backups());
-                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
-            }
-
-            l = JsonConvert.DeserializeObject<Backups>(json);
             var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
             bl.Add(new SettingsBackup() { Time = DateTime.Now, Backup = system });
             l.AllBackups = bl.ToArray();
-            json = JsonConvert.SerializeObject(l);
+            json = l.Serialize();
 
-            try
-            {
-                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists), json);
         }
 
-        public static bool DeleteBackup(int Index)
+        public static async Task DeleteBackup(int Index)
         {
-            string json;
-            var l = new Backups();
+            string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
+            var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonConvert.DeserializeObject<Backups>(json);
 
-            try
-            {
-                json = ApplicationData.Current.LocalSettings.Values["SettingsBackups"] as string;
-            }
-            catch
-            {
-                json = JsonConvert.SerializeObject(new Backups());
-                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
-            }
+            var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
+            bl.RemoveAt(Index);
+            l.AllBackups = bl.ToArray();
+            json = l.Serialize();
 
-            if (json.IsNullEmptyOrWhiteSpace())
-            {
-                json = JsonConvert.SerializeObject(new Backups());
-                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
-            }
-
-            l = JsonConvert.DeserializeObject<Backups>(json);
-
-            try
-            {
-                var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
-                bl.RemoveAt(Index);
-                l.AllBackups = bl.ToArray();
-                json = JsonConvert.SerializeObject(l);
-                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-        public static bool DeleteBackup(DateTime time)
-        {
-            string json;
-            var l = new Backups();
-
-            try
-            {
-                json = ApplicationData.Current.LocalSettings.Values["SettingsBackups"] as string;
-            }
-            catch
-            {
-                json = JsonConvert.SerializeObject(new Backups());
-                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
-            }
-
-            if (json.IsNullEmptyOrWhiteSpace())
-            {
-                json = JsonConvert.SerializeObject(new Backups());
-                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
-            }
-
-            l = JsonConvert.DeserializeObject<Backups>(json);
-
-            try
-            {
-                var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
-                bl.Remove(x=> x.Time == time);
-                l.AllBackups = bl.ToArray();
-                json = JsonConvert.SerializeObject(l);
-                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists), json);
         }
 
-        public static List<SettingsBackup> GetBackups()
+        public static async Task DeleteBackup(DateTime time)
         {
-            string json;
+            string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
+            var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonConvert.DeserializeObject<Backups>(json);
 
-            try
-            {
-                json = ApplicationData.Current.LocalSettings.Values["SettingsBackups"] as string;
-            }
-            catch
-            {
-                json = JsonConvert.SerializeObject(new Backups());
-                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
-            }
+            var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
+            bl.Remove(x => x.Time == time);
+            l.AllBackups = bl.ToArray();
+            json = l.Serialize();
 
-            if (json.IsNullEmptyOrWhiteSpace())
-            {
-                json = JsonConvert.SerializeObject(new Backups());
-                ApplicationData.Current.LocalSettings.Values["SettingsBackups"] = json;
-            }
+            await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists), json);
+        }
 
-            var l = JsonConvert.DeserializeObject<Backups>(json);
+        public static async Task<List<SettingsBackup>> GetBackups()
+        {
+            string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
+            var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonConvert.DeserializeObject<Backups>(json);
 
             return l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
         }
 
         public static void SaveData()
         {
-            var json = Settings.Serialize();
-            ApplicationData.Current.RoamingSettings.Values["Settings"] = json;
+            ApplicationData.Current.RoamingSettings.Values["Settings"] = Settings.Serialize();
+            ApplicationData.Current.RoamingSettings.Values["Accounts"] = JsonConvert.SerializeObject(Accounts);
         }
     }
 }

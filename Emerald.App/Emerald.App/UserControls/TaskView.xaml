@@ -33,7 +33,6 @@
             InformationalString="&#xE946;"
             SuccessString="&#xE73E;"
             WarningString="&#xE783;" />
-        <converters:NotBoolToVisibility x:Key="NotBoolToVisibility" />
     </UserControl.Resources>
     <Grid>
         <TextBlock
@@ -119,6 +118,7 @@
                                                     HorizontalAlignment="Left"
                                                     x:Load="{x:Bind HasDescription()}"
                                                     FontSize="13"
+                                                    TextTrimming="CharacterEllipsis"
                                                     Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
                                                     Text="{x:Bind Description}"
                                                     TextWrapping="WrapWholeWords" />
@@ -255,6 +255,7 @@
                                                     HorizontalAlignment="Left"
                                                     x:Load="{x:Bind HasDescription()}"
                                                     FontSize="13"
+                                                    TextTrimming="CharacterEllipsis"
                                                     Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
                                                     Text="{x:Bind Description}"
                                                     TextWrapping="WrapWholeWords" />
