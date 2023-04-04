@@ -7,13 +7,13 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="Andrexial.EmeraldLauncher"
+    Name="Riverside.Emerald"
     Publisher="CN=NoobNotFound"
     Version="0.6.1.0" />
 
   <Properties>
     <DisplayName>Emerald</DisplayName>
-    <PublisherDisplayName>Depth</PublisherDisplayName>
+    <PublisherDisplayName>Riverside Valley Corporation</PublisherDisplayName>
     <Logo>Images\StoreLogo.png</Logo>
   </Properties>
 
@@ -38,14 +38,6 @@
         <uap:DefaultTile Wide310x150Logo="Images\Wide310x150Logo.png"  Square71x71Logo="Images\SmallTile.png" Square310x310Logo="Images\LargeTile.png"/>
         <uap:SplashScreen Image="Images\SplashScreen.png" />
       </uap:VisualElements>
-      <Extensions>
-        <uap:Extension Category="windows.protocol">
-          <uap:Protocol Name="andrx.gem">
-            <uap:Logo>Images\StoreLogo.png</uap:Logo>
-            <uap:DisplayName>Emerald</uap:DisplayName>
-          </uap:Protocol>
-        </uap:Extension>
-      </Extensions>
     </Application>
   </Applications>
 
