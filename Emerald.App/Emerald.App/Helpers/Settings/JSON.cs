@@ -57,7 +57,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
             }
         };
 
-        public string APIVersion { get; set; } = "1.2";
+        public string APIVersion { get; set; } = "1.3";
 
         public Minecraft Minecraft { get; set; } = new();
 
@@ -89,8 +89,6 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
 
         [ObservableProperty]
         private bool _IsAdmin;
-
-        public Account[] Accounts { get; set; }
 
         public Downloader Downloader { get; set; } = new();
 
@@ -297,30 +295,39 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
     public partial class NewsFilter : JSON
     {
         [ObservableProperty]
-        private bool _Java = true;
+        private bool _Java = false;
 
         [ObservableProperty]
-        private bool _Bedrock = true;
+        private bool _Bedrock = false;
 
         [ObservableProperty]
-        private bool _Dungeons = true;
+        private bool _Dungeons = false;
 
         [ObservableProperty]
-        private bool _Legends = true;
+        private bool _Legends = false;
 
         [JsonIgnore]
         public bool All
         {
-            get => false;
+            get => GetResult().Length == 4;
             set
             {
-                if (value)
-                    Java = Bedrock = Dungeons = Legends = true;
+                Java = Bedrock = Dungeons = Legends = false;
+                InvokePropertyChanged(null);
             }
         }
         public string[] GetResult()
         {
             var r = new List<string>();
+
+            if(!Java && !Bedrock && !Dungeons && !Legends)
+            {
+                r.Add("Minecraft: Java Edition");
+                r.Add("Minecraft for Windows");
+                r.Add("Minecraft Dungeons");
+                r.Add("Minecraft Legends");
+                return r.ToArray();
+            }
 
             if (Java)
                 r.Add("Minecraft: Java Edition");

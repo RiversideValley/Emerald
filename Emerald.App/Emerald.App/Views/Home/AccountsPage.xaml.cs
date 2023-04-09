@@ -167,7 +167,7 @@ namespace Emerald.WinUI.Views.Home
 
         }
         public void UpdateMainSource() =>
-            SS.Settings.Minecraft.Accounts = Accounts.Select(x =>
+            SS.Accounts = Accounts.Select(x =>
             new Helpers.Settings.JSON.Account()
             {
                 AccessToken = x.AccessToken,
@@ -182,9 +182,9 @@ namespace Emerald.WinUI.Views.Home
             Accounts.Clear();
             AllCount = 0;
 
-            if (SS.Settings.Minecraft.Accounts != null)
+            if (SS.Accounts != null)
             {
-                foreach (var item in SS.Settings.Minecraft.Accounts)
+                foreach (var item in SS.Accounts)
                 {
                     Accounts.Add(new Account(item.Username, item.AccessToken, item.UUID, AllCount++, item.LastAccessed));
                 }

@@ -52,10 +52,10 @@ namespace Emerald.WinUI.Views.Settings
             tglWinHello.IsOn = SS.Settings.App.WindowsHello;
             UpdateBackupList();
         }
-        private void UpdateBackupList()
+        private async void UpdateBackupList()
         {
             lvBackups.ItemsSource = null;
-            lvBackups.ItemsSource = SS.GetBackups();
+            lvBackups.ItemsSource = await SS.GetBackups();
         }
         private void Version_Click(object sender, RoutedEventArgs e)
         {
@@ -82,7 +82,7 @@ namespace Emerald.WinUI.Views.Settings
         {
             if (await WindowsHelloResult())
             {
-                SS.CreateBackup(SS.Settings.Serialize());
+                await SS.CreateBackup(SS.Settings.Serialize());
                 UpdateBackupList();
             }
         }
@@ -114,7 +114,7 @@ namespace Emerald.WinUI.Views.Settings
             {
                 foreach (var itm in lvBackups.SelectedItems.Cast<SettingsBackup>())
                 {
-                    SS.DeleteBackup(itm.Time);
+                   await SS.DeleteBackup(itm.Time);
                 }
                 UpdateBackupList();
             }

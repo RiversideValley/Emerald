@@ -1,22 +1,23 @@
 ﻿using Emerald.Core;
+using Emerald.Core.Store.Results;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Version = Emerald.Core.Store.Results.Version;
 
 namespace Emerald.WinUI.Models
 {
     public class StoreItem : Model
     {
-        public int ID { get; set; }
         public string Name { get; set; }
         public string Description { get; private set; }
-        public async Task<string> BigDescription()
+        public async Task<string> BigDescriptionAsync()
         {
-            var mod = await App.Current.Launcher.Labrinth.GetProject(ProjectID);
-            return await Util.DownloadText(mod.Body_Url);
+            var mod = await App.Current.Launcher.Labrinth.GetProject(ProjectID,Name);
+            return mod?.Body;
         }
         public string ProjectID { get; set; }
         public string Author { get; set; }
@@ -24,7 +25,9 @@ namespace Emerald.WinUI.Models
         public string FollowersString { get { return Followers.KiloFormat(); } }
         public int TotalDownloads { get; set; }
         public string TotalDownloadsString { get { return TotalDownloads.KiloFormat(); } }
-
+        public async Task<List<Version>> GetDownloadVersionsAsync()
+            => await App.Current.Launcher.Labrinth.GetVersions(ProjectID,Name);
+        
         public string[] SupportedVers { get; set; }
 
 

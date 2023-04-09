@@ -127,10 +127,8 @@
                     </StackPanel>
                 </uc:Expander>
                 <uc:Expander
-                    Title="{helpers:Localize CustomName=SettingsBackups,
-                                             RESW=Settings}"
-                    Description="{helpers:Localize CustomName=SettingsBackupsDescription,
-                                                   RESW=Settings}"
+                    Title="{helpers:Localize CustomName=SettingsBackups}"
+                    Description="{helpers:Localize CustomName=SettingsBackupsDescription}"
                     Icon="&#xE159;">
                     <uc:Expander.HeaderControls>
                         <Button

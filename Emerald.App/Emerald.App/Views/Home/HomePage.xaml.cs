@@ -112,7 +112,7 @@ namespace Emerald.WinUI.Views.Home
                 AccountsPage.UpdateMainSource();
             };
 
-            if (SS.Settings.Minecraft.Accounts != null && SS.Settings.App.AutoLogin)
+            if (SS.Accounts != null && SS.Settings.App.AutoLogin)
             {
                 AccountsPage.UpdateSource();
 

@@ -3,8 +3,7 @@ using System.ComponentModel;
 
 namespace Emerald.WinUI.Models
 {
-    [ObservableObject]
-    public partial class Model
+    public partial class Model : ObservableObject
     {
         internal void Set<T>(ref T obj, T value, string name = null)
         {

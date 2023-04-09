@@ -1,14 +1,15 @@
 name: 🐛 Bug Report
-description: Create a bug report to help improve SDLauncher
+description: Create a bug report to help improve Emerald
 labels: [bug]
+title: "🐛 "
 body:
   - type: checkboxes
     attributes:
       label: ⏱️ Before you start...
       options:
-        - label: I am on the latest version of SDLauncher? You might be using an old version.
+        - label: Are you on the latest version of Emerald? You might be using an old version.
           required: true
-        - label:  I Have checked if a similar issue has not already been reported
+        - label: Have you checked whether or not a similar issue has already been reported?
           required: true
   - type: textarea
     attributes:
@@ -17,8 +18,8 @@ body:
       placeholder: build 25174.1010
   - type: textarea
     attributes:
-      label: 🔢 What version of SDLauncher are you on?
-      description: Goto SDLauncher > Settings > About
+      label: 🔢 What version of Emerald are you on?
+      description: Go to Emerald > Settings > About
     validations:
       required: true
   - type: textarea
