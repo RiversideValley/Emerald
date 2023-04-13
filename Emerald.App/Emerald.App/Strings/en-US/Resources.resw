@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -451,9 +451,6 @@
   <data name="AccentColor" xml:space="preserve">
     <value>Accent color</value>
   </data>
-  <data name="Add" xml:space="preserve">
-    <value>Add</value>
-  </data>
   <data name="AdvancedMinecraftSettings" xml:space="preserve">
     <value>Advanced Settings</value>
   </data>
@@ -516,9 +513,6 @@
   </data>
   <data name="DownloadSettingsDescription" xml:space="preserve">
     <value>Optional. Recommended to turn these on</value>
-  </data>
-  <data name="Error" xml:space="preserve">
-    <value>Error</value>
   </data>
   <data name="GameLogs" xml:space="preserve">
     <value>Read game logs</value>
@@ -626,9 +620,15 @@
     <value>Unable to change the setting because you failed to authenticate with Windows Hello</value>
   </data>
   <data name="Downloads" xml:space="preserve">
-    <value />
+    <value/>
   </data>
   <data name="Followers" xml:space="preserve">
     <value>Followers</value>
+  </data>
+  <data name="MergeAccount" xml:space="preserve">
+    <value>Merge Account</value>
+  </data>
+  <data name="MergeMsAcExistingWithNew" xml:space="preserve">
+    <value>{Count} Microsoft account with same UUID already exist(s) in the accounts. Do you want to merge them together?</value>
   </data>
 </root>
