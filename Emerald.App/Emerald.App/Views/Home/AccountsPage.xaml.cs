@@ -237,6 +237,11 @@ namespace Emerald.WinUI.Views.Home
             try
             {
                 var r = await msl.Login();
+                if(Accounts.Any(x=> x.UUID == r.UUID))
+                {
+                    if(await MessageBox.Show(Localized.MergeAccount.Localize(), Localized.MergeMsAcExistingWithNew.Localize().Replace("{Count}", Accounts.Count(x => x.UUID == r.UUID).ToString()), Enums.MessageBoxButtons.YesNo) == Enums.MessageBoxResults.Yes)
+                        Accounts.Remove(x => x.UUID!= r.UUID);
+                }
                 SetEditor(r.ToAccount());
                 Core.Tasks.TasksHelper.CompleteTask(taskID);
             }

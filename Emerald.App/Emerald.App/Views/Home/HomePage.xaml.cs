@@ -20,6 +20,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
+using Task = System.Threading.Tasks.Task;
 
 namespace Emerald.WinUI.Views.Home
 {

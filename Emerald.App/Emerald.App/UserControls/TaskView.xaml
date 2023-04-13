@@ -193,7 +193,7 @@
                         </DataTemplate>
                     </converters:TaskViewTemplateSelector.Progress>
                     <converters:TaskViewTemplateSelector.String>
-                        <DataTemplate x:DataType="models:StringTask">
+                        <DataTemplate x:DataType="models:Task">
                             <Grid Margin="0,5,0,0">
                                 <SwipeControl Margin="0">
                                     <SwipeControl.RightItems>

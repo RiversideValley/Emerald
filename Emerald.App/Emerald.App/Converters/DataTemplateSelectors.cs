@@ -12,12 +12,12 @@ namespace Emerald.WinUI.Converters
 
         protected override DataTemplate SelectTemplateCore(object item)
         {
-            return ((Models.ITask)item is Models.StringTask) ? String : Progress;
+            return (item is Models.Task) ? String : Progress;
         }
 
         protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
         {
-            return ((Models.ITask)item is Models.StringTask) ? String : Progress;
+            return (item is Models.Task) ? String : Progress;
         }
     }
 

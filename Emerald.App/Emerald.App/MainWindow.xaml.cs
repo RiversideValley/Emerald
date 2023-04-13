@@ -121,25 +121,17 @@ namespace Emerald.WinUI
 
                 TasksHelper.ProgressTaskEditRequested += (_, e) =>
                 {
-                    var val = e.Value / e.MaxValue * 100;
-                    int? ID = TaskView.SearchByUniqueThingsToString(e.ID.ToString()).First();
-                    if (ID != null)
-                    {
-                        TaskView.ChangeDescription(ID.Value, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.Localize())));
-                        TaskView.ChangeProgress(ID.Value, e.Value);
-                    }
+                    TaskView.ChangeDescription(e.ID, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.Localize())));
+                    TaskView.ChangeProgress(e.ID, e.Value);
                 };
 
                 TasksHelper.TaskCompleteRequested += (_, e) =>
                 {
-                    int? ID = TaskView.SearchByUniqueThingsToString(e.ID.ToString()).First();
-                    if (ID != null)
-                    {
-                        TaskView.ChangeProgress(ID.Value, 100);
-                        TaskView.ChangeIndeterminate(ID.Value, false);
-                        TaskView.ChangeDescription(ID.Value, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.Localize())));
-                        TaskView.ChangeSeverty(ID.Value, e.Success ? InfoBarSeverity.Success : InfoBarSeverity.Error);
-                    }
+                    TaskView.ChangeProgress(e.ID, 100);
+                    TaskView.ChangeIndeterminate(e.ID, false);
+                    TaskView.ChangeDescription(e.ID, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.Localize())));
+                    TaskView.ChangeSeverty(e.ID, e.Success ? InfoBarSeverity.Success : InfoBarSeverity.Error);
+
                 };
             }
 

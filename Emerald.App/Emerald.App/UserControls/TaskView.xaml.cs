@@ -15,8 +15,8 @@ namespace Emerald.WinUI.UserControls
     {
         private int lastID = 0;
 
-        private ObservableCollection<Models.ITask> Tasks { get; set; } = new();
-        public Models.ITask[] AllTasks { get => Tasks.ToArray(); }
+        private ObservableCollection<Models.Task> Tasks { get; set; } = new();
+        public Models.Task[] AllTasks { get => Tasks.ToArray(); }
 
         public TaskView()
         {
@@ -27,22 +27,10 @@ namespace Emerald.WinUI.UserControls
         }
         public int AddProgressTask(string content, int progress = 0, InfoBarSeverity severity = InfoBarSeverity.Informational, bool IsIndeterminate = false, object UniqueThings = null, ObservableCollection<UIElement> customCOntrols = null)
         {
-            var l = new Models.ProgressTask(content, DateTime.Now, lastID, progress, severity, IsIndeterminate, UniqueThings, customCOntrols);
+            var l = new Models.ProgressTask(content, DateTime.Now, lastID, progress, severity, IsIndeterminate, customCOntrols);
             lastID++;
             Tasks.Add(l);
             return l.ID;
-        }
-        public object GetUniqueThings(int ID)
-        {
-            var l = Tasks.FirstOrDefault(l => l.ID == ID);
-            try
-            {
-                return l.UniqueThings;
-            }
-            catch
-            {
-                return null;
-            }
         }
         public void ClearAll()
         {
@@ -51,21 +39,9 @@ namespace Emerald.WinUI.UserControls
                 Tasks.RemoveAt(i);
             }
         }
-        public int[] SearchByUniqueThingsToString(string uniquethings)
+        public int AddStringTask(string content, InfoBarSeverity severity = InfoBarSeverity.Informational, ObservableCollection<UIElement> customCOntrols = null)
         {
-            try
-            {
-                return Tasks.Where(x => x.UniqueThings != null).Where(x => x.UniqueThings.ToString() == uniquethings).Select(x => x.ID).ToArray();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                return Array.Empty<int>();
-            }
-        }
-        public int AddStringTask(string content, InfoBarSeverity severity = InfoBarSeverity.Informational, object uniquethings = null, ObservableCollection<UIElement> customCOntrols = null)
-        {
-            var l = new Models.StringTask(content, DateTime.Now, lastID, severity, uniquethings, customCOntrols);
+            var l = new Models.Task(content, DateTime.Now, lastID, severity, customCOntrols);
             lastID++;
             Tasks.Add(l);
             return l.ID;
@@ -170,22 +146,22 @@ namespace Emerald.WinUI.UserControls
 
         private void btnIcon_PointerEntered(object sender, PointerRoutedEventArgs e)
         {
-            ((sender as Grid).DataContext as Models.ITask).RemoveButtonVisibility = Visibility.Visible;
+            ((sender as Grid).DataContext as Models.Task).RemoveButtonVisibility = Visibility.Visible;
         }
 
         private void btnIcon_PointerExited(object sender, PointerRoutedEventArgs e)
         {
-            ((sender as Grid).DataContext as Models.ITask).RemoveButtonVisibility = Visibility.Collapsed;
+            ((sender as Grid).DataContext as Models.Task).RemoveButtonVisibility = Visibility.Collapsed;
         }
 
         private void btnRemoveTask_Click(object sender, RoutedEventArgs e)
         {
-            Tasks.Remove(((sender as Button).DataContext as Models.ITask));
+            Tasks.Remove(((sender as Button).DataContext as Models.Task));
         }
 
         private void delete_Invoked(SwipeItem sender, SwipeItemInvokedEventArgs args)
         {
-            Tasks.Remove(args.SwipeControl.DataContext as Models.ITask);
+            Tasks.Remove(args.SwipeControl.DataContext as Models.Task);
         }
     }
 }

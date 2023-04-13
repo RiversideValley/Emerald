@@ -116,16 +116,15 @@ namespace Emerald.Core
         /// </summary>
         public async Task<System.Diagnostics.Process?> CreateProcessAsync(string ver, MLaunchOption launchOption,bool createTask = true)
         {
-            var id = createTask ? TasksHelper.AddProgressTask(Localized.LaunchMC) : default;
+            var id = createTask ? TasksHelper.AddProgressTask(Localized.LaunchMC) : int.MaxValue;
             int prog = 0;
             string message = "";
 
             void ProgChange(object sender, System.ComponentModel.ProgressChangedEventArgs e)
             {
+                prog = e.ProgressPercentage;
                 if (createTask)
                     TasksHelper.EditProgressTask(id, prog, message: message);
-
-                prog = e.ProgressPercentage;
             };
 
             void FileChange(DownloadFileChangedEventArgs e)
