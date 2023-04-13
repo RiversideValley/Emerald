@@ -1,37 +1,37 @@
-﻿using Emerald.WinUI.Helpers;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Emerald.WinUI.Helpers;
 using Microsoft.UI.Xaml;
+using ProjBobcat.Class.Model.Optifine;
 using System.Collections.ObjectModel;
 using System.Linq;
-using ProjBobcat.Class.Model.Optifine;
-using CommunityToolkit.Mvvm.ComponentModel;
 namespace Emerald.WinUI.Models
 {
     public partial class MinecraftVersion : ObservableObject
     {
         public string BlockImageLocation
         {
-            get => (MISC != null && MISC.GetType() == typeof(OptifineDownloadVersionModel)) || DisplayVersion == "Optifine"?
+            get => (MISC != null && MISC.GetType() == typeof(OptifineDownloadVersionModel)) || DisplayVersion == "Optifine" ?
                         "/Assets/Blocks/CraftingTable.png"
                         :
                         (SubVersions.Count > 0 ?
-                            (SubVersions.Count <= 3 ? 
-                                (SubVersions.FirstOrDefault().SubVersions.Count > 0 ? 
-                                    "/Assets/Blocks/Furnace_Burn.png" 
-                                    : 
+                            (SubVersions.Count <= 3 ?
+                                (SubVersions.FirstOrDefault().SubVersions.Count > 0 ?
+                                    "/Assets/Blocks/Furnace_Burn.png"
+                                    :
                                     "/Assets/Blocks/Furnace.png"
-                                ) 
-                            : 
+                                )
+                            :
                             "/Assets/Blocks/Furnace_Burn.png"
                             )
                         :
-                        (Version == null ? 
-                            "/Assets/Blocks/Dirt.png" 
-                            : 
-                            (Version.ToLower().Contains("fabric") ? 
-                                "/Assets/Blocks/Redstone.png" 
+                        (Version == null ?
+                            "/Assets/Blocks/Dirt.png"
+                            :
+                            (Version.ToLower().Contains("fabric") ?
+                                "/Assets/Blocks/Redstone.png"
                                 :
-                                (Version.ToLower().Contains("optifine") ? 
-                                    "/Assets/Blocks/CraftingTable.png" 
+                                (Version.ToLower().Contains("optifine") ?
+                                    "/Assets/Blocks/CraftingTable.png"
                                     :
                                     "/Assets/Blocks/Dirt.png"
                                 )

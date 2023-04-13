@@ -98,11 +98,13 @@
                             <FontIcon
                                 x:Name="fontIcon"
                                 x:Load="{x:Bind ShowFontIcons}"
+                                Visibility="{x:Bind FontIconVisibility}"
                                 FontSize="22"
                                 Glyph="{x:Bind FontIconGlyph}" />
                             <FontIcon
                                 x:Name="fontIconSolid"
-                                x:Load="{x:Bind ShowSolidFontIcons}"
+                                x:Load="{x:Bind ShowFontIcons}"
+                                Visibility="{x:Bind SolidFontIconVisibility}"
                                 FontSize="22"
                                 Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                                 Glyph="{x:Bind SolidFontIconGlyph}" />
@@ -130,13 +132,15 @@
                     Thumbnail="Assets/NavigationViewIcons/home.png" />
                 <models:SquareNavigationViewItem
                     Name="{helpers:Localize CustomName=News}"
-                    FontIconGlyph="&#xE7BF;"
+                    FontIconGlyph="&#xF57E;"
+                    SolidFontIconGlyph="&#xF57E;"
                     IsSelected="False"
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                     Thumbnail="Assets/NavigationViewIcons/news.png" />
                 <models:SquareNavigationViewItem
                     Name="{helpers:Localize CustomName=Store}"
                     FontIconGlyph="&#xE7BF;"
+                    SolidFontIconGlyph="&#xE7BF;"
                     IsSelected="False"
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                     Thumbnail="Assets/NavigationViewIcons/store.png" />
@@ -146,6 +150,7 @@
                 <models:SquareNavigationViewItem
                     Name="{helpers:Localize CustomName=Tasks}"
                     FontIconGlyph="&#xE9D5;"
+                    SolidFontIconGlyph="&#xE9D5;"
                     InfoBadge="{x:Bind TasksInfoBadge}"
                     IsSelected="False"
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
@@ -153,6 +158,7 @@
                 <models:SquareNavigationViewItem
                     Name="{helpers:Localize CustomName=Logs}"
                     FontIconGlyph="&#xE756;"
+                    SolidFontIconGlyph="&#xE756;"
                     IsEnabled="{x:Bind SS:SettingsSystem.Settings.Minecraft.ReadLogs(), Mode=OneWay}"
                     IsSelected="False"
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
@@ -160,6 +166,7 @@
                 <models:SquareNavigationViewItem
                     Name="{helpers:Localize CustomName=Settings}"
                     FontIconGlyph="&#xE713;"
+                    SolidFontIconGlyph="&#xE713;"
                     IsSelected="False"
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                     Thumbnail="Assets/NavigationViewIcons/settings.png" />

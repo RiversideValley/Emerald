@@ -12,7 +12,7 @@ namespace Emerald.WinUI.Views.Settings
     {
         public AccountPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
     }
 }

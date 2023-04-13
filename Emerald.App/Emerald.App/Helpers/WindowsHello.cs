@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Emerald.Core;
+using Microsoft.UI.Xaml.Controls;
+using System;
 using System.Threading.Tasks;
 using Windows.Security.Credentials;
-using Emerald.WinUI.Helpers;
-using Microsoft.UI.Xaml.Controls;
-using Emerald.Core;
 namespace Emerald.WinUI.Helpers
 {
     public static class WindowsHello
@@ -19,7 +15,7 @@ namespace Emerald.WinUI.Helpers
         public static async Task<bool> Authenticate()
         {
             var d = new ProgressBar() { IsIndeterminate = true }.ToContentDialog(Localized.AuthWindowshello.Localize());
-            
+
             if (await IsAvailable())
             {
                 _ = d.ShowAsync();

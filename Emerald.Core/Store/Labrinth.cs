@@ -1,12 +1,8 @@
-﻿using Emerald.Core.Args;
+﻿using CmlLib.Core;
 using Emerald.Core.Tasks;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
-using System.Web;
-using CmlLib.Core;
-using Emerald.Core.Store.Enums;
 
 namespace Emerald.Core.Store
 {
@@ -79,17 +75,17 @@ namespace Emerald.Core.Store
         {
             int taskID = name == "" ? Tasks.TasksHelper.AddTask(Localized.GettingMods) : TasksHelper.AddTask(Localized.SearchStore, name);
 
-            string categouriesString = (categories != null && categories.Any() && categories.Length != 15) ?  $"[\"categories:{string.Join("\"],[\"categories:", categories)}\"],".ToLower() : "";
+            string categouriesString = (categories != null && categories.Any() && categories.Length != 15) ? $"[\"categories:{string.Join("\"],[\"categories:", categories)}\"],".ToLower() : "";
 
             Results.SearchResult s;
 
-            try 
+            try
             {
                 var fn = string.IsNullOrEmpty(name) ? "" : $"query={name}";
                 var url = $"search?{fn}&index={sortOptions.ToString().ToLower()}&facets=[{categouriesString}[\"project_type:mod\"]]&limit={limit}";
                 var json = await Get(url);
                 s = JsonConvert.DeserializeObject<Results.SearchResult>(json);
-                Tasks.TasksHelper.CompleteTask(taskID, true,name);
+                Tasks.TasksHelper.CompleteTask(taskID, true, name);
 
                 return s;
             }
@@ -100,16 +96,16 @@ namespace Emerald.Core.Store
             }
         }
 
-        public async Task<Results.ModrinthProject> GetProject(string id,string name)
+        public async Task<Results.ModrinthProject> GetProject(string id, string name)
         {
-            int taskID = Tasks.TasksHelper.AddTask(Localized.LoadMod,name);
+            int taskID = Tasks.TasksHelper.AddTask(Localized.LoadMod, name);
             Results.ModrinthProject s = null;
 
             try
             {
                 var json = await Get("project/" + id);
                 s = JsonConvert.DeserializeObject<Results.ModrinthProject>(json);
-                Tasks.TasksHelper.CompleteTask(taskID, true,name);
+                Tasks.TasksHelper.CompleteTask(taskID, true, name);
                 return s;
             }
             catch (Exception ex)
@@ -119,7 +115,7 @@ namespace Emerald.Core.Store
             }
         }
 
-        public async Task<List<Results.Version>> GetVersions(string id,string name)
+        public async Task<List<Results.Version>> GetVersions(string id, string name)
         {
             int taskID = Tasks.TasksHelper.AddTask(Localized.LoadDownloadVers, name);
             List<Results.Version> s;
@@ -133,7 +129,7 @@ namespace Emerald.Core.Store
             }
             catch (Exception ex)
             {
-                Tasks.TasksHelper.CompleteTask(taskID, false,ex.Message);
+                Tasks.TasksHelper.CompleteTask(taskID, false, ex.Message);
                 return null;
             }
         }

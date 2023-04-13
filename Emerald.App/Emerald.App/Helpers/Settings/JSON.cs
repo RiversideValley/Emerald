@@ -1,13 +1,11 @@
 ﻿using CmlLib.Core;
+using ColorCode.Compilation.Languages;
+using CommunityToolkit.Mvvm.ComponentModel;
+using Emerald.Core.Store.Enums;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Shapes;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using CommunityToolkit.Mvvm;
-using CommunityToolkit.Mvvm.ComponentModel;
-using Emerald.Core.Store.Enums;
-using ColorCode.Compilation.Languages;
 
 namespace Emerald.WinUI.Helpers.Settings.JSON
 {
@@ -39,8 +37,8 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
                 Discord = new(),
                 Appearance = new()
                 {
-                    MicaTintColor = ((int)Enums.MicaTintColor.NoColor),
-                    Theme = ((int)ElementTheme.Default)
+                    MicaTintColor = (int)Enums.MicaTintColor.NoColor,
+                    Theme = (int)ElementTheme.Default
                 }
             },
             Minecraft = new()
@@ -61,7 +59,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
 
         public Minecraft Minecraft { get; set; } = new();
 
-        public App App { get; set; } =new();
+        public App App { get; set; } = new();
     }
 
     public partial class Minecraft : JSON
@@ -70,7 +68,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         {
             JVM.PropertyChanged += (_, _)
                 => InvokePropertyChanged();
-            this.PropertyChanged += (_, e) =>
+            PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName != null)
                     InvokePropertyChanged();
@@ -210,7 +208,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         {
             if (Fabric & Forge & Adventure & Cursed & Decoration & Equipment & Food & Library & Magic & Misc & Optimization & Storage & Technology & Utility & Worldgen)
                 return Array.Empty<SearchCategories>();
-            
+
             var r = new List<SearchCategories>();
 
             if (Fabric)
@@ -320,7 +318,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         {
             var r = new List<string>();
 
-            if(!Java && !Bedrock && !Dungeons && !Legends)
+            if (!Java && !Bedrock && !Dungeons && !Legends)
             {
                 r.Add("Minecraft: Java Edition");
                 r.Add("Minecraft for Windows");

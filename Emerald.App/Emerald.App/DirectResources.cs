@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.WinUI.Helpers;
-using Windows.UI;
 using Emerald.WinUI.Helpers;
+using Windows.UI;
 
 namespace Emerald.WinUI
 {

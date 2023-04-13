@@ -1,7 +1,6 @@
 ﻿using CmlLib.Core.Auth;
 using Emerald.Core;
 using Emerald.WinUI.Helpers;
-using Emerald.WinUI.Helpers.Settings;
 using Emerald.WinUI.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -26,7 +25,7 @@ namespace Emerald.WinUI.Views.Home
         }
         public void InvokePropertyChanged(string name = null)
         {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
         private bool ShowEditor => EditorAccount != null;
         private Account _EditorAccount = null;
@@ -39,7 +38,7 @@ namespace Emerald.WinUI.Views.Home
         public int AllCount = 0;
         public AccountsPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
             gv.ItemsSource = Accounts;
         }
 
@@ -93,7 +92,7 @@ namespace Emerald.WinUI.Views.Home
 
         private void btnAccount_Click(object sender, RoutedEventArgs e)
         {
-            var a = ((sender as Button).DataContext as Account);
+            var a = (sender as Button).DataContext as Account;
             if (Accounts.Any(x => x.IsChecked))
             {
                 a.IsChecked = !a.IsChecked;
@@ -112,7 +111,7 @@ namespace Emerald.WinUI.Views.Home
         }
         private void SetEditor(Account account) =>
             EditorAccount = account;
-        
+
 
 
         private void btnSelectAll_Click(object sender, RoutedEventArgs e)
@@ -140,13 +139,13 @@ namespace Emerald.WinUI.Views.Home
             }
             else
             {
-                Accounts.Remove(((sender as MenuFlyoutItem).DataContext as Account));
+                Accounts.Remove((sender as MenuFlyoutItem).DataContext as Account);
             }
         }
 
         private void Login_Click(object sender, RoutedEventArgs e)
         {
-            var a = ((sender as Button).DataContext as Account);
+            var a = (sender as Button).DataContext as Account;
             SetEditor(null);
             MainWindow.HomePage.Session = a.ToMSession();
             Accounts.Add(a);
@@ -161,7 +160,7 @@ namespace Emerald.WinUI.Views.Home
 
         private void CancelLogin_Click(object sender, RoutedEventArgs e)
         {
-            var a = ((sender as Button).DataContext as Account);
+            var a = (sender as Button).DataContext as Account;
             SetEditor(null);
             Accounts.Add(a);
 
@@ -176,7 +175,7 @@ namespace Emerald.WinUI.Views.Home
                 Username = x.UserName,
                 UUID = x.UUID
             }).ToArray();
-        
+
         public void UpdateSource()
         {
             Accounts.Clear();
@@ -227,20 +226,20 @@ namespace Emerald.WinUI.Views.Home
             var taskID = Core.Tasks.TasksHelper.AddTask(Localized.LoginWithMicrosoft);
             var cId = await FileIO.ReadTextAsync(await StorageFile.GetFileFromPathAsync($"{Windows.ApplicationModel.Package.Current.InstalledPath}\\MsalClientID.txt"));
             var msl = new MSLoginHelper();
-            await msl.Initialize(cId, (sender as MenuFlyoutItem).Tag.ToString() 
+            await msl.Initialize(cId, (sender as MenuFlyoutItem).Tag.ToString()
                 switch
-                {
-                    "DeviceCode" => MSLoginHelper.OAuthMode.DeviceCode,
-                    "Browser" => MSLoginHelper.OAuthMode.FromBrowser,
-                    _ => MSLoginHelper.OAuthMode.EmbededDialog
-                });
+            {
+                "DeviceCode" => MSLoginHelper.OAuthMode.DeviceCode,
+                "Browser" => MSLoginHelper.OAuthMode.FromBrowser,
+                _ => MSLoginHelper.OAuthMode.EmbededDialog
+            });
             try
             {
                 var r = await msl.Login();
-                if(Accounts.Any(x=> x.UUID == r.UUID))
+                if (Accounts.Any(x => x.UUID == r.UUID))
                 {
-                    if(await MessageBox.Show(Localized.MergeAccount.Localize(), Localized.MergeMsAcExistingWithNew.Localize().Replace("{Count}", Accounts.Count(x => x.UUID == r.UUID).ToString()), Enums.MessageBoxButtons.YesNo) == Enums.MessageBoxResults.Yes)
-                        Accounts.Remove(x => x.UUID!= r.UUID);
+                    if (await MessageBox.Show(Localized.MergeAccount.Localize(), Localized.MergeMsAcExistingWithNew.Localize().Replace("{Count}", Accounts.Count(x => x.UUID == r.UUID).ToString()), Enums.MessageBoxButtons.YesNo) == Enums.MessageBoxResults.Yes)
+                        Accounts.Remove(x => x.UUID != r.UUID);
                 }
                 SetEditor(r.ToAccount());
                 Core.Tasks.TasksHelper.CompleteTask(taskID);

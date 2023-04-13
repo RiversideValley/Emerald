@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 
@@ -8,20 +9,25 @@ namespace Emerald.WinUI.Models
     {
         public SquareNavigationViewItem()
         {
+            PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(IsSelected) || e.PropertyName == nameof(ShowFontIcons))
+                {
+                    InvokePropertyChanged(null);
+                }
+            };
         }
-
         public SquareNavigationViewItem(string name, bool isSelected = false, ImageSource image = null, InfoBadge infoBadge = null)
         {
             Name = name;
             IsSelected = isSelected;
             Thumbnail = image;
             InfoBadge = infoBadge;
-            this.PropertyChanged += (_, e) =>
+            PropertyChanged += (_, e) =>
             {
-                if (e.PropertyName == nameof(IsSelected))
+                if (e.PropertyName == nameof(IsSelected) || e.PropertyName == nameof(ShowFontIcons))
                 {
-                    InvokePropertyChanged(nameof(ShowFontIcons));
-                    InvokePropertyChanged(nameof(ShowSolidFontIcons));
+                    InvokePropertyChanged(null);
                 }
             };
         }
@@ -48,14 +54,12 @@ namespace Emerald.WinUI.Models
         [ObservableProperty]
         private InfoBadge _InfoBadge;
 
-
+        [ObservableProperty]
         private bool _ShowFontIcons;
-        public bool ShowFontIcons
-        {
-            get => _ShowFontIcons ? (IsSelected ? false : true) : false;
-            set => Set(ref _ShowFontIcons, value);
-        }
-        public bool ShowSolidFontIcons => _ShowFontIcons ? (IsSelected ? true : false) : false;
-        public bool ShowThumbnail => !_ShowFontIcons;
+
+        public Visibility FontIconVisibility => ShowFontIcons && !IsSelected ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility SolidFontIconVisibility => ShowFontIcons && IsSelected ? Visibility.Visible : Visibility.Collapsed;
+
+        public bool ShowThumbnail => !ShowFontIcons;
     }
 }

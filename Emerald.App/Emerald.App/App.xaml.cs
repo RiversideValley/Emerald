@@ -8,7 +8,7 @@ namespace Emerald.WinUI
     {
         private readonly SingleInstanceDesktopApp _singleInstanceApp;
         public readonly Core.Emerald Launcher = new();
-       
+
         public static Task<string> CheckForUpdates()
         {
             return null;

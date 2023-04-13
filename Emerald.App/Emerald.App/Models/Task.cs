@@ -4,7 +4,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 
 namespace Emerald.WinUI.Models
 {
@@ -39,12 +38,7 @@ namespace Emerald.WinUI.Models
             ID = iD;
             Severity = severity;
             CustomControls = customCOntrols;
-            (App.Current.MainWindow.Content as FrameworkElement).ActualThemeChanged += (_, _) => this.InvokePropertyChanged();
-            this.PropertyChanged += (_, e) =>
-            {
-                if(e.PropertyName == nameof(RemoveButtonVisibility))
-                    this.InvokePropertyChanged();
-            };
+            (App.Current.MainWindow.Content as FrameworkElement).ActualThemeChanged += (_, _) => InvokePropertyChanged();
         }
     }
 
@@ -57,7 +51,7 @@ namespace Emerald.WinUI.Models
         private bool _IsIndeterminate;
 
         public Visibility ProgressVisibility => RemoveButtonVisibility == Visibility.Visible ? Visibility.Collapsed : (Progress != 100 || IsIndeterminate ? Visibility.Visible : Visibility.Collapsed);
-        
+
         public Visibility ProgressTextVisibility => !IsIndeterminate ? Visibility.Visible : Visibility.Collapsed;
 
 
@@ -65,6 +59,11 @@ namespace Emerald.WinUI.Models
         {
             IsIndeterminate = isIndeterminate;
             Progress = progress;
+            PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(RemoveButtonVisibility) || e.PropertyName == nameof(Progress) || e.PropertyName == nameof(IsIndeterminate))
+                    InvokePropertyChanged();
+            };
         }
     }
 }

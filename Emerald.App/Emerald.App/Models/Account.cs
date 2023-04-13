@@ -2,7 +2,6 @@
 using Emerald.Core;
 using Emerald.WinUI.Enums;
 using Emerald.WinUI.Helpers;
-using Newtonsoft.Json;
 
 namespace Emerald.WinUI.Models
 {
@@ -36,7 +35,7 @@ namespace Emerald.WinUI.Models
 
         public string TypeString
             => IsFake ? Localized.MicrosoftOrOffline.Localize() : (IsOffline ? Localized.OfflineAccount.Localize() : Localized.MicrosoftAccount.Localize());
-        
+
         [ObservableProperty]
         private bool _IsChecked;
 

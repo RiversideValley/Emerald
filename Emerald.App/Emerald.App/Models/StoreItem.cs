@@ -1,10 +1,8 @@
 ﻿using Emerald.Core;
-using Emerald.Core.Store.Results;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Version = Emerald.Core.Store.Results.Version;
 
@@ -16,7 +14,7 @@ namespace Emerald.WinUI.Models
         public string Description { get; private set; }
         public async Task<string> BigDescriptionAsync()
         {
-            var mod = await App.Current.Launcher.Labrinth.GetProject(ProjectID,Name);
+            var mod = await App.Current.Launcher.Labrinth.GetProject(ProjectID, Name);
             return mod?.Body;
         }
         public string ProjectID { get; set; }
@@ -26,8 +24,8 @@ namespace Emerald.WinUI.Models
         public int TotalDownloads { get; set; }
         public string TotalDownloadsString { get { return TotalDownloads.KiloFormat(); } }
         public async Task<List<Version>> GetDownloadVersionsAsync()
-            => await App.Current.Launcher.Labrinth.GetVersions(ProjectID,Name);
-        
+            => await App.Current.Launcher.Labrinth.GetVersions(ProjectID, Name);
+
         public string[] SupportedVers { get; set; }
 
 
@@ -49,15 +47,15 @@ namespace Emerald.WinUI.Models
 
         public StoreItem(Core.Store.Results.Hit hit)
         {
-            this.Name = hit.Title;
-            this.Description = hit.Description;
-            this.Icon = new BitmapImage(new Uri(hit.Icon_url));
-            this.TotalDownloads = hit.Downloads;
-            this.SupportedVers = hit.Versions;
-            this.ProjectID = hit.Project_ID;
-            this.sampleImages = hit.Gallery.ToList();
-            this.Author = hit.Author;
-            this.Followers = hit.Follows;
+            Name = hit.Title;
+            Description = hit.Description;
+            Icon = new BitmapImage(new Uri(hit.Icon_url));
+            TotalDownloads = hit.Downloads;
+            SupportedVers = hit.Versions;
+            ProjectID = hit.Project_ID;
+            sampleImages = hit.Gallery.ToList();
+            Author = hit.Author;
+            Followers = hit.Follows;
         }
     }
 }

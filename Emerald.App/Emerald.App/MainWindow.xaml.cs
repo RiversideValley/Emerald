@@ -3,7 +3,6 @@ using Emerald.Core.Tasks;
 using Emerald.WinUI.Helpers;
 using Emerald.WinUI.Models;
 using Emerald.WinUI.UserControls;
-using Emerald.WinUI.Views.Home;
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
@@ -19,8 +18,6 @@ namespace Emerald.WinUI
     public sealed partial class MainWindow : Window
     {
         public static Views.Home.HomePage HomePage { get; private set; }
-
-        public static Views.Home.NewsPage NewsPage { get; private set; }
 
         public static Color BGTintColor { get; private set; }
 
@@ -106,7 +103,7 @@ namespace Emerald.WinUI
                 {
                     if (e is TaskAddRequestedEventArgs task)
                     {
-                        var id =  TaskView.AddProgressTask(string.Join(" ", (task.Name ?? "").Split(" ").Select(s => s.Localize())), 0, InfoBarSeverity.Informational, true, task.ID);
+                        var id = TaskView.AddProgressTask(string.Join(" ", (task.Name ?? "").Split(" ").Select(s => s.Localize())), 0, InfoBarSeverity.Informational, true, task.ID);
                         if (task.Message != null)
                             TaskView.ChangeDescription(id, task.Message);
 
@@ -165,12 +162,12 @@ namespace Emerald.WinUI
                 SS.Settings.App.Appearance.PropertyChanged += (s, e) =>
                 {
                     TintColor();
-                    (this.Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
+                    (Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
 
                 };
 
                 TintColor();
-                (this.Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
+                (Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
             }
 
             Settings();
@@ -178,7 +175,7 @@ namespace Emerald.WinUI
             HomePage = new();
             MainFrame.Content = HomePage;
 
-            (this.Content as FrameworkElement).Loaded -= Initialize;
+            (Content as FrameworkElement).Loaded -= Initialize;
         }
 
         private void UpdateTasksInfoBadge() =>
@@ -240,10 +237,6 @@ namespace Emerald.WinUI
                     {
                         NavigateOnce(typeof(Views.Store.StorePage));
                     }
-                    else if (h == "News".Localize())
-                    {
-                        MainFrame.Content = NewsPage;
-                    }
                     else if (h == "Tasks".Localize())
                     {
                         TaskViewFlyout.ShowAt(args.InvokedItemContainer, new() { Placement = FlyoutPlacementMode.Right, ShowMode = FlyoutShowMode.Standard });
@@ -267,11 +260,11 @@ namespace Emerald.WinUI
                 {
                 }
 
-                var pitm = ((SquareNavigationViewItem)(SelectedItemIndex.Source == 0 ?
+                var pitm = (SquareNavigationViewItem)(SelectedItemIndex.Source == 0 ?
                         NavView.MenuItems[SelectedItemIndex.Index] :
                         (SelectedItemIndex.Source == 1 ?
                             NavView.FooterMenuItems[SelectedItemIndex.Index] :
-                            NavView.SelectedItem)));
+                            NavView.SelectedItem));
                 pitm.IsSelected = pitm == itm;
 
                 UpdateSelectedItem();

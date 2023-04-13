@@ -1,5 +1,5 @@
 namespace Emerald.Core.News.JSON
-{ 
+{
     public class NewsPageImage
     {
         public string title { get; set; }

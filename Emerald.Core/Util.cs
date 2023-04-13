@@ -1,7 +1,4 @@
-﻿using Emerald.Core.Store;
-using Newtonsoft.Json;
-
-namespace Emerald.Core
+﻿namespace Emerald.Core
 {
     public static class Util
     {

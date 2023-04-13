@@ -10,7 +10,7 @@ namespace Emerald.WinUI.UserControls
     {
         public NavViewItem()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
         private string _IconGlyph;
 
@@ -22,7 +22,7 @@ namespace Emerald.WinUI.UserControls
             set
             {
                 _IconGlyph = value;
-                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IconGlyph)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IconGlyph)));
             }
         }
     }

@@ -114,7 +114,7 @@ namespace Emerald.Core
         /// <summary>
         /// Creates a Minecraft <see cref="System.Diagnostics.Process"/> using the given <paramref name="ver"/> and <paramref name="launchOption"/>(s)
         /// </summary>
-        public async Task<System.Diagnostics.Process?> CreateProcessAsync(string ver, MLaunchOption launchOption,bool createTask = true)
+        public async Task<System.Diagnostics.Process?> CreateProcessAsync(string ver, MLaunchOption launchOption, bool createTask = true)
         {
             var id = createTask ? TasksHelper.AddProgressTask(Localized.LaunchMC) : int.MaxValue;
             int prog = 0;

@@ -249,7 +249,7 @@ namespace Emerald.WinUI.Helpers
             var verMdata = App.Current.Launcher.MCVersions.Where(x => x.Name == ver).FirstOrDefault();
             MinecraftVersion Optifines = new();
 
-            if(App.Current.Launcher.OptifineMCVersions != null && App.Current.Launcher.OptifineMCVersions.Any())
+            if (App.Current.Launcher.OptifineMCVersions != null && App.Current.Launcher.OptifineMCVersions.Any())
             {
                 var Optfvers = App.Current.Launcher.OptifineMCVersions.Where(x => x.McVersion == ver);
                 if (Optfvers.Any())
@@ -263,7 +263,7 @@ namespace Emerald.WinUI.Helpers
             {
                 return CreateItem($"{displayVer ?? ver} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType);
             }
-            else if(string.IsNullOrEmpty(fabricVer) && Optifines != null && Optifines.SubVersions.Any())
+            else if (string.IsNullOrEmpty(fabricVer) && Optifines != null && Optifines.SubVersions.Any())
             {
                 var i = CreateItem(displayVer ?? ver, ver);
                 i.SubVersions = new()
@@ -283,7 +283,7 @@ namespace Emerald.WinUI.Helpers
                     CreateItem($"{displayVer ?? ver} Vanilla", "vanilla-" + ver, type: type ?? verMdata.MType),
                     CreateItem($"{displayVer ?? ver} Fabric", "fabricMC-" + fabricVer,  type: type ?? verMdata.MType)
                 };
-                if(Optifines.SubVersions.Any())
+                if (Optifines.SubVersions.Any())
                 {
                     i.SubVersions.Add(Optifines);
                 }

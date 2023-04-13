@@ -14,7 +14,7 @@ namespace Emerald.WinUI.Helpers.Settings
         public static JSON.Account[] Accounts { get; set; }
 
         public static event EventHandler<string>? APINoMatch;
-        public static T GetSerializedFromSettings<T>(string key,T def)
+        public static T GetSerializedFromSettings<T>(string key, T def)
         {
             string json;
             try
@@ -25,7 +25,7 @@ namespace Emerald.WinUI.Helpers.Settings
             }
             catch
             {
-                json =  JsonConvert.SerializeObject(def);
+                json = JsonConvert.SerializeObject(def);
                 ApplicationData.Current.RoamingSettings.Values[key] = json;
                 return def;
             }

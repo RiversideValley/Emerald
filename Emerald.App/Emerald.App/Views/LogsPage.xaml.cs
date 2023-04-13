@@ -3,19 +3,8 @@
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.Storage;
 using WinUIEx;
 
@@ -31,7 +20,7 @@ namespace Emerald.WinUI.Views
     {
         public LogsPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
             MainWindow.HomePage.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == "Logs")
@@ -50,9 +39,9 @@ namespace Emerald.WinUI.Views
             p.FileTypeChoices.Add("Logs File", new List<string> { ".log" });
             p.FileTypeChoices.Add("Text File", new List<string> { ".txt" });
             var f = await p.PickSaveFileAsync();
-            if (f!= null)
+            if (f != null)
             {
-               await FileIO.WriteTextAsync(f, MainWindow.HomePage.Logs);
+                await FileIO.WriteTextAsync(f, MainWindow.HomePage.Logs);
             }
         }
     }

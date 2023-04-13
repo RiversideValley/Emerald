@@ -12,7 +12,7 @@ namespace Emerald.WinUI.UserControls
         private readonly ExpanderViewModel VM = new();
         public Expander()
         {
-            this.InitializeComponent();
+            InitializeComponent();
             // this.Loaded += (_,_) =>
             //this.Content = new Helpers.CompositionControl { ContentTemplateSelector = ExpanderSelector, Content = VM };
         }

@@ -17,7 +17,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 using Task = System.Threading.Tasks.Task;
@@ -265,7 +264,7 @@ namespace Emerald.WinUI.Views.Home
         private async Task Launch()
         {
             UI(false);
-            var verItm = (VersionButton.Content as Models.MinecraftVersion);
+            var verItm = VersionButton.Content as Models.MinecraftVersion;
             var ver = verItm.GetLaunchVersion();
             if (verItm.Version.StartsWith("fabricMC"))
             {
@@ -309,7 +308,7 @@ namespace Emerald.WinUI.Views.Home
 
         private async void LaunchButton_Click(object sender, RoutedEventArgs e)
         {
-            var verItm = (VersionButton.Content as Models.MinecraftVersion);
+            var verItm = VersionButton.Content as Models.MinecraftVersion;
             var ver = verItm.GetLaunchVersion();
 
             if (Session == null)
@@ -364,7 +363,7 @@ namespace Emerald.WinUI.Views.Home
                 GameProcess.OutputDataReceived += (s, e) => App.Current.MainWindow.DispatcherQueue.TryEnqueue(() => Logs += "\n" + e.Data);
                 GameProcess.ErrorDataReceived += (s, e) => App.Current.MainWindow.DispatcherQueue.TryEnqueue(() => Logs += "\n" + e.Data);
             }
-            var t = new Thread(async () => 
+            var t = new Thread(async () =>
             {
                 App.Current.MainWindow.DispatcherQueue.TryEnqueue(() => App.Current.Launcher.GameRuns = true);
                 GameProcess.Start();
@@ -388,7 +387,7 @@ namespace Emerald.WinUI.Views.Home
                 PrimaryFrameGrid.Visibility = Visibility.Visible;
                 SecondaryFrame.Visibility = Visibility.Collapsed;
             };
-            SecondaryFrame.Content= n;
+            SecondaryFrame.Content = n;
             PrimaryFrameGrid.Visibility = Visibility.Collapsed;
             SecondaryFrame.Visibility = Visibility.Visible;
         }

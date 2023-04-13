@@ -13,19 +13,19 @@ namespace Emerald.WinUI.Views.Store
     {
         public StorePage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
 
         private void StoreItem_Click(object sender, RoutedEventArgs e)
         {
-            InstallerPane.Pane = new InstallerPage() { Item = ((sender as Button).DataContext as StoreItem) };
+            InstallerPane.Pane = new InstallerPage() { Item = (sender as Button).DataContext as StoreItem };
         }
 
         private async void txtSearch_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
             {
-               var r = await App.Current.Launcher.Labrinth.Search(txtSearch.Text, 30, SettingsSystem.Settings.App.Store.SortOptions.GetResult(), SettingsSystem.Settings.App.Store.Filter.GetResult());
+                var r = await App.Current.Launcher.Labrinth.Search(txtSearch.Text, 30, SettingsSystem.Settings.App.Store.SortOptions.GetResult(), SettingsSystem.Settings.App.Store.Filter.GetResult());
                 storeItemsGrid.ItemsSource = r.Hits.Select(x => new Models.StoreItem(x));
                 pnlEmpty.Visibility = r.Hits.Select(x => new Models.StoreItem(x)).Any() ? Visibility.Collapsed : Visibility.Visible;
             }

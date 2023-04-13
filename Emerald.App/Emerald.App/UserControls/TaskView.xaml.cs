@@ -1,4 +1,4 @@
-﻿    using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System;
@@ -20,7 +20,7 @@ namespace Emerald.WinUI.UserControls
 
         public TaskView()
         {
-            this.InitializeComponent();
+            InitializeComponent();
             Tasks.CollectionChanged += (_, _) =>
                 txtEmpty.Visibility = Tasks.Any() ? Visibility.Collapsed : Visibility.Visible;
             lv.ItemsSource = Tasks;
@@ -156,7 +156,7 @@ namespace Emerald.WinUI.UserControls
 
         private void btnRemoveTask_Click(object sender, RoutedEventArgs e)
         {
-            Tasks.Remove(((sender as Button).DataContext as Models.Task));
+            Tasks.Remove((sender as Button).DataContext as Models.Task);
         }
 
         private void delete_Invoked(SwipeItem sender, SwipeItemInvokedEventArgs args)
