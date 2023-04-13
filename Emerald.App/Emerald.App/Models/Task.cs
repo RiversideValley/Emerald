@@ -54,7 +54,7 @@ namespace Emerald.WinUI.Models
 
         public Visibility ProgressTextVisibility => !IsIndeterminate ? Visibility.Visible : Visibility.Collapsed;
 
-
+        public Visibility IconVisibility => RemoveButtonVisibility == Visibility.Visible || ProgressVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
         public ProgressTask(string content, DateTime time, int iD, int progress = 0, InfoBarSeverity severity = InfoBarSeverity.Informational, bool isIndeterminate = false, ObservableCollection<UIElement> customCOntrols = null) : base(content, time, iD, severity, customCOntrols)
         {
             IsIndeterminate = isIndeterminate;
