@@ -625,4 +625,10 @@
   <data name="Followers" xml:space="preserve">
     <value>Followers</value>
   </data>
+  <data name="MergeAccount" xml:space="preserve">
+    <value>Merge Account</value>
+  </data>
+  <data name="MergeMsAcExistingWithNew" xml:space="preserve">
+    <value>{Count} Microsoft account with same UUID already exist(s) in the accounts. Do you want to merge them together?</value>
+  </data>
 </root>
