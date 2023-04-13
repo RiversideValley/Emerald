@@ -3,6 +3,7 @@ using Emerald.Core.Tasks;
 using Emerald.WinUI.Helpers;
 using Emerald.WinUI.Models;
 using Emerald.WinUI.UserControls;
+using Emerald.WinUI.Views.Home;
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
@@ -18,6 +19,8 @@ namespace Emerald.WinUI
     public sealed partial class MainWindow : Window
     {
         public static Views.Home.HomePage HomePage { get; private set; }
+
+        public static Views.Home.NewsPage NewsPage { get; private set; }
 
         public static Color BGTintColor { get; private set; }
 
@@ -236,6 +239,10 @@ namespace Emerald.WinUI
                     else if (h == "Store".Localize())
                     {
                         NavigateOnce(typeof(Views.Store.StorePage));
+                    }
+                    else if (h == "News".Localize())
+                    {
+                        MainFrame.Content = NewsPage;
                     }
                     else if (h == "Tasks".Localize())
                     {
