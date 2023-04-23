@@ -17,7 +17,7 @@ namespace Emerald.WinUI
         public App()
         {
             InitializeComponent();
-            _singleInstanceApp = new SingleInstanceDesktopApp("Riverside.Depth.EmeraldLauncher");
+            _singleInstanceApp = new SingleInstanceDesktopApp("Riverside.Emerald");
             _singleInstanceApp.Launched += OnSingleInstanceLaunched;
         }
 
