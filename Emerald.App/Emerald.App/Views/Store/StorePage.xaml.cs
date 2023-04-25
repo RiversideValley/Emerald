@@ -26,8 +26,8 @@ namespace Emerald.WinUI.Views.Store
             try
             {
                 var r = await App.Current.Launcher.Labrinth.Search(txtSearch.Text, 30, SettingsSystem.Settings.App.Store.SortOptions.GetResult(), SettingsSystem.Settings.App.Store.Filter.GetResult());
-                storeItemsGrid.ItemsSource = r.Hits.Select(x => new Models.StoreItem(x));
-                pnlEmpty.Visibility = r.Hits.Select(x => new Models.StoreItem(x)).Any() ? Visibility.Collapsed : Visibility.Visible;
+                storeItemsGrid.ItemsSource = r.Hits.Select(x => new StoreItem(x));
+                pnlEmpty.Visibility = r.Hits.Select(x => new StoreItem(x)).Any() ? Visibility.Collapsed : Visibility.Visible;
             }
             catch { }
         }

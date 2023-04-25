@@ -47,7 +47,7 @@ namespace Emerald.Core.Store
 
         private int DownloadTaskID;
 
-        public void DownloadMod(Results.File file, CmlLib.Core.MinecraftPath mcPath = null)
+        public void DownloadMod(Results.File file, MinecraftPath mcPath = null)
         {
             DownloadTaskID = Tasks.TasksHelper.AddProgressTask($"{Localized.Download} {file.Filename}");
             var mods = System.IO.Directory.CreateDirectory((mcPath == null ? MCPath.BasePath : mcPath.BasePath) + "\\mods").FullName;

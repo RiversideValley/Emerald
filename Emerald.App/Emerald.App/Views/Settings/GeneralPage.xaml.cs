@@ -21,10 +21,9 @@ namespace Emerald.WinUI.Views.Settings
             var fop = new FolderPicker();
             WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
             var f = await fop.PickSingleFolderAsync();
+
             if (f != null)
-            {
                 SS.Settings.Minecraft.Path = f.Path;
-            }
         }
 
         private void btnRamPlus_Click(object sender, RoutedEventArgs e) =>

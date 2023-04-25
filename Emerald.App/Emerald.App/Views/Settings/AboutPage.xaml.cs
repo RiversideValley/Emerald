@@ -137,5 +137,13 @@ namespace Emerald.WinUI.Views.Settings
                 }.ToContentDialog($"{b.Time.ToLongDateString()} {b.Time.ToShortTimeString()}", Localized.OK.Localize()).ShowAsync();
             }
         }
+
+        private async void LoadBackup_Click(object sender, RoutedEventArgs e)
+        {
+            if (await WindowsHelloResult())
+            {
+                var b = (SettingsBackup)lvBackups.SelectedItems[0];
+            }
+        }
     }
 }

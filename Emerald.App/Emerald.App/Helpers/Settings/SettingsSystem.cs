@@ -11,7 +11,7 @@ namespace Emerald.WinUI.Helpers.Settings
     public static class SettingsSystem
     {
         public static JSON.Settings Settings { get; private set; }
-        public static JSON.Account[] Accounts { get; set; }
+        public static Account[] Accounts { get; set; }
 
         public static event EventHandler<string>? APINoMatch;
         public static T GetSerializedFromSettings<T>(string key, T def)
@@ -33,7 +33,7 @@ namespace Emerald.WinUI.Helpers.Settings
         public static void LoadData()
         {
             Settings = GetSerializedFromSettings("Settings", JSON.Settings.CreateNew());
-            Accounts = GetSerializedFromSettings("Accounts", Array.Empty<JSON.Account>());
+            Accounts = GetSerializedFromSettings("Accounts", Array.Empty<Account>());
 
             if (Settings.APIVersion != "1.3")
             {

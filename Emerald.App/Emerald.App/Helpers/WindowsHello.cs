@@ -19,7 +19,7 @@ namespace Emerald.WinUI.Helpers
             if (await IsAvailable())
             {
                 _ = d.ShowAsync();
-                var keyCreationResult = await KeyCredentialManager.RequestCreateAsync("Depth.Emerald", KeyCredentialCreationOption.ReplaceExisting);
+                var keyCreationResult = await KeyCredentialManager.RequestCreateAsync("Riverside.Emerald", KeyCredentialCreationOption.ReplaceExisting);
                 d.Hide();
 
                 if (keyCreationResult.Status == KeyCredentialStatus.Success)
@@ -34,6 +34,6 @@ namespace Emerald.WinUI.Helpers
         }
 
         public static bool IsRecentlyAuthenticated(int Minutes) =>
-           LastSucessedTime != DateTime.MaxValue && (DateTime.Now.Date == LastSucessedTime.Date) && (LastSucessedTime.AddMinutes(Minutes).Minute >= DateTime.Now.Minute) && (DateTime.Now.Minute >= LastSucessedTime.Minute);
+           LastSucessedTime != DateTime.MaxValue && (DateTime.Now.Date == LastSucessedTime.Date) && (LastSucessedTime.AddMinutes(Minutes) >= DateTime.Now);
     }
 }

@@ -103,6 +103,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public string Type { get; set; }
         public string Username { get; set; }
         public string AccessToken { get; set; }
+        public string ClientToken { get; set; }
         public string UUID { get; set; }
         public bool LastAccessed { get; set; }
     }

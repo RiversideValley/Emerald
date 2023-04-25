@@ -361,8 +361,8 @@
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
                         Click="VersionButton_Click"
-                        ContentTemplate="{StaticResource MCVersionTemplate}"
-                        IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}" />
+                        HorizontalContentAlignment="Left"
+                        ContentTemplate="{StaticResource MCVersionTemplate}" />
 
                     <Button
                         x:Name="LaunchButton"
@@ -370,7 +370,6 @@
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
                         Click="LaunchButton_Click"
-                        IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}"
                         Style="{ThemeResource AccentButtonStyle}">
                         <TextBlock
                             HorizontalAlignment="Center"

@@ -78,7 +78,7 @@ namespace Emerald.WinUI
 
                 if (r == Enums.MessageBoxResults.CustomResult2)
                 {
-                    SS.CreateBackup(BackupState.Backup);
+                    _ = SS.CreateBackup(BackupState.Backup);
                 }
             }
 

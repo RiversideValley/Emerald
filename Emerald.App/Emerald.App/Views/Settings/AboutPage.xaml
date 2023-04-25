@@ -149,14 +149,15 @@
                             <AppBarButton
                                 Click="DeleteBackup_Click"
                                 Icon="Delete"
-                                Label="{helpers:Localize CustomName=Delete,
-                                                         RESW=Settings}" />
+                                Label="{helpers:Localize CustomName=Delete}" />
                             <AppBarButton
                                 Click="ViewBackup_Click"
                                 Icon="View"
-                                Label="{helpers:Localize CustomName=View,
-                                                         RESW=Settings}" />
-                            <AppBarButton Icon="Upload" Label="{helpers:Localize CustomName=TryLoad, RESW=Settings}" />
+                                Label="{helpers:Localize CustomName=View}" />
+                            <AppBarButton
+                                Click="LoadBackup_Click"
+                                Icon="Upload" 
+                                Label="{helpers:Localize CustomName=TryLoad}" />
                         </CommandBar>
                         <ListView x:Name="lvBackups" SelectionChanged="lvBackups_SelectionChanged">
                             <ListView.ItemTemplate>

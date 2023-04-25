@@ -170,13 +170,13 @@ namespace Emerald.WinUI.Helpers
         public static Models.Account ToAccount(this CmlLib.Core.Auth.MSession session, bool plusCount = true)
         {
             bool isOffline = session.UUID == "user_uuid";
-            return new Models.Account(session.Username, isOffline ? null : session.AccessToken, isOffline ? null : session.UUID, plusCount ? MainWindow.HomePage.AccountsPage.AllCount++ : 0, false);
+            return new Models.Account(session.Username, isOffline ? null : session.AccessToken, isOffline ? null : session.UUID, plusCount ? MainWindow.HomePage.AccountsPage.AllCount++ : 0, false,session.ClientToken);
         }
 
         public static CmlLib.Core.Auth.MSession ToMSession(this Models.Account account)
         {
             bool isOffline = account.UUID == null;
-            return new CmlLib.Core.Auth.MSession(account.UserName, isOffline ? "access_token" : account.AccessToken, isOffline ? "user_uuid" : account.UUID);
+            return new CmlLib.Core.Auth.MSession(account.UserName, isOffline ? "access_token" : account.AccessToken, isOffline ? "user_uuid" : account.UUID, account.ClientToken);
         }
     }
 }

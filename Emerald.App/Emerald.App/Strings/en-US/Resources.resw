@@ -631,4 +631,13 @@
   <data name="MergeMsAcExistingWithNew" xml:space="preserve">
     <value>{Count} Microsoft account with same UUID already exist(s) in the accounts. Do you want to merge them together?</value>
   </data>
+  <data name="AutoLogin" xml:space="preserve">
+    <value>Auto login</value>
+  </data>
+  <data name="AutoLoginDescription" xml:space="preserve">
+    <value>Automatically tries to login with the most recent account at startup</value>
+  </data>
+  <data name="GeneralSettings" xml:space="preserve">
+    <value>General Settings</value>
+  </data>
 </root>

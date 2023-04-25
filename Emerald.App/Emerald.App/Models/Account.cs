@@ -15,6 +15,8 @@ namespace Emerald.WinUI.Models
 
         public string UUID { get; set; }
 
+        public string ClientToken { get; set; }
+
         public int Count { get; set; }
 
         public bool Last { get; set; }
@@ -43,7 +45,7 @@ namespace Emerald.WinUI.Models
 
         public bool IsFake => UUID == "fake" || AccessToken == "fake";
 
-        public Account(string username, string accesstoken, string uuid, int count, bool last)
+        public Account(string username, string accesstoken, string uuid, int count, bool last,string clientToken = null)
         {
             CheckBoxLoaded = false;
             IsChecked = false;
@@ -52,6 +54,7 @@ namespace Emerald.WinUI.Models
             UUID = uuid;
             Count = count;
             Last = last;
+            ClientToken = clientToken;
         }
     }
 }

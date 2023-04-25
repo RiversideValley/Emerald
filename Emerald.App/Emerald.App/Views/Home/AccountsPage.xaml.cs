@@ -148,13 +148,11 @@ namespace Emerald.WinUI.Views.Home
             var a = (sender as Button).DataContext as Account;
             SetEditor(null);
             MainWindow.HomePage.Session = a.ToMSession();
-            Accounts.Add(a);
-
             foreach (var item in Accounts)
-            {
                 item.Last = false;
-            }
+            
             a.Last = true;
+            Accounts.Add(a);
             AccountLogged?.Invoke(this, new());
         }
 
@@ -173,7 +171,8 @@ namespace Emerald.WinUI.Views.Home
                 LastAccessed = x.Last,
                 Type = x.Type.ToString(),
                 Username = x.UserName,
-                UUID = x.UUID
+                UUID = x.UUID,
+                ClientToken = x.ClientToken
             }).ToArray();
 
         public void UpdateSource()
