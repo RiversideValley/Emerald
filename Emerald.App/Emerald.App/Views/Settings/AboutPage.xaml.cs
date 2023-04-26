@@ -1,5 +1,4 @@
-﻿using ColorCode.Compilation.Languages;
-using CommunityToolkit.WinUI.UI.Controls;
+﻿using CommunityToolkit.WinUI.UI.Controls;
 using Emerald.Core;
 using Emerald.WinUI.Enums;
 using Emerald.WinUI.Helpers;
@@ -30,7 +29,7 @@ namespace Emerald.WinUI.Views.Settings
         }
         private void InvokePropertyChanged(string name = null)
         {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
         private bool _LoadBackupCMDBar = false;
         private bool LoadBackupCMDBar
@@ -42,7 +41,7 @@ namespace Emerald.WinUI.Views.Settings
 
         public AboutPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
             Start();
         }
 
@@ -114,7 +113,7 @@ namespace Emerald.WinUI.Views.Settings
             {
                 foreach (var itm in lvBackups.SelectedItems.Cast<SettingsBackup>())
                 {
-                   await SS.DeleteBackup(itm.Time);
+                    await SS.DeleteBackup(itm.Time);
                 }
                 UpdateBackupList();
             }
@@ -124,7 +123,7 @@ namespace Emerald.WinUI.Views.Settings
         {
             if (await WindowsHelloResult())
             {
-                var b = ((SettingsBackup)lvBackups.SelectedItems[0]);
+                var b = (SettingsBackup)lvBackups.SelectedItems[0];
                 _ = new ScrollViewer()
                 {
                     HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -136,6 +135,14 @@ namespace Emerald.WinUI.Views.Settings
                         TextWrapping = TextWrapping.WrapWholeWords
                     }
                 }.ToContentDialog($"{b.Time.ToLongDateString()} {b.Time.ToShortTimeString()}", Localized.OK.Localize()).ShowAsync();
+            }
+        }
+
+        private async void LoadBackup_Click(object sender, RoutedEventArgs e)
+        {
+            if (await WindowsHelloResult())
+            {
+                var b = (SettingsBackup)lvBackups.SelectedItems[0];
             }
         }
     }

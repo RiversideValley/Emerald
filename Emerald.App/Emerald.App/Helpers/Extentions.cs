@@ -1,5 +1,5 @@
-﻿using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Concurrent;
@@ -16,7 +16,7 @@ namespace Emerald.WinUI.Helpers
     {
         private static readonly ConcurrentDictionary<string, string> cachedResources = new();
 
-        public static void ShowAt(this TeachingTip tip, FrameworkElement element, TeachingTipPlacementMode placement = TeachingTipPlacementMode.Auto, bool closeWhenClick = true,bool addToMainGrid = true)
+        public static void ShowAt(this TeachingTip tip, FrameworkElement element, TeachingTipPlacementMode placement = TeachingTipPlacementMode.Auto, bool closeWhenClick = true, bool addToMainGrid = true)
         {
             if (addToMainGrid)
                 (App.Current.MainWindow.Content as Grid).Children.Add(tip);
@@ -143,7 +143,7 @@ namespace Emerald.WinUI.Helpers
                 }
 
                 rl = new ResourceManager();
-                
+
                 ResourceMap resourcesTree = rl.MainResourceMap.TryGetSubtree("Resources");
                 value = resourcesTree?.TryGetValue(resourceKey)?.ValueAsString;
                 cachedResources[resourceKey] = value ?? resourceKey;
@@ -167,16 +167,16 @@ namespace Emerald.WinUI.Helpers
             return string.IsNullOrEmpty(str) || string.IsNullOrWhiteSpace(str);
         }
 
-        public static Models.Account ToAccount(this CmlLib.Core.Auth.MSession session,bool plusCount = true)
+        public static Models.Account ToAccount(this CmlLib.Core.Auth.MSession session, bool plusCount = true)
         {
             bool isOffline = session.UUID == "user_uuid";
-            return new Models.Account(session.Username, isOffline ? null : session.AccessToken, isOffline ? null : session.UUID, plusCount ? MainWindow.HomePage.AccountsPage.AllCount++ : 0, false);
+            return new Models.Account(session.Username, isOffline ? null : session.AccessToken, isOffline ? null : session.UUID, plusCount ? MainWindow.HomePage.AccountsPage.AllCount++ : 0, false,session.ClientToken);
         }
 
         public static CmlLib.Core.Auth.MSession ToMSession(this Models.Account account)
         {
             bool isOffline = account.UUID == null;
-            return new CmlLib.Core.Auth.MSession(account.UserName, isOffline ? "access_token" : account.AccessToken, isOffline ? "user_uuid" : account.UUID);
+            return new CmlLib.Core.Auth.MSession(account.UserName, isOffline ? "access_token" : account.AccessToken, isOffline ? "user_uuid" : account.UUID, account.ClientToken);
         }
     }
 }

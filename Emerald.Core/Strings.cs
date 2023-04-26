@@ -6,7 +6,6 @@
         Welcome,
         LaunchMC,
         GetFabric,
-
         GetMods,
         GettingMods,
         SearchStore,
@@ -17,7 +16,6 @@
         LoadingMod,
         LoadDownloadVers,
         LoadingDownloadVers,
-
         GettingFabric,
         PickVer,
         SwitchOffline,
@@ -87,6 +85,8 @@
         GameIsRunning,
         Changelogs,
         News,
-        Search
+        Search,
+        MergeAccount,
+        MergeMsAcExistingWithNew
     }
 }

@@ -1,13 +1,10 @@
 ﻿using CmlLib.Core.Auth;
 using CmlLib.Core.Auth.Microsoft;
-using CmlLib.Core.Auth.Microsoft.Mojang;
 using CmlLib.Core.Auth.Microsoft.MsalClient;
-using Emerald.Core;
 using Microsoft.Identity.Client;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Markup;
 using System;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
@@ -48,7 +45,7 @@ namespace Emerald.WinUI.Helpers
             else
                 builder = builder.WithMsalOAuth(app, factory => new MsalInteractiveOAuthApi(app, x => x.WithUseEmbeddedWebView(false)));
 
-           handler = builder.Build();
+            handler = builder.Build();
         }
         private void InitializeInformDialog(DeviceCodeResult result)
         {
@@ -56,8 +53,8 @@ namespace Emerald.WinUI.Helpers
             {
                 var m = new StackPanel() { VerticalAlignment = VerticalAlignment.Stretch };
                 var lt = "GotoLinkAndEnterDeviceCode".Localize();
-                var cb = new Button() 
-                { 
+                var cb = new Button()
+                {
                     Content = new Microsoft.UI.Xaml.Controls.FontIcon() { Glyph = "\uE16F" },
                     Padding = new(5)
                 };
@@ -104,10 +101,10 @@ namespace Emerald.WinUI.Helpers
                     Inlines =
                     {
                         new Run() { Text = lt.Remove(lt.IndexOf('{')) },
-                        new Hyperlink() 
-                        { 
-                            Inlines = { new Run() { Text = result.VerificationUrl} }, 
-                            NavigateUri = new Uri(result.VerificationUrl) 
+                        new Hyperlink()
+                        {
+                            Inlines = { new Run() { Text = result.VerificationUrl} },
+                            NavigateUri = new Uri(result.VerificationUrl)
                         },
                         new Run() { Text = lt.Remove(0, lt.IndexOf('}') + 1) },
                         t
@@ -115,7 +112,7 @@ namespace Emerald.WinUI.Helpers
                 });
                 m.Children.Add(c);
                 m.Children.Add(new ProgressBar() { IsIndeterminate = true, Margin = new(0, 5, 0, 0) });
-                InformDialog =  m.ToContentDialog("SignInWithMS".Localize());
+                InformDialog = m.ToContentDialog("SignInWithMS".Localize());
                 InformDialog.Closing += (_, e) => e.Cancel = IsInTask;
                 _ = InformDialog.ShowAsync();
             });

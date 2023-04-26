@@ -29,15 +29,15 @@ namespace Emerald.Core.News
             set => Set(ref _Entries, value, nameof(Entries));
         }
 
-        public ObservableCollection<JSON.Entry> Search(string key,string[] filter = null)
+        public ObservableCollection<JSON.Entry> Search(string key, string[] filter = null)
         {
             if (AllEntries == null)
                 return new();
 
 
-            if(string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key))
+            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key))
             {
-                Entries = new(AllEntries.Where(x=> filter == null || filter.Contains(x.Category)));
+                Entries = new(AllEntries.Where(x => filter == null || filter.Contains(x.Category)));
                 return Entries;
             }
 

@@ -1,7 +1,6 @@
 ﻿using Emerald.Core;
 using Emerald.WinUI.Helpers;
 using Microsoft.UI.Xaml.Controls;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Windows.UI;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
@@ -96,7 +95,7 @@ namespace Emerald.WinUI.Views.Settings
 
         private void CustomTintColor_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
-            
+
             var c = SS.Settings.App.Appearance.CustomMicaTintColor;
             var cp = new ColorPicker()
             {

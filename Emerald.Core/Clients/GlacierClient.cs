@@ -36,7 +36,7 @@ namespace Emerald.Core.Clients
                             StatusChanged("Downloading Glacier Client", new EventArgs());
                             try
                             {
-                                this.ProgressChanged(this, new ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
+                                ProgressChanged(this, new ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
                             }
                             catch
                             {

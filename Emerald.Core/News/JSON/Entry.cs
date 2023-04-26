@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 
-namespace Emerald.Core.News.JSON{
+namespace Emerald.Core.News.JSON
+{
 
     public class Entry
     {

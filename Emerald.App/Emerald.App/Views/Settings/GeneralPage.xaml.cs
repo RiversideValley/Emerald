@@ -1,19 +1,8 @@
-﻿using Emerald.Core;
-using Emerald.Core.Tasks;
-using Emerald.WinUI.Helpers;
-using Emerald.WinUI.Models;
-using Emerald.WinUI.UserControls;
-using Microsoft.UI;
-using Microsoft.UI.Composition.SystemBackdrops;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
-using System.Linq;
-using Windows.UI;
-using static System.Net.WebRequestMethods;
-using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 using Windows.Storage.Pickers;
+using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 
 namespace Emerald.WinUI.Views.Settings
 {
@@ -24,7 +13,7 @@ namespace Emerald.WinUI.Views.Settings
     {
         public GeneralPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
 
         private async void btnChangeMPath_Click(object sender, RoutedEventArgs e)
@@ -32,23 +21,22 @@ namespace Emerald.WinUI.Views.Settings
             var fop = new FolderPicker();
             WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
             var f = await fop.PickSingleFolderAsync();
-            if(f != null)
-            {
+
+            if (f != null)
                 SS.Settings.Minecraft.Path = f.Path;
-            }
         }
 
         private void btnRamPlus_Click(object sender, RoutedEventArgs e) =>
             SS.Settings.Minecraft.RAM = SS.Settings.Minecraft.RAM + 50;
-        
+
 
         private void btnRamMinus_Click(object sender, RoutedEventArgs e) =>
             SS.Settings.Minecraft.RAM = SS.Settings.Minecraft.RAM - 50;
-        
 
-        private void btnAutoRAM_Click(object sender, RoutedEventArgs e)=>
+
+        private void btnAutoRAM_Click(object sender, RoutedEventArgs e) =>
             SS.Settings.Minecraft.RAM = DirectResoucres.MaxRAM / 2;
-        
+
 
     }
 }

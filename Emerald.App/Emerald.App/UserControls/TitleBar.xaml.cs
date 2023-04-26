@@ -9,7 +9,7 @@ namespace Emerald.WinUI.UserControls
     {
         public TitleBar()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
     }
 }

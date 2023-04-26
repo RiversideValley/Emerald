@@ -1,14 +1,9 @@
 ﻿using CmlLib.Core;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ProjBobcat.Class.Helper;
 using ProjBobcat.Class.Model.Optifine;
 using ProjBobcat.DefaultComponent.Installer;
 using System.Net;
-using ProjBobcat.Class.Helper;
 
 namespace Emerald.Core
 {
@@ -40,7 +35,7 @@ namespace Emerald.Core
             }
         }
 
-        public async Task<(bool,string)> Save(OptifineDownloadVersionModel model)
+        public async Task<(bool, string)> Save(OptifineDownloadVersionModel model)
         {
             double makePrcent(double value, double CurrentMax, double NextMax) => value * NextMax / CurrentMax;
 
@@ -87,7 +82,7 @@ namespace Emerald.Core
             }
             catch (Exception ex)
             {
-                return (false,ex.Message);
+                return (false, ex.Message);
             }
         }
     }

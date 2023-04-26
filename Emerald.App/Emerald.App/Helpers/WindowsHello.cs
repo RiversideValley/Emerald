@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Emerald.Core;
+using Microsoft.UI.Xaml.Controls;
+using System;
 using System.Threading.Tasks;
 using Windows.Security.Credentials;
-using Emerald.WinUI.Helpers;
-using Microsoft.UI.Xaml.Controls;
-using Emerald.Core;
 namespace Emerald.WinUI.Helpers
 {
     public static class WindowsHello
@@ -19,11 +15,11 @@ namespace Emerald.WinUI.Helpers
         public static async Task<bool> Authenticate()
         {
             var d = new ProgressBar() { IsIndeterminate = true }.ToContentDialog(Localized.AuthWindowshello.Localize());
-            
+
             if (await IsAvailable())
             {
                 _ = d.ShowAsync();
-                var keyCreationResult = await KeyCredentialManager.RequestCreateAsync("Depth.Emerald", KeyCredentialCreationOption.ReplaceExisting);
+                var keyCreationResult = await KeyCredentialManager.RequestCreateAsync("Riverside.Emerald", KeyCredentialCreationOption.ReplaceExisting);
                 d.Hide();
 
                 if (keyCreationResult.Status == KeyCredentialStatus.Success)
@@ -38,6 +34,6 @@ namespace Emerald.WinUI.Helpers
         }
 
         public static bool IsRecentlyAuthenticated(int Minutes) =>
-           LastSucessedTime != DateTime.MaxValue && (DateTime.Now.Date == LastSucessedTime.Date) && (LastSucessedTime.AddMinutes(Minutes).Minute >= DateTime.Now.Minute) && (DateTime.Now.Minute >= LastSucessedTime.Minute);
+           LastSucessedTime != DateTime.MaxValue && (DateTime.Now.Date == LastSucessedTime.Date) && (LastSucessedTime.AddMinutes(Minutes) >= DateTime.Now);
     }
 }

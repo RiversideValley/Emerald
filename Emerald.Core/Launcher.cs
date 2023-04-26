@@ -1,5 +1,6 @@
 ﻿using CmlLib.Core;
 using CmlLib.Core.Downloader;
+using CmlLib.Core.Files;
 using CmlLib.Core.Installer.FabricMC;
 using CmlLib.Core.Version;
 using CmlLib.Core.VersionLoader;
@@ -11,6 +12,7 @@ using Emerald.Core.Store;
 using Emerald.Core.Tasks;
 using ProjBobcat.Class.Model.Optifine;
 using System.ComponentModel;
+using Windows.System;
 using ProgressChangedEventArgs = Emerald.Core.Args.ProgressChangedEventArgs;
 
 namespace Emerald.Core
@@ -47,8 +49,8 @@ namespace Emerald.Core
         private bool _UIState;
         public bool UIState
         {
-            get => GameRuns ? false : _UIState;
-            set => Set(ref _UIState, value);
+            get => !GameRuns && _UIState;
+            set => Set(ref _UIState, value,nameof(UIState));
         }
 
         private bool _GameRuns;
@@ -114,18 +116,31 @@ namespace Emerald.Core
         /// <summary>
         /// Creates a Minecraft <see cref="System.Diagnostics.Process"/> using the given <paramref name="ver"/> and <paramref name="launchOption"/>(s)
         /// </summary>
-        public async Task<System.Diagnostics.Process?> CreateProcessAsync(string ver, MLaunchOption launchOption,bool createTask = true)
+        public async Task<System.Diagnostics.Process?> CreateProcessAsync(string ver, MLaunchOption launchOption, bool createTask = true, bool SkipAssetsCheck = false, bool SkipHashCheck = false)
         {
-            var id = createTask ? TasksHelper.AddProgressTask(Localized.LaunchMC) : default;
+            if (UseOfflineLoader)
+                SkipAssetsCheck = SkipHashCheck = true;
+
+            Launcher.GameFileCheckers.AssetFileChecker = SkipAssetsCheck ? null : new();
+
+            if (Launcher.GameFileCheckers.AssetFileChecker != null)
+                Launcher.GameFileCheckers.AssetFileChecker.CheckHash = !SkipHashCheck;
+
+            if (Launcher.GameFileCheckers.ClientFileChecker != null)
+                Launcher.GameFileCheckers.ClientFileChecker.CheckHash = !SkipHashCheck;
+
+            if (Launcher.GameFileCheckers.LibraryFileChecker != null)
+                Launcher.GameFileCheckers.LibraryFileChecker.CheckHash = !SkipHashCheck;
+
+            var id = createTask ? TasksHelper.AddProgressTask(Localized.LaunchMC) : int.MaxValue;
             int prog = 0;
             string message = "";
 
             void ProgChange(object sender, System.ComponentModel.ProgressChangedEventArgs e)
             {
+                prog = e.ProgressPercentage;
                 if (createTask)
                     TasksHelper.EditProgressTask(id, prog, message: message);
-
-                prog = e.ProgressPercentage;
             };
 
             void FileChange(DownloadFileChangedEventArgs e)

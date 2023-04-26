@@ -1,119 +1,69 @@
-﻿using Emerald.WinUI.Helpers;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Emerald.WinUI.Helpers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 
 namespace Emerald.WinUI.Models
 {
-    public interface ITask : INotifyPropertyChanged
+    public partial class Task : Model
     {
-        public string Content { get; set; }
-        public string Description { get; set; }
-        public object UniqueThings { get; set; }
-        public DateTime Time { get; set; }
-        public int ID { get; set; }
-        public InfoBarSeverity Severity { get; set; }
-        public ObservableCollection<UIElement> CustomControls { get; set; }
-        public Visibility RemoveButtonVisibility { get; set; }
-        public Visibility IconVisibility { get; }
-        public bool HasDescription();
-    }
-
-    public class StringTask : Model, ITask
-    {
+        [ObservableProperty]
         private string _Content;
-        public string Content { get => _Content; set => Set(ref _Content, value); }
 
+        [ObservableProperty]
         private string _Description;
-        public string Description { get => _Description; set => Set(ref _Description, value); }
 
         public DateTime Time { get; set; }
 
         public int ID { get; set; }
 
-        private InfoBarSeverity _Severty;
-        public InfoBarSeverity Severity { get => _Severty; set => Set(ref _Severty, value); }
+        [ObservableProperty]
+        private InfoBarSeverity _Severity;
 
-        public object UniqueThings { get; set; }
+        [ObservableProperty]
+        private ObservableCollection<UIElement> _CustomControls;
 
-        public ObservableCollection<UIElement> _CustomControls;
-        public ObservableCollection<UIElement> CustomControls { get => _CustomControls; set => Set(ref _CustomControls, value); }
-
+        [ObservableProperty]
         public Visibility _RemoveButtonVisibility = Visibility.Collapsed;
-        public Visibility RemoveButtonVisibility { get => _RemoveButtonVisibility; set => Set(ref _RemoveButtonVisibility, value); }
 
-        public Visibility IconVisibility { get => RemoveButtonVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible; }
+        public Visibility IconVisibility => RemoveButtonVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+
         public bool HasDescription() => !Description.IsNullEmptyOrWhiteSpace();
-
-        public StringTask(string content, DateTime time, int iD, InfoBarSeverity severity, object uniqueThings = null, ObservableCollection<UIElement> customCOntrols = null)
+        public Task(string content, DateTime time, int iD, InfoBarSeverity severity, ObservableCollection<UIElement> customCOntrols = null)
         {
             Content = content;
             Time = time;
             ID = iD;
             Severity = severity;
-            UniqueThings = uniqueThings;
             CustomControls = customCOntrols;
-            (App.Current.MainWindow.Content as FrameworkElement).ActualThemeChanged += (_, _) => this.InvokePropertyChanged();
+            (App.Current.MainWindow.Content as FrameworkElement).ActualThemeChanged += (_, _) => InvokePropertyChanged();
         }
     }
 
-    public class ProgressTask : Model, ITask
+    public partial class ProgressTask : Task
     {
-        public object UniqueThings { get; set; }
-
-        private string _Content;
-        public string Content { get => _Content; set => Set(ref _Content, value); }
-
-        private string _Description;
-        public string Description { get => _Description; set => Set(ref _Description, value); }
-
-        public DateTime Time { get; set; }
-
-        public int ID { get; set; }
-
+        [ObservableProperty]
         private int _Progress;
-        public int Progress { get => _Progress; set => Set(ref _Progress, value); }
 
+        [ObservableProperty]
         private bool _IsIndeterminate;
-        public bool IsIndeterminate { get => _IsIndeterminate; set => Set(ref _IsIndeterminate, value); }
 
-        public Visibility ProgressVisibility
-        {
-            get => RemoveButtonVisibility == Visibility.Visible ? Visibility.Collapsed : (Progress != 100 || IsIndeterminate ? Visibility.Visible : Visibility.Collapsed);
-        }
-
-        private InfoBarSeverity _Severty;
-        public InfoBarSeverity Severity { get => _Severty; set => Set(ref _Severty, value); }
-
-        public ObservableCollection<UIElement> _CustomControls;
-        public ObservableCollection<UIElement> CustomControls { get => _CustomControls; set => Set(ref _CustomControls, value); }
-
-        public Visibility _RemoveButtonVisibility = Visibility.Collapsed;
-        public Visibility RemoveButtonVisibility { get => _RemoveButtonVisibility; set => Set(ref _RemoveButtonVisibility, value); }
-
-        public Visibility IconVisibility
-        {
-            get => ProgressVisibility == Visibility.Visible || RemoveButtonVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
-        }
+        public Visibility ProgressVisibility => RemoveButtonVisibility == Visibility.Visible ? Visibility.Collapsed : (Progress != 100 || IsIndeterminate ? Visibility.Visible : Visibility.Collapsed);
 
         public Visibility ProgressTextVisibility => !IsIndeterminate ? Visibility.Visible : Visibility.Collapsed;
 
-        public bool HasDescription()
-            => !Description.IsNullEmptyOrWhiteSpace();
-
-        public ProgressTask(string content, DateTime time, int iD, int progress = 0, InfoBarSeverity severity = InfoBarSeverity.Informational, bool isIndeterminate = false, object uniquethings = null, ObservableCollection<UIElement> customCOntrols = null)
+        public Visibility IconVisibility => RemoveButtonVisibility == Visibility.Visible || ProgressVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+        public ProgressTask(string content, DateTime time, int iD, int progress = 0, InfoBarSeverity severity = InfoBarSeverity.Informational, bool isIndeterminate = false, ObservableCollection<UIElement> customCOntrols = null) : base(content, time, iD, severity, customCOntrols)
         {
-            Content = content;
-            Time = time;
-            ID = iD;
-            Progress = progress;
             IsIndeterminate = isIndeterminate;
-            UniqueThings = uniquethings;
-            Severity = severity;
-            CustomControls = customCOntrols;
-            (App.Current.MainWindow.Content as FrameworkElement).ActualThemeChanged += (_, _) => this.InvokePropertyChanged();
+            Progress = progress;
+            PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(RemoveButtonVisibility) || e.PropertyName == nameof(Progress) || e.PropertyName == nameof(IsIndeterminate))
+                    InvokePropertyChanged();
+            };
         }
     }
 }

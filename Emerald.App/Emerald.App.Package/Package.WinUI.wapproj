@@ -54,7 +54,7 @@
     <DefaultLanguage>en-US</DefaultLanguage>
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <EntryPointProjectUniqueName>..\Emerald.App\Emerald.App.csproj</EntryPointProjectUniqueName>
-    <GenerateAppInstallerFile>True</GenerateAppInstallerFile>
+    <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
     <PackageCertificateThumbprint>63553A1403CDD4894E024CB759853DA372ABCA1C</PackageCertificateThumbprint>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
@@ -62,6 +62,7 @@
     <AppxBundlePlatforms>x64</AppxBundlePlatforms>
     <AppInstallerUri>D:\Projects\Emerald\Emerald.App\Emerald.App.Package\AppPackages\</AppInstallerUri>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+    <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='SkipOld|x64'">
     <AppxBundle>Always</AppxBundle>

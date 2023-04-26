@@ -21,7 +21,7 @@
             Background="{ThemeResource LayerOnAcrylicFillColorDefault}"
             CornerRadius="{StaticResource ControlCornerRadius}"
             HorizontalScrollBarVisibility="Auto"
-            VerticalScrollBarVisibility="Auto">
+            VerticalScrollBarVisibility="Visible">
             <Grid>
                 <RichTextBlock
                     x:Name="txt"

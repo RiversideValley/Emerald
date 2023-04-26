@@ -8,7 +8,7 @@ namespace Emerald.WinUI
     {
         private readonly SingleInstanceDesktopApp _singleInstanceApp;
         public readonly Core.Emerald Launcher = new();
-       
+
         public static Task<string> CheckForUpdates()
         {
             return null;
@@ -17,7 +17,7 @@ namespace Emerald.WinUI
         public App()
         {
             InitializeComponent();
-            _singleInstanceApp = new SingleInstanceDesktopApp("Riverside.Depth.EmeraldLauncher");
+            _singleInstanceApp = new SingleInstanceDesktopApp("Riverside.Emerald");
             _singleInstanceApp.Launched += OnSingleInstanceLaunched;
         }
 

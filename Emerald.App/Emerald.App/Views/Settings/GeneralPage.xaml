@@ -20,7 +20,7 @@
 
         <StackPanel Spacing="16">
             <StackPanel Spacing="4">
-                <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=MinecraftSettings, RESW=Settings}" />
+                <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=GeneralSettings}" />
                 <uc:Expander
                     Title="{helpers:Localize CustomName=MinecraftPath,
                                              RESW=Settings}"
@@ -92,16 +92,13 @@
                 </uc:Expander>
 
                 <uc:Expander
-                    Title="{helpers:Localize CustomName=DownloadSettings,
-                                             RESW=Settings}"
-                    Description="{helpers:Localize CustomName=DownloadSettingsDescription,
-                                                   RESW=Settings}"
+                    Title="{helpers:Localize CustomName=DownloadSettings}"
+                    Description="{helpers:Localize CustomName=DownloadSettingsDescription}"
                     Icon="&#xE896;"
                     IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">
                     <StackPanel Spacing="5">
                         <uc:ExpanderItem
-                            Title="{helpers:Localize CustomName=AssetsCheck,
-                                                     RESW=Settings}"
+                            Title="{helpers:Localize CustomName=AssetsCheck}"
                             Margin="0,-10,0,0"
                             BorderVisibility="Collapsed">
                             <ToggleSwitch IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.Downloader.AssetsCheck, Mode=TwoWay}" />
@@ -110,6 +107,17 @@
                             <ToggleSwitch IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.Downloader.HashCheck, Mode=TwoWay}" />
                         </uc:ExpanderItem>
                     </StackPanel>
+                </uc:Expander>
+                <uc:Expander
+                    Title="{helpers:Localize CustomName=AutoLogin}"
+                    Description="{helpers:Localize CustomName=AutoLoginDescription}"
+                    ExpanderStyle="Static"
+                    Icon="&#xE13D;"
+                    IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">
+                    <ToggleSwitch
+                        IsOn="{x:Bind SS:SettingsSystem.Settings.App.AutoLogin, Mode=TwoWay}"
+                        OffContent="{helpers:Localize Name=No}"
+                        OnContent="{helpers:Localize Name=Yes}" />
                 </uc:Expander>
             </StackPanel>
 

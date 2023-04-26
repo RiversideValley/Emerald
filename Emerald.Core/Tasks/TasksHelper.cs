@@ -8,9 +8,9 @@
 
         public static event EventHandler<TaskCompletedEventArgs> TaskCompleteRequested = delegate { };
 
-        private static int AllTaksCount { get; set; } = 0;
+        private static int AllTaksCount { get; set; } = -1;
 
-        public static int AddTask(string name,string message= null)
+        public static int AddTask(string name, string message = null)
         {
             AllTaksCount++;
             TaskAddRequested(null, new TaskAddRequestedEventArgs(name, AllTaksCount, message));
@@ -18,7 +18,7 @@
             return AllTaksCount;
         }
 
-        public static int AddTask(Localized name,string message = null)
+        public static int AddTask(Localized name, string message = null)
         {
             AllTaksCount++;
             TaskAddRequested(null, new TaskAddRequestedEventArgs(name.ToString(), AllTaksCount, message));
@@ -42,9 +42,9 @@
             return AllTaksCount;
         }
 
-        public static void EditProgressTask(int ID, int value = 0, int maxVal = 100, int minVal = 0,string message = null)
+        public static void EditProgressTask(int ID, int value = 0, int maxVal = 100, int minVal = 0, string message = null)
         {
-            ProgressTaskEditRequested(null, new ProgressTaskEventArgs(null, AllTaksCount, maxVal, minVal, value, message));
+            ProgressTaskEditRequested(null, new ProgressTaskEventArgs(null, ID, maxVal, minVal, value, message));
         }
 
         public static void CompleteTask(int ID, bool success = true, string message = null)
@@ -56,6 +56,7 @@
     public interface TaskEventArgs
     {
         public int ID { get; }
+        public string Message { get; }
     }
 
     public class TaskCompletedEventArgs : EventArgs, TaskEventArgs

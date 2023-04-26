@@ -2,7 +2,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-// https://social.msdn.microsoft.com/Forums/windowsapps/en-US/b2e0f948-df35-49da-a70f-1892205b8570/contenttemplateselector-datatemplateselectorselecttemplatecore-item-parameter-is-always-null?forum=winappswithcsharp
 namespace Emerald.WinUI.Converters
 {
     public class TaskViewTemplateSelector : DataTemplateSelector
@@ -12,12 +11,12 @@ namespace Emerald.WinUI.Converters
 
         protected override DataTemplate SelectTemplateCore(object item)
         {
-            return ((Models.ITask)item is Models.StringTask) ? String : Progress;
+            return (item is Models.ProgressTask) ?  Progress : String;
         }
 
         protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
         {
-            return ((Models.ITask)item is Models.StringTask) ? String : Progress;
+            return (item is Models.ProgressTask) ? Progress : String;
         }
     }
 

@@ -2,7 +2,6 @@
 using Emerald.Core;
 using Emerald.WinUI.Enums;
 using Emerald.WinUI.Helpers;
-using Newtonsoft.Json;
 
 namespace Emerald.WinUI.Models
 {
@@ -15,6 +14,8 @@ namespace Emerald.WinUI.Models
         public string AccessToken { get; set; }
 
         public string UUID { get; set; }
+
+        public string ClientToken { get; set; }
 
         public int Count { get; set; }
 
@@ -36,7 +37,7 @@ namespace Emerald.WinUI.Models
 
         public string TypeString
             => IsFake ? Localized.MicrosoftOrOffline.Localize() : (IsOffline ? Localized.OfflineAccount.Localize() : Localized.MicrosoftAccount.Localize());
-        
+
         [ObservableProperty]
         private bool _IsChecked;
 
@@ -44,7 +45,7 @@ namespace Emerald.WinUI.Models
 
         public bool IsFake => UUID == "fake" || AccessToken == "fake";
 
-        public Account(string username, string accesstoken, string uuid, int count, bool last)
+        public Account(string username, string accesstoken, string uuid, int count, bool last,string clientToken = null)
         {
             CheckBoxLoaded = false;
             IsChecked = false;
@@ -53,6 +54,7 @@ namespace Emerald.WinUI.Models
             UUID = uuid;
             Count = count;
             Last = last;
+            ClientToken = clientToken;
         }
     }
 }

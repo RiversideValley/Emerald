@@ -17,9 +17,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
+using Task = System.Threading.Tasks.Task;
 
 namespace Emerald.WinUI.Views.Home
 {
@@ -121,9 +121,8 @@ namespace Emerald.WinUI.Views.Home
             }
 
             if (SystemInformation.Instance.IsFirstRun)
-            {
                 ShowTips();
-            }
+            
         }
 
         public void ShowTips()
@@ -211,13 +210,13 @@ namespace Emerald.WinUI.Views.Home
             txtVerOfflineMode.Visibility = App.Current.Launcher.UseOfflineLoader ? Visibility.Visible : Visibility.Collapsed;
             treeVer.ItemsSource = null;
             treeVer.ItemsSource = new MCVersionsCreator().CreateVersions();
-            txtEmptyVers.Visibility = !(treeVer.ItemsSource as ObservableCollection<Models.MinecraftVersion>).Any() ? Visibility.Visible : Visibility.Collapsed;
+            txtEmptyVers.Visibility = !(treeVer.ItemsSource as ObservableCollection<MinecraftVersion>).Any() ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void txtbxFindVer_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
             var vers = new MCVersionsCreator().CreateVersions();
-            var suitableItems = new ObservableCollection<Models.MinecraftVersion>();
+            var suitableItems = new ObservableCollection<MinecraftVersion>();
             var splitText = sender.Text.ToLower().Split(" ");
             foreach (var ver in vers)
             {
@@ -238,13 +237,13 @@ namespace Emerald.WinUI.Views.Home
             {
                 treeVer.ItemsSource = suitableItems;
             }
-            txtEmptyVers.Visibility = (treeVer.ItemsSource as IEnumerable<Models.MinecraftVersion>).Count() == 0 ? Visibility.Visible : Visibility.Collapsed;
+            txtEmptyVers.Visibility = (treeVer.ItemsSource as IEnumerable<MinecraftVersion>).Count() == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void treeVer_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
         {
-            VersionButton.Content = ((Models.MinecraftVersion)args.InvokedItem).SubVersions.Count > 0 ? VersionButton.Content : ((Models.MinecraftVersion)args.InvokedItem);
-            if (((Models.MinecraftVersion)args.InvokedItem).SubVersions.Count == 0)
+            VersionButton.Content = ((MinecraftVersion)args.InvokedItem).SubVersions.Count > 0 ? VersionButton.Content : ((MinecraftVersion)args.InvokedItem);
+            if (((MinecraftVersion)args.InvokedItem).SubVersions.Count == 0)
             {
                 PaneIsOpen = false;
             }
@@ -264,7 +263,7 @@ namespace Emerald.WinUI.Views.Home
         private async Task Launch()
         {
             UI(false);
-            var verItm = (VersionButton.Content as Models.MinecraftVersion);
+            var verItm = VersionButton.Content as MinecraftVersion;
             var ver = verItm.GetLaunchVersion();
             if (verItm.Version.StartsWith("fabricMC"))
             {
@@ -298,17 +297,18 @@ namespace Emerald.WinUI.Views.Home
             }
             l.FullScreen = SS.Settings.Minecraft.JVM.FullScreen;
             l.JVMArguments = SS.Settings.Minecraft.JVM.Arguments;
-            var process = await App.Current.Launcher.CreateProcessAsync(ver, l);
+
+            var process = await App.Current.Launcher.CreateProcessAsync(ver, l, true, !SS.Settings.Minecraft.Downloader.AssetsCheck, !SS.Settings.Minecraft.Downloader.HashCheck);
+
             if (process != null)
-            {
                 StartProcess(process);
-            }
+            
             UI(true);
         }
 
         private async void LaunchButton_Click(object sender, RoutedEventArgs e)
         {
-            var verItm = (VersionButton.Content as Models.MinecraftVersion);
+            var verItm = VersionButton.Content as MinecraftVersion;
             var ver = verItm.GetLaunchVersion();
 
             if (Session == null)
@@ -363,7 +363,7 @@ namespace Emerald.WinUI.Views.Home
                 GameProcess.OutputDataReceived += (s, e) => App.Current.MainWindow.DispatcherQueue.TryEnqueue(() => Logs += "\n" + e.Data);
                 GameProcess.ErrorDataReceived += (s, e) => App.Current.MainWindow.DispatcherQueue.TryEnqueue(() => Logs += "\n" + e.Data);
             }
-            var t = new Thread(async () => 
+            var t = new Thread(async () =>
             {
                 App.Current.MainWindow.DispatcherQueue.TryEnqueue(() => App.Current.Launcher.GameRuns = true);
                 GameProcess.Start();
@@ -387,7 +387,7 @@ namespace Emerald.WinUI.Views.Home
                 PrimaryFrameGrid.Visibility = Visibility.Visible;
                 SecondaryFrame.Visibility = Visibility.Collapsed;
             };
-            SecondaryFrame.Content= n;
+            SecondaryFrame.Content = n;
             PrimaryFrameGrid.Visibility = Visibility.Collapsed;
             SecondaryFrame.Visibility = Visibility.Visible;
         }
