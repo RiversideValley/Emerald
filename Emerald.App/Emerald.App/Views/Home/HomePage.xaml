@@ -1,0 +1,419 @@
+﻿<Page
+    x:Class="Emerald.WinUI.Views.Home.HomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Main="using:Emerald.WinUI"
+    xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:helpers="using:Emerald.WinUI.Helpers"
+    xmlns:local="using:Emerald.WinUI.Views.Home"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:Emerald.WinUI.Models"
+    xmlns:settings="using:Emerald.WinUI.Helpers.Settings"
+    xmlns:uc="using:Emerald.WinUI.UserControls"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+
+        <DataTemplate x:Key="MCVersionTemplate" x:DataType="models:MinecraftVersion">
+            <Grid
+                Margin="0,4"
+                VerticalAlignment="Center"
+                ColumnSpacing="8">
+                <Grid.ChildrenTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition />
+                    </TransitionCollection>
+                </Grid.ChildrenTransitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Image
+                    Height="24"
+                    VerticalAlignment="Top"
+                    Source="{x:Bind BlockImageLocation}"
+                    Stretch="Fill" />
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock
+                        FontWeight="SemiBold"
+                        Text="{x:Bind DisplayVersion}"
+                        TextTrimming="CharacterEllipsis" />
+                    <TextBlock
+                        FontSize="12"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        TextTrimming="CharacterEllipsis"
+                        Visibility="{x:Bind DescriptionVisibility}">
+                        <Run Text="{x:Bind TypeString}" />
+                        <Run Text="|" />
+                        <Run Text="{x:Bind Version}" />
+                    </TextBlock>
+                </StackPanel>
+
+            </Grid>
+        </DataTemplate>
+
+    </Page.Resources>
+
+    <Grid>
+
+        <Grid x:Name="PrimaryFrameGrid" Margin="24,0,24,24">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="VersionsSelectorPanelColumnDefinition" Width="0" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <SplitView
+                x:Name="paneVersions"
+                Margin="0,0,12,0"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                DisplayMode="Inline"
+                IsPaneOpen="{x:Bind PaneIsOpen, Mode=OneWay}"
+                OpenPaneLength="350"
+                PaneBackground="{ThemeResource LayerFillColorDefaultBrush}"
+                PanePlacement="Left">
+
+                <SplitView.Pane>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Padding="8,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel
+                                Grid.Column="0"
+                                Margin="8"
+                                Orientation="Vertical">
+                                <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="{helpers:Localize Name=PickVer}" />
+                                <TextBlock
+                                    x:Name="txtVerOfflineMode"
+                                    VerticalAlignment="Bottom"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                    Text="{helpers:Localize Name=OfflineMode}" />
+                            </StackPanel>
+
+                            <Button
+                                x:Name="btnCloseVerPane"
+                                Grid.Column="1"
+                                Padding="8,6"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Click="btnCloseVerPane_Click">
+                                <FontIcon Glyph="&#xE711;" />
+                            </Button>
+
+                        </Grid>
+
+                        <Grid
+                            Grid.Row="1"
+                            Padding="8,0"
+                            ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <AutoSuggestBox
+                                x:Name="txtbxFindVer"
+                                VerticalAlignment="Center"
+                                IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}"
+                                PlaceholderText="Search for a version"
+                                QueryIcon="Find"
+                                TextChanged="txtbxFindVer_TextChanged" />
+
+                            <DropDownButton
+                                x:Name="btnVerSort"
+                                Grid.Column="1"
+                                Height="32"
+                                VerticalAlignment="Center"
+                                IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">
+                                <FontIcon FontSize="14" Glyph="&#xE71C;" />
+                                <DropDownButton.Flyout>
+                                    <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                        <ToggleMenuFlyoutItem
+                                            Click="tglMitVerSort_Click"
+                                            IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Release, Mode=TwoWay}"
+                                            Text="{helpers:Localize CustomName=TypeRelease}" />
+                                        <ToggleMenuFlyoutItem
+                                            Click="tglMitVerSort_Click"
+                                            IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Snapshot, Mode=TwoWay}"
+                                            Text="{helpers:Localize CustomName=TypeSnapshot}" />
+                                        <ToggleMenuFlyoutItem
+                                            Click="tglMitVerSort_Click"
+                                            IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.OldBeta, Mode=TwoWay}"
+                                            Text="{helpers:Localize CustomName=TypeOldBeta}" />
+                                        <ToggleMenuFlyoutItem
+                                            Click="tglMitVerSort_Click"
+                                            IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.OldAlpha, Mode=TwoWay}"
+                                            Text="{helpers:Localize CustomName=TypeOldAlpha}" />
+                                        <ToggleMenuFlyoutItem
+                                            Click="tglMitVerSort_Click"
+                                            IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Custom, Mode=TwoWay}"
+                                            Text="{helpers:Localize CustomName=TypeCustom}" />
+                                    </MenuFlyout>
+                                </DropDownButton.Flyout>
+                            </DropDownButton>
+
+                        </Grid>
+
+                        <Border
+                            Grid.Row="2"
+                            Height="1"
+                            Margin="0,8,0,0"
+                            Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                        <ScrollViewer
+                            Grid.Row="3"
+                            HorizontalScrollBarVisibility="Auto"
+                            HorizontalScrollMode="Auto">
+                            <TreeView
+                                x:Name="treeVer"
+                                Margin="0,4"
+                                CanDragItems="False"
+                                CanReorderItems="False"
+                                IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}"
+                                ItemInvoked="treeVer_ItemInvoked"
+                                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                ScrollViewer.HorizontalScrollMode="Disabled"
+                                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                ScrollViewer.VerticalScrollMode="Disabled"
+                                SelectionMode="None">
+
+                                <TreeView.ItemContainerStyle>
+                                    <Style TargetType="TreeViewItem">
+                                        <Setter Property="CollapsedGlyph" Value="&#xE70D;" />
+                                        <Setter Property="ExpandedGlyph" Value="&#xE70E;" />
+                                    </Style>
+                                </TreeView.ItemContainerStyle>
+
+                                <TreeView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:MinecraftVersion">
+                                        <TreeViewItem
+                                            x:DefaultBindMode="OneWay"
+                                            Content="{x:Bind}"
+                                            ContentTemplate="{StaticResource MCVersionTemplate}"
+                                            GlyphSize="11"
+                                            ItemsSource="{x:Bind SubVersions}" />
+                                    </DataTemplate>
+                                </TreeView.ItemTemplate>
+
+                            </TreeView>
+                        </ScrollViewer>
+
+                        <TextBlock
+                            x:Name="txtEmptyVers"
+                            Grid.Row="3"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Text="{helpers:Localize Name=Empty}"
+                            Visibility="Collapsed" />
+
+                    </Grid>
+                </SplitView.Pane>
+
+            </SplitView>
+
+            <Grid
+                x:Name="MainGrid"
+                Grid.Column="1"
+                ChildrenTransitions="{StaticResource EntranceThemeTransition}"
+                RowSpacing="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="1*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4">
+
+                    <uc:AdaptiveItemPane
+                        Margin="12,12,0,12"
+                        VerticalAlignment="Center"
+                        IsStackedCenter="False"
+                        StretchContent="True">
+
+                        <uc:AdaptiveItemPane.LeftPane>
+                            <HyperlinkButton
+                                x:Name="AccountButton"
+                                Height="66"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                HorizontalContentAlignment="Left"
+                                Click="AccountButton_Click"
+                                Content="{x:Bind SessionAsAccount, Mode=OneWay}"
+                                Foreground="{ThemeResource ApplicationForegroundThemeBrush}">
+                                <HyperlinkButton.ContentTemplate>
+                                    <DataTemplate x:DataType="models:Account">
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <PersonPicture
+                                                Width="48"
+                                                Height="48"
+                                                DisplayName="{x:Bind UserName}"
+                                                ProfilePicture="{x:Bind ProfilePicture}" />
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="20"
+                                                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                                                    Text="{x:Bind UserName}" />
+                                                <TextBlock
+                                                    x:Name="type"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    Text="{x:Bind TypeString}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </HyperlinkButton.ContentTemplate>
+                            </HyperlinkButton>
+                        </uc:AdaptiveItemPane.LeftPane>
+
+                        <uc:AdaptiveItemPane.RightPane>
+                            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <HyperlinkButton
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left"
+                                    Background="Transparent"
+                                    BorderBrush="Transparent"
+                                    Click="NewsButton_Click"
+                                    Foreground="{ThemeResource ApplicationForegroundThemeBrush}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon
+                                            VerticalAlignment="Center"
+                                            FontSize="16"
+                                            Glyph="&#xF57E;" />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource BodyTextBlockStyle}"
+                                            Text="{helpers:Localize Name=News}" />
+                                    </StackPanel>
+                                </HyperlinkButton>
+                                <HyperlinkButton
+                                    Height="30"
+                                    Padding="10,5"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left"
+                                    Background="Transparent"
+                                    BorderBrush="Transparent"
+                                    Foreground="{ThemeResource ApplicationForegroundThemeBrush}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon
+                                            VerticalAlignment="Center"
+                                            FontSize="16"
+                                            Glyph="&#xE8E4;" />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource BodyTextBlockStyle}"
+                                            Text="{helpers:Localize Name=Changelogs}" />
+                                    </StackPanel>
+                                </HyperlinkButton>
+                            </StackPanel>
+                        </uc:AdaptiveItemPane.RightPane>
+
+                    </uc:AdaptiveItemPane>
+
+                </Grid>
+
+                <Grid
+                    Grid.Row="1"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center"
+                    Visibility="Visible">
+                    <FlipView
+                        x:Name="FlipView"
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4" />
+                </Grid>
+
+                <Grid
+                    Grid.Row="2"
+                    Height="60"
+                    VerticalAlignment="Bottom">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" MaxWidth="230" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" MaxWidth="250" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button
+                        x:Name="VersionButton"
+                        Grid.Column="0"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Click="VersionButton_Click"
+                        HorizontalContentAlignment="Left"
+                        ContentTemplate="{StaticResource MCVersionTemplate}" />
+
+                    <Button
+                        x:Name="LaunchButton"
+                        Grid.Column="2"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Click="LaunchButton_Click"
+                        Style="{ThemeResource AccentButtonStyle}">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                            Text="{helpers:Localize Name=LaunchMC}" />
+                    </Button>
+
+                </Grid>
+
+                <TeachingTip
+                    x:Name="AccountTip"
+                    Title="{helpers:Localize Name=ChooseAccount}"
+                    Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+                    CloseButtonContent="{helpers:Localize Name=GotIt}"
+                    PreferredPlacement="Bottom"
+                    Subtitle="{helpers:Localize Name=MicrosoftOrOffline}"
+                    Target="{x:Bind AccountButton}" />
+
+                <TeachingTip
+                    x:Name="VersionTip"
+                    Title="{helpers:Localize Name=ChooseAVersion}"
+                    Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+                    CloseButtonContent="{helpers:Localize Name=GotIt}"
+                    PreferredPlacement="Top"
+                    Subtitle="{helpers:Localize Name=VaniilaOrFabric}"
+                    Target="{x:Bind VersionButton}" />
+
+                <TeachingTip
+                    x:Name="LaunchTip"
+                    Title="{helpers:Localize Name=Launch}"
+                    Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+                    CloseButtonContent="{helpers:Localize Name=Finish}"
+                    PreferredPlacement="Top"
+                    Subtitle="{helpers:Localize Name=ThatsIt}"
+                    Target="{x:Bind LaunchButton}" />
+
+            </Grid>
+
+        </Grid>
+
+        <Frame
+            x:Name="SecondaryFrame"
+            Canvas.ZIndex="10"
+            Visibility="Collapsed" />
+
+    </Grid>
+</Page>

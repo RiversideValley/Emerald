@@ -1,0 +1,643 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string"/>
+              <xsd:attribute name="type" type="xsd:string"/>
+              <xsd:attribute name="mimetype" type="xsd:string"/>
+              <xsd:attribute ref="xml:space"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string"/>
+              <xsd:attribute name="name" type="xsd:string"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1"/>
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
+              <xsd:attribute ref="xml:space"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required"/>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AccessToken" xml:space="preserve">
+    <value>Access token</value>
+  </data>
+  <data name="AccountDetails" xml:space="preserve">
+    <value>Account Details</value>
+  </data>
+  <data name="Accounts" xml:space="preserve">
+    <value>Accounts</value>
+  </data>
+  <data name="AccountType" xml:space="preserve">
+    <value>Account Type</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="AuthWindowshello" xml:space="preserve">
+    <value>Authenticating using Windows Hello...</value>
+  </data>
+  <data name="BegLogIn" xml:space="preserve">
+    <value>Please Login</value>
+  </data>
+  <data name="BegVer" xml:space="preserve">
+    <value>Please enter a version</value>
+  </data>
+  <data name="Changelogs" xml:space="preserve">
+    <value>Changelogs</value>
+  </data>
+  <data name="ChooseAccount" xml:space="preserve">
+    <value>Choose an account</value>
+  </data>
+  <data name="ChooseAVersion" xml:space="preserve">
+    <value>Choose a version</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="ClearAll" xml:space="preserve">
+    <value>Clear All</value>
+  </data>
+  <data name="ConfigureOptifine" xml:space="preserve">
+    <value>Configure Optifine</value>
+  </data>
+  <data name="CreateOldSettingsBackup" xml:space="preserve">
+    <value>Create a backup of the old settings</value>
+  </data>
+  <data name="DeviceCode" xml:space="preserve">
+    <value>Using DeviceCode API</value>
+  </data>
+  <data name="Discord" xml:space="preserve">
+    <value>Discord</value>
+  </data>
+  <data name="Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="Downloading" xml:space="preserve">
+    <value>Downloading</value>
+  </data>
+  <data name="Duplicate" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="EmbededView" xml:space="preserve">
+    <value>Using an embeded webview</value>
+  </data>
+  <data name="Empty" xml:space="preserve">
+    <value>Empty</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>Finish!</value>
+  </data>
+  <data name="GameIsRunning" xml:space="preserve">
+    <value>Game is running...</value>
+  </data>
+  <data name="GetFabric" xml:space="preserve">
+    <value>Get Fabric</value>
+  </data>
+  <data name="GetMods" xml:space="preserve">
+    <value>Get Mods</value>
+  </data>
+  <data name="GettingFabric" xml:space="preserve">
+    <value>Getting Fabric</value>
+  </data>
+  <data name="GettingInheritedVersion" xml:space="preserve">
+    <value>Getting inherited version...</value>
+  </data>
+  <data name="GettingMods" xml:space="preserve">
+    <value>Getting Mods</value>
+  </data>
+  <data name="GettingOptifine" xml:space="preserve">
+    <value>Getting Optifine...</value>
+  </data>
+  <data name="GettingVers" xml:space="preserve">
+    <value>Getting available versions...</value>
+  </data>
+  <data name="GetVerFailed" xml:space="preserve">
+    <value>Failed to get the version</value>
+  </data>
+  <data name="GoodEvening" xml:space="preserve">
+    <value>Good Evening</value>
+  </data>
+  <data name="GoodLuck" xml:space="preserve">
+    <value>Good Luck</value>
+  </data>
+  <data name="GoodMorning" xml:space="preserve">
+    <value>Good Morning</value>
+  </data>
+  <data name="GotIt" xml:space="preserve">
+    <value>Got it!</value>
+  </data>
+  <data name="GotoLinkAndEnterDeviceCode" xml:space="preserve">
+    <value>Go to {Link} and enter the code below to sign-in</value>
+  </data>
+  <data name="Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="InitializeCore" xml:space="preserve">
+    <value>Initialize Launcher Core</value>
+  </data>
+  <data name="Latest" xml:space="preserve">
+    <value>Latest</value>
+  </data>
+  <data name="Launch" xml:space="preserve">
+    <value>Launch!</value>
+  </data>
+  <data name="LaunchingMinecraft" xml:space="preserve">
+    <value>Launching Minecraft...</value>
+  </data>
+  <data name="LaunchMC" xml:space="preserve">
+    <value>Launch Minecraft</value>
+  </data>
+  <data name="LoadChangeLogs" xml:space="preserve">
+    <value>Load ChangeLogs</value>
+  </data>
+  <data name="LoadDownloadVers" xml:space="preserve">
+    <value>Load Download Versions</value>
+  </data>
+  <data name="LoadingChangeLog" xml:space="preserve">
+    <value>Loading ChangeLog</value>
+  </data>
+  <data name="LoadingDownloadVers" xml:space="preserve">
+    <value>Loading Download Versions</value>
+  </data>
+  <data name="LoadingMod" xml:space="preserve">
+    <value>Loading Mod</value>
+  </data>
+  <data name="LoadMod" xml:space="preserve">
+    <value>Load Mod</value>
+  </data>
+  <data name="LoadSettingsFailed" xml:space="preserve">
+    <value>Failed to load the app settings accounts. The version of the setting system is different. You may have recently updated the app. Contact a developer of this app to recover the settings</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Login</value>
+  </data>
+  <data name="LoginWithMicrosoft" xml:space="preserve">
+    <value>Login with Microsoft</value>
+  </data>
+  <data name="Logs" xml:space="preserve">
+    <value>Logs</value>
+  </data>
+  <data name="MainPage_Login" xml:space="preserve">
+    <value>Login</value>
+  </data>
+  <data name="MainPage_txtbxStatus.PlaceholderText" xml:space="preserve">
+    <value>For a better RPC please add a small status!</value>
+  </data>
+  <data name="MainPage_txtStatus.Text" xml:space="preserve">
+    <value>Status:</value>
+  </data>
+  <data name="MCBedrock" xml:space="preserve">
+    <value>Minecraft for Windows</value>
+  </data>
+  <data name="MCDungeons" xml:space="preserve">
+    <value>Minecraft Dungeons</value>
+  </data>
+  <data name="MCJava" xml:space="preserve">
+    <value>Minecraft: Java Edition</value>
+  </data>
+  <data name="MCLegends" xml:space="preserve">
+    <value>Minecraft Legends</value>
+  </data>
+  <data name="MicrosoftAccount" xml:space="preserve">
+    <value>Microsoft Account</value>
+  </data>
+  <data name="MicrosoftOrOffline" xml:space="preserve">
+    <value>Microsoft or offline</value>
+  </data>
+  <data name="NewAccount" xml:space="preserve">
+    <value>New Account</value>
+  </data>
+  <data name="NewHere" xml:space="preserve">
+    <value>Looks like you are new here. Shall we go on a quick check out?</value>
+  </data>
+  <data name="News" xml:space="preserve">
+    <value>News</value>
+  </data>
+  <data name="NoNetwork" xml:space="preserve">
+    <value>Seems like you don't have good internet...</value>
+  </data>
+  <data name="NoThanks" xml:space="preserve">
+    <value>No Thanks</value>
+  </data>
+  <data name="OfflineAccount" xml:space="preserve">
+    <value>Offline account</value>
+  </data>
+  <data name="OfflineMode" xml:space="preserve">
+    <value>Offline Mode</value>
+  </data>
+  <data name="Options" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="PickVer" xml:space="preserve">
+    <value>Pick a Version</value>
+  </data>
+  <data name="RamFailed" xml:space="preserve">
+    <value>Failed to get the RAM of the device.</value>
+    <comment>Rarely Used</comment>
+  </data>
+  <data name="Ready" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="RefreshVerFailed" xml:space="preserve">
+    <value>Failed to get the Minecraft versions</value>
+  </data>
+  <data name="RefreshVers" xml:space="preserve">
+    <value>Refresh Versions</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Retry" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="SearchingStore" xml:space="preserve">
+    <value>Searching Store</value>
+  </data>
+  <data name="SearchStore" xml:space="preserve">
+    <value>Search Store</value>
+  </data>
+  <data name="Select" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="SelectAll" xml:space="preserve">
+    <value>Select All</value>
+  </data>
+  <data name="SelectNone" xml:space="preserve">
+    <value>Select None</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="SettingsPage_txtSettings.Text" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="SignInWithMS" xml:space="preserve">
+    <value>Sign-in with Microsoft</value>
+  </data>
+  <data name="Store" xml:space="preserve">
+    <value>Store</value>
+  </data>
+  <data name="Sure" xml:space="preserve">
+    <value>Sure!</value>
+  </data>
+  <data name="SwitchOffline" xml:space="preserve">
+    <value>Switch to offline mode</value>
+  </data>
+  <data name="Tasks" xml:space="preserve">
+    <value>Tasks</value>
+  </data>
+  <data name="ThatsIt" xml:space="preserve">
+    <value>That's it! Go to settings for more options</value>
+  </data>
+  <data name="TimeLeft" xml:space="preserve">
+    <value>{Time} left</value>
+  </data>
+  <data name="TypeCustom" xml:space="preserve">
+    <value>Local</value>
+  </data>
+  <data name="TypeOldAlpha" xml:space="preserve">
+    <value>OldAlpha</value>
+  </data>
+  <data name="TypeOldBeta" xml:space="preserve">
+    <value>OldBeta</value>
+  </data>
+  <data name="TypeRelease" xml:space="preserve">
+    <value>Release</value>
+  </data>
+  <data name="TypeSnapshot" xml:space="preserve">
+    <value>Snapshot</value>
+  </data>
+  <data name="UnexpectedRestart" xml:space="preserve">
+    <value>Some unexpected thing happend. Please restart the app!</value>
+  </data>
+  <data name="Username" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="UsingBrowser" xml:space="preserve">
+    <value>Using the default browser</value>
+  </data>
+  <data name="UUID" xml:space="preserve">
+    <value>UUID</value>
+  </data>
+  <data name="VaniilaOrFabric" xml:space="preserve">
+    <value>Fabric and Vanilla is officially supported</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Welcome!</value>
+    <comment>Rarely Used</comment>
+  </data>
+  <data name="Win32Error" xml:space="preserve">
+    <value>It seems your java setting has problem</value>
+    <comment>Rarely Used</comment>
+  </data>
+  <data name="WrongRAM" xml:space="preserve">
+    <value>Invalid RAM</value>
+    <comment>Rarely Used</comment>
+  </data>
+  <data name="About" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="AccentColor" xml:space="preserve">
+    <value>Accent color</value>
+  </data>
+  <data name="AdvancedMinecraftSettings" xml:space="preserve">
+    <value>Advanced Settings</value>
+  </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="AssetsCheck" xml:space="preserve">
+    <value>Assets check</value>
+  </data>
+  <data name="BuildType" xml:space="preserve">
+    <value>Build type</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="Colorful" xml:space="preserve">
+    <value>Colorful</value>
+  </data>
+  <data name="ColorMode" xml:space="preserve">
+    <value>Color Mode</value>
+  </data>
+  <data name="ColorModeDescription" xml:space="preserve">
+    <value>Choose your color</value>
+  </data>
+  <data name="Contribute" xml:space="preserve">
+    <value>Contribute</value>
+  </data>
+  <data name="CopyVersion" xml:space="preserve">
+    <value>Copy version</value>
+  </data>
+  <data name="CreateAColor" xml:space="preserve">
+    <value>Create a color</value>
+  </data>
+  <data name="CreateBackup" xml:space="preserve">
+    <value>Create Backup</value>
+  </data>
+  <data name="Credits" xml:space="preserve">
+    <value>Credits</value>
+  </data>
+  <data name="CreditsDescription" xml:space="preserve">
+    <value>Respect...</value>
+  </data>
+  <data name="CustomColor" xml:space="preserve">
+    <value>Custom color</value>
+  </data>
+  <data name="CustomColors" xml:space="preserve">
+    <value>Custom colors</value>
+  </data>
+  <data name="Dark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="DownloadSettings" xml:space="preserve">
+    <value>Download Settings</value>
+  </data>
+  <data name="DownloadSettingsDescription" xml:space="preserve">
+    <value>Optional. Recommended to turn these on</value>
+  </data>
+  <data name="GameLogs" xml:space="preserve">
+    <value>Read game logs</value>
+  </data>
+  <data name="GameLogsDescription" xml:space="preserve">
+    <value>For debug perposes</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Github" xml:space="preserve">
+    <value>Github</value>
+  </data>
+  <data name="HashCheck" xml:space="preserve">
+    <value>Hash check</value>
+  </data>
+  <data name="JVMArgs" xml:space="preserve">
+    <value>JVM Arguments</value>
+  </data>
+  <data name="JVMArgsDescription" xml:space="preserve">
+    <value>For Endermans!</value>
+  </data>
+  <data name="Light" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Links" xml:space="preserve">
+    <value>Links</value>
+  </data>
+  <data name="LinksDescription" xml:space="preserve">
+    <value>Keep up with the latest updates</value>
+  </data>
+  <data name="MCasAdmin" xml:space="preserve">
+    <value>Launch minecraft as admin</value>
+  </data>
+  <data name="MCasAdminDescription" xml:space="preserve">
+    <value>Do this at your own risk!</value>
+  </data>
+  <data name="MicaType" xml:space="preserve">
+    <value>Mica Type</value>
+  </data>
+  <data name="MicaTypeDescription" xml:space="preserve">
+    <value>Normal Mica or Mica Alt (Tabbed)</value>
+  </data>
+  <data name="MinecraftPath" xml:space="preserve">
+    <value>Minecraft Path</value>
+  </data>
+  <data name="MinecraftPathDescription" xml:space="preserve">
+    <value>The path of the minecraft client</value>
+  </data>
+  <data name="MinecraftSettings" xml:space="preserve">
+    <value>Minecraft Settings</value>
+  </data>
+  <data name="More" xml:space="preserve">
+    <value>More</value>
+  </data>
+  <data name="MoreVerInfo" xml:space="preserve">
+    <value>More version info</value>
+  </data>
+  <data name="NavIconStyle" xml:space="preserve">
+    <value>Navigation Buttons Icon Style</value>
+  </data>
+  <data name="NavIconStyleDescription" xml:space="preserve">
+    <value>Select a beautiful icons set for your sidebar</value>
+  </data>
+  <data name="NoColor" xml:space="preserve">
+    <value>No color</value>
+  </data>
+  <data name="RAM" xml:space="preserve">
+    <value>Memory</value>
+  </data>
+  <data name="RAMDescription" xml:space="preserve">
+    <value>The allocated memory of the minecraft client</value>
+  </data>
+  <data name="SettingsBackups" xml:space="preserve">
+    <value>Settings Backups</value>
+  </data>
+  <data name="SettingsBackupsDescription" xml:space="preserve">
+    <value>Create, delete, view and try to load backups of your settings</value>
+  </data>
+  <data name="SystemDefault" xml:space="preserve">
+    <value>System Default</value>
+  </data>
+  <data name="TryLoad" xml:space="preserve">
+    <value>Try to load</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="View" xml:space="preserve">
+    <value>View</value>
+  </data>
+  <data name="WindowsHello" xml:space="preserve">
+    <value>Windows Hello</value>
+  </data>
+  <data name="WindowsHelloDescription" xml:space="preserve">
+    <value>Do not create, view, load, delete backups without Windows Hello authentication</value>
+  </data>
+  <data name="WindowTintColor" xml:space="preserve">
+    <value>Window tint color</value>
+  </data>
+  <data name="WindowTintColorDescription" xml:space="preserve">
+    <value>Show a color overlay behind the app content</value>
+  </data>
+  <data name="WinHelloChangeFailed" xml:space="preserve">
+    <value>Unable to change the setting because you failed to authenticate with Windows Hello</value>
+  </data>
+  <data name="Downloads" xml:space="preserve">
+    <value/>
+  </data>
+  <data name="Followers" xml:space="preserve">
+    <value>Followers</value>
+  </data>
+  <data name="MergeAccount" xml:space="preserve">
+    <value>Merge Account</value>
+  </data>
+  <data name="MergeMsAcExistingWithNew" xml:space="preserve">
+    <value>{Count} Microsoft account with same UUID already exist(s) in the accounts. Do you want to merge them together?</value>
+  </data>
+  <data name="AutoLogin" xml:space="preserve">
+    <value>Auto login</value>
+  </data>
+  <data name="AutoLoginDescription" xml:space="preserve">
+    <value>Automatically tries to login with the most recent account at startup</value>
+  </data>
+  <data name="GeneralSettings" xml:space="preserve">
+    <value>General Settings</value>
+  </data>
+</root>

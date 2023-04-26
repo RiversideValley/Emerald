@@ -1,29 +1,5 @@
-﻿using Newtonsoft.Json;
-using Emerald.Core.Store;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Emerald.Core
+﻿namespace Emerald.Core
 {
-    public static class JSONConverter
-    {
-        public static LabrinthResults.SearchResult ConvertToLabrinthSearchResult(string json)
-        {
-            return JsonConvert.DeserializeObject<LabrinthResults.SearchResult>(json);
-        }
-        public static LabrinthResults.ModrinthProject ConvertToLabrinthProject(string json)
-        {
-            return JsonConvert.DeserializeObject<LabrinthResults.ModrinthProject>(json);
-        }
-        public static List<LabrinthResults.DownloadManager.DownloadLink> ConvertDownloadLinksToCS(string json)
-        {
-            return JsonConvert.DeserializeObject<List<LabrinthResults.DownloadManager.DownloadLink>>(json);
-        }
-    }
     public static class Util
     {
         public static bool FolderExists(string path)
@@ -32,12 +8,14 @@ namespace Emerald.Core
 
             return Directory.Exists(p);
         }
+
         public static string NormalizePath(string path)
         {
             return Path.GetFullPath(path)
                 .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
                 .TrimEnd(Path.DirectorySeparatorChar);
         }
+
         public static string KiloFormat(this int num)
         {
             if (num >= 100000000)
@@ -62,17 +40,20 @@ namespace Emerald.Core
         {
             var c = new System.Net.WebClient();
             var s = await c.DownloadStringTaskAsync(new Uri(url));
+
             return s;
         }
     }
+
     public class FileDownloader : IDisposable
     {
         private readonly string _downloadUrl;
+
         private readonly string _destinationFilePath;
 
         private HttpClient _httpClient;
 
-        public delegate void ProgressChangedHandler(long? totalFileSize, long totalBytesDownloaded, double? progressPercentage);
+        public delegate void ProgressChangedHandler(long? totalFileSize, long totalBytesDownloaded, double progressPercentage);
 
         public event ProgressChangedHandler ProgressChanged;
 
@@ -136,7 +117,8 @@ namespace Emerald.Core
             if (ProgressChanged == null)
                 return;
 
-            double? progressPercentage = null;
+            double progressPercentage = double.NaN;
+
             if (totalDownloadSize.HasValue)
                 progressPercentage = Math.Round((double)totalBytesRead / totalDownloadSize.Value * 100, 2);
 

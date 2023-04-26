@@ -1,0 +1,71 @@
+﻿<Page
+    x:Class="Emerald.WinUI.Views.Settings.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:helpers="using:Emerald.WinUI.Helpers"
+    xmlns:local="using:Emerald.WinUI.Views.Settings"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:uc="using:Emerald.WinUI.UserControls"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary>
+                    <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+                    <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
+                    <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
+                    <Thickness x:Key="NavigationViewTopPaneHeight">40</Thickness>
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <NavigationView
+            x:Name="navView"
+            Margin="8,-8,8,0"
+            Background="Transparent"
+            IsBackButtonVisible="Collapsed"
+            IsSettingsVisible="False"
+            ItemInvoked="navView_ItemInvoked"
+            PaneDisplayMode="Top">
+
+            <NavigationView.MenuItems>
+                <uc:NavViewItem
+                    Content="{helpers:Localize CustomName=General,
+                                               RESW=Settings}"
+                    IconGlyph="&#xE713;"
+                    IsSelected="True"
+                    Tag="General" />
+                <uc:NavViewItem
+                    Content="{helpers:Localize CustomName=Appearance,
+                                               RESW=Settings}"
+                    IconGlyph="&#xE771;"
+                    Tag="Appearance" />
+                <uc:NavViewItem
+                    Content="{helpers:Localize CustomName=About,
+                                               RESW=Settings}"
+                    IconGlyph="&#xE946;"
+                    Tag="About" />
+            </NavigationView.MenuItems>
+
+        </NavigationView>
+
+        <Grid
+            Grid.Row="1"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+            <ScrollViewer>
+                <Frame x:Name="contentframe" />
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Page>

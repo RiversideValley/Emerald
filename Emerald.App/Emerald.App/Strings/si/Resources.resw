@@ -1,0 +1,622 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AccessToken" xml:space="preserve">
+    <value>ප්රවේශ ටෝකනය</value>
+  </data>
+  <data name="AccountDetails" xml:space="preserve">
+    <value>ගිණුම් විස්තර</value>
+  </data>
+  <data name="Accounts" xml:space="preserve">
+    <value>ගිණුම්</value>
+  </data>
+  <data name="AccountType" xml:space="preserve">
+    <value>ගිණුම් වර්ගය</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>එකතු කරන්න</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>සෑම</value>
+  </data>
+  <data name="AuthWindowshello" xml:space="preserve">
+    <value>Windows Hello භාවිතයෙන් සත්‍යාපනය කරමින්...</value>
+  </data>
+  <data name="BegLogIn" xml:space="preserve">
+    <value>කරුණාකර ලොගින් වන්න</value>
+  </data>
+  <data name="BegVer" xml:space="preserve">
+    <value>කරුණාකර අනුවාදයක් ඇතුළු කරන්න</value>
+  </data>
+  <data name="Changelogs" xml:space="preserve">
+    <value>චේන්ජ්ලොග්</value>
+  </data>
+  <data name="ChooseAccount" xml:space="preserve">
+    <value>ගිණුමක් තෝරන්න</value>
+  </data>
+  <data name="ChooseAVersion" xml:space="preserve">
+    <value>අනුවාදයක් තෝරන්න</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>පැහැදිලිව</value>
+  </data>
+  <data name="ClearAll" xml:space="preserve">
+    <value>සියල්ල හිස් කරන්න</value>
+  </data>
+  <data name="ConfigureOptifine" xml:space="preserve">
+    <value>Optifine වින්‍යාස කරන්න</value>
+  </data>
+  <data name="CreateOldSettingsBackup" xml:space="preserve">
+    <value>පැරණි සැකසුම් වල උපස්ථයක් සාදන්න</value>
+  </data>
+  <data name="DeviceCode" xml:space="preserve">
+    <value>DeviceCode API භාවිතා කරමින්</value>
+  </data>
+  <data name="Discord" xml:space="preserve">
+    <value>අසමගිය</value>
+  </data>
+  <data name="Download" xml:space="preserve">
+    <value>බාගත</value>
+  </data>
+  <data name="Downloading" xml:space="preserve">
+    <value>බාගත කිරීම</value>
+  </data>
+  <data name="Duplicate" xml:space="preserve">
+    <value>අනුපිටපත් කරන්න</value>
+  </data>
+  <data name="EmbededView" xml:space="preserve">
+    <value>කාවැද්දූ වෙබ් දසුනක් භාවිතා කිරීම</value>
+  </data>
+  <data name="Empty" xml:space="preserve">
+    <value>හිස්</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>දෝෂයකි</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>අවසන් කරන්න!</value>
+  </data>
+  <data name="GameIsRunning" xml:space="preserve">
+    <value>ක්‍රීඩාව ක්‍රියාත්මක වේ...</value>
+  </data>
+  <data name="GetFabric" xml:space="preserve">
+    <value>රෙදි ගන්න</value>
+  </data>
+  <data name="GetMods" xml:space="preserve">
+    <value>Mods ලබා ගන්න</value>
+  </data>
+  <data name="GettingFabric" xml:space="preserve">
+    <value>රෙදි ලබා ගැනීම</value>
+  </data>
+  <data name="GettingInheritedVersion" xml:space="preserve">
+    <value>උරුම වූ අනුවාදය ලබා ගනිමින්...</value>
+  </data>
+  <data name="GettingMods" xml:space="preserve">
+    <value>Mods ලබා ගැනීම</value>
+  </data>
+  <data name="GettingOptifine" xml:space="preserve">
+    <value>Optifine ලබා ගනිමින්...</value>
+  </data>
+  <data name="GettingVers" xml:space="preserve">
+    <value>පවතින අනුවාද ලබා ගනිමින්...</value>
+  </data>
+  <data name="GetVerFailed" xml:space="preserve">
+    <value>අනුවාදය ලබා ගැනීමට අසමත් විය</value>
+  </data>
+  <data name="GoodEvening" xml:space="preserve">
+    <value>සුභ සන්ද්යාවක්</value>
+  </data>
+  <data name="GoodLuck" xml:space="preserve">
+    <value>වාසනාව</value>
+  </data>
+  <data name="GoodMorning" xml:space="preserve">
+    <value>සුභ උදෑසනක්</value>
+  </data>
+  <data name="GotIt" xml:space="preserve">
+    <value>තේරුම් ගත්තා ද!</value>
+  </data>
+  <data name="GotoLinkAndEnterDeviceCode" xml:space="preserve">
+    <value>පුරනය වීමට {Link} වෙත ගොස් පහත කේතය ඇතුලත් කරන්න</value>
+  </data>
+  <data name="Home" xml:space="preserve">
+    <value>ගෙදර</value>
+  </data>
+  <data name="InitializeCore" xml:space="preserve">
+    <value>Launcher Core ආරම්භ කරන්න</value>
+  </data>
+  <data name="Latest" xml:space="preserve">
+    <value>නවතම</value>
+  </data>
+  <data name="Launch" xml:space="preserve">
+    <value>දියත් කරන්න!</value>
+  </data>
+  <data name="LaunchingMinecraft" xml:space="preserve">
+    <value>Minecraft දියත් කරමින්...</value>
+  </data>
+  <data name="LaunchMC" xml:space="preserve">
+    <value>Minecraft දියත් කරන්න</value>
+  </data>
+  <data name="LoadChangeLogs" xml:space="preserve">
+    <value>ChangeLogs පූරණය කරන්න</value>
+  </data>
+  <data name="LoadDownloadVers" xml:space="preserve">
+    <value>බාගැනීම් අනුවාද පූරණය කරන්න</value>
+  </data>
+  <data name="LoadingChangeLog" xml:space="preserve">
+    <value>ChangeLog පූරණය කරමින්</value>
+  </data>
+  <data name="LoadingDownloadVers" xml:space="preserve">
+    <value>බාගැනීම් අනුවාද පූරණය කරමින්</value>
+  </data>
+  <data name="LoadingMod" xml:space="preserve">
+    <value>මාදිලිය පැටවීම</value>
+  </data>
+  <data name="LoadMod" xml:space="preserve">
+    <value>ලෝඩ් මෝඩ්</value>
+  </data>
+  <data name="LoadSettingsFailed" xml:space="preserve">
+    <value>යෙදුම් සැකසීම් ගිණුම් පූරණය කිරීමට අසමත් විය. සැකසුම් පද්ධතියේ අනුවාදය වෙනස් වේ. ඔබ මෑතකදී යෙදුම යාවත්කාලීන කර ඇත. සැකසීම් ප්‍රතිසාධනය කිරීමට මෙම යෙදුමේ සංවර්ධකයෙකු අමතන්න</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>ඇතුල් වන්න</value>
+  </data>
+  <data name="LoginWithMicrosoft" xml:space="preserve">
+    <value>Microsoft සමඟ ලොග් වන්න</value>
+  </data>
+  <data name="Logs" xml:space="preserve">
+    <value>සටහන්</value>
+  </data>
+  <data name="MainPage_Login" xml:space="preserve">
+    <value>ඇතුල් වන්න</value>
+  </data>
+  <data name="MainPage_txtbxStatus.PlaceholderText" xml:space="preserve">
+    <value>වඩා හොඳ RPC සඳහා කරුණාකර කුඩා තත්වයක් එක් කරන්න!</value>
+  </data>
+  <data name="MainPage_txtStatus.Text" xml:space="preserve">
+    <value>තත්ත්වය:</value>
+  </data>
+  <data name="MCBedrock" xml:space="preserve">
+    <value>වින්ඩෝස් සඳහා Minecraft</value>
+  </data>
+  <data name="MCDungeons" xml:space="preserve">
+    <value>Minecraft Dungeons</value>
+  </data>
+  <data name="MCJava" xml:space="preserve">
+    <value>Minecraft: Java සංස්කරණය</value>
+  </data>
+  <data name="MCLegends" xml:space="preserve">
+    <value>Minecraft පුරාවෘත්ත</value>
+  </data>
+  <data name="MicrosoftAccount" xml:space="preserve">
+    <value>Microsoft ගිණුම</value>
+  </data>
+  <data name="MicrosoftOrOffline" xml:space="preserve">
+    <value>Microsoft හෝ නොබැඳි</value>
+  </data>
+  <data name="NewAccount" xml:space="preserve">
+    <value>නව ගිණුම</value>
+  </data>
+  <data name="NewHere" xml:space="preserve">
+    <value>ඔබ මෙහි අලුත් බව පෙනේ. අපි ඉක්මන් චෙක් අවුට් එකකට යමුද?</value>
+  </data>
+  <data name="News" xml:space="preserve">
+    <value>පුවත්</value>
+  </data>
+  <data name="NoNetwork" xml:space="preserve">
+    <value>ඔබට හොඳ අන්තර්ජාලයක් නොමැති බව පෙනේ ...</value>
+  </data>
+  <data name="NoThanks" xml:space="preserve">
+    <value>නැ ස්තුතියි</value>
+  </data>
+  <data name="OfflineAccount" xml:space="preserve">
+    <value>නොබැඳි ගිණුම</value>
+  </data>
+  <data name="OfflineMode" xml:space="preserve">
+    <value>නොබැඳි මාදිලිය</value>
+  </data>
+  <data name="Options" xml:space="preserve">
+    <value>විකල්ප</value>
+  </data>
+  <data name="PickVer" xml:space="preserve">
+    <value>අනුවාදයක් තෝරන්න</value>
+  </data>
+  <data name="RamFailed" xml:space="preserve">
+    <value>උපාංගයේ RAM ලබා ගැනීමට අසමත් විය.</value>
+    <comment>Rarely Used</comment>
+  </data>
+  <data name="Ready" xml:space="preserve">
+    <value>සූදානම්</value>
+  </data>
+  <data name="RefreshVerFailed" xml:space="preserve">
+    <value>Minecraft අනුවාද ලබා ගැනීමට අසමත් විය</value>
+  </data>
+  <data name="RefreshVers" xml:space="preserve">
+    <value>අනුවාද නැවුම් කරන්න</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>ඉවත් කරන්න</value>
+  </data>
+  <data name="Retry" xml:space="preserve">
+    <value>නැවත උත්සාහ කරන්න</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>සුරකින්න</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>සෙවීම</value>
+  </data>
+  <data name="SearchingStore" xml:space="preserve">
+    <value>ගබඩාව සෙවීම</value>
+  </data>
+  <data name="SearchStore" xml:space="preserve">
+    <value>ගබඩාව සොයන්න</value>
+  </data>
+  <data name="Select" xml:space="preserve">
+    <value>තෝරන්න</value>
+  </data>
+  <data name="SelectAll" xml:space="preserve">
+    <value>සියල්ල තෝරන්න</value>
+  </data>
+  <data name="SelectNone" xml:space="preserve">
+    <value>කිසිවක් නැත තෝරන්න</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>සැකසුම්</value>
+  </data>
+  <data name="SettingsPage_txtSettings.Text" xml:space="preserve">
+    <value>සැකසුම්</value>
+  </data>
+  <data name="SignInWithMS" xml:space="preserve">
+    <value>Microsoft සමඟින් පුරනය වන්න</value>
+  </data>
+  <data name="Store" xml:space="preserve">
+    <value>ගබඩා කරන්න</value>
+  </data>
+  <data name="Sure" xml:space="preserve">
+    <value>සහතිකයි!</value>
+  </data>
+  <data name="SwitchOffline" xml:space="preserve">
+    <value>නොබැඳි මාදිලියට මාරු වන්න</value>
+  </data>
+  <data name="Tasks" xml:space="preserve">
+    <value>කාර්යයන්</value>
+  </data>
+  <data name="ThatsIt" xml:space="preserve">
+    <value>ඒක තමයි! තවත් විකල්ප සඳහා සැකසීම් වෙත යන්න</value>
+  </data>
+  <data name="TimeLeft" xml:space="preserve">
+    <value>{ඉතිරි කාලය</value>
+  </data>
+  <data name="TypeCustom" xml:space="preserve">
+    <value>දේශීය</value>
+  </data>
+  <data name="TypeOldAlpha" xml:space="preserve">
+    <value>පැරණි ඇල්ෆා</value>
+  </data>
+  <data name="TypeOldBeta" xml:space="preserve">
+    <value>OldBeta</value>
+  </data>
+  <data name="TypeRelease" xml:space="preserve">
+    <value>නිදහස් කරන්න</value>
+  </data>
+  <data name="TypeSnapshot" xml:space="preserve">
+    <value>ස්නැප්ෂොට්</value>
+  </data>
+  <data name="UnexpectedRestart" xml:space="preserve">
+    <value>අනපේක්ෂිත දෙයක් සිදු විය. කරුණාකර යෙදුම නැවත ආරම්භ කරන්න!</value>
+  </data>
+  <data name="Username" xml:space="preserve">
+    <value>පරිශීලක නාමය</value>
+  </data>
+  <data name="UsingBrowser" xml:space="preserve">
+    <value>පෙරනිමි බ්රවුසරය භාවිතා කිරීම</value>
+  </data>
+  <data name="UUID" xml:space="preserve">
+    <value>UUID</value>
+  </data>
+  <data name="VaniilaOrFabric" xml:space="preserve">
+    <value>රෙදි සහ වැනිලා නිල වශයෙන් සහාය දක්වයි</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>සාදරයෙන් පිළිගනිමු!</value>
+    <comment>Rarely Used</comment>
+  </data>
+  <data name="Win32Error" xml:space="preserve">
+    <value>ඔබගේ ජාවා සැකසීමේ ගැටලුවක් ඇති බව පෙනේ</value>
+    <comment>Rarely Used</comment>
+  </data>
+  <data name="WrongRAM" xml:space="preserve">
+    <value>වලංගු නොවන RAM</value>
+    <comment>Rarely Used</comment>
+  </data>
+  <data name="About" xml:space="preserve">
+    <value>ගැන</value>
+  </data>
+  <data name="AccentColor" xml:space="preserve">
+    <value>උච්චාරණ වර්ණය</value>
+  </data>
+  <data name="AdvancedMinecraftSettings" xml:space="preserve">
+    <value>උසස් සැකසුම්</value>
+  </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>පෙනුම</value>
+  </data>
+  <data name="AssetsCheck" xml:space="preserve">
+    <value>වත්කම් පරීක්ෂා කිරීම</value>
+  </data>
+  <data name="BuildType" xml:space="preserve">
+    <value>ගොඩනැගීමේ වර්ගය</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>යාවත්කාලීන සඳහා පරීක්ෂා කරන්න</value>
+  </data>
+  <data name="Colorful" xml:space="preserve">
+    <value>වර්ණවත්</value>
+  </data>
+  <data name="ColorMode" xml:space="preserve">
+    <value>වර්ණ මාදිලිය</value>
+  </data>
+  <data name="ColorModeDescription" xml:space="preserve">
+    <value>ඔබේ වර්ණය තෝරන්න</value>
+  </data>
+  <data name="Contribute" xml:space="preserve">
+    <value>දායක වන්න</value>
+  </data>
+  <data name="CopyVersion" xml:space="preserve">
+    <value>පිටපත පිටපත් කරන්න</value>
+  </data>
+  <data name="CreateAColor" xml:space="preserve">
+    <value>වර්ණයක් සාදන්න</value>
+  </data>
+  <data name="CreateBackup" xml:space="preserve">
+    <value>උපස්ථ සාදන්න</value>
+  </data>
+  <data name="Credits" xml:space="preserve">
+    <value>ණය</value>
+  </data>
+  <data name="CreditsDescription" xml:space="preserve">
+    <value>ගරු කරන්න...</value>
+  </data>
+  <data name="CustomColor" xml:space="preserve">
+    <value>අභිරුචි වර්ණය</value>
+  </data>
+  <data name="CustomColors" xml:space="preserve">
+    <value>අභිරුචි වර්ණ</value>
+  </data>
+  <data name="Dark" xml:space="preserve">
+    <value>අඳුරු</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>පෙරනිමිය</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>මකන්න</value>
+  </data>
+  <data name="DownloadSettings" xml:space="preserve">
+    <value>බාගත සැකසීම්</value>
+  </data>
+  <data name="DownloadSettingsDescription" xml:space="preserve">
+    <value>විකල්ප. මේවා ක්‍රියාත්මක කිරීමට නිර්දේශ කෙරේ</value>
+  </data>
+  <data name="GameLogs" xml:space="preserve">
+    <value>ක්‍රීඩා ලොග කියවන්න</value>
+  </data>
+  <data name="GameLogsDescription" xml:space="preserve">
+    <value>දෝශ නිරාකරණය සඳහා</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>ජනරාල්</value>
+  </data>
+  <data name="Github" xml:space="preserve">
+    <value>Github</value>
+  </data>
+  <data name="HashCheck" xml:space="preserve">
+    <value>හැෂ් චෙක්පත</value>
+  </data>
+  <data name="JVMArgs" xml:space="preserve">
+    <value>JVM තර්ක</value>
+  </data>
+  <data name="JVMArgsDescription" xml:space="preserve">
+    <value>එන්ඩර්මන්ස් සඳහා!</value>
+  </data>
+  <data name="Light" xml:space="preserve">
+    <value>ආලෝකය</value>
+  </data>
+  <data name="Links" xml:space="preserve">
+    <value>සබැඳි</value>
+  </data>
+  <data name="LinksDescription" xml:space="preserve">
+    <value>නවතම යාවත්කාලීන සමඟින් සිටින්න</value>
+  </data>
+  <data name="MCasAdmin" xml:space="preserve">
+    <value>පරිපාලක ලෙස Minecraft දියත් කරන්න</value>
+  </data>
+  <data name="MCasAdminDescription" xml:space="preserve">
+    <value>මෙය ඔබේම අවදානමකින් කරන්න!</value>
+  </data>
+  <data name="MicaType" xml:space="preserve">
+    <value>මයිකා වර්ගය</value>
+  </data>
+  <data name="MicaTypeDescription" xml:space="preserve">
+    <value>සාමාන්‍ය මයිකා හෝ මයිකා ඇල්ට් (ටැබ්ඩ්)</value>
+  </data>
+  <data name="MinecraftPath" xml:space="preserve">
+    <value>Minecraft මාර්ගය</value>
+  </data>
+  <data name="MinecraftPathDescription" xml:space="preserve">
+    <value>Minecraft සේවාදායකයාගේ මාර්ගය</value>
+  </data>
+  <data name="MinecraftSettings" xml:space="preserve">
+    <value>Minecraft සැකසුම්</value>
+  </data>
+  <data name="More" xml:space="preserve">
+    <value>තව</value>
+  </data>
+  <data name="MoreVerInfo" xml:space="preserve">
+    <value>තවත් අනුවාද තොරතුරු</value>
+  </data>
+  <data name="NavIconStyle" xml:space="preserve">
+    <value>සංචාලන බොත්තම් අයිකන විලාසය</value>
+  </data>
+  <data name="NavIconStyleDescription" xml:space="preserve">
+    <value>ඔබේ පැති තීරුව සඳහා අලංකාර අයිකන කට්ටලයක් තෝරන්න</value>
+  </data>
+  <data name="NoColor" xml:space="preserve">
+    <value>පාටක් නෑ</value>
+  </data>
+  <data name="RAM" xml:space="preserve">
+    <value>මතකය</value>
+  </data>
+  <data name="RAMDescription" xml:space="preserve">
+    <value>Minecraft සේවාදායකයාගේ වෙන් කළ මතකය</value>
+  </data>
+  <data name="SettingsBackups" xml:space="preserve">
+    <value>සැකසුම් උපස්ථ</value>
+  </data>
+  <data name="SettingsBackupsDescription" xml:space="preserve">
+    <value>ඔබගේ සැකසීම් සහ ගිණුම් වල උපස්ථ සාදන්න, මකා දමන්න, බලන්න, පූරණය කරන්න</value>
+  </data>
+  <data name="SystemDefault" xml:space="preserve">
+    <value>පද්ධති පෙරනිමිය</value>
+  </data>
+  <data name="TryLoad" xml:space="preserve">
+    <value>පැටවීමට උත්සාහ කරන්න</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>පිටපත</value>
+  </data>
+  <data name="View" xml:space="preserve">
+    <value>දැක්ම</value>
+  </data>
+  <data name="WindowsHello" xml:space="preserve">
+    <value>වින්ඩෝස් හෙලෝ</value>
+  </data>
+  <data name="WindowsHelloDescription" xml:space="preserve">
+    <value>Windows Hello සත්‍යාපනය නොමැතිව උපස්ථ සෑදීම, බැලීම, පූරණය කිරීම, මකා දැමීම නොකරන්න</value>
+  </data>
+  <data name="WindowTintColor" xml:space="preserve">
+    <value>කවුළු ටින්ට් වර්ණය</value>
+  </data>
+  <data name="WindowTintColorDescription" xml:space="preserve">
+    <value>යෙදුම් අන්තර්ගතය පිටුපස වර්ණ ආවරණයක් පෙන්වන්න</value>
+  </data>
+  <data name="WinHelloChangeFailed" xml:space="preserve">
+    <value>ඔබ Windows Hello සමඟ සත්‍යාපනය කිරීමට අපොහොසත් වූ නිසා සැකසුම වෙනස් කළ නොහැක</value>
+  </data>
+</root>
