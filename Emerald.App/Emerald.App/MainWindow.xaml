@@ -172,7 +172,7 @@
                     Thumbnail="Assets/NavigationViewIcons/settings.png" />
             </NavigationView.FooterMenuItems>
 
-            <Frame x:Name="frame" IsEnabled="{x:Bind local:App.Current.Launcher.UIState, Mode=OneWay}" />
+            <Frame x:Name="frame"/>
 
         </NavigationView>
 

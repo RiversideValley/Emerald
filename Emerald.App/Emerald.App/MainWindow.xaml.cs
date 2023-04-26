@@ -3,11 +3,15 @@ using Emerald.Core.Tasks;
 using Emerald.WinUI.Helpers;
 using Emerald.WinUI.Models;
 using Emerald.WinUI.UserControls;
+using Emerald.WinUI.Views;
+using Emerald.WinUI.Views.Home;
+using Emerald.WinUI.Views.Store;
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Documents;
 using System;
 using System.Linq;
 using Windows.UI;
@@ -174,10 +178,18 @@ namespace Emerald.WinUI
 
             HomePage = new();
             MainFrame.Content = HomePage;
-
+            App.Current.Launcher.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(App.Current.Launcher.UIState))
+                    UpdateUI();
+            };
             (Content as FrameworkElement).Loaded -= Initialize;
         }
-
+        private void UpdateUI()
+        {
+            var t = MainFrame.Content.GetType();
+            MainFrame.IsEnabled = t == typeof(LogsPage) || t == typeof(NewsPage) || t == typeof(StorePage) || App.Current.Launcher.UIState;
+        }
         private void UpdateTasksInfoBadge() =>
             TasksInfoBadge.Visibility = MainFrame.Content == TaskView || TasksInfoBadge.Value == 0 ? Visibility.Collapsed : Visibility.Visible;
 
@@ -252,7 +264,7 @@ namespace Emerald.WinUI
                     }
 
                     UpdateTasksInfoBadge();
-
+                    UpdateUI();
                     (NavView.Header as NavViewHeader).HeaderText = h == "Tasks".Localize() ? (NavView.Header as NavViewHeader).HeaderText : h;
                     (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
                 }

@@ -49,8 +49,8 @@ namespace Emerald.Core
         private bool _UIState;
         public bool UIState
         {
-            get => GameRuns ? false : _UIState;
-            set => Set(ref _UIState, value);
+            get => !GameRuns && _UIState;
+            set => Set(ref _UIState, value,nameof(UIState));
         }
 
         private bool _GameRuns;
