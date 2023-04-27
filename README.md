@@ -41,8 +41,6 @@ See [this section](#-building-the-code)
   <img align="left" src="https://user-images.githubusercontent.com/71598437/212673147-54e79843-76aa-44ff-9db3-60b025334f07.png" alt="Release" />
 </a>
 
-###### 📝 This screenshot is from [`redesign`](https://github.com/RiversideValley/Emerald/pull/19)
-
 ## 🦜 Contributing & Feedback
 
 There are multiple ways to participate in the community:
@@ -91,7 +89,7 @@ Clone the repository:
 ```git
 git clone https://github.com/RiversideValley/Emerald
 ```
-(`redesign` is the latest branch)
+(`main` is the latest branch)
 
 ### 3️⃣ Build the project
 
