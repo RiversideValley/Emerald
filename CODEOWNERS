@@ -4,13 +4,13 @@
 # It uses the same pattern rule for gitignore file
 # https://git-scm.com/docs/gitignore#_pattern_format
 
-*              git@andrexial.org.uk @MetropolitanCitizen @NoobNotFound 
-/Emerald.*/    git@andrexial.org.uk @RiversideValley/Emerald @MetropolitanCitizen
-Emerald.*      git@andrexial.org.uk @RiversideValley/Emerald @MetropolitanCitizen
-.editorconfig  git@andrexial.org.uk @RiversideValley/Emerald @MetropolitanCitizen
-*.md           git@andrexial.org.uk @MetropolitanCitizen @RiversideValley/Emerald
-/.github/      git@andrexial.org.uk @MetropolitanCitizen
-.gitattributes git@andrexial.org.uk @MetropolitanCitizen
-.gitignore     git@andrexial.org.uk @MetropolitanCitizen
-.gitmodules    git@andrexial.org.uk @MetropolitanCitizen @RiversideValley/Emerald
-LICENSE.md     git@andrexial.org.uk @RiversideValley/Nightshade @NoobNotFound @MetropolitanCitizen
+*              @RiversideValley/Emerald @NoobNotFound
+/Emerald.*/    @RiversideValley/Emerald @NoobNotFound
+Emerald.*      @RiversideValley/Emerald @NoobNotFound
+.editorconfig  @RiversideValley/Emerald
+*.md           @Lamparter git@theriversi.de lamparter@theriversi.de
+/.github/      @RiversideValley/Emerald
+.gitattributes @RiversideValley/Emerald
+.gitignore     @RiversideValley/Emerald
+.gitmodules    @RiversideValley/Emerald
+LICENSE.md     @Lamparter git@theriversi.de lamparter@theriversi.de
