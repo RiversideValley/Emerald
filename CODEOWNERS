@@ -5,8 +5,8 @@
 # https://git-scm.com/docs/gitignore#_pattern_format
 
 *              @RiversideValley/Emerald @NoobNotFound
-/Emerald.*/    @RiversideValley/Emerald @NoobNotFound
-Emerald.*      @RiversideValley/Emerald @NoobNotFound
+/Emerald.*/    @RiversideValley/Emerald
+Emerald.*      @RiversideValley/Emerald
 .editorconfig  @RiversideValley/Emerald
 *.md           @Lamparter git@theriversi.de lamparter@theriversi.de
 /.github/      @RiversideValley/Emerald
