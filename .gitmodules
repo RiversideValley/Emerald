@@ -1,0 +1,3 @@
+[submodule "CMLLib"]
+	path = CMLLib
+	url = https://github.com/RiversideValley/CmlLib.Core

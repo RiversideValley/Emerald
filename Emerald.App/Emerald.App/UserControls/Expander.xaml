@@ -1,0 +1,271 @@
+﻿<UserControl
+    x:Class="Emerald.WinUI.UserControls.Expander"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ViewModels="using:Emerald.WinUI.ViewModels"
+    xmlns:conv="using:Emerald.WinUI.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Emerald.WinUI.UserControls"
+    xmlns:local1="using:Emerald.WinUI.Helpers"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/ResourceDictionaries/RightAlignedToggleSwitch.xaml" />
+                <ResourceDictionary Source="/ResourceDictionaries/Expanders.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <conv:StringToVisibility x:Key="StrToVis" />
+
+            <conv:ExpanderTemplateSelector x:Name="ExpanderSelector" Style="{x:Bind VM.ExpanderStyle, Mode=OneWay}">
+                <conv:ExpanderTemplateSelector.Button>
+                    <DataTemplate x:DataType="ViewModels:ExpanderViewModel" x:DefaultBindMode="OneWay">
+                        <Button
+                            MinHeight="62"
+                            Click="OnButtonClick"
+                            Style="{StaticResource ActionCard}">
+                            <Grid VerticalAlignment="Center" ColumnSpacing="12">
+                                <Grid.ChildrenTransitions>
+                                    <TransitionCollection>
+                                        <EntranceThemeTransition />
+                                    </TransitionCollection>
+                                </Grid.ChildrenTransitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <FontIcon
+                                    VerticalAlignment="Center"
+                                    FontSize="16"
+                                    Glyph="{x:Bind Icon}" />
+                                <StackPanel
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Orientation="Vertical">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource BodyTextBlockStyle}"
+                                        Text="{x:Bind Title}" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind Description}"
+                                        TextWrapping="WrapWholeWords"
+                                        Visibility="{x:Bind Description, Converter={StaticResource StrToVis}}" />
+                                </StackPanel>
+
+                                <ContentPresenter
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    VerticalContentAlignment="Center"
+                                    Content="{x:Bind HeaderControls}" />
+                            </Grid>
+                        </Button>
+                    </DataTemplate>
+                </conv:ExpanderTemplateSelector.Button>
+
+                <conv:ExpanderTemplateSelector.Static>
+                    <DataTemplate x:DataType="ViewModels:ExpanderViewModel" x:DefaultBindMode="OneWay">
+                        <Border MinHeight="62" Style="{StaticResource SettingsCard}">
+                            <Grid VerticalAlignment="Center" ColumnSpacing="12">
+                                <Grid.ChildrenTransitions>
+                                    <TransitionCollection>
+                                        <EntranceThemeTransition />
+                                    </TransitionCollection>
+                                </Grid.ChildrenTransitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <FontIcon
+                                    VerticalAlignment="Center"
+                                    FontSize="16"
+                                    Glyph="{x:Bind Icon}" />
+
+                                <StackPanel
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Orientation="Vertical">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource BodyTextBlockStyle}"
+                                        Text="{x:Bind Title}" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind Description}"
+                                        TextWrapping="WrapWholeWords"
+                                        Visibility="{x:Bind Description, Converter={StaticResource StrToVis}}" />
+                                </StackPanel>
+
+                                <ContentPresenter
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    VerticalContentAlignment="Center"
+                                    Content="{x:Bind Controls}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </conv:ExpanderTemplateSelector.Static>
+
+                <conv:ExpanderTemplateSelector.Default>
+                    <DataTemplate x:DataType="ViewModels:ExpanderViewModel" x:DefaultBindMode="OneWay">
+                        <Expander HorizontalContentAlignment="Stretch" Style="{StaticResource SettingsExpanderStyle}">
+                            <Expander.Header>
+                                <Grid VerticalAlignment="Center" ColumnSpacing="12">
+                                    <Grid.ChildrenTransitions>
+                                        <TransitionCollection>
+                                            <EntranceThemeTransition />
+                                        </TransitionCollection>
+                                    </Grid.ChildrenTransitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <FontIcon
+                                        VerticalAlignment="Center"
+                                        FontSize="16"
+                                        Glyph="{x:Bind Icon}" />
+
+                                    <StackPanel
+                                        Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Orientation="Vertical">
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource BodyTextBlockStyle}"
+                                            Text="{x:Bind Title}" />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind Description}"
+                                            Visibility="{x:Bind Description, Converter={StaticResource StrToVis}}" />
+                                    </StackPanel>
+
+                                    <ContentPresenter
+                                        Grid.Column="2"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"
+                                        VerticalContentAlignment="Center"
+                                        Content="{x:Bind HeaderControls}" />
+                                </Grid>
+                            </Expander.Header>
+
+                            <Expander.Content>
+                                <ContentPresenter Content="{x:Bind Controls}" />
+                            </Expander.Content>
+                        </Expander>
+                    </DataTemplate>
+                </conv:ExpanderTemplateSelector.Default>
+
+                <conv:ExpanderTemplateSelector.Transparent>
+                    <DataTemplate x:DataType="ViewModels:ExpanderViewModel" x:DefaultBindMode="OneWay">
+                        <Border Style="{StaticResource TransparentCard}">
+                            <Grid VerticalAlignment="Center" ColumnSpacing="12">
+                                <Grid.ChildrenTransitions>
+                                    <TransitionCollection>
+                                        <EntranceThemeTransition />
+                                    </TransitionCollection>
+                                </Grid.ChildrenTransitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <FontIcon
+                                    VerticalAlignment="Center"
+                                    FontSize="16"
+                                    Glyph="{x:Bind Icon}" />
+
+                                <StackPanel
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Orientation="Vertical">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource BodyTextBlockStyle}"
+                                        Text="{x:Bind Title}" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind Description}"
+                                        TextWrapping="WrapWholeWords"
+                                        Visibility="{x:Bind Description, Converter={StaticResource StrToVis}}" />
+                                </StackPanel>
+
+                                <ContentPresenter
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    VerticalContentAlignment="Center"
+                                    Content="{x:Bind HeaderControls}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </conv:ExpanderTemplateSelector.Transparent>
+
+                <conv:ExpanderTemplateSelector.Disabled>
+                    <DataTemplate x:DataType="ViewModels:ExpanderViewModel" x:DefaultBindMode="OneWay">
+                        <Border MinHeight="62" Style="{StaticResource SettingsCard}">
+                            <Grid VerticalAlignment="Center" ColumnSpacing="12">
+                                <Grid.ChildrenTransitions>
+                                    <TransitionCollection>
+                                        <EntranceThemeTransition />
+                                    </TransitionCollection>
+                                </Grid.ChildrenTransitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <FontIcon
+                                    VerticalAlignment="Center"
+                                    FontSize="16"
+                                    Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                    Glyph="{x:Bind Icon}" />
+
+                                <StackPanel
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Orientation="Vertical">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                        Style="{StaticResource BodyTextBlockStyle}"
+                                        Text="{x:Bind Title}" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind Description}"
+                                        TextWrapping="WrapWholeWords"
+                                        Visibility="{x:Bind Description, Converter={StaticResource StrToVis}}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </conv:ExpanderTemplateSelector.Disabled>
+            </conv:ExpanderTemplateSelector>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <local1:CompositionControl
+        HorizontalContentAlignment="Stretch"
+        Content="{x:Bind VM}"
+        ContentTemplateSelector="{StaticResource ExpanderSelector}" />
+</UserControl>

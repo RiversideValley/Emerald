@@ -1,41 +1,92 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Emerald.Core
+﻿namespace Emerald.Core
 {
-    internal class Localized
+    //The nooobest way ever
+    public enum Localized
     {
-        public const string Welcome = "Welcome";
-        public const string LaunchMC = "LaunchMC";
-        public const string GetFabric = "GetFabric";
-
-        public const string GetMods = "GetMods";
-        public const string GettingMods = "GettingMods";
-        public const string SearchStore = "SearchStore";
-        public const string SearchingStore = "SearchingStore";
-        public const string Download = "Download";
-        public const string Downloading = "Downloading";
-        public const string LoadMod = "LoadMod";
-        public const string LoadingMod = "LoadingMod";
-        public const string LoadDownloadVers = "LoadDownloadVers";
-        public const string LoadingDownloadVers = "LoadingDownloadVers";
-
-        public const string GettingFabric = "GettingFabric";
-        public const string PickVer = "PickVer";
-        public const string SwitchOffline = "SwitchOffline";
-        public const string LoadChangeLogs = "LoadChangeLogs";
-        public const string LoadingChangeLogs = "LoadingChangeLog";
-        public const string RefreshVers = "RefreshVers";
-        public const string GettingVers = "GettingVers";
-        public const string Ready = "Ready";
-        public const string RamFailed = "RamFailed";
-        public const string BegLogIn = "BegLogIn";
-        public const string Error = "Error";
-        public const string BegVer = "BegVer";
-        public const string WrongRAM = "WrongRAM";
-        public const string NoNetwork = "NoNetwork";
-        public const string Win32Error = "Win32Error";
-        public const string GetVerFailed = "GetVerFailed";
+        Welcome,
+        LaunchMC,
+        GetFabric,
+        GetMods,
+        GettingMods,
+        SearchStore,
+        SearchingStore,
+        Download,
+        Downloading,
+        LoadMod,
+        LoadingMod,
+        LoadDownloadVers,
+        LoadingDownloadVers,
+        GettingFabric,
+        PickVer,
+        SwitchOffline,
+        LoadChangeLogs,
+        LoadingChangeLogs,
+        RefreshVers,
+        GettingVers,
+        Ready,
+        RamFailed,
+        BegLogIn,
+        Error,
+        BegVer,
+        WrongRAM,
+        NoNetwork,
+        Win32Error,
+        GetVerFailed,
+        UnexpectedRestart,
+        RefreshVerFailed,
+        Retry,
+        OfflineMode,
+        NewAccount,
+        Empty,
+        OK,
+        No,
+        Cancel,
+        Yes,
+        Tasks,
+        ClearAll,
+        Remove,
+        Add,
+        MicrosoftAccount,
+        OfflineAccount,
+        SelectAll,
+        SelectNone,
+        LoadSettingsFailed,
+        CreateOldSettingsBackup,
+        AuthWindowshello,
+        InitializeCore,
+        NewHere,
+        Sure,
+        NoThanks,
+        ChooseAccount,
+        MicrosoftOrOffline,
+        GotIt,
+        ChooseAVersion,
+        VaniilaOrFabric,
+        Finish,
+        Launch,
+        ThatsIt,
+        Accounts,
+        AccountDetails,
+        Username,
+        UUID,
+        AccessToken,
+        Login,
+        AccountType,
+        Options,
+        Duplicate,
+        Select,
+        LoginWithMicrosoft,
+        Clear,
+        Save,
+        GettingInheritedVersion,
+        GettingOptifine,
+        LaunchingMinecraft,
+        ConfigureOptifine,
+        GameIsRunning,
+        Changelogs,
+        News,
+        Search,
+        MergeAccount,
+        MergeMsAcExistingWithNew
     }
 }

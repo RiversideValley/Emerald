@@ -1,25 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using CmlLib.Utils;
+﻿using Emerald.Core.Args;
 using Emerald.Core.Tasks;
-using System.IO;
 using System.IO.Compression;
-using Emerald.Core.Args;
 
 namespace Emerald.Core.Clients
 {
     public class GlacierClient
     {
         public event EventHandler<ProgressChangedEventArgs> ProgressChanged = delegate { };
+
         public event EventHandler StatusChanged = delegate { };
+
         public event EventHandler DownloadCompleted = delegate { };
+
         public event EventHandler UIChangedReqested = delegate { };
+
         public bool ClientExists()
         {
             return Util.FolderExists(MainCore.Launcher.Launcher.MinecraftPath.Versions + "/Glacier Client");
         }
+
         public async void DownloadClient()
         {
             var ver = await Util.DownloadText("https://www.slashonline.net/glacier/c.txt");
@@ -27,6 +26,7 @@ namespace Emerald.Core.Clients
             {
                 int taskID = TasksHelper.AddTask("Download Glacier Client");
                 UIChangedReqested(false, new EventArgs());
+
                 try
                 {
                     using (var client = new FileDownloader("https://slashonline.net/glacier/get/release/Glacier.zip", MainCore.Launcher.Launcher.MinecraftPath.Versions + "/Glacier.zip"))
@@ -36,16 +36,19 @@ namespace Emerald.Core.Clients
                             StatusChanged("Downloading Glacier Client", new EventArgs());
                             try
                             {
-                                this.ProgressChanged(this, new ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
+                                ProgressChanged(this, new ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
                             }
-                            catch { }
+                            catch
+                            {
+                            }
+
                             if (progressPercentage == 100)
                             {
                                 StatusChanged("Ready", new EventArgs());
-                                this.Extract();
+                                Extract();
                                 client.Dispose();
                                 MainCore.GlacierClientVersion = ver;
-                                this.ProgressChanged(this, new ProgressChangedEventArgs(currentProg: 0, maxfiles: 100, currentfile: 00));
+                                ProgressChanged(this, new ProgressChangedEventArgs(currentProg: 0, maxfiles: 100, currentfile: 00));
                                 TasksHelper.CompleteTask(taskID, true);
                             }
                         };
@@ -60,16 +63,16 @@ namespace Emerald.Core.Clients
             }
         }
 
-
         private async void Extract()
         {
             int TaskID = TasksHelper.AddTask("Extract Glacier Client");
             UIChangedReqested(false, new EventArgs());
             StatusChanged("Extracting Glacier Client", new EventArgs());
 
-            //Read the file stream
+            // Read the file stream
             Stream b = File.OpenRead(MainCore.Launcher.Launcher.MinecraftPath.Versions + "/Glacier.zip");
-            //unzip
+
+            // Unzip
             ZipArchive archive = new ZipArchive(b);
             archive.ExtractToDirectory(Directory.CreateDirectory(MainCore.Launcher.Launcher.MinecraftPath.Versions + "/Glacier Client").FullName);
 
@@ -77,9 +80,10 @@ namespace Emerald.Core.Clients
             StatusChanged("Ready", new EventArgs());
             UIChangedReqested(true, new EventArgs());
             DownloadCompleted(true, new EventArgs());
+
             TasksHelper.CompleteTask(TaskID, true);
+
             MainCore.GlacierClientVersion = await Util.DownloadText("https://www.slashonline.net/glacier/c.txt");
         }
-
     }
 }

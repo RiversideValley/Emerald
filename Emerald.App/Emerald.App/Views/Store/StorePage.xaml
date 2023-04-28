@@ -1,0 +1,157 @@
+﻿<Page
+    x:Class="Emerald.WinUI.Views.Store.StorePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Emerald.WinUI.Views.Store"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ToolKit="using:CommunityToolkit.WinUI.UI.Controls"
+    xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations"
+    xmlns:SS="using:Emerald.WinUI.Helpers.Settings" xmlns:models="using:Emerald.WinUI.Models"
+    Loaded="Page_Loaded"
+    Unloaded="Page_Unloaded"
+    SizeChanged="Page_SizeChanged"
+    mc:Ignorable="d">
+    <SplitView
+        PanePlacement="Right"
+        Margin="24,0,24,24"
+        DisplayMode="Inline" 
+        PaneBackground="{ThemeResource LayerFillColorDefaultBrush}" 
+        CornerRadius="{StaticResource ControlCornerRadius}" 
+        IsPaneOpen="True"
+        x:Name="InstallerPane">
+        <SplitView.Content>
+
+            <Grid>
+                <Grid.ChildrenTransitions>
+                    <TransitionCollection>
+                        <AddDeleteThemeTransition/>
+                    </TransitionCollection>
+                </Grid.ChildrenTransitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border
+            Height="Auto"
+            Margin="12,0,12,12"
+            Padding="12"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="4">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox VerticalAlignment="Center" Grid.Column="0" PlaceholderText="Search" x:Name="txtSearch" TextChanged="txtSearch_TextChanged" MinWidth="20" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <DropDownButton Margin="5,0" Content="Sort By">
+                                <DropDownButton.Flyout>
+                                    <MenuFlyout Placement="Bottom">
+                                        <RadioMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.SortOptions.Relevance,Mode=TwoWay}" Text="Relevance"/>
+                                        <RadioMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.SortOptions.Downloads,Mode=TwoWay}" Text="Downloads"/>
+                                        <RadioMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.SortOptions.Follows,Mode=TwoWay}" Text="Follows"/>
+                                        <RadioMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.SortOptions.Updated,Mode=TwoWay}" Text="Updated"/>
+                                        <RadioMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.SortOptions.Newest,Mode=TwoWay}" Text="Newest"/>
+                                    </MenuFlyout>
+                                </DropDownButton.Flyout>
+                            </DropDownButton>
+                            <DropDownButton Content="Categories">
+                                <DropDownButton.Flyout>
+                                    <MenuFlyout Placement="Bottom">
+                                        <ToggleMenuFlyoutItem x:Name="All" Click="All_Click" Text="All"/>
+                                        <MenuFlyoutSeparator/>
+                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.Filter.Fabric,Mode=TwoWay}" Text="Fabric"/>
+                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.Filter.Forge,Mode=TwoWay}" Text="Forge"/>
+                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.Filter.Adventure,Mode=TwoWay}" Text="Adventure"/>
+                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.Filter.Cursed,Mode=TwoWay}" Text="Cursed"/>
+                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.Filter.Decoration,Mode=TwoWay}" Text="Decoration"/>
+                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.Filter.Equipment,Mode=TwoWay}" Text="Equipment"/>
+                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.Filter.Food,Mode=TwoWay}" Text="Food"/>
+                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.Filter.Library,Mode=TwoWay}" Text="Library"/>
+                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.Filter.Magic,Mode=TwoWay}" Text="Magic"/>
+                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.Filter.Misc,Mode=TwoWay}" Text="Misc"/>
+                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.Filter.Optimization,Mode=TwoWay}" Text="Optimization"/>
+                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.Filter.Storage,Mode=TwoWay}" Text="Storage"/>
+                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.Filter.Technology,Mode=TwoWay}" Text="Technology"/>
+                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.Filter.Utility,Mode=TwoWay}" Text="Utility"/>
+                                        <ToggleMenuFlyoutItem IsChecked="{x:Bind SS:SettingsSystem.Settings.App.Store.Filter.Worldgen,Mode=TwoWay}" Text="Worldgen"/>
+                                    </MenuFlyout>
+                                </DropDownButton.Flyout>
+                            </DropDownButton>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <Grid Grid.Row="1">
+                    <ToolKit:AdaptiveGridView
+                Padding="12,0"
+                        Margin="0,12,6,12"
+                x:Name="storeItemsGrid"
+                DesiredWidth="400"
+                SelectionMode="None"
+                IsItemClickEnabled="False"
+                StretchContentForSingleRow="True"
+                animations:ItemsReorderAnimation.Duration="00:00:00.5000000">
+                        <ToolKit:AdaptiveGridView.ItemTemplate>
+                            <DataTemplate x:DataType="models:StoreItem">
+                                <Button VerticalAlignment="Stretch" BorderThickness="0" Click="StoreItem_Click" HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" MinWidth="0">
+                                    <Grid HorizontalAlignment="Stretch">
+                                        <Grid HorizontalAlignment="Left">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid VerticalAlignment="Center" Margin="6,6,16,6">
+                                                <Border  Margin="0,10" Padding="0" CornerRadius="4">
+                                                    <Image Stretch="UniformToFill" HorizontalAlignment="Left" Source="{x:Bind Icon}" Width="96" Height="96"/>
+                                                </Border>
+                                            </Grid>
+                                            <Grid Margin="0,16,0,0" Grid.Column="1">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="auto"/>
+                                                    <RowDefinition Height="auto"/>
+                                                </Grid.RowDefinitions>
+                                                <StackPanel Orientation="Vertical" Grid.Row="0">
+                                                    <TextBlock FontWeight="SemiBold" FontSize="20" TextTrimming="CharacterEllipsis" Text="{x:Bind Name}"/>
+                                                    <TextBlock VerticalAlignment="Bottom" Style="{ThemeResource CaptionTextBlockStyle}">
+                                            By <Run  Text="{x:Bind Author}" />
+                                                    </TextBlock>
+                                                    <TextBlock VerticalAlignment="Bottom" Style="{ThemeResource CaptionTextBlockStyle}">
+                                            <Run Text="&#xe896;" FontFamily="{ThemeResource SymbolThemeFontFamily}"/> 
+                                            <Run Text="{x:Bind TotalDownloadsString}"/> 
+                                            Downloads | 
+                                            <Run Text="{x:Bind FollowersString}"/> 
+                                            Followers
+                                                    </TextBlock>
+                                                </StackPanel>
+                                                <TextBlock MaxHeight="65" TextWrapping="WrapWholeWords" MaxLines="2" TextTrimming="CharacterEllipsis" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}" Grid.Row="1" Text="{x:Bind Description}"/>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ToolKit:AdaptiveGridView.ItemTemplate>
+                    </ToolKit:AdaptiveGridView>
+                    <StackPanel x:Name="pnlEmpty" 
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                        CornerRadius="8"
+                        BorderThickness="1"
+                        Padding="15"
+                        VerticalAlignment="Center" 
+                        HorizontalAlignment="Center">
+                        <TextBlock HorizontalAlignment="Center" Text="Whoops!" FontSize="25" FontWeight="SemiBold"/>
+                        <TextBlock TextAlignment="Center" TextWrapping="WrapWholeWords" Text="Cannot find mods with follwing name or you may have disconnected from the internet."/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </SplitView.Content>
+        <SplitView.Pane>
+            <Grid>
+                
+            </Grid>
+        </SplitView.Pane>
+    </SplitView>
+</Page>
