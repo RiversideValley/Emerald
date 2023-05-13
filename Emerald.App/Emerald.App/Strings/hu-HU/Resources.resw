@@ -640,4 +640,19 @@
   <data name="GeneralSettings" xml:space="preserve">
     <value>General Settings</value>
   </data>
+  <data name="ModsNoInternet" xml:space="preserve">
+    <value>Cannot find mods with follwing name or you may got disconnected from the internet.</value>
+  </data>
+  <data name="NewsNoInternet" xml:space="preserve">
+    <value>Cannot find news with follwing title or you may got disconnected from the internet.</value>
+  </data>
+  <data name="SettingsLoadWarn" xml:space="preserve">
+    <value>This will overwrite the current settings and restart the application. If the application failed to load the settings, the previous settings will be lost. Do you want to create a backup of this settings before load?</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="Whoops" xml:space="preserve">
+    <value>Whoops!</value>
+  </data>
 </root>
