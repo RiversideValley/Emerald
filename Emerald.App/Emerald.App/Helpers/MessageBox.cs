@@ -15,7 +15,7 @@ namespace Emerald.WinUI.Helpers
     /// </summary>
     public class MessageBox : ContentDialog
     {
-        public MessageBoxResults? Result { get; set; } = null;
+        public MessageBoxResults Result { get; set; } = MessageBoxResults.Cancel;
 
         public MessageBox(string title, string caption, MessageBoxButtons buttons, string cusbtn1 = null, string cusbtn2 = null)
         {
@@ -33,6 +33,13 @@ namespace Emerald.WinUI.Helpers
             {
                 PrimaryButtonText = Localized.OK.Localize();
                 SecondaryButtonText = Localized.Cancel.Localize();
+                DefaultButton = ContentDialogButton.Primary;
+            }
+            else if (buttons == MessageBoxButtons.YesNoCancel)
+            {
+                PrimaryButtonText = Localized.Yes.Localize();
+                SecondaryButtonText = Localized.No.Localize();
+                CloseButtonText = Localized.Cancel.Localize();
                 DefaultButton = ContentDialogButton.Primary;
             }
             else if (buttons == MessageBoxButtons.YesNo)
@@ -133,7 +140,7 @@ namespace Emerald.WinUI.Helpers
                 return MessageBoxResults.OpenFailed;
             }
 
-            return d.Result == null ? MessageBoxResults.Cancel : d.Result.Value;
+            return d.Result;
         }
 
         public static async Task<MessageBoxResults> Show(string text)
@@ -151,7 +158,7 @@ namespace Emerald.WinUI.Helpers
                 return MessageBoxResults.OpenFailed;
             }
 
-            return d.Result == null ? MessageBoxResults.Cancel : d.Result.Value;
+            return d.Result;
         }
     }
 }

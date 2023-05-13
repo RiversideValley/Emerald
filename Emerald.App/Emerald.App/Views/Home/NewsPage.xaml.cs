@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Linq;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 
 
@@ -12,7 +13,14 @@ namespace Emerald.WinUI.Views.Home
         public NewsPage()
         {
             InitializeComponent();
+
             _ = App.Current.Launcher.News.LoadEntries(SS.Settings.App.NewsFilter.GetResult());
+
+            this.Loaded += (_, _) => SearchBox.Focus(FocusState.Programmatic);
+
+            App.Current.Launcher.News.Entries.CollectionChanged += (_, _) =>
+                pnlEmpty.Visibility = App.Current.Launcher.News.Entries.Any() ? Visibility.Collapsed : Visibility.Visible;
+            
         }
         private void BackButton_Click(object sender, RoutedEventArgs e) =>
             BackRequested?.Invoke(this, new EventArgs());

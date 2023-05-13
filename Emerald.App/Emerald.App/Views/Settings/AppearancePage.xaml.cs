@@ -110,7 +110,7 @@ namespace Emerald.WinUI.Views.Settings
                 Color = Color.FromArgb((byte)(c?.A ?? 0), (byte)(c?.R ?? 0), (byte)(c?.G ?? 0), (byte)(c?.B ?? 0))
             };
 
-            var d = cp.ToContentDialog("CreateAColor".Localize("Settings"), Localized.Cancel.Localize(), ContentDialogButton.Primary);
+            var d = cp.ToContentDialog("CreateAColor".Localize(), Localized.Cancel.Localize(), ContentDialogButton.Primary);
 
             d.PrimaryButtonText = Localized.OK.Localize();
 

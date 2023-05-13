@@ -130,7 +130,7 @@ namespace Emerald.WinUI.Helpers
             return sb.ToString();
         }
 
-        public static string Localize(this string resourceKey, string resw = null)
+        public static string Localize(this string resourceKey)
         {
             try
             {
@@ -157,7 +157,7 @@ namespace Emerald.WinUI.Helpers
             }
         }
 
-        public static string Localize(this Core.Localized resourceKey, string resw = null)
+        public static string Localize(this Core.Localized resourceKey)
         {
             return resourceKey.ToString().Localize();
         }

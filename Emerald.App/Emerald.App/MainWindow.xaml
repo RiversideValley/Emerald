@@ -30,7 +30,6 @@
             IsBackButtonVisible="Collapsed"
             IsPaneToggleButtonVisible="False"
             IsSettingsVisible="False"
-            ItemInvoked="NavView_ItemInvoked"
             OpenPaneLength="80"
             PaneDisplayMode="Left">
 
@@ -131,19 +130,19 @@
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                     Thumbnail="Assets/NavigationViewIcons/home.png" />
                 <models:SquareNavigationViewItem
-                    Name="{helpers:Localize CustomName=News}"
-                    FontIconGlyph="&#xF57E;"
-                    SolidFontIconGlyph="&#xF57E;"
-                    IsSelected="False"
-                    ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
-                    Thumbnail="Assets/NavigationViewIcons/news.png" />
-                <models:SquareNavigationViewItem
                     Name="{helpers:Localize CustomName=Store}"
                     FontIconGlyph="&#xE7BF;"
                     SolidFontIconGlyph="&#xE7BF;"
                     IsSelected="False"
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                     Thumbnail="Assets/NavigationViewIcons/store.png" />
+                <models:SquareNavigationViewItem
+                    Name="{helpers:Localize CustomName=News}"
+                    FontIconGlyph="&#xF57E;"
+                    SolidFontIconGlyph="&#xF57E;"
+                    IsSelected="False"
+                    ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
+                    Thumbnail="Assets/NavigationViewIcons/news.png" />
             </NavigationView.MenuItems>
 
             <NavigationView.FooterMenuItems>

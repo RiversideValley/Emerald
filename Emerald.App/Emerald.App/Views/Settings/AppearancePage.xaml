@@ -15,23 +15,19 @@
 
         <StackPanel Spacing="4">
             <uc:Expander
-                Title="{helpers:Localize CustomName=ColorMode,
-                                         RESW=Settings}"
-                Description="{helpers:Localize CustomName=ColorModeDescription,
-                                               RESW=Settings}"
+                Title="{helpers:Localize CustomName=ColorMode}"
+                Description="{helpers:Localize CustomName=ColorModeDescription}"
                 ExpanderStyle="Static"
                 Icon="&#xE790;">
                 <ComboBox SelectedIndex="{x:Bind SS:SettingsSystem.Settings.App.Appearance.Theme, Mode=TwoWay}">
-                    <ComboBoxItem Content="{helpers:Localize CustomName=SystemDefault, RESW=Settings}" />
-                    <ComboBoxItem Content="{helpers:Localize CustomName=Light, RESW=Settings}" />
-                    <ComboBoxItem Content="{helpers:Localize CustomName=Dark, RESW=Settings}" />
+                    <ComboBoxItem Content="{helpers:Localize CustomName=SystemDefault}" />
+                    <ComboBoxItem Content="{helpers:Localize CustomName=Light}" />
+                    <ComboBoxItem Content="{helpers:Localize CustomName=Dark}" />
                 </ComboBox>
             </uc:Expander>
             <uc:Expander
-                Title="{helpers:Localize CustomName=MicaType,
-                                         RESW=Settings}"
-                Description="{helpers:Localize CustomName=MicaTypeDescription,
-                                               RESW=Settings}"
+                Title="{helpers:Localize CustomName=MicaType}"
+                Description="{helpers:Localize CustomName=MicaTypeDescription}"
                 ExpanderStyle="Static"
                 Icon="&#xec7a;">
                 <ComboBox SelectedIndex="{x:Bind SS:SettingsSystem.Settings.App.Appearance.MicaType, Mode=TwoWay}">
@@ -40,29 +36,26 @@
                 </ComboBox>
             </uc:Expander>
             <uc:Expander
-                Title="{helpers:Localize CustomName=NavIconStyle,
-                                         RESW=Settings}"
-                Description="{helpers:Localize CustomName=NavIconStyleDescription,
-                                               RESW=Settings}"
+                Title="{helpers:Localize CustomName=NavIconStyle}"
+                Description="{helpers:Localize CustomName=NavIconStyleDescription}"
                 ExpanderStyle="Static"
                 Icon="&#xE790;">
                 <ComboBox SelectedIndex="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType, Mode=TwoWay}">
-                    <ComboBoxItem Content="{helpers:Localize CustomName=Default, RESW=Settings}" />
-                    <ComboBoxItem Content="{helpers:Localize CustomName=Colorful, RESW=Settings}" />
+                    <ComboBoxItem Content="{helpers:Localize CustomName=Default}" />
+                    <ComboBoxItem Content="{helpers:Localize CustomName=Colorful}" />
                 </ComboBox>
             </uc:Expander>
             <uc:Expander
-                Title="{helpers:Localize CustomName=WindowTintColor,
-                                         RESW=Settings}"
-                Description="{helpers:Localize CustomName=WindowTintColorDescription,
-                                               RESW=Settings}"
+                IsExpanded="True"
+                Title="{helpers:Localize CustomName=WindowTintColor}"
+                Description="{helpers:Localize CustomName=WindowTintColorDescription}"
                 ExpanderStyle="Default"
                 Icon="&#xE771;">
                 <uc:Expander.HeaderControls>
                     <ComboBox SelectedIndex="{x:Bind SS:SettingsSystem.Settings.App.Appearance.MicaTintColor, Mode=TwoWay}">
-                        <ComboBoxItem Content="{helpers:Localize CustomName=NoColor, RESW=Settings}" />
-                        <ComboBoxItem Content="{helpers:Localize CustomName=AccentColor, RESW=Settings}" />
-                        <ComboBoxItem Content="{helpers:Localize CustomName=CustomColor, RESW=Settings}" />
+                        <ComboBoxItem Content="{helpers:Localize CustomName=NoColor}" />
+                        <ComboBoxItem Content="{helpers:Localize CustomName=AccentColor}" />
+                        <ComboBoxItem Content="{helpers:Localize CustomName=CustomColor}" />
                     </ComboBox>
                 </uc:Expander.HeaderControls>
                 <uc:Expander.Controls>
@@ -96,12 +89,11 @@
                                 </DataTemplate>
                             </GridView.ItemTemplate>
                         </GridView>
-                        <uc:ExpanderItem Title="{helpers:Localize CustomName=CustomColors, RESW=Settings}" Margin="0,0,0,-10">
+                        <uc:ExpanderItem Title="{helpers:Localize CustomName=CustomColors}" Margin="0,0,0,-10">
                             <Button
                                 Margin="0,3,0,0"
                                 Click="CustomTintColor_Click"
-                                Content="{helpers:Localize CustomName=Add,
-                                                           RESW=Settings}" />
+                                Content="{helpers:Localize CustomName=Add}" />
                         </uc:ExpanderItem>
                     </StackPanel>
                 </uc:Expander.Controls>

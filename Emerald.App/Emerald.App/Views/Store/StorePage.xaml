@@ -7,7 +7,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ToolKit="using:CommunityToolkit.WinUI.UI.Controls"
     xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations"
-    xmlns:SS="using:Emerald.WinUI.Helpers.Settings" xmlns:models="using:Emerald.WinUI.Models"
+    xmlns:SS="using:Emerald.WinUI.Helpers.Settings" 
+    xmlns:models="using:Emerald.WinUI.Models"
+    xmlns:helpers="using:Emerald.WinUI.Helpers"
     Loaded="Page_Loaded"
     Unloaded="Page_Unloaded"
     SizeChanged="Page_SizeChanged"
@@ -139,11 +141,11 @@
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
                         CornerRadius="8"
                         BorderThickness="1"
-                        Padding="15"
+                        Padding="16"
                         VerticalAlignment="Center" 
                         HorizontalAlignment="Center">
-                        <TextBlock HorizontalAlignment="Center" Text="Whoops!" FontSize="25" FontWeight="SemiBold"/>
-                        <TextBlock TextAlignment="Center" TextWrapping="WrapWholeWords" Text="Cannot find mods with follwing name or you may have disconnected from the internet."/>
+                        <TextBlock HorizontalAlignment="Center" Text="{helpers:Localize CustomName=Whoops}" FontSize="25" FontWeight="SemiBold"/>
+                        <TextBlock TextAlignment="Center" TextWrapping="WrapWholeWords" Text="{helpers:Localize CustomName=ModsNoInternet}"/>
                     </StackPanel>
                 </Grid>
             </Grid>

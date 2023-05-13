@@ -31,13 +31,9 @@ namespace Emerald.Core.Store
                 HttpResponseMessage response = await Client.GetAsync(code);
 
                 if (response.IsSuccessStatusCode)
-                {
                     return await response.Content.ReadAsStringAsync();
-                }
-                else
-                {
+
                     throw new Exception("Failed to GET: \"" + code + "\"");
-                }
             }
             catch
             {

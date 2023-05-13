@@ -119,7 +119,7 @@
 
                 <conv:ExpanderTemplateSelector.Default>
                     <DataTemplate x:DataType="ViewModels:ExpanderViewModel" x:DefaultBindMode="OneWay">
-                        <Expander HorizontalContentAlignment="Stretch" Style="{StaticResource SettingsExpanderStyle}">
+                        <Expander IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}" HorizontalContentAlignment="Stretch" Style="{StaticResource SettingsExpanderStyle}">
                             <Expander.Header>
                                 <Grid VerticalAlignment="Center" ColumnSpacing="12">
                                     <Grid.ChildrenTransitions>

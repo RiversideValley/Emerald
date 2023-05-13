@@ -11,14 +11,19 @@
     <UseWinUI>true</UseWinUI>
     <Configurations>Debug;Release</Configurations>
     <Nullable>enable</Nullable>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Restart.bat" />
     <None Remove="Views\Store\InstallerPage.xaml" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="MsalClientID.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Restart.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

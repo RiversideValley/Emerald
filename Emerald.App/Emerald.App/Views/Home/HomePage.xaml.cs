@@ -355,6 +355,8 @@ namespace Emerald.WinUI.Views.Home
         private void StartProcess(Process process)
         {
             GameProcess = process;
+            GameProcess.StartInfo.UseShellExecute = SS.Settings.Minecraft.IsAdmin ? true : GameProcess.StartInfo.UseShellExecute;
+            GameProcess.StartInfo.Verb = SS.Settings.Minecraft.IsAdmin ? "runas" : GameProcess.StartInfo.Verb;
             if (SS.Settings.Minecraft.ReadLogs())
             {
                 GameProcess.EnableRaisingEvents = true;
@@ -380,16 +382,8 @@ namespace Emerald.WinUI.Views.Home
 
         private void NewsButton_Click(object sender, RoutedEventArgs e)
         {
-            var n = new NewsPage();
-            n.BackRequested += (_, _) =>
-            {
-                SecondaryFrame.Content = null;
-                PrimaryFrameGrid.Visibility = Visibility.Visible;
-                SecondaryFrame.Visibility = Visibility.Collapsed;
-            };
-            SecondaryFrame.Content = n;
-            PrimaryFrameGrid.Visibility = Visibility.Collapsed;
-            SecondaryFrame.Visibility = Visibility.Visible;
+            MainWindow.MainNavigationView.SelectedItem = MainWindow.MainNavigationView.MenuItems[1];
+            MainWindow.InvokeNavigate("News".Localize());
         }
 
         private void btnCloseVerPane_Click(object sender, RoutedEventArgs e)

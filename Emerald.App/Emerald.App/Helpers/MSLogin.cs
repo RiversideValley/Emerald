@@ -17,6 +17,7 @@ namespace Emerald.WinUI.Helpers
         ContentDialog InformDialog;
         OAuthMode mode;
         bool IsInTask;
+        bool IsInitizlied;
         public MSLoginHelper()
         {
         }
@@ -30,6 +31,7 @@ namespace Emerald.WinUI.Helpers
 
         public async Task Initialize(string cId, OAuthMode mode)
         {
+            IsInitizlied = true;
             this.mode = mode;
             var app = await MsalMinecraftLoginHelper.BuildApplicationWithCache(cId);
             var builder = new LoginHandlerBuilder().ForJavaEdition();

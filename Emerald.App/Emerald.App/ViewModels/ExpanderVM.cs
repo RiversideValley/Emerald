@@ -68,5 +68,15 @@ namespace Emerald.WinUI.ViewModels
             set => Set(ref _headerControls, value);
         }
 
+
+        private bool _IsExpanded;
+        /// <summary>
+        /// Gets or sets the <see cref="Microsoft.UI.Xaml.Controls.Expander.IsExpanded"/>.
+        /// </summary>
+        public bool IsExpanded
+        {
+            get => _IsExpanded;
+            set => Set(ref _IsExpanded, value);
+        }
     }
 }

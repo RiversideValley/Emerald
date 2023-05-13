@@ -72,7 +72,7 @@
                                     <FontIcon VerticalAlignment="Center" Glyph="&#xE946;" />
 
                                     <StackPanel VerticalAlignment="Center" Orientation="Vertical">
-                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=Version, RESW=Settings}" />
+                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=Version}" />
                                         <TextBlock
                                             FontSize="12"
                                             Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
@@ -85,23 +85,22 @@
                                     <FontIcon VerticalAlignment="Center" Glyph="&#xECA7;" />
 
                                     <StackPanel VerticalAlignment="Center" Orientation="Vertical">
-                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=Credits, RESW=Settings}" />
+                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=Credits}" />
                                         <TextBlock
                                             FontSize="12"
                                             Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
-                                            Text="{helpers:Localize CustomName=CreditsDescription,
-                                                                    RESW=Settings}" />
+                                            Text="{helpers:Localize CustomName=CreditsDescription}" />
                                     </StackPanel>
                                 </StackPanel>
                             </Button>
 
-                            <HyperlinkButton NavigateUri="https://github.com/OpenAndrexial/Emerald/Contribute">
+                            <HyperlinkButton NavigateUri="https://github.com/RiversideValley/Emerald/Contribute">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon VerticalAlignment="Center" Glyph="&#xEC7A;" />
 
                                     <StackPanel VerticalAlignment="Center" Orientation="Vertical">
-                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=Github, RESW=Settings}" />
-                                        <TextBlock FontSize="12" Text="{helpers:Localize CustomName=Contribute, RESW=Settings}" />
+                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=Github}" />
+                                        <TextBlock FontSize="12" Text="{helpers:Localize CustomName=Contribute}" />
                                     </StackPanel>
                                 </StackPanel>
                             </HyperlinkButton>
@@ -111,22 +110,21 @@
             </Border>
 
             <StackPanel Spacing="4">
-                <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=More, RESW=Settings}" />
+                <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=More}" />
 
                 <uc:Expander
-                    Title="{helpers:Localize CustomName=Links,
-                                             RESW=Settings}"
-                    Description="{helpers:Localize CustomName=LinksDescription,
-                                                   RESW=Settings}"
+                    Title="{helpers:Localize CustomName=Links}"
+                    Description="{helpers:Localize CustomName=LinksDescription}"
                     ExpanderStyle="Static"
                     Icon="&#xE12B;">
                     <StackPanel Orientation="Horizontal">
                         <HyperlinkButton Content="Discord" NavigateUri="https://discord.gg/x7MPYvzGMT" />
-                        <HyperlinkButton Content="Source code" NavigateUri="https://github.com/OpenAndrexial/Emerald" />
-                        <HyperlinkButton Content="Website" NavigateUri="https://www.andrexial.co.uk/" />
+                        <HyperlinkButton Content="Source code" NavigateUri="https://github.com/RiversideValley/Emerald" />
+                        <HyperlinkButton Content="Website" NavigateUri="https://theriversi.de/" />
                     </StackPanel>
                 </uc:Expander>
                 <uc:Expander
+                    IsExpanded="True"
                     Title="{helpers:Localize CustomName=SettingsBackups}"
                     Description="{helpers:Localize CustomName=SettingsBackupsDescription}"
                     Icon="&#xE159;">
@@ -134,8 +132,7 @@
                         <Button
                             x:Name="CreateBackup"
                             Click="CreateBackup_Click"
-                            Content="{helpers:Localize CustomName=CreateBackup,
-                                                       RESW=Settings}" />
+                            Content="{helpers:Localize CustomName=CreateBackup}" />
                     </uc:Expander.HeaderControls>
                     <Grid ChildrenTransitions="{StaticResource AddDeleteThemeTransition}">
                         <CommandBar
@@ -172,11 +169,8 @@
                     </Grid>
                 </uc:Expander>
                 <uc:Expander
-                    x:Name="expWinHello"
-                    Title="{helpers:Localize CustomName=WindowsHello,
-                                             RESW=Settings}"
-                    Description="{helpers:Localize CustomName=WindowsHelloDescription,
-                                                   RESW=Settings}"
+                    Title="{helpers:Localize CustomName=WindowsHello}"
+                    Description="{helpers:Localize CustomName=WindowsHelloDescription}"
                     ExpanderStyle="Static"
                     Icon="&#xE75F;">
                     <ToggleSwitch x:Name="tglWinHello" Toggled="ToggleSwitch_Toggled" />
@@ -190,11 +184,9 @@
             Title="{helpers:Localize CustomName=MoreVerInfo,
                                      RESW=Settings}"
             ActionButtonClick="vTip_ActionButtonClick"
-            ActionButtonContent="{helpers:Localize CustomName=CheckForUpdates,
-                                                   RESW=Settings}"
+            ActionButtonContent="{helpers:Localize CustomName=CheckForUpdates}"
             CloseButtonClick="vTip_CloseButtonClick"
-            CloseButtonContent="{helpers:Localize CustomName=CopyVersion,
-                                                  RESW=Settings}"
+            CloseButtonContent="{helpers:Localize CustomName=CopyVersion}"
             IsLightDismissEnabled="True"
             IsOpen="False"
             PreferredPlacement="Bottom"
@@ -210,11 +202,11 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Margin="0,0,5,0">
-                        <Run Text="{helpers:Localize CustomName=Version, RESW=Settings}" />
+                        <Run Text="{helpers:Localize CustomName=Version}" />
                     </TextBlock>
                     <TextBlock Grid.Column="1" Text="{x:Bind App:DirectResoucres.AppVersion}" />
                     <TextBlock Grid.Row="1" Margin="0,0,5,0">
-                        <Run Text="{helpers:Localize CustomName=BuildType, RESW=Settings}" />
+                        <Run Text="{helpers:Localize CustomName=BuildType}" />
                     </TextBlock>
                     <TextBlock
                         Grid.Row="1"

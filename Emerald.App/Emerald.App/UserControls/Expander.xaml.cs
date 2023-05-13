@@ -70,6 +70,15 @@ namespace Emerald.WinUI.UserControls
             get => VM.HeaderControls;
             set => VM.HeaderControls = value;
         }
+
+        /// <summary>
+        /// <inheritdoc cref="ExpanderViewModel.IsExpanded"/>
+        /// </summary>
+        public bool IsExpanded
+        {
+            get => VM.IsExpanded;
+            set => VM.IsExpanded = value;
+        }
         private void OnButtonClick(object sender, RoutedEventArgs e)
         {
             Click?.Invoke(this, e);

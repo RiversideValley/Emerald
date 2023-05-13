@@ -94,7 +94,7 @@ namespace Emerald.WinUI.Views.Settings
                 if (!await WindowsHello.Authenticate())
                 {
                     tglWinHello.IsOn = true;
-                    _ = MessageBox.Show("Error".Localize("Settings"), "WinHelloChangeFailed".Localize("Settings"), MessageBoxButtons.Ok);
+                    _ = MessageBox.Show("Error".Localize(), "WinHelloChangeFailed".Localize(), MessageBoxButtons.Ok);
                 }
                 else
                 {
@@ -143,6 +143,17 @@ namespace Emerald.WinUI.Views.Settings
             if (await WindowsHelloResult())
             {
                 var b = (SettingsBackup)lvBackups.SelectedItems[0];
+                if (!(await SS.GetBackups()).Where(x => x.Backup == SS.Settings.Serialize()).Any())
+                    if (await MessageBox.Show("Warning".Localize(), "SettingsLoadWarn".Localize(), MessageBoxButtons.YesNoCancel) != MessageBoxResults.Cancel)
+                    {
+                        await SS.CreateBackup(SS.Settings.Serialize());
+                        UpdateBackupList();
+                        App.Current.LoadFromBackupSettings(b.Backup);
+                    }
+                    else
+                        return;
+                else
+                    App.Current.LoadFromBackupSettings(b.Backup);
             }
         }
     }
