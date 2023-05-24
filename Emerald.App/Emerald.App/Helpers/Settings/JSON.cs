@@ -18,8 +18,10 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
     public class SettingsBackup : JSON
     {
         public string Backup { get; set; }
-
+        public string Name { get; set; }
         public DateTime Time { get; set; }
+        //ik there is Time.ToString() lol
+        public string DateString => $"{Time.ToLongDateString()} {Time.ToShortTimeString()}";
     }
 
     public class Backups : JSON
@@ -55,8 +57,8 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
             }
         };
 
-        public string APIVersion { get; set; } = "1.3";
-
+        public string APIVersion { get; set; } = DirectResoucres.SettingsAPIVersion;
+        public DateTime LastSaved { get; set; } = DateTime.Now;
         public Minecraft Minecraft { get; set; } = new();
 
         public App App { get; set; } = new();
@@ -76,7 +78,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         }
 
         [JsonIgnore]
-        public double RAMinGB => Math.Round(RAM / Math.Pow(1024, 1), 1);
+        public double RAMinGB => Math.Round((RAM / 1024.00), 2);
 
 
         [ObservableProperty]
@@ -112,26 +114,26 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
     {
 
         [ObservableProperty]
-        public bool _HashCheck;
+        private bool _HashCheck;
 
         [ObservableProperty]
-        public bool _AssetsCheck;
+        private bool _AssetsCheck;
     }
 
     public partial class JVM : JSON
     {
 
         [ObservableProperty]
-        public string[] _Arguments;
+        private string[] _Arguments;
 
         [ObservableProperty]
-        public int _ScreenWidth;
+        private int _ScreenWidth;
 
         [ObservableProperty]
-        public int _ScreenHeight;
+        private int _ScreenHeight;
 
         [ObservableProperty]
-        public bool _FullScreen;
+        private bool _FullScreen;
 
         [ObservableProperty]
         private bool _GameLogs;

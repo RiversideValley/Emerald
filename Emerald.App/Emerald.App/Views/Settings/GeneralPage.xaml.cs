@@ -27,11 +27,11 @@ namespace Emerald.WinUI.Views.Settings
         }
 
         private void btnRamPlus_Click(object sender, RoutedEventArgs e) =>
-            SS.Settings.Minecraft.RAM = SS.Settings.Minecraft.RAM + 50;
+            SS.Settings.Minecraft.RAM = SS.Settings.Minecraft.RAM + (SS.Settings.Minecraft.RAM >= DirectResoucres.MaxRAM ? 0 : (DirectResoucres.MaxRAM - SS.Settings.Minecraft.RAM >= 50 ? 50 : DirectResoucres.MaxRAM - SS.Settings.Minecraft.RAM) );
 
 
         private void btnRamMinus_Click(object sender, RoutedEventArgs e) =>
-            SS.Settings.Minecraft.RAM = SS.Settings.Minecraft.RAM - 50;
+            SS.Settings.Minecraft.RAM = SS.Settings.Minecraft.RAM - (SS.Settings.Minecraft.RAM <= DirectResoucres.MinRAM ? 0 : 50);
 
 
         private void btnAutoRAM_Click(object sender, RoutedEventArgs e) =>

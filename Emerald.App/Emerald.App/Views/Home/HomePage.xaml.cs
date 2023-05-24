@@ -382,7 +382,7 @@ namespace Emerald.WinUI.Views.Home
 
         private void NewsButton_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow.MainNavigationView.SelectedItem = MainWindow.MainNavigationView.MenuItems[1];
+            MainWindow.MainNavigationView.SelectedItem = MainWindow.MainNavigationView.MenuItems[2];
             MainWindow.InvokeNavigate("News".Localize());
         }
 
