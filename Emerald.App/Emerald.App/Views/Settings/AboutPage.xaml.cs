@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
-
 namespace Emerald.WinUI.Views.Settings;
 
 public sealed partial class AboutPage : Page, INotifyPropertyChanged
@@ -137,6 +136,7 @@ public sealed partial class AboutPage : Page, INotifyPropertyChanged
     {
         if (await WindowsHelloResult())
         {
+            var b = (SettingsBackup)lvBackups.SelectedItems[0];
             if (!(await SS.GetBackups()).Where(x => x.Backup == SS.Settings.Serialize()).Any())
             {
                 var r = await MessageBox.Show("Warning".Localize(), "SettingsLoadWarn".Localize(), MessageBoxButtons.YesNoCancel);
@@ -145,7 +145,6 @@ public sealed partial class AboutPage : Page, INotifyPropertyChanged
                     if (r == MessageBoxResults.Yes)
                         await SS.CreateBackup(SS.Settings.Serialize());
 
-                    var b = (SettingsBackup)lvBackups.SelectedItems[0];
                     UpdateBackupList();
                     App.Current.LoadFromBackupSettings(b.Backup);
                 }
