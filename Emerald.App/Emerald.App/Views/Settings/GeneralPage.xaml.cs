@@ -1,6 +1,10 @@
-﻿using Microsoft.UI.Xaml;
+﻿using CmlLib.Core;
+using Emerald.WinUI.Enums;
+using Emerald.WinUI.Helpers;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Diagnostics;
 using Windows.Storage.Pickers;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 
@@ -18,12 +22,34 @@ namespace Emerald.WinUI.Views.Settings
 
         private async void btnChangeMPath_Click(object sender, RoutedEventArgs e)
         {
-            var fop = new FolderPicker();
-            WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
-            var f = await fop.PickSingleFolderAsync();
+            MinecraftPath mcP;
+            bool retryMC = true;
+            while (retryMC)
+            {
+                try
+                {
+                    mcP = new(SS.Settings.Minecraft.Path);
+                    retryMC = false;
+                }
+                catch
+                {
+                    var r = await MessageBox.Show("Error".Localize(), "MCPathFailed".Localize().Replace("{Path}", SS.Settings.Minecraft.Path), MessageBoxButtons.Custom, "Yes".Localize(), "SetDifMCPath".Localize());
 
-            if (f != null)
-                SS.Settings.Minecraft.Path = f.Path;
+                   if (r == MessageBoxResults.CustomResult2)
+                    {
+                        var fop = new FolderPicker
+                        {
+                            CommitButtonText = "Select".Localize()
+                        };
+                        WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
+                        var f = await fop.PickSingleFolderAsync();
+
+                        if (f != null)
+                            SS.Settings.Minecraft.Path = f.Path;
+                    }
+                }
+
+            }
         }
 
         private void btnRamPlus_Click(object sender, RoutedEventArgs e) =>

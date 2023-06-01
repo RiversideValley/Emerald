@@ -157,15 +157,12 @@ namespace Emerald.WinUI.Helpers
             }
         }
 
-        public static string Localize(this Core.Localized resourceKey)
-        {
-            return resourceKey.ToString().Localize();
-        }
-
-        public static bool IsNullEmptyOrWhiteSpace(this string str)
-        {
-            return string.IsNullOrEmpty(str) || string.IsNullOrWhiteSpace(str);
-        }
+        public static string Localize(this Core.Localized resourceKey) =>
+             resourceKey.ToString().Localize();
+        
+        public static bool IsNullEmptyOrWhiteSpace(this string str) =>
+            string.IsNullOrEmpty(str) || string.IsNullOrWhiteSpace(str);
+        
 
         public static Models.Account ToAccount(this CmlLib.Core.Auth.MSession session, bool plusCount = true)
         {

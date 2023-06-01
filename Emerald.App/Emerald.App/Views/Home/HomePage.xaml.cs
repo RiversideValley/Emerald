@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Windows.ApplicationModel.Core;
+using Windows.Storage.Pickers;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 using Task = System.Threading.Tasks.Task;
 
@@ -74,10 +75,39 @@ namespace Emerald.WinUI.Views.Home
         private void InitializeWhenLoad(object sender, RoutedEventArgs e)
             => Initialize();
 
-        public void Initialize()
+        public async void Initialize()
         {
             Loaded -= InitializeWhenLoad;
+            MinecraftPath mcP;
+            bool retryMC = true;
+            while (retryMC)
+            {
+                try
+                {
+                    mcP = new(SS.Settings.Minecraft.Path);
+                    retryMC = false;
+                }
+                catch
+                {
+                    var r = await MessageBox.Show("Error".Localize(), "MCPathFailed".Localize().Replace("{Path}", SS.Settings.Minecraft.Path), MessageBoxButtons.CustomWithCancel, "Yes".Localize(), "SetDifMCPath".Localize());
+                    if (r == MessageBoxResults.Cancel)
+                        Process.GetCurrentProcess().Kill(); // Application.Current.Exit() didn't kill the process
+                    
+                    else if (r == MessageBoxResults.CustomResult2)
+                    {
+                        var fop = new FolderPicker
+                        {
+                            CommitButtonText = "Select".Localize()
+                        };
+                        WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
+                        var f = await fop.PickSingleFolderAsync();
 
+                        if (f != null)
+                            SS.Settings.Minecraft.Path = f.Path;
+                    }
+                }
+
+            }
             App.Current.Launcher.InitializeLauncher(new MinecraftPath(SS.Settings.Minecraft.Path));
 
             SS.Settings.Minecraft.PropertyChanged += (_, e) =>

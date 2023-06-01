@@ -18,9 +18,14 @@ namespace Emerald.WinUI.Helpers
         OAuthMode mode;
         bool IsInTask;
         bool IsInitizlied;
+
         public MSLoginHelper()
         {
         }
+
+        public MSLoginHelper(string cId, OAuthMode mode) =>
+            Initialize(cId, mode);
+        
 
         public enum OAuthMode
         {
@@ -29,11 +34,11 @@ namespace Emerald.WinUI.Helpers
             DeviceCode
         }
 
-        public async Task Initialize(string cId, OAuthMode mode)
+        public void Initialize(string cId, OAuthMode mode)
         {
             IsInitizlied = true;
             this.mode = mode;
-            var app = await MsalMinecraftLoginHelper.BuildApplicationWithCache(cId);
+            var app = MsalMinecraftLoginHelper.BuildApplication(cId);
             var builder = new LoginHandlerBuilder().ForJavaEdition();
 
             if (mode == OAuthMode.DeviceCode)
@@ -62,8 +67,10 @@ namespace Emerald.WinUI.Helpers
                 };
                 cb.Click += (s, e) =>
                 {
-                    var p = new DataPackage();
-                    p.RequestedOperation = DataPackageOperation.Copy;
+                    var p = new DataPackage
+                    {
+                        RequestedOperation = DataPackageOperation.Copy
+                    };
                     p.SetText(result.UserCode);
                     Clipboard.SetContent(p);
                 };

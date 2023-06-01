@@ -62,8 +62,10 @@ public sealed partial class AboutPage : Page, INotifyPropertyChanged
 
     private void vTip_CloseButtonClick(TeachingTip sender, object args)
     {
-        var VerData = new DataPackage();
-        VerData.RequestedOperation = DataPackageOperation.Copy;
+        var VerData = new DataPackage
+        {
+            RequestedOperation = DataPackageOperation.Copy
+        };
         VerData.SetText($"{"Version".Localize()}: {DirectResoucres.AppVersion}\n{"BuildType".Localize()}: {DirectResoucres.BuildType}");
         Clipboard.SetContent(VerData);
     }

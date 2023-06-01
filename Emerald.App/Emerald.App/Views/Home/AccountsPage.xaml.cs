@@ -224,8 +224,7 @@ public sealed partial class AccountsPage : Page, INotifyPropertyChanged
     {
         var taskID = Core.Tasks.TasksHelper.AddTask(Localized.LoginWithMicrosoft);
         var cId = await FileIO.ReadTextAsync(await StorageFile.GetFileFromPathAsync($"{Windows.ApplicationModel.Package.Current.InstalledPath}\\MsalClientID.txt"));
-        var msl = new MSLoginHelper();
-        await msl.Initialize(cId, (sender as MenuFlyoutItem).Tag.ToString()
+        var msl = new MSLoginHelper(cId, (sender as MenuFlyoutItem).Tag.ToString()
             switch
         {
             "DeviceCode" => MSLoginHelper.OAuthMode.DeviceCode,

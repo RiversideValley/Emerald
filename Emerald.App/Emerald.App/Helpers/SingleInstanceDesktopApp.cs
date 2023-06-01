@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
@@ -61,9 +62,9 @@ namespace Emerald.WinUI.Helpers.AppInstancing
             {
                 SendArgumentsToRunningInstance(arguments);
 
-                //Process.GetCurrentProcess().Kill(); 
+                Process.GetCurrentProcess().Kill(); 
                 // Note: needed to kill the process in WinAppSDK 1.0, since Application.Current.Exit() does not work there.
-                Application.Current.Exit();
+                //Application.Current.Exit();
             }
         }
 

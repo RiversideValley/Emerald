@@ -125,11 +125,32 @@ namespace Emerald.WinUI.Helpers
             }
         }
 
-        public static async Task<MessageBoxResults> Show(string title, string caption, MessageBoxButtons buttons, string customResult1 = null, string customResult2 = null)
+        public static async Task<MessageBoxResults> Show(string title, string caption, MessageBoxButtons buttons, string customResult1 = null, string customResult2 = null,bool waitUntilOpens = true)
         {
-            var d = new MessageBox(title, caption, buttons, customResult1, customResult2);
-            d.XamlRoot = MainWindow.MainFrame.XamlRoot;
-            d.RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme;
+            var d = new MessageBox(title, caption, buttons, customResult1, customResult2)
+            {
+                XamlRoot = MainWindow.MainFrame.XamlRoot,
+                RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme
+            };
+
+            if (waitUntilOpens)
+            {
+                bool notOpen = true;
+                while (notOpen)
+                {
+                    try
+                    {
+                        await d.ShowAsync();
+                        notOpen = false;
+                    }
+                    catch (NullReferenceException)
+                    {
+                        notOpen = false;
+                        return MessageBoxResults.OpenFailed;
+                    }
+                }
+                return d.Result;
+            }
 
             try
             {
@@ -145,9 +166,11 @@ namespace Emerald.WinUI.Helpers
 
         public static async Task<MessageBoxResults> Show(string text)
         {
-            var d = new MessageBox("Information", text, MessageBoxButtons.Ok);
-            d.XamlRoot = MainWindow.MainFrame.XamlRoot;
-            d.RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme;
+            var d = new MessageBox("Information", text, MessageBoxButtons.Ok)
+            {
+                XamlRoot = MainWindow.MainFrame.XamlRoot,
+                RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme
+            };
 
             try
             {

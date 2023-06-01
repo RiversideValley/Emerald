@@ -655,4 +655,10 @@
   <data name="Whoops" xml:space="preserve">
     <value>Whoops!</value>
   </data>
+  <data name="MCPathFailed" xml:space="preserve">
+    <value>Failed to initialize Minecraft path at `{Path}`. Do you want to try again?</value>
+  </data>
+  <data name="SetDifMCPath" xml:space="preserve">
+    <value>Change Path</value>
+  </data>
 </root>
