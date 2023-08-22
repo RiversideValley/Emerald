@@ -20,36 +20,47 @@ namespace Emerald.WinUI.Views.Settings
             InitializeComponent();
         }
 
-        private async void btnChangeMPath_Click(object sender, RoutedEventArgs e)
+        private void btnChangeMPath_Click(object sender, RoutedEventArgs e)
         {
             MinecraftPath mcP;
-            bool retryMC = true;
-            while (retryMC)
+            string path = "";
+            async void Start()
             {
-                try
+                var fop = new FolderPicker
                 {
-                    mcP = new(SS.Settings.Minecraft.Path);
-                    retryMC = false;
-                }
-                catch
-                {
-                    var r = await MessageBox.Show("Error".Localize(), "MCPathFailed".Localize().Replace("{Path}", SS.Settings.Minecraft.Path), MessageBoxButtons.Custom, "Yes".Localize(), "SetDifMCPath".Localize());
+                    CommitButtonText = "Select".Localize()
+                };
+                WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
+                var f = await fop.PickSingleFolderAsync();
 
-                   if (r == MessageBoxResults.CustomResult2)
+                if (f != null)
+                    path = f.Path;
+                else
+                    return;
+
+                Try();
+
+                async void Try()
+                {
+                    try
                     {
-                        var fop = new FolderPicker
-                        {
-                            CommitButtonText = "Select".Localize()
-                        };
-                        WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
-                        var f = await fop.PickSingleFolderAsync();
-
-                        if (f != null)
-                            SS.Settings.Minecraft.Path = f.Path;
+                        mcP = new(path);
+                        SS.Settings.Minecraft.Path = path;
+                        App.Current.Launcher.InitializeLauncher(mcP);
+                    }
+                    catch
+                    {
+                        var r = await MessageBox.Show("Error".Localize(), "MCPathFailed".Localize().Replace("{Path}", path), MessageBoxButtons.Custom, "Yes".Localize(), "SetDifMCPath".Localize());
+                        if (r == MessageBoxResults.Yes)
+                            Try();
+                        else
+                            Start();
+                        
                     }
                 }
 
             }
+            Start();
         }
 
         private void btnRamPlus_Click(object sender, RoutedEventArgs e) =>

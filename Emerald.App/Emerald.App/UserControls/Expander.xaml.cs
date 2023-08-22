@@ -79,6 +79,15 @@ namespace Emerald.WinUI.UserControls
             get => VM.IsExpanded;
             set => VM.IsExpanded = value;
         }
+
+        /// <summary>
+        /// <inheritdoc cref="ExpanderViewModel.MinDetailsWidth"/>
+        /// </summary>
+        public int MinDetailsWidth
+        {
+            get => VM.MinDetailsWidth;
+            set => VM.MinDetailsWidth = value;
+        }
         private void OnButtonClick(object sender, RoutedEventArgs e)
         {
             Click?.Invoke(this, e);

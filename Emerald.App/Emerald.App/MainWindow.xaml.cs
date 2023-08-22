@@ -1,4 +1,5 @@
-﻿using Emerald.Core;
+﻿using CommunityToolkit.WinUI.Helpers;
+using Emerald.Core;
 using Emerald.Core.Tasks;
 using Emerald.WinUI.Helpers;
 using Emerald.WinUI.Models;
@@ -8,10 +9,12 @@ using Emerald.WinUI.Views.Home;
 using Emerald.WinUI.Views.Store;
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Linq;
 using Windows.UI;
@@ -57,16 +60,26 @@ namespace Emerald.WinUI
 
             (Content as FrameworkElement).Loaded += Initialize;
         }
+        public async void ShowMiniTask(string title, string message, InfoBarSeverity severity)
+        {
+            MiniTaskInfo.Title = title;
+            MiniTaskInfo.Message = message; 
+            MiniTaskInfo.Severity = severity;
 
+            MiniTaskInfo.Visibility = Visibility.Visible;
+            await System.Threading.Tasks.Task.Delay(new TimeSpan(0,0,3));
+            MiniTaskInfo.Visibility = Visibility.Collapsed;
+        }
         public async void Initialize(object s, RoutedEventArgs e)
         {
             MicaBackground mica = WindowManager.IntializeWindow(this);
 
-            mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
-
-            SS.Settings.App.Appearance.PropertyChanged += (s, e)
-                => mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
-
+            if (mica != null)
+            {
+                mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
+                SS.Settings.App.Appearance.PropertyChanged += (s, e)
+                    => mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
+            }
             MainNavigationView.Header = new NavViewHeader() { HeaderText = "Home".Localize(), HeaderMargin = GetNavViewHeaderMargin() };
             MainNavigationView.DisplayModeChanged += (_, _) => (MainNavigationView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
 
@@ -112,18 +125,22 @@ namespace Emerald.WinUI
                 {
                     if (e is TaskAddRequestedEventArgs task)
                     {
-                        var id = TaskView.AddProgressTask(string.Join(" ", (task.Name ?? "").Split(" ").Select(s => s.Localize())), 0, InfoBarSeverity.Informational, true, task.ID);
+                        var c = string.Join(" ", (task.Name ?? "").Split(" ").Select(s => s.Localize()));
+                        var id = TaskView.AddProgressTask(c, 0, InfoBarSeverity.Informational, true, task.ID);
                         if (task.Message != null)
                             TaskView.ChangeDescription(id, task.Message);
 
                         TasksInfoBadge.Value++;
                         UpdateTasksInfoBadge();
+                        ShowMiniTask(c, null, InfoBarSeverity.Informational);
                     }
                     else if (e is ProgressTaskEventArgs Ptask)
                     {
+                        var c = string.Join(" ", (Ptask.Name ?? "").Split(" ").Select(s => s.Localize()));
                         var val = Ptask.Value / Ptask.MaxValue * 100;
-                        TaskView.AddProgressTask(string.Join(" ", (Ptask.Name ?? "").Split(" ").Select(s => s.Localize())), val, InfoBarSeverity.Informational, false, Ptask.ID);
+                        TaskView.AddProgressTask(c, val, InfoBarSeverity.Informational, false, Ptask.ID);
                         TasksInfoBadge.Value++;
+                        ShowMiniTask(c, null, InfoBarSeverity.Informational);
                         UpdateTasksInfoBadge();
                     }
                 };
@@ -136,10 +153,12 @@ namespace Emerald.WinUI
 
                 TasksHelper.TaskCompleteRequested += (_, e) =>
                 {
+                    var c = TaskView.AllTasks.FirstOrDefault(t => t.ID == e.ID).Content;
                     TaskView.ChangeProgress(e.ID, 100);
                     TaskView.ChangeIndeterminate(e.ID, false);
                     TaskView.ChangeDescription(e.ID, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.Localize())));
                     TaskView.ChangeSeverty(e.ID, e.Success ? InfoBarSeverity.Success : InfoBarSeverity.Error);
+                    ShowMiniTask(c, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.Localize())), e.Success ? InfoBarSeverity.Success : InfoBarSeverity.Error);
 
                 };
             }
@@ -153,30 +172,34 @@ namespace Emerald.WinUI
                     switch ((Helpers.Settings.Enums.MicaTintColor)SS.Settings.App.Appearance.MicaTintColor)
                     {
                         case Helpers.Settings.Enums.MicaTintColor.NoColor:
-                            MicaTintColorBrush.Color = Colors.Transparent;
-                            BGTintColor = Colors.Transparent;
+                            MainGrid.Background = null;
                             break;
                         case Helpers.Settings.Enums.MicaTintColor.AccentColor:
-                            MicaTintColorBrush.Color = (Color)Application.Current.Resources["SystemAccentColor"];
-                            BGTintColor = (Color)Application.Current.Resources["SystemAccentColor"];
+                            var a = ((SolidColorBrush)Application.Current.Resources["AccentFillColorDefaultBrush"]);
+                            a.Opacity = 0.1;
+                            MainGrid.Background = a;
                             break;
                         case Helpers.Settings.Enums.MicaTintColor.CustomColor:
                             var c = SS.Settings.App.Appearance.CustomMicaTintColor;
-                            MicaTintColorBrush.Color = c == null ? Color.FromArgb(255, 234, 0, 94) : Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B);
-                            BGTintColor = c == null ? Color.FromArgb(255, 234, 0, 94) : Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B);
+                            MainGrid.Background = new SolidColorBrush() { Color = c == null ? Color.FromArgb(255, 234, 0, 94) : Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B), Opacity = 0.1 };
                             break;
                     }
                 }
 
                 SS.Settings.App.Appearance.PropertyChanged += (s, e) =>
                 {
-                    TintColor();
-                    (Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
-
+                    if (e.PropertyName != null)
+                    {
+                        TintColor();
+                        (Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
+                    }
                 };
+
+                (Content as FrameworkElement).ActualThemeChanged += (s, e) => SS.Settings.App.Appearance.InvokePropertyChanged();
 
                 TintColor();
                 (Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
+                SS.Settings.App.Appearance.InvokePropertyChanged();
             }
 
             Settings();

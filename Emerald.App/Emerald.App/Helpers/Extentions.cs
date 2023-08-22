@@ -50,9 +50,6 @@ namespace Emerald.WinUI.Helpers
             if (num >= 100000)
                 return (num / 1000).ToString("#,0K");
 
-            if (num >= 10000)
-                return (num / 1000).ToString("0.#") + "K";
-
             if (num >= 1000)
                 return (num / 100).ToString("0.#") + "K";
 
@@ -138,9 +135,7 @@ namespace Emerald.WinUI.Helpers
                 string s;
 
                 if (cachedResources.TryGetValue(resourceKey, out var value))
-                {
                     return value;
-                }
 
                 rl = new ResourceManager();
 

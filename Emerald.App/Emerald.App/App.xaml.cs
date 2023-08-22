@@ -1,4 +1,5 @@
-﻿using Emerald.WinUI.Helpers.AppInstancing;
+﻿using ColorCode;
+using Emerald.WinUI.Helpers.AppInstancing;
 using Microsoft.UI.Xaml;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ public partial class App : Application
 {
     private readonly SingleInstanceDesktopApp _singleInstanceApp;
     public Core.Emerald Launcher { get; private set; } = new();
-
+    public ElementTheme ActualTheme => (MainWindow.Content as FrameworkElement).ActualTheme;
     public static Task<string> CheckForUpdates()
     {
         return null;

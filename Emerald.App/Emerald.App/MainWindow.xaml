@@ -9,23 +9,39 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Emerald.WinUI.Models"
     xmlns:toolkit="using:CommunityToolkit.WinUI.UI.Controls"
-    xmlns:uc="using:Emerald.WinUI.UserControls"
+    xmlns:uc="using:Emerald.WinUI.UserControls" xmlns:Animations="using:CommunityToolkit.WinUI.UI.Animations"
     mc:Ignorable="d">
 
-    <Grid>
+    <Grid x:Name="BackgroundGrid">
         <Grid.Background>
-            <SolidColorBrush x:Name="MicaTintColorBrush" Opacity="0.1" />
+            <SolidColorBrush Color="{x:Bind SS:SettingsSystem.Settings.App.Appearance.Win10BackgroundColor, Mode=OneWay}"/>
         </Grid.Background>
-
-        <uc:TitleBar
+        <Grid x:Name="MainGrid">
+            <uc:TitleBar
             x:Name="AppTitleBar"
-            Height="45"
+            Height="48"
             Margin="12,0,0,0"
             VerticalAlignment="Top" />
+            <InfoBar
+            HorizontalAlignment="Right"
+            IsClosable="False"
+            IsOpen="True"
+            Margin="256,54,12,0"
+            x:Name="MiniTaskInfo"
+            Visibility="Collapsed">
+                <Animations:Implicit.ShowAnimations>
+                    <Animations:TranslationAnimation Duration="0:0:1" From="200, 0, 0" To="0"/>
+                    <Animations:OpacityAnimation Duration="0:0:1" From="0" To="1.0"/>
+                </Animations:Implicit.ShowAnimations>
 
-        <NavigationView
+                <Animations:Implicit.HideAnimations>
+                    <Animations:OpacityAnimation Duration="0:0:1" To="0.0"/>
+                    <Animations:TranslationAnimation Duration="0:0:1" To="200, 0, 0" From="0"/>
+                </Animations:Implicit.HideAnimations>
+            </InfoBar>
+            <NavigationView
             x:Name="NavView"
-            Margin="0,45,0,0"
+            Margin="0,48,0,0"
             AlwaysShowHeader="True"
             IsBackButtonVisible="Collapsed"
             IsPaneToggleButtonVisible="False"
@@ -33,81 +49,86 @@
             OpenPaneLength="80"
             PaneDisplayMode="Left">
 
-            <NavigationView.HeaderTemplate>
-                <DataTemplate x:DataType="models:NavViewHeader">
-                    <Grid Margin="{x:Bind HeaderMargin}" x:DefaultBindMode="OneWay">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            x:Name="txtHeader"
-                            Grid.Column="0"
+                <NavigationView.HeaderTemplate>
+                    <DataTemplate x:DataType="models:NavViewHeader">
+                        <Grid Margin="{x:Bind HeaderMargin}" x:DefaultBindMode="OneWay">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
                             Style="{ThemeResource TitleTextBlockStyle}"
                             Text="{x:Bind HeaderText, Mode=OneWay}" />
-                        <Button
-                            Grid.Column="1"
+                            <ContentPresenter
+                            Grid.Column="2"
+                            Margin="0,0,5,0"
+                            Content="{x:Bind CustomContent}"
+                            Visibility="{x:Bind CustomContentVisibility}" />
+                            <Button
+                            Grid.Column="3"
                             Margin="0,0,5,0"
                             Content="{x:Bind CustomButtonText}"
                             Visibility="{x:Bind CustomButtonVisibility}" />
-                    </Grid>
-                </DataTemplate>
-            </NavigationView.HeaderTemplate>
+                        </Grid>
+                    </DataTemplate>
+                </NavigationView.HeaderTemplate>
 
-            <NavigationView.Resources>
-                <x:Double x:Key="NavigationViewSelectionIndicatorWidth">4</x:Double>
-                <x:Double x:Key="NavigationViewSelectionIndicatorHeight">24</x:Double>
-                <x:Double x:Key="NavigationViewSelectionIndicatorRadius">2</x:Double>
-                <Thickness x:Key="NavigationViewItemContentPresenterMargin">0</Thickness>
-            </NavigationView.Resources>
+                <NavigationView.Resources>
+                    <x:Double x:Key="NavigationViewSelectionIndicatorWidth">4</x:Double>
+                    <x:Double x:Key="NavigationViewSelectionIndicatorHeight">24</x:Double>
+                    <x:Double x:Key="NavigationViewSelectionIndicatorRadius">2</x:Double>
+                    <Thickness x:Key="NavigationViewItemContentPresenterMargin">0</Thickness>
+                </NavigationView.Resources>
 
-            <NavigationView.MenuItemTemplate>
-                <DataTemplate x:DataType="models:SquareNavigationViewItem">
-                    <NavigationViewItem
+                <NavigationView.MenuItemTemplate>
+                    <DataTemplate x:DataType="models:SquareNavigationViewItem">
+                        <NavigationViewItem
                         Height="64"
                         IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
                         IsSelected="{x:Bind IsSelected, Mode=TwoWay}"
                         Tag="{x:Bind Name}">
-                        <Grid
+                            <Grid
                             Margin="-5,4,-9,0"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch"
                             x:DefaultBindMode="OneWay"
                             RowSpacing="2">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <Grid.ChildrenTransitions>
-                                <TransitionCollection>
-                                    <RepositionThemeTransition />
-                                    <AddDeleteThemeTransition />
-                                </TransitionCollection>
-                            </Grid.ChildrenTransitions>
-                            <ContentPresenter
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ChildrenTransitions>
+                                    <TransitionCollection>
+                                        <RepositionThemeTransition />
+                                        <AddDeleteThemeTransition />
+                                    </TransitionCollection>
+                                </Grid.ChildrenTransitions>
+                                <ContentPresenter
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Top"
                                 Content="{x:Bind InfoBadge}" />
-                            <toolkit:ImageEx
+                                <toolkit:ImageEx
                                 x:Name="Image"
                                 Width="28"
                                 Height="28"
                                 x:Load="{x:Bind ShowThumbnail}"
                                 Source="{x:Bind Thumbnail}" />
-                            <FontIcon
+                                <FontIcon
                                 x:Name="fontIcon"
                                 x:Load="{x:Bind ShowFontIcons}"
                                 Visibility="{x:Bind FontIconVisibility}"
                                 FontSize="22"
                                 Glyph="{x:Bind FontIconGlyph}" />
-                            <FontIcon
+                                <FontIcon
                                 x:Name="fontIconSolid"
                                 x:Load="{x:Bind ShowFontIcons}"
                                 Visibility="{x:Bind SolidFontIconVisibility}"
                                 FontSize="22"
                                 Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                                 Glyph="{x:Bind SolidFontIconGlyph}" />
-                            <TextBlock
+                                <TextBlock
                                 x:Name="txtNavItemName"
                                 Grid.Row="1"
                                 HorizontalAlignment="Center"
@@ -116,37 +137,37 @@
                                 Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 Text="{x:Bind Name}" />
-                        </Grid>
-                    </NavigationViewItem>
-                </DataTemplate>
-            </NavigationView.MenuItemTemplate>
+                            </Grid>
+                        </NavigationViewItem>
+                    </DataTemplate>
+                </NavigationView.MenuItemTemplate>
 
-            <NavigationView.MenuItems>
-                <models:SquareNavigationViewItem
+                <NavigationView.MenuItems>
+                    <models:SquareNavigationViewItem
                     Name="{helpers:Localize CustomName=Home}"
                     SolidFontIconGlyph="&#xEA8A;"
                     FontIconGlyph="&#xE80F;"
                     IsSelected="True"
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                     Thumbnail="Assets/NavigationViewIcons/home.png" />
-                <models:SquareNavigationViewItem
+                    <models:SquareNavigationViewItem
                     Name="{helpers:Localize CustomName=Store}"
                     FontIconGlyph="&#xE7BF;"
                     SolidFontIconGlyph="&#xE7BF;"
                     IsSelected="False"
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                     Thumbnail="Assets/NavigationViewIcons/store.png" />
-                <models:SquareNavigationViewItem
+                    <models:SquareNavigationViewItem
                     Name="{helpers:Localize CustomName=News}"
                     FontIconGlyph="&#xF57E;"
                     SolidFontIconGlyph="&#xF57E;"
                     IsSelected="False"
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                     Thumbnail="Assets/NavigationViewIcons/news.png" />
-            </NavigationView.MenuItems>
+                </NavigationView.MenuItems>
 
-            <NavigationView.FooterMenuItems>
-                <models:SquareNavigationViewItem
+                <NavigationView.FooterMenuItems>
+                    <models:SquareNavigationViewItem
                     Name="{helpers:Localize CustomName=Tasks}"
                     FontIconGlyph="&#xE9D5;"
                     SolidFontIconGlyph="&#xE9D5;"
@@ -154,7 +175,7 @@
                     IsSelected="False"
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                     Thumbnail="Assets/NavigationViewIcons/tasks.png" />
-                <models:SquareNavigationViewItem
+                    <models:SquareNavigationViewItem
                     Name="{helpers:Localize CustomName=Logs}"
                     FontIconGlyph="&#xE756;"
                     SolidFontIconGlyph="&#xE756;"
@@ -162,18 +183,19 @@
                     IsSelected="False"
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                     Thumbnail="Assets/NavigationViewIcons/logs.png" />
-                <models:SquareNavigationViewItem
+                    <models:SquareNavigationViewItem
                     Name="{helpers:Localize CustomName=Settings}"
                     FontIconGlyph="&#xE713;"
                     SolidFontIconGlyph="&#xE713;"
                     IsSelected="False"
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                     Thumbnail="Assets/NavigationViewIcons/settings.png" />
-            </NavigationView.FooterMenuItems>
+                </NavigationView.FooterMenuItems>
 
-            <Frame x:Name="frame"/>
+                <Frame x:Name="frame"/>
 
-        </NavigationView>
+            </NavigationView>
 
+        </Grid>
     </Grid>
 </Window>

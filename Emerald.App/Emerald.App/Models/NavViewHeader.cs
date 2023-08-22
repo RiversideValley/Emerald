@@ -14,6 +14,12 @@ namespace Emerald.WinUI.Models
 
         public Visibility CustomButtonVisibility { get => CustomButtonText == null ? Visibility.Collapsed : Visibility.Visible; }
 
+
+        [ObservableProperty]
+        private string _CustomContent;
+
+        public Visibility CustomContentVisibility { get => CustomContent == null ? Visibility.Collapsed : Visibility.Visible; }
+
         [ObservableProperty]
         private Thickness _HeaderMargin;
     }

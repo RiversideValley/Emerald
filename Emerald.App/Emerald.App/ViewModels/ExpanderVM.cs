@@ -78,5 +78,15 @@ namespace Emerald.WinUI.ViewModels
             get => _IsExpanded;
             set => Set(ref _IsExpanded, value);
         }
+
+        private int _MinDetailsWidth = 80;
+        /// <summary>
+        /// The minimum width of the details pane, default = 80
+        /// </summary>
+        public int MinDetailsWidth
+        {
+            get => _MinDetailsWidth;
+            set => Set(ref _MinDetailsWidth, value);
+        }
     }
 }

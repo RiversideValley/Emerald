@@ -15,6 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Helpers\rlbl1cxv.0sq~" />
     <None Remove="Restart.bat" />
     <None Remove="Views\Store\InstallerPage.xaml" />
   </ItemGroup>

@@ -22,34 +22,22 @@
             <StackPanel Spacing="4">
                 <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=GeneralSettings}" />
                 <uc:Expander
-                    Title="{helpers:Localize CustomName=MinecraftPath,
-                                             RESW=Settings}"
-                    Description="{helpers:Localize CustomName=MinecraftPathDescription,
-                                                   RESW=Settings}"
+                    Title="{helpers:Localize CustomName=MinecraftPath}"
+                    Description="{helpers:Localize CustomName=MinecraftPathDescription}"
                     ExpanderStyle="Static"
                     Icon="&#xE838;">
-                    <StackPanel Orientation="Horizontal">
+                    <HyperlinkButton Click="btnChangeMPath_Click">
                         <TextBlock
                             MaxWidth="250"
                             VerticalAlignment="Center"
                             Text="{x:Bind SS:SettingsSystem.Settings.Minecraft.Path, Mode=OneWay}"
                             TextTrimming="CharacterEllipsis" />
-                        <Button
-                            x:Name="btnChangeMPath"
-                            Margin="5,0,0,0"
-                            Padding="7,7"
-                            Click="btnChangeMPath_Click"
-                            ToolTipService.ToolTip="Change">
-                            <FontIcon FontSize="16" Glyph="&#xE19C;" />
-                        </Button>
-                    </StackPanel>
+                    </HyperlinkButton>
                 </uc:Expander>
 
                 <uc:Expander
-                    Title="{helpers:Localize CustomName=RAM,
-                                             RESW=Settings}"
-                    Description="{helpers:Localize CustomName=RAMDescription,
-                                                   RESW=Settings}"
+                    Title="{helpers:Localize CustomName=RAM}"
+                    Description="{helpers:Localize CustomName=RAMDescription}"
                     Icon="&#xE964;"
                     IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">
                     <uc:Expander.HeaderControls>
@@ -125,10 +113,8 @@
                 <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=AdvancedMinecraftSettings}" />
 
                 <uc:Expander
-                    Title="{helpers:Localize CustomName=MCasAdmin,
-                                             RESW=Settings}"
-                    Description="{helpers:Localize CustomName=MCasAdminDescription,
-                                                   RESW=Settings}"
+                    Title="{helpers:Localize CustomName=MCasAdmin}"
+                    Description="{helpers:Localize CustomName=MCasAdminDescription}"
                     ExpanderStyle="Static"
                     Icon="&#xe83d;"
                     IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">
@@ -137,22 +123,55 @@
                         OffContent="{helpers:Localize Name=No}"
                         OnContent="{helpers:Localize Name=Yes}" />
                 </uc:Expander>
-
+                
                 <uc:Expander
-                    Title="{helpers:Localize CustomName=JVMArgs,
-                                             RESW=Settings}"
-                    Description="{helpers:Localize CustomName=JVMArgsDescription,
-                                                   RESW=Settings}"
+                    Title="{helpers:Localize CustomName=MCWindowsSize}"
+                    Description="{helpers:Localize CustomName=MCWindowsSizeDescription}"
+                    Icon="&#xe7fb;">
+                    <uc:Expander.HeaderControls>
+                        <TextBlock Text="{x:Bind SS:SettingsSystem.Settings.Minecraft.JVM.ScreenSizeStatus, Mode=OneWay}"/>
+                    </uc:Expander.HeaderControls>
+                    <StackPanel Spacing="5">
+                        <uc:ExpanderItem
+                            Title="{helpers:Localize CustomName=Width}"
+                            Margin="0,-10,0,0"
+                            BorderVisibility="Collapsed">
+                            <NumberBox
+                                Minimum="0"
+                                Value="{x:Bind SS:SettingsSystem.Settings.Minecraft.JVM.ScreenWidth, Mode=TwoWay}" 
+                                SpinButtonPlacementMode="Inline" 
+                                LargeChange="80" 
+                                SmallChange="10" 
+                                PlaceholderText="{helpers:Localize CustomName=Default}"/>
+                        </uc:ExpanderItem>
+                        <uc:ExpanderItem 
+                            Title="{helpers:Localize CustomName=Height}">
+                            <NumberBox 
+                                Margin="0,4,0,0"
+                                Minimum="0"
+                                Value="{x:Bind SS:SettingsSystem.Settings.Minecraft.JVM.ScreenHeight, Mode=TwoWay}" 
+                                SpinButtonPlacementMode="Inline" 
+                                LargeChange="80"
+                                SmallChange="10" 
+                                PlaceholderText="{helpers:Localize CustomName=Default}"/>
+                        </uc:ExpanderItem>
+                        <uc:ExpanderItem Title="{helpers:Localize CustomName=FullScreen}" Margin="0,0,0,-10">
+                            <ToggleSwitch IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.JVM.FullScreen, Mode=TwoWay}" />
+                        </uc:ExpanderItem>
+                    </StackPanel>
+                </uc:Expander>
+                
+                <uc:Expander
+                    Title="{helpers:Localize CustomName=JVMArgs}"
+                    Description="{helpers:Localize CustomName=JVMArgsDescription}"
                     Icon="&#xec7a;"
                     IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">
                     <uc:ArgumentsListView />
                 </uc:Expander>
 
                 <uc:Expander
-                    Title="{helpers:Localize CustomName=GameLogs,
-                                             RESW=Settings}"
-                    Description="{helpers:Localize CustomName=GameLogsDescription,
-                                                   RESW=Settings}"
+                    Title="{helpers:Localize CustomName=GameLogs}"
+                    Description="{helpers:Localize CustomName=GameLogsDescription}"
                     ExpanderStyle="Static"
                     Icon="&#xE756;"
                     IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">

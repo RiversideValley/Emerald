@@ -319,11 +319,12 @@ namespace Emerald.WinUI.Views.Home
                 MaximumRamMb = SS.Settings.Minecraft.RAM,
                 Session = Session,
             };
-
-            if (SS.Settings.Minecraft.JVM.ScreenWidth != 0 && SS.Settings.Minecraft.JVM.ScreenHeight != 0)
+            var w = SS.Settings.Minecraft.JVM.ScreenWidth;
+            var h = SS.Settings.Minecraft.JVM.ScreenHeight;
+            if ((w != 0 || w != double.NaN) && (h != 0 || h != double.NaN))
             {
-                l.ScreenWidth = SS.Settings.Minecraft.JVM.ScreenWidth;
-                l.ScreenHeight = SS.Settings.Minecraft.JVM.ScreenHeight;
+                l.ScreenWidth = Convert.ToInt32(w);
+                l.ScreenHeight = Convert.ToInt32(h);
             }
             l.FullScreen = SS.Settings.Minecraft.JVM.FullScreen;
             l.JVMArguments = SS.Settings.Minecraft.JVM.Arguments;

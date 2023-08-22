@@ -1,11 +1,14 @@
 ﻿using CmlLib.Core;
 using ColorCode.Compilation.Languages;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.WinUI.Helpers;
 using Emerald.Core.Store.Enums;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using Windows.UI;
 
 namespace Emerald.WinUI.Helpers.Settings.JSON
 {
@@ -122,21 +125,34 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
 
     public partial class JVM : JSON
     {
+        public JVM()
+        {
+            this.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName != null)
+                    this.InvokePropertyChanged();
+            };
+        }
 
         [ObservableProperty]
         private string[] _Arguments;
 
         [ObservableProperty]
-        private int _ScreenWidth;
+        private double _ScreenWidth;
 
         [ObservableProperty]
-        private int _ScreenHeight;
+        private double _ScreenHeight;
 
         [ObservableProperty]
         private bool _FullScreen;
 
         [ObservableProperty]
         private bool _GameLogs;
+
+        [JsonIgnore]
+        public string ScreenSizeStatus =>
+                 FullScreen ? "FullScreen".Localize() : ((ScreenWidth > 0 && ScreenHeight > 0) ? $"{ScreenWidth} × {ScreenHeight}" : "Default".Localize());
+        
     }
 
     public class App : JSON
@@ -149,6 +165,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public bool AutoClose { get; set; }
         public bool HideOnLaunch { get; set; }
         public bool WindowsHello { get; set; }
+
     }
     public partial class StoreFilter : JSON
     {
@@ -267,6 +284,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public StoreFilter Filter { get; set; } = new();
         public StoreSortOptions SortOptions { get; set; } = new();
     }
+
     public partial class StoreSortOptions : JSON
     {
 
@@ -383,7 +401,20 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         private int _MicaType = 0;
 
         [ObservableProperty]
-
         private (int A, int R, int G, int B)? _CustomMicaTintColor;
+
+
+        //I had to do this because whenever the app has no Mica it won't change the background color when requested theme changes unless the Windows main theme gets changed.
+        [JsonIgnore]
+        public Color Win10BackgroundColor => (SystemInformation.Instance.OperatingSystemVersion.Build < 22000) ? (Emerald.WinUI.App.Current.ActualTheme == ElementTheme.Light ? Colors.White : Colors.Black) : Colors.Transparent;
+    
+        public Appearance()
+        {
+            this.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName != null)
+                    this.InvokePropertyChanged();
+            };
+        }
     }
 }

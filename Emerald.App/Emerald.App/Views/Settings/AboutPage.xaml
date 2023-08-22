@@ -196,8 +196,7 @@
 
         <TeachingTip
             x:Name="vTip"
-            Title="{helpers:Localize CustomName=MoreVerInfo,
-                                     RESW=Settings}"
+            Title="{helpers:Localize CustomName=MoreVerInfo}"
             ActionButtonClick="vTip_ActionButtonClick"
             ActionButtonContent="{helpers:Localize CustomName=CheckForUpdates}"
             CloseButtonClick="vTip_CloseButtonClick"

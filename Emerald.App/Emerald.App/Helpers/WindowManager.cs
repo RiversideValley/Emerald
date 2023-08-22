@@ -1,4 +1,5 @@
-﻿using Microsoft.UI;
+﻿using CommunityToolkit.WinUI.Helpers;
+using Microsoft.UI;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
@@ -32,10 +33,13 @@ namespace Emerald.WinUI.Helpers
             User32.SendMessage(Handle, User32.WindowMessage.WM_SETICON, (IntPtr)1, icon);
             User32.SendMessage(Handle, User32.WindowMessage.WM_SETICON, (IntPtr)0, icon);
 
-            var s = new MicaBackground(window);
-            s.TrySetMicaBackdrop();
-
-            return s;
+            if (SystemInformation.Instance.OperatingSystemVersion.Build > 22000)
+            {
+                var s = new MicaBackground(window);
+                s.TrySetMicaBackdrop();
+                return s;
+            }
+            return null;
         }
 
         /// <summary>
