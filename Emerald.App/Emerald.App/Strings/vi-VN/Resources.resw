@@ -431,7 +431,7 @@
     <value>UUID</value>
   </data>
   <data name="VaniilaOrFabric" xml:space="preserve">
-    <value>Fabric and Vanilla is officially supported</value>
+    <value>Fabric, Optfine and Vanilla are officially supported</value>
   </data>
   <data name="Welcome" xml:space="preserve">
     <value>Welcome!</value>
@@ -654,5 +654,29 @@
   </data>
   <data name="Whoops" xml:space="preserve">
     <value>Whoops!</value>
+  </data>
+  <data name="MCPathFailed" xml:space="preserve">
+    <value>Failed to initialize Minecraft path at `{Path}`. Do you want to try again?</value>
+  </data>
+  <data name="SetDifMCPath" xml:space="preserve">
+    <value>Change Path</value>
+  </data>
+  <data name="FullScreen" xml:space="preserve">
+    <value>Full Screen</value>
+  </data>
+  <data name="Height" xml:space="preserve">
+    <value>Screen Height</value>
+  </data>
+  <data name="MCWindowsSize" xml:space="preserve">
+    <value>Minecraft Windows Size</value>
+  </data>
+  <data name="MCWindowsSizeDescription" xml:space="preserve">
+    <value>Change width, height or full screen</value>
+  </data>
+  <data name="Width" xml:space="preserve">
+    <value>Screen Width</value>
+  </data>
+  <data name="TaskIntro" xml:space="preserve">
+    <value>If you clear a running task, it won't get stopped. It'll run in the background without showing a progress.</value>
   </data>
 </root>
