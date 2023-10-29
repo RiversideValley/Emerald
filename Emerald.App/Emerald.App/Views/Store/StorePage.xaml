@@ -144,8 +144,8 @@
                         Padding="16"
                         VerticalAlignment="Center" 
                         HorizontalAlignment="Center">
-                        <TextBlock HorizontalAlignment="Center" Text="{helpers:Localize CustomName=Whoops}" FontSize="25" FontWeight="SemiBold"/>
-                        <TextBlock TextAlignment="Center" TextWrapping="WrapWholeWords" Text="{helpers:Localize CustomName=ModsNoInternet}"/>
+                        <TextBlock HorizontalAlignment="Center" Text="{helpers:Localize Name=Whoops}" FontSize="25" FontWeight="SemiBold"/>
+                        <TextBlock TextAlignment="Center" TextWrapping="WrapWholeWords" Text="{helpers:Localize Name=ModsNoInternet}"/>
                     </StackPanel>
                 </Grid>
             </Grid>

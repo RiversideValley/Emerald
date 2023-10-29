@@ -148,23 +148,23 @@
                                         <ToggleMenuFlyoutItem
                                             Click="tglMitVerSort_Click"
                                             IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Release, Mode=TwoWay}"
-                                            Text="{helpers:Localize CustomName=TypeRelease}" />
+                                            Text="{helpers:Localize Name=TypeRelease}" />
                                         <ToggleMenuFlyoutItem
                                             Click="tglMitVerSort_Click"
                                             IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Snapshot, Mode=TwoWay}"
-                                            Text="{helpers:Localize CustomName=TypeSnapshot}" />
+                                            Text="{helpers:Localize Name=TypeSnapshot}" />
                                         <ToggleMenuFlyoutItem
                                             Click="tglMitVerSort_Click"
                                             IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.OldBeta, Mode=TwoWay}"
-                                            Text="{helpers:Localize CustomName=TypeOldBeta}" />
+                                            Text="{helpers:Localize Name=TypeOldBeta}" />
                                         <ToggleMenuFlyoutItem
                                             Click="tglMitVerSort_Click"
                                             IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.OldAlpha, Mode=TwoWay}"
-                                            Text="{helpers:Localize CustomName=TypeOldAlpha}" />
+                                            Text="{helpers:Localize Name=TypeOldAlpha}" />
                                         <ToggleMenuFlyoutItem
                                             Click="tglMitVerSort_Click"
                                             IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Custom, Mode=TwoWay}"
-                                            Text="{helpers:Localize CustomName=TypeCustom}" />
+                                            Text="{helpers:Localize Name=TypeCustom}" />
                                     </MenuFlyout>
                                 </DropDownButton.Flyout>
                             </DropDownButton>

@@ -19,6 +19,8 @@
                 <Setter Property="BorderThickness" Value="{ThemeResource ExpanderHeaderBorderThickness}" />
                 <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
             </Style>
+            <conv:BoolToVisibility x:Key="BoolToVisibilty"/>
+            <conv:StringToLocalString x:Key="StringToLocalString"/>
             <ResourceDictionary x:Key="TransparentButton">
                 <SolidColorBrush x:Key="ButtonBackground" Color="Transparent" />
                 <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="Transparent" />

@@ -49,24 +49,24 @@
                                 <MenuFlyout>
                                     <ToggleMenuFlyoutItem
                                         Click="FilterButton_Click"
-                                        Text="{helpers:Localize CustomName=All}" 
+                                        Text="{helpers:Localize Name=All}" 
                                         IsChecked="{x:Bind SS:SettingsSystem.Settings.App.NewsFilter.All,Mode=TwoWay}"/>
                                     <MenuFlyoutSeparator/>
                                     <ToggleMenuFlyoutItem
                                         Click="FilterButton_Click"
-                                        Text="{helpers:Localize CustomName=MCJava}" 
+                                        Text="{helpers:Localize Name=MCJava}" 
                                         IsChecked="{x:Bind SS:SettingsSystem.Settings.App.NewsFilter.Java,Mode=TwoWay}"/>
                                     <ToggleMenuFlyoutItem
                                         Click="FilterButton_Click"
-                                        Text="{helpers:Localize CustomName=MCBedrock}" 
+                                        Text="{helpers:Localize Name=MCBedrock}" 
                                         IsChecked="{x:Bind SS:SettingsSystem.Settings.App.NewsFilter.Bedrock,Mode=TwoWay}"/>
                                     <ToggleMenuFlyoutItem
                                         Click="FilterButton_Click"
-                                        Text="{helpers:Localize CustomName=MCDungeons}" 
+                                        Text="{helpers:Localize Name=MCDungeons}" 
                                         IsChecked="{x:Bind SS:SettingsSystem.Settings.App.NewsFilter.Dungeons,Mode=TwoWay}"/>
                                     <ToggleMenuFlyoutItem
                                         Click="FilterButton_Click"
-                                        Text="{helpers:Localize CustomName=MCLegends}" 
+                                        Text="{helpers:Localize Name=MCLegends}" 
                                         IsChecked="{x:Bind SS:SettingsSystem.Settings.App.NewsFilter.Legends,Mode=TwoWay}"/>
                                 </MenuFlyout>
                             </DropDownButton.Flyout>
@@ -125,7 +125,7 @@
                                 </uc:AdaptiveItemPane.LeftPane>
 
                                 <uc:AdaptiveItemPane.RightPane>
-                                    <StackPanel Margin="12,0" Spacing="6">
+                                    <StackPanel HorizontalAlignment="Left" Margin="12,0" Spacing="6">
 
                                         <TextBlock
                                             FontWeight="SemiBold"
@@ -176,8 +176,8 @@
             Padding="16"
             VerticalAlignment="Center" 
             HorizontalAlignment="Center">
-            <TextBlock HorizontalAlignment="Center" Text="{helpers:Localize CustomName=Whoops}" FontSize="25" FontWeight="SemiBold"/>
-            <TextBlock TextAlignment="Center" TextWrapping="WrapWholeWords" Text="{helpers:Localize CustomName=NewsNoInternet}"/>
+            <TextBlock HorizontalAlignment="Center" Text="{helpers:Localize Name=Whoops}" FontSize="25" FontWeight="SemiBold"/>
+            <TextBlock TextAlignment="Center" TextWrapping="WrapWholeWords" Text="{helpers:Localize Name=NewsNoInternet}"/>
         </StackPanel>
 
     </Grid>

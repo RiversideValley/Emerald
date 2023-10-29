@@ -1,6 +1,6 @@
 ﻿using CmlLib.Core.Auth;
 using CmlLib.Core.Auth.Microsoft;
-using CmlLib.Core.Auth.Microsoft.MsalClient;
+using CmlLib.Core.Auth.Microsoft.Authenticators;
 using Microsoft.Identity.Client;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -8,12 +8,15 @@ using Microsoft.UI.Xaml.Documents;
 using System;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using XboxAuthNet.Game.Msal;
+using XboxAuthNet.Game;
+using XboxAuthNet.Game.Authenticators;
 
 namespace Emerald.WinUI.Helpers
 {
     public sealed class MSLoginHelper
     {
-        JavaEditionLoginHandler handler;
+        NestedAuthenticator? authenticator;
         ContentDialog InformDialog;
         OAuthMode mode;
         bool IsInTask;
@@ -34,25 +37,29 @@ namespace Emerald.WinUI.Helpers
             DeviceCode
         }
 
-        public void Initialize(string cId, OAuthMode mode)
+        public async void Initialize(string cId, OAuthMode mode)
         {
             IsInitizlied = true;
             this.mode = mode;
-            var app = MsalMinecraftLoginHelper.BuildApplication(cId);
-            var builder = new LoginHandlerBuilder().ForJavaEdition();
+
+            var app = await MsalClientHelper.BuildApplicationWithCache(cId);
+            var loginHandler = JELoginHandlerBuilder.BuildDefault();
+
+            authenticator = loginHandler.CreateAuthenticatorWithNewAccount(default);
 
             if (mode == OAuthMode.DeviceCode)
-                builder = builder.WithMsalOAuth(app, factory => factory.CreateDeviceCodeApi(result =>
+                authenticator.AddMsalOAuth(app, msal => msal.DeviceCode(deviceCode =>
                 {
-                    InitializeInformDialog(result);
+                    InitializeInformDialog(deviceCode);
                     return Task.CompletedTask;
                 }));
             else if (mode == OAuthMode.EmbededDialog)
-                builder = builder.WithMsalOAuth(app, factory => factory.CreateWithEmbeddedWebView());
+                authenticator.AddMsalOAuth(app, msal => msal.EmbeddedWebView());
             else
-                builder = builder.WithMsalOAuth(app, factory => new MsalInteractiveOAuthApi(app, x => x.WithUseEmbeddedWebView(false)));
+                authenticator.AddMsalOAuth(app, msal => msal.SystemBrowser());
 
-            handler = builder.Build();
+            authenticator.AddXboxAuthForJE(xbox => xbox.Basic());
+            authenticator.AddJEAuthenticator();
         }
         private void InitializeInformDialog(DeviceCodeResult result)
         {
@@ -126,15 +133,11 @@ namespace Emerald.WinUI.Helpers
                 _ = InformDialog.ShowAsync();
             });
         }
-        public async Task<bool> Logout()
-        {
-            await handler.ClearCache();
-
-            return true;
-        }
-
         public async Task<MSession> Login()
         {
+            if (!IsInitizlied)
+                return null;
+
             try
             {
                 if (mode == OAuthMode.FromBrowser)
@@ -144,13 +147,13 @@ namespace Emerald.WinUI.Helpers
                 }
                 App.Current.Launcher.UIState = false;
                 IsInTask = true;
-                var s = await handler.LoginFromOAuth();
+                var s = await authenticator.ExecuteForLauncherAsync();
                 App.Current.Launcher.UIState = true;
                 IsInTask = false;
                 if (mode != OAuthMode.EmbededDialog && InformDialog != null)
                     InformDialog.Hide();
 
-                return s.GameSession;
+                return s;
             }
             catch (Exception)
             {

@@ -28,7 +28,7 @@
                 Text="{helpers:Localize Name=Tasks}" />
             <Button
                 VerticalAlignment="Center"
-                ToolTipService.ToolTip="{helpers:Localize CustomName=TaskIntro}"
+                ToolTipService.ToolTip="{helpers:Localize Name=TaskIntro}"
                 Padding="4"
                 Background="Transparent"
                 BorderBrush="Transparent"

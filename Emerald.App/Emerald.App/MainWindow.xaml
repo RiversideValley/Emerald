@@ -40,14 +40,15 @@
                 </Animations:Implicit.HideAnimations>
             </InfoBar>
             <NavigationView
-            x:Name="NavView"
-            Margin="0,48,0,0"
-            AlwaysShowHeader="True"
-            IsBackButtonVisible="Collapsed"
-            IsPaneToggleButtonVisible="False"
-            IsSettingsVisible="False"
-            OpenPaneLength="80"
-            PaneDisplayMode="Left">
+                Background="Transparent"
+                x:Name="NavView"
+                Margin="0,48,0,0"
+                AlwaysShowHeader="True"
+                IsBackButtonVisible="Collapsed"
+                IsPaneToggleButtonVisible="False"
+                IsSettingsVisible="False"
+                OpenPaneLength="80"
+                PaneDisplayMode="Left">
 
                 <NavigationView.HeaderTemplate>
                     <DataTemplate x:DataType="models:NavViewHeader">
@@ -144,21 +145,21 @@
 
                 <NavigationView.MenuItems>
                     <models:SquareNavigationViewItem
-                    Name="{helpers:Localize CustomName=Home}"
+                    Name="{helpers:Localize Name=Home}"
                     SolidFontIconGlyph="&#xEA8A;"
                     FontIconGlyph="&#xE80F;"
                     IsSelected="True"
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                     Thumbnail="Assets/NavigationViewIcons/home.png" />
                     <models:SquareNavigationViewItem
-                    Name="{helpers:Localize CustomName=Store}"
+                    Name="{helpers:Localize Name=Store}"
                     FontIconGlyph="&#xE7BF;"
                     SolidFontIconGlyph="&#xE7BF;"
                     IsSelected="False"
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                     Thumbnail="Assets/NavigationViewIcons/store.png" />
                     <models:SquareNavigationViewItem
-                    Name="{helpers:Localize CustomName=News}"
+                    Name="{helpers:Localize Name=News}"
                     FontIconGlyph="&#xF57E;"
                     SolidFontIconGlyph="&#xF57E;"
                     IsSelected="False"
@@ -168,7 +169,7 @@
 
                 <NavigationView.FooterMenuItems>
                     <models:SquareNavigationViewItem
-                    Name="{helpers:Localize CustomName=Tasks}"
+                    Name="{helpers:Localize Name=Tasks}"
                     FontIconGlyph="&#xE9D5;"
                     SolidFontIconGlyph="&#xE9D5;"
                     InfoBadge="{x:Bind TasksInfoBadge}"
@@ -176,7 +177,7 @@
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                     Thumbnail="Assets/NavigationViewIcons/tasks.png" />
                     <models:SquareNavigationViewItem
-                    Name="{helpers:Localize CustomName=Logs}"
+                    Name="{helpers:Localize Name=Logs}"
                     FontIconGlyph="&#xE756;"
                     SolidFontIconGlyph="&#xE756;"
                     IsEnabled="{x:Bind SS:SettingsSystem.Settings.Minecraft.ReadLogs(), Mode=OneWay}"
@@ -184,7 +185,7 @@
                     ShowFontIcons="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                     Thumbnail="Assets/NavigationViewIcons/logs.png" />
                     <models:SquareNavigationViewItem
-                    Name="{helpers:Localize CustomName=Settings}"
+                    Name="{helpers:Localize Name=Settings}"
                     FontIconGlyph="&#xE713;"
                     SolidFontIconGlyph="&#xE713;"
                     IsSelected="False"

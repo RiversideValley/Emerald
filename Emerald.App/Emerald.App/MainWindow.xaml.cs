@@ -18,7 +18,6 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.Linq;
 using Windows.UI;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 using Window = Microsoft.UI.Xaml.Window;
 
@@ -175,9 +174,10 @@ namespace Emerald.WinUI
                             MainGrid.Background = null;
                             break;
                         case Helpers.Settings.Enums.MicaTintColor.AccentColor:
-                            var a = ((SolidColorBrush)Application.Current.Resources["AccentFillColorDefaultBrush"]);
-                            a.Opacity = 0.1;
-                            MainGrid.Background = a;
+                            MainGrid.Background = new SolidColorBrush((Color)Application.Current.Resources["SystemAccentColor"])
+                            {
+                                Opacity = 0.1
+                            };
                             break;
                         case Helpers.Settings.Enums.MicaTintColor.CustomColor:
                             var c = SS.Settings.App.Appearance.CustomMicaTintColor;

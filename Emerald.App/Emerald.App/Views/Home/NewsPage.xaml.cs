@@ -17,7 +17,7 @@ namespace Emerald.WinUI.Views.Home
             _ = App.Current.Launcher.News.LoadEntries(SS.Settings.App.NewsFilter.GetResult());
 
             this.Loaded += (_, _) => SearchBox.Focus(FocusState.Programmatic);
-
+            pnlEmpty.Visibility = App.Current.Launcher.News.Entries.Any() ? Visibility.Collapsed : Visibility.Visible;
             App.Current.Launcher.News.Entries.CollectionChanged += (_, _) =>
                 pnlEmpty.Visibility = App.Current.Launcher.News.Entries.Any() ? Visibility.Collapsed : Visibility.Visible;
             

@@ -1,6 +1,8 @@
 ﻿using CmlLib.Core;
 using Emerald.Core.Tasks;
 using Newtonsoft.Json;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
 
@@ -126,7 +128,7 @@ namespace Emerald.Core.Store
             catch (Exception ex)
             {
                 Tasks.TasksHelper.CompleteTask(taskID, false, ex.Message);
-                return null;
+                return new();
             }
         }
     }
@@ -184,8 +186,11 @@ namespace Emerald.Core.Store.Results
         public int size { get; set; }
     }
 
-    public class Version
+    public class Version : INotifyPropertyChanged
     {
+        public bool IsDetailsVisible = false;
+        public string? FileName => Files.FirstOrDefault(x => x.Primary)?.Filename;
+
         [JsonPropertyName("id")]
         public string ID { get; set; }
 
@@ -230,6 +235,9 @@ namespace Emerald.Core.Store.Results
 
         [JsonPropertyName("loaders")]
         public string[] Loaders { get; set; }
+
+       public event PropertyChangedEventHandler? PropertyChanged;
+        public void InvokePropertyChanged(string propertyName = null)=> PropertyChanged?.Invoke(this, new(propertyName));
     }
 
     public class Hashes

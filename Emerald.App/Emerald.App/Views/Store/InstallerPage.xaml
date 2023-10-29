@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:helpers="using:Emerald.WinUI.Helpers"
     xmlns:json="using:Emerald.Core.Store.Results"
+    Loaded="Page_Loaded"
     mc:Ignorable="d">
 
     <Grid>
@@ -17,16 +18,30 @@
             <TextBlock TextAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}">
                 <Run Text="{x:Bind Item.Author}"/>
                 <LineBreak/>
-                <Run Text="{x:Bind Item.TotalDownloadsString}"/> <Run Text="{helpers:Localize CustomName=Downloads}"/> | 
-                <Run Text="{x:Bind Item.FollowersString}"/> <Run Text="{helpers:Localize CustomName=Followers}"/>
+                <Run Text="{x:Bind Item.TotalDownloadsString}"/> <Run Text="{helpers:Localize Name=Downloads}"/> | 
+                <Run Text="{x:Bind Item.FollowersString}"/> <Run Text="{helpers:Localize Name=Followers}"/>
             </TextBlock>
             <TextBlock TextWrapping="WrapWholeWords" TextAlignment="Center" Text="{x:Bind Item.Description}"/>
-            <AutoSuggestBox>
-                <AutoSuggestBox.QueryIcon>
-                    <FontIcon Glyph="&#xE70D;" />
-                </AutoSuggestBox.QueryIcon>
-            </AutoSuggestBox>
-            <ComboBox>
+            <ComboBox
+                ItemsSource="{x:Bind Versions}"
+                HorizontalAlignment="Center"
+                x:Name="cmbxVers"
+                SelectionChanged="cmbxVers_SelectionChanged">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="json:Version">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="{x:Bind Name}"/>
+                            <TextBlock Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource ButtonDisabledForegroundThemeBrush}">
+                                <Run Text="{x:Bind Version_type,Converter={StaticResource StringToLocalString}}"/> | 
+                                <Run Text="{x:Bind helpers:Extentions.KiloFormat(Downloads)}"/> Downloads
+                            </TextBlock>
+
+                            <TextBlock Visibility="{x:Bind IsDetailsVisible,Mode=OneWay,Converter={StaticResource BoolToVisibilty}}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource ButtonDisabledForegroundThemeBrush}">
+                                <Run Text="{x:Bind Version_number}"/> | <Run Text="{x:Bind FileName}"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
             </ComboBox>
         </StackPanel>
     </Grid>

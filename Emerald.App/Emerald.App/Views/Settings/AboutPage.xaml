@@ -72,7 +72,7 @@
                                     <FontIcon VerticalAlignment="Center" Glyph="&#xE946;" />
 
                                     <StackPanel VerticalAlignment="Center" Orientation="Vertical">
-                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=Version}" />
+                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize Name=Version}" />
                                         <TextBlock
                                             FontSize="12"
                                             Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
@@ -85,11 +85,11 @@
                                     <FontIcon VerticalAlignment="Center" Glyph="&#xECA7;" />
 
                                     <StackPanel VerticalAlignment="Center" Orientation="Vertical">
-                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=Credits}" />
+                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize Name=Credits}" />
                                         <TextBlock
                                             FontSize="12"
                                             Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
-                                            Text="{helpers:Localize CustomName=CreditsDescription}" />
+                                            Text="{helpers:Localize Name=CreditsDescription}" />
                                     </StackPanel>
                                 </StackPanel>
                             </Button>
@@ -99,8 +99,8 @@
                                     <FontIcon VerticalAlignment="Center" Glyph="&#xEC7A;" />
 
                                     <StackPanel VerticalAlignment="Center" Orientation="Vertical">
-                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=Github}" />
-                                        <TextBlock FontSize="12" Text="{helpers:Localize CustomName=Contribute}" />
+                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize Name=Github}" />
+                                        <TextBlock FontSize="12" Text="{helpers:Localize Name=Contribute}" />
                                     </StackPanel>
                                 </StackPanel>
                             </HyperlinkButton>
@@ -110,11 +110,11 @@
             </Border>
 
             <StackPanel Spacing="4">
-                <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=More}" />
+                <TextBlock FontWeight="SemiBold" Text="{helpers:Localize Name=More}" />
 
                 <uc:Expander
-                    Title="{helpers:Localize CustomName=Links}"
-                    Description="{helpers:Localize CustomName=LinksDescription}"
+                    Title="{helpers:Localize Name=Links}"
+                    Description="{helpers:Localize Name=LinksDescription}"
                     ExpanderStyle="Static"
                     Icon="&#xE12B;">
                     <StackPanel Orientation="Horizontal">
@@ -125,14 +125,14 @@
                 </uc:Expander>
                 <uc:Expander
                     IsExpanded="True"
-                    Title="{helpers:Localize CustomName=SettingsBackups}"
-                    Description="{helpers:Localize CustomName=SettingsBackupsDescription}"
+                    Title="{helpers:Localize Name=SettingsBackups}"
+                    Description="{helpers:Localize Name=SettingsBackupsDescription}"
                     Icon="&#xE159;">
                     <uc:Expander.HeaderControls>
                         <Button
                             x:Name="CreateBackup"
                             Click="CreateBackup_Click"
-                            Content="{helpers:Localize CustomName=CreateBackup}" />
+                            Content="{helpers:Localize Name=CreateBackup}" />
                     </uc:Expander.HeaderControls>
                     <Grid ChildrenTransitions="{StaticResource AddDeleteThemeTransition}">
                         <CommandBar
@@ -146,15 +146,15 @@
                             <AppBarButton
                                 Click="DeleteBackup_Click"
                                 Icon="Delete"
-                                Label="{helpers:Localize CustomName=Delete}" />
+                                Label="{helpers:Localize Name=Delete}" />
                             <AppBarButton
                                 Click="ViewBackup_Click"
                                 Icon="View"
-                                Label="{helpers:Localize CustomName=View}" />
+                                Label="{helpers:Localize Name=View}" />
                             <AppBarButton
                                 Click="LoadBackup_Click"
                                 Icon="Upload" 
-                                Label="{helpers:Localize CustomName=TryLoad}" />
+                                Label="{helpers:Localize Name=TryLoad}" />
                         </CommandBar>
                         <ListView x:Name="lvBackups" SelectionChanged="lvBackups_SelectionChanged">
                             <ListView.Resources>
@@ -168,7 +168,7 @@
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="json:SettingsBackup">
                                     <TextBox
-                                        ToolTipService.ToolTip="{helpers:Localize CustomName=Rename}"
+                                        ToolTipService.ToolTip="{helpers:Localize Name=Rename}"
                                         Margin="-9,-4"
                                         VerticalAlignment="Stretch"
                                         Background="Transparent"
@@ -184,8 +184,8 @@
                     </Grid>
                 </uc:Expander>
                 <uc:Expander
-                    Title="{helpers:Localize CustomName=WindowsHello}"
-                    Description="{helpers:Localize CustomName=WindowsHelloDescription}"
+                    Title="{helpers:Localize Name=WindowsHello}"
+                    Description="{helpers:Localize Name=WindowsHelloDescription}"
                     ExpanderStyle="Static"
                     Icon="&#xE75F;">
                     <ToggleSwitch x:Name="tglWinHello" Toggled="ToggleSwitch_Toggled" />
@@ -196,11 +196,11 @@
 
         <TeachingTip
             x:Name="vTip"
-            Title="{helpers:Localize CustomName=MoreVerInfo}"
+            Title="{helpers:Localize Name=MoreVerInfo}"
             ActionButtonClick="vTip_ActionButtonClick"
-            ActionButtonContent="{helpers:Localize CustomName=CheckForUpdates}"
+            ActionButtonContent="{helpers:Localize Name=CheckForUpdates}"
             CloseButtonClick="vTip_CloseButtonClick"
-            CloseButtonContent="{helpers:Localize CustomName=CopyVersion}"
+            CloseButtonContent="{helpers:Localize Name=CopyVersion}"
             IsLightDismissEnabled="True"
             IsOpen="False"
             PreferredPlacement="Bottom"
@@ -216,11 +216,11 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Margin="0,0,5,0">
-                        <Run Text="{helpers:Localize CustomName=Version}" />
+                        <Run Text="{helpers:Localize Name=Version}" />
                     </TextBlock>
                     <TextBlock Grid.Column="1" Text="{x:Bind App:DirectResoucres.AppVersion}" />
                     <TextBlock Grid.Row="1" Margin="0,0,5,0">
-                        <Run Text="{helpers:Localize CustomName=BuildType}" />
+                        <Run Text="{helpers:Localize Name=BuildType}" />
                     </TextBlock>
                     <TextBlock
                         Grid.Row="1"

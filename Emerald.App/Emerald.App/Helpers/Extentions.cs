@@ -79,7 +79,6 @@ namespace Emerald.WinUI.Helpers
             {
                 coll.Remove(itemToRemove);
             }
-
             return itemsToRemove.Count;
         }
 

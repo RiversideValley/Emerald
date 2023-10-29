@@ -74,17 +74,17 @@
                                     Tag="Embeded"
                                     Click="mitMicrosoftAdd_Click"
                                     Icon="{helpers:FontIcon Glyph=&#xE78B;}"
-                                    Text="{helpers:Localize CustomName=EmbededView}"/>
+                                    Text="{helpers:Localize Name=EmbededView}"/>
                                 <MenuFlyoutItem
                                     Tag="Browser"
                                     Click="mitMicrosoftAdd_Click"
                                     Icon="{helpers:FontIcon Glyph=&#xE12B;}"
-                                    Text="{helpers:Localize CustomName=UsingBrowser}"/>
+                                    Text="{helpers:Localize Name=UsingBrowser}"/>
                                 <MenuFlyoutItem
                                     Tag="DeviceCode"
                                     Click="mitMicrosoftAdd_Click"
                                     Icon="{helpers:FontIcon Glyph=&#xE943;}"
-                                    Text="{helpers:Localize CustomName=DeviceCode}"/>
+                                    Text="{helpers:Localize Name=DeviceCode}"/>
                             </MenuFlyoutSubItem>
                             <MenuFlyoutItem
                                 Click="mitOfflineAdd_Click"
