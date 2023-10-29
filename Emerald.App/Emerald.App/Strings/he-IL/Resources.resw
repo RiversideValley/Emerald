@@ -679,4 +679,13 @@
   <data name="TaskIntro" xml:space="preserve">
     <value>If you clear a running task, it won't get stopped. It'll run in the background without showing a progress.</value>
   </data>
+  <data name="alpha" xml:space="preserve">
+    <value>Alpha</value>
+  </data>
+  <data name="beta" xml:space="preserve">
+    <value>Beta</value>
+  </data>
+  <data name="release" xml:space="preserve">
+    <value>Release</value>
+  </data>
 </root>
