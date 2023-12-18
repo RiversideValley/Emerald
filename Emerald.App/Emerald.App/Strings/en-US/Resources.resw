@@ -688,4 +688,13 @@
   <data name="release" xml:space="preserve">
     <value>Release</value>
   </data>
+  <data name="DownloaderBusy" xml:space="preserve">
+    <value>The mod downloader is busy</value>
+  </data>
+  <data name="DownloadMod" xml:space="preserve">
+    <value>Download Mod</value>
+  </data>
+  <data name="Install" xml:space="preserve">
+    <value>Install</value>
+  </data>
 </root>
