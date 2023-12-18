@@ -4,7 +4,6 @@ using Emerald.WinUI.Helpers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
-using System.Diagnostics;
 using Windows.Storage.Pickers;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 
@@ -55,7 +54,7 @@ namespace Emerald.WinUI.Views.Settings
                             Try();
                         else
                             Start();
-                        
+
                     }
                 }
 
@@ -64,7 +63,7 @@ namespace Emerald.WinUI.Views.Settings
         }
 
         private void btnRamPlus_Click(object sender, RoutedEventArgs e) =>
-            SS.Settings.Minecraft.RAM = SS.Settings.Minecraft.RAM + (SS.Settings.Minecraft.RAM >= DirectResoucres.MaxRAM ? 0 : (DirectResoucres.MaxRAM - SS.Settings.Minecraft.RAM >= 50 ? 50 : DirectResoucres.MaxRAM - SS.Settings.Minecraft.RAM) );
+            SS.Settings.Minecraft.RAM = SS.Settings.Minecraft.RAM + (SS.Settings.Minecraft.RAM >= DirectResoucres.MaxRAM ? 0 : (DirectResoucres.MaxRAM - SS.Settings.Minecraft.RAM >= 50 ? 50 : DirectResoucres.MaxRAM - SS.Settings.Minecraft.RAM));
 
 
         private void btnRamMinus_Click(object sender, RoutedEventArgs e) =>

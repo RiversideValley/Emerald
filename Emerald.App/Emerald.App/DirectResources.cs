@@ -11,6 +11,7 @@ public static class DirectResoucres
 
     public static int MinRAM
         => 512;
+    //Used this thing for major setting changes because older settings could crash the program
     public static string SettingsAPIVersion
         => "1.3";
 

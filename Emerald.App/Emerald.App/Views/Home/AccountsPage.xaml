@@ -131,7 +131,7 @@
                                             <Setter Property="CornerRadius" Value="{ThemeResource ControlCornerRadius}" />
                                         </Style>
                                     </Border.Style>
-                                    <uc:AdaptiveItemPane HorizontalAlignment="Stretch" IsStackedCenter="True">
+                                    <uc:AdaptiveItemPane HorizontalAlignment="Stretch" StackCenter="True">
                                         <uc:AdaptiveItemPane.LeftPane>
                                             <Grid
                                                 Margin="10,5"

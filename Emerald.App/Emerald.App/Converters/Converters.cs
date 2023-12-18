@@ -27,7 +27,7 @@ namespace Emerald.WinUI.Converters
                 "A string is very likely unnecessary in this case.");
         }
     }
-    public class StringToLocalString: IValueConverter
+    public class StringToLocalString : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {

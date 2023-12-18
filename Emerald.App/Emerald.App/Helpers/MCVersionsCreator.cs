@@ -35,25 +35,23 @@ namespace Emerald.WinUI.Helpers
                     l.SubVersions = new();
 
                     if (lr != null)
-                    {
                         l.SubVersions.Add(ReturnMCWithModLoaders(lr, $"{"Latest".Localize()} {"TypeRelease".Localize()}", CmlLib.Core.Version.MVersionType.Release));
-                    }
+                    
 
-                    if (ls != null && ls.MType == CmlLib.Core.Version.MVersionType.Snapshot)
-                    {
+                    if (ls != null && ls.MType == CmlLib.Core.Version.MVersionType.Snapshot)                    
                         l.SubVersions.Add(ReturnMCWithModLoaders(ls.Name, $"{"Latest".Localize()} {"TypeSnapshot".Localize()}", CmlLib.Core.Version.MVersionType.Snapshot));
-                    }
+                    
 
-                    if (l.SubVersions.Count > 0)
-                    {
+                    if (l.SubVersions.Any())
                         Collection.Add(l);
-                    }
+                    
 
                     if (SS.Settings.Minecraft.MCVerionsConfiguration.Custom && LoadCustomVers() != null)
                     {
                         Collection.Add(LoadCustomVers());
                     }
 
+                    AddItem("1.20");
                     AddItem("1.19");
                     AddItem("1.18");
                     AddItem("1.17");

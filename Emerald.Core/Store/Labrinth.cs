@@ -28,25 +28,27 @@ namespace Emerald.Core.Store
 
         private async Task<string> Get(string code)
         {
-            try
-            {
-                HttpResponseMessage response = await Client.GetAsync(code);
+            HttpResponseMessage response = await Client.GetAsync(code);
 
-                if (response.IsSuccessStatusCode)
-                    return await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+                return await response.Content.ReadAsStringAsync();
 
-                    throw new Exception("Failed to GET: \"" + code + "\"");
-            }
-            catch
-            {
-                throw new Exception("Failed to GET: \"" + code + "\"");
-            }
+            throw new Exception("Failed to GET: \"" + code + "\"");
+
         }
 
         private int DownloadTaskID;
+        private bool IsDownloading;
 
         public void DownloadMod(Results.File file, MinecraftPath mcPath = null)
         {
+            if (IsDownloading)
+            {
+                var id = TasksHelper.AddProgressTask("DownloadMod", 0, 1, 0, "");
+                TasksHelper.CompleteTask(id, false, "DownloaderBusy");
+                return;
+            }
+            IsDownloading = true;
             DownloadTaskID = Tasks.TasksHelper.AddProgressTask($"{Localized.Download} {file.Filename}");
             var mods = System.IO.Directory.CreateDirectory((mcPath == null ? MCPath.BasePath : mcPath.BasePath) + "\\mods").FullName;
             ModrinthDownload(file.Url, mods, file.Filename);
@@ -58,9 +60,9 @@ namespace Emerald.Core.Store
             client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
             {
                 TasksHelper.EditProgressTask(DownloadTaskID, Convert.ToInt32(progressPercentage));
-
                 if (progressPercentage == 100)
                 {
+                    IsDownloading = false;
                     client.Dispose();
                     TasksHelper.CompleteTask(DownloadTaskID, true);
                 }

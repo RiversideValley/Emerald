@@ -33,7 +33,7 @@
 
             <uc:AdaptiveItemPane
                 HorizontalAlignment="Stretch"
-                IsStackedCenter="True"
+                StackCenter="True"
                 StretchContent="True">
 
 
@@ -114,7 +114,7 @@
                             CornerRadius="4">
                             <uc:AdaptiveItemPane
                                 HorizontalAlignment="Stretch"
-                                IsStackedCenter="False"
+                                StackCenter="False"
                                 OnlyStacked="True"
                                 StretchContent="True">
 

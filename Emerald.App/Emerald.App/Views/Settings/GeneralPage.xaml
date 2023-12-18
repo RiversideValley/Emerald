@@ -26,7 +26,9 @@
                     Description="{helpers:Localize Name=MinecraftPathDescription}"
                     ExpanderStyle="Static"
                     Icon="&#xE838;">
-                    <HyperlinkButton Click="btnChangeMPath_Click">
+                    <HyperlinkButton 
+                        ToolTipService.ToolTip="{x:Bind SS:SettingsSystem.Settings.Minecraft.Path, Mode=OneWay}"
+                        Click="btnChangeMPath_Click">
                         <TextBlock
                             MaxWidth="250"
                             VerticalAlignment="Center"

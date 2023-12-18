@@ -25,7 +25,7 @@
                 Height="auto"
                 Padding="12"
                 Style="{StaticResource SettingsCard}">
-                <uc:AdaptiveItemPane IsStackedCenter="True" StretchContent="True">
+                <uc:AdaptiveItemPane StackCenter="True" StretchContent="True">
                     <uc:AdaptiveItemPane.LeftPane>
                         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                             <Image Height="40" Source="/Assets/icon.png" />

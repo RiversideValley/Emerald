@@ -45,7 +45,7 @@ namespace Emerald.WinUI.Models
 
         public bool IsFake => UUID == "fake" || AccessToken == "fake";
 
-        public Account(string username, string accesstoken, string uuid, int count, bool last,string clientToken = null)
+        public Account(string username, string accesstoken, string uuid, int count, bool last, string clientToken = null)
         {
             CheckBoxLoaded = false;
             IsChecked = false;

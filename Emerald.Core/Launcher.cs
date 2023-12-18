@@ -57,7 +57,7 @@ namespace Emerald.Core
         public bool GameRuns
         {
             get => _GameRuns;
-            set => Set(ref _GameRuns, value);
+            set => Set(ref _GameRuns, value, nameof(UIState));
         }
 
         /// <summary>

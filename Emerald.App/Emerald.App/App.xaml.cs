@@ -1,9 +1,7 @@
-﻿using ColorCode;
-using Emerald.WinUI.Helpers.AppInstancing;
+﻿using Emerald.WinUI.Helpers.AppInstancing;
 using Microsoft.UI.Xaml;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.Core;
 using Windows.Storage;
 
 namespace Emerald.WinUI;

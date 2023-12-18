@@ -1,5 +1,4 @@
-﻿using CommunityToolkit.WinUI.Helpers;
-using Emerald.Core;
+﻿using Emerald.Core;
 using Emerald.Core.Tasks;
 using Emerald.WinUI.Helpers;
 using Emerald.WinUI.Models;
@@ -7,13 +6,10 @@ using Emerald.WinUI.UserControls;
 using Emerald.WinUI.Views;
 using Emerald.WinUI.Views.Home;
 using Emerald.WinUI.Views.Store;
-using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Linq;
@@ -62,11 +58,11 @@ namespace Emerald.WinUI
         public async void ShowMiniTask(string title, string message, InfoBarSeverity severity)
         {
             MiniTaskInfo.Title = title;
-            MiniTaskInfo.Message = message; 
+            MiniTaskInfo.Message = message;
             MiniTaskInfo.Severity = severity;
 
             MiniTaskInfo.Visibility = Visibility.Visible;
-            await System.Threading.Tasks.Task.Delay(new TimeSpan(0,0,3));
+            await System.Threading.Tasks.Task.Delay(new TimeSpan(0, 0, 3));
             MiniTaskInfo.Visibility = Visibility.Collapsed;
         }
         public async void Initialize(object s, RoutedEventArgs e)
@@ -206,10 +202,9 @@ namespace Emerald.WinUI
 
             HomePage = new();
             MainFrame.Content = HomePage;
-            App.Current.Launcher.PropertyChanged += (_, e) =>
+            App.Current.Launcher.PropertyChanged += (_, _) =>
             {
-                if (e.PropertyName == nameof(App.Current.Launcher.UIState))
-                    UpdateUI();
+                UpdateUI();
             };
             (Content as FrameworkElement).Loaded -= Initialize;
         }

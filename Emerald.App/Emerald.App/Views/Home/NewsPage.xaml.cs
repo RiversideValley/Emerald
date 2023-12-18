@@ -20,7 +20,7 @@ namespace Emerald.WinUI.Views.Home
             pnlEmpty.Visibility = App.Current.Launcher.News.Entries.Any() ? Visibility.Collapsed : Visibility.Visible;
             App.Current.Launcher.News.Entries.CollectionChanged += (_, _) =>
                 pnlEmpty.Visibility = App.Current.Launcher.News.Entries.Any() ? Visibility.Collapsed : Visibility.Visible;
-            
+
         }
         private void BackButton_Click(object sender, RoutedEventArgs e) =>
             BackRequested?.Invoke(this, new EventArgs());

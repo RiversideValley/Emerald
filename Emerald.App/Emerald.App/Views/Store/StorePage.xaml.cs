@@ -2,6 +2,7 @@
 using Emerald.WinUI.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using ProjBobcat.Class.Model;
 using System.Linq;
 
 namespace Emerald.WinUI.Views.Store
@@ -18,6 +19,7 @@ namespace Emerald.WinUI.Views.Store
 
         private void StoreItem_Click(object sender, RoutedEventArgs e)
         {
+            InstallerPane.IsPaneOpen = true;
             InstallerPane.Pane = new InstallerPage() { Item = (sender as Button).DataContext as StoreItem };
         }
 

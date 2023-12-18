@@ -125,7 +125,7 @@ namespace Emerald.WinUI.Helpers
             }
         }
 
-        public static async Task<MessageBoxResults> Show(string title, string caption, MessageBoxButtons buttons, string customResult1 = null, string customResult2 = null,bool waitUntilOpens = true)
+        public static async Task<MessageBoxResults> Show(string title, string caption, MessageBoxButtons buttons, string customResult1 = null, string customResult2 = null, bool waitUntilOpens = true)
         {
             var d = new MessageBox(title, caption, buttons, customResult1, customResult2)
             {

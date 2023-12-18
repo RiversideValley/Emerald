@@ -1,5 +1,4 @@
 ﻿using CmlLib.Core;
-using ColorCode.Compilation.Languages;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.WinUI.Helpers;
 using Emerald.Core.Store.Enums;
@@ -9,7 +8,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using Windows.UI;
-
 namespace Emerald.WinUI.Helpers.Settings.JSON
 {
     public class JSON : Models.Model
@@ -152,7 +150,10 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         [JsonIgnore]
         public string ScreenSizeStatus =>
                  FullScreen ? "FullScreen".Localize() : ((ScreenWidth > 0 && ScreenHeight > 0) ? $"{ScreenWidth} × {ScreenHeight}" : "Default".Localize());
-        
+
+        [JsonIgnore]
+        public bool SetSize => !(ScreenSizeStatus == "FullScreen".Localize() || ScreenSizeStatus == "Default".Localize());
+
     }
 
     public class App : JSON
@@ -407,7 +408,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         //I had to do this because whenever the app has no Mica it won't change the background color when requested theme changes unless the Windows main theme gets changed.
         [JsonIgnore]
         public Color Win10BackgroundColor => (SystemInformation.Instance.OperatingSystemVersion.Build < 22000) ? (Emerald.WinUI.App.Current.ActualTheme == ElementTheme.Light ? Colors.White : Colors.Black) : Colors.Transparent;
-    
+
         public Appearance()
         {
             this.PropertyChanged += (_, e) =>

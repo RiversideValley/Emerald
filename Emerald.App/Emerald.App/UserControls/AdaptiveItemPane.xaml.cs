@@ -3,6 +3,7 @@
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
 
 namespace Emerald.WinUI.UserControls
 {
@@ -48,14 +49,14 @@ namespace Emerald.WinUI.UserControls
         public double MainBreakpoint { get; set; }
         public double LeftMiddleBreakpoint { get; set; }
 
-        public static DependencyProperty IsStackedCenterProperty =
-            DependencyProperty.Register("IsStackedCenter", typeof(bool),
+        public static DependencyProperty StackCenterProperty =
+            DependencyProperty.Register("StackCenter", typeof(bool),
                 typeof(AdaptiveItemPane), new PropertyMetadata(false));
 
-        public bool IsStackedCenter
+        public bool StackCenter
         {
-            get => (bool)GetValue(IsStackedCenterProperty);
-            set => SetValue(IsStackedCenterProperty, value);
+            get => (bool)GetValue(StackCenterProperty);
+            set => SetValue(StackCenterProperty, value);
         }
 
         public static DependencyProperty StretchContentProperty =
@@ -104,6 +105,9 @@ namespace Emerald.WinUI.UserControls
     // Event handlers
     public sealed partial class AdaptiveItemPane
     {
+        public event EventHandler? OnStacked;
+        public event EventHandler? OnStretched;
+        public event EventHandler? OnMiddleState;
         private static void OnPanesUpdated(DependencyObject d, DependencyProperty dp)
         {
             if (d is AdaptiveItemPane pane)
@@ -118,17 +122,26 @@ namespace Emerald.WinUI.UserControls
 
         private void Pane_SizeChanged(object sender, SizeChangedEventArgs e)
             => PerformResize(e.NewSize.Width);
-
+        public void Update() => PerformResize(this.ActualWidth);
         private void PerformResize(double width)
         {
             int margin = StretchContent ? (MiddlePane == null ? 12 : 24) : 0;
             bool NoRight = RealRight == null;
             if ((width - margin < MainBreakpoint && width - margin < LeftMiddleBreakpoint) || OnlyStacked)
-                VisualStateManager.GoToState(this, IsStackedCenter ? "StackedCenter" : "Stacked", false);
+            {
+                VisualStateManager.GoToState(this, StackCenter ? "StackedCenter" : "Stacked", false);
+                OnStacked?.Invoke(this, new());
+            }
             else if (width - margin < MainBreakpoint)
+            {
                 VisualStateManager.GoToState(this, StretchContent ? "MiddleStateStretch" : "MiddleState", false);
+                OnMiddleState?.Invoke(this, new());
+            }
             else
+            {
                 VisualStateManager.GoToState(this, StretchContent ? (NoRight ? "SideBySideStretchNoRight" : "SideBySideStretch") : "SideBySide", false);
+                OnStretched?.Invoke(this, new());
+            }
         }
     }
 }

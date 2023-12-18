@@ -1,6 +1,5 @@
 ﻿using CmlLib.Core.Auth;
 using CmlLib.Core.Auth.Microsoft;
-using CmlLib.Core.Auth.Microsoft.Authenticators;
 using Microsoft.Identity.Client;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -8,9 +7,8 @@ using Microsoft.UI.Xaml.Documents;
 using System;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
-using XboxAuthNet.Game.Msal;
-using XboxAuthNet.Game;
 using XboxAuthNet.Game.Authenticators;
+using XboxAuthNet.Game.Msal;
 
 namespace Emerald.WinUI.Helpers
 {
@@ -28,7 +26,7 @@ namespace Emerald.WinUI.Helpers
 
         public MSLoginHelper(string cId, OAuthMode mode) =>
             Initialize(cId, mode);
-        
+
 
         public enum OAuthMode
         {

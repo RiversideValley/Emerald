@@ -10,7 +10,7 @@ namespace Emerald.WinUI.Views.Settings;
 public sealed partial class AppearancePage : Page
 {
     public ObservableCollection<Color> TintColorsList { get; } = new()
-    { 
+    {
         Color.FromArgb(255, 255, 185, 0),
         Color.FromArgb(255, 255, 140, 0),
         Color.FromArgb(255, 247, 99, 12),

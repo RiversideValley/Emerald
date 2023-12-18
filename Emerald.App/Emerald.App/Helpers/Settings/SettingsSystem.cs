@@ -81,7 +81,7 @@ namespace Emerald.WinUI.Helpers.Settings
 
             await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists), json);
         }
-        public static async Task RenameBackup(DateTime time,string name)
+        public static async Task RenameBackup(DateTime time, string name)
         {
             string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
             var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonConvert.DeserializeObject<Backups>(json);
