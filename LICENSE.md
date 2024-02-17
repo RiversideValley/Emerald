@@ -28,7 +28,7 @@ An Eligible Party is a party that has been accepted by the First Party. By defau
 
 ### 1️⃣ Section I: Parties
 
-Copyright (c) 2021-2023 Depth (the "First Party")
+Copyright (c) 2021-2024 Riverside Valley (the "First Party")
 
 Licensed to any Eligible Party.
 
