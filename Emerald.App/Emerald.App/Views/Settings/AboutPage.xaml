@@ -25,7 +25,7 @@
                 Height="auto"
                 Padding="12"
                 Style="{StaticResource SettingsCard}">
-                <uc:AdaptiveItemPane IsStackedCenter="True" StretchContent="True">
+                <uc:AdaptiveItemPane StackCenter="True" StretchContent="True">
                     <uc:AdaptiveItemPane.LeftPane>
                         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                             <Image Height="40" Source="/Assets/icon.png" />
@@ -72,7 +72,7 @@
                                     <FontIcon VerticalAlignment="Center" Glyph="&#xE946;" />
 
                                     <StackPanel VerticalAlignment="Center" Orientation="Vertical">
-                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=Version, RESW=Settings}" />
+                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize Name=Version}" />
                                         <TextBlock
                                             FontSize="12"
                                             Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
@@ -85,23 +85,22 @@
                                     <FontIcon VerticalAlignment="Center" Glyph="&#xECA7;" />
 
                                     <StackPanel VerticalAlignment="Center" Orientation="Vertical">
-                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=Credits, RESW=Settings}" />
+                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize Name=Credits}" />
                                         <TextBlock
                                             FontSize="12"
                                             Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
-                                            Text="{helpers:Localize CustomName=CreditsDescription,
-                                                                    RESW=Settings}" />
+                                            Text="{helpers:Localize Name=CreditsDescription}" />
                                     </StackPanel>
                                 </StackPanel>
                             </Button>
 
-                            <HyperlinkButton NavigateUri="https://github.com/OpenAndrexial/Emerald/Contribute">
+                            <HyperlinkButton NavigateUri="https://github.com/RiversideValley/Emerald/Contribute">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon VerticalAlignment="Center" Glyph="&#xEC7A;" />
 
                                     <StackPanel VerticalAlignment="Center" Orientation="Vertical">
-                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=Github, RESW=Settings}" />
-                                        <TextBlock FontSize="12" Text="{helpers:Localize CustomName=Contribute, RESW=Settings}" />
+                                        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize Name=Github}" />
+                                        <TextBlock FontSize="12" Text="{helpers:Localize Name=Contribute}" />
                                     </StackPanel>
                                 </StackPanel>
                             </HyperlinkButton>
@@ -111,31 +110,29 @@
             </Border>
 
             <StackPanel Spacing="4">
-                <TextBlock FontWeight="SemiBold" Text="{helpers:Localize CustomName=More, RESW=Settings}" />
+                <TextBlock FontWeight="SemiBold" Text="{helpers:Localize Name=More}" />
 
                 <uc:Expander
-                    Title="{helpers:Localize CustomName=Links,
-                                             RESW=Settings}"
-                    Description="{helpers:Localize CustomName=LinksDescription,
-                                                   RESW=Settings}"
+                    Title="{helpers:Localize Name=Links}"
+                    Description="{helpers:Localize Name=LinksDescription}"
                     ExpanderStyle="Static"
                     Icon="&#xE12B;">
                     <StackPanel Orientation="Horizontal">
                         <HyperlinkButton Content="Discord" NavigateUri="https://discord.gg/x7MPYvzGMT" />
-                        <HyperlinkButton Content="Source code" NavigateUri="https://github.com/OpenAndrexial/Emerald" />
-                        <HyperlinkButton Content="Website" NavigateUri="https://www.andrexial.co.uk/" />
+                        <HyperlinkButton Content="Source code" NavigateUri="https://github.com/RiversideValley/Emerald" />
+                        <HyperlinkButton Content="Website" NavigateUri="https://theriversi.de/" />
                     </StackPanel>
                 </uc:Expander>
                 <uc:Expander
-                    Title="{helpers:Localize CustomName=SettingsBackups}"
-                    Description="{helpers:Localize CustomName=SettingsBackupsDescription}"
+                    IsExpanded="True"
+                    Title="{helpers:Localize Name=SettingsBackups}"
+                    Description="{helpers:Localize Name=SettingsBackupsDescription}"
                     Icon="&#xE159;">
                     <uc:Expander.HeaderControls>
                         <Button
                             x:Name="CreateBackup"
                             Click="CreateBackup_Click"
-                            Content="{helpers:Localize CustomName=CreateBackup,
-                                                       RESW=Settings}" />
+                            Content="{helpers:Localize Name=CreateBackup}" />
                     </uc:Expander.HeaderControls>
                     <Grid ChildrenTransitions="{StaticResource AddDeleteThemeTransition}">
                         <CommandBar
@@ -149,34 +146,46 @@
                             <AppBarButton
                                 Click="DeleteBackup_Click"
                                 Icon="Delete"
-                                Label="{helpers:Localize CustomName=Delete}" />
+                                Label="{helpers:Localize Name=Delete}" />
                             <AppBarButton
                                 Click="ViewBackup_Click"
                                 Icon="View"
-                                Label="{helpers:Localize CustomName=View}" />
+                                Label="{helpers:Localize Name=View}" />
                             <AppBarButton
                                 Click="LoadBackup_Click"
                                 Icon="Upload" 
-                                Label="{helpers:Localize CustomName=TryLoad}" />
+                                Label="{helpers:Localize Name=TryLoad}" />
                         </CommandBar>
                         <ListView x:Name="lvBackups" SelectionChanged="lvBackups_SelectionChanged">
+                            <ListView.Resources>
+                                <SolidColorBrush x:Key="ListViewItemBackgroundPointerOver" Color="Transparent" />
+                            </ListView.Resources>
+                            <ListView.ItemContainerTransitions>
+                                <TransitionCollection>
+                                    <AddDeleteThemeTransition />
+                                </TransitionCollection>
+                            </ListView.ItemContainerTransitions>
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="json:SettingsBackup">
-                                    <TextBlock Margin="5">
-                                        <Run Text="{x:Bind Time.ToLongDateString()}" />
-                                        <Run Text="{x:Bind Time.ToShortTimeString()}" />
-                                    </TextBlock>
+                                    <TextBox
+                                        ToolTipService.ToolTip="{helpers:Localize Name=Rename}"
+                                        Margin="-9,-4"
+                                        VerticalAlignment="Stretch"
+                                        Background="Transparent"
+                                        PlaceholderForeground="{ThemeResource TextFillColorPrimaryBrush}"
+                                        BorderThickness="0"
+                                        GotFocus="BackupName_GotFocus"
+                                        LostFocus="BackupName_LostFocus"
+                                        PlaceholderText="{x:Bind DateString}"
+                                        Text="{x:Bind Name,Mode=OneWay}" />
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
                     </Grid>
                 </uc:Expander>
                 <uc:Expander
-                    x:Name="expWinHello"
-                    Title="{helpers:Localize CustomName=WindowsHello,
-                                             RESW=Settings}"
-                    Description="{helpers:Localize CustomName=WindowsHelloDescription,
-                                                   RESW=Settings}"
+                    Title="{helpers:Localize Name=WindowsHello}"
+                    Description="{helpers:Localize Name=WindowsHelloDescription}"
                     ExpanderStyle="Static"
                     Icon="&#xE75F;">
                     <ToggleSwitch x:Name="tglWinHello" Toggled="ToggleSwitch_Toggled" />
@@ -187,14 +196,11 @@
 
         <TeachingTip
             x:Name="vTip"
-            Title="{helpers:Localize CustomName=MoreVerInfo,
-                                     RESW=Settings}"
+            Title="{helpers:Localize Name=MoreVerInfo}"
             ActionButtonClick="vTip_ActionButtonClick"
-            ActionButtonContent="{helpers:Localize CustomName=CheckForUpdates,
-                                                   RESW=Settings}"
+            ActionButtonContent="{helpers:Localize Name=CheckForUpdates}"
             CloseButtonClick="vTip_CloseButtonClick"
-            CloseButtonContent="{helpers:Localize CustomName=CopyVersion,
-                                                  RESW=Settings}"
+            CloseButtonContent="{helpers:Localize Name=CopyVersion}"
             IsLightDismissEnabled="True"
             IsOpen="False"
             PreferredPlacement="Bottom"
@@ -210,11 +216,11 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Margin="0,0,5,0">
-                        <Run Text="{helpers:Localize CustomName=Version, RESW=Settings}" />
+                        <Run Text="{helpers:Localize Name=Version}" />
                     </TextBlock>
                     <TextBlock Grid.Column="1" Text="{x:Bind App:DirectResoucres.AppVersion}" />
                     <TextBlock Grid.Row="1" Margin="0,0,5,0">
-                        <Run Text="{helpers:Localize CustomName=BuildType, RESW=Settings}" />
+                        <Run Text="{helpers:Localize Name=BuildType}" />
                     </TextBlock>
                     <TextBlock
                         Grid.Row="1"

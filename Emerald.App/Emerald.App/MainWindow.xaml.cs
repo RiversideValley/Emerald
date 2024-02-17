@@ -6,16 +6,16 @@ using Emerald.WinUI.UserControls;
 using Emerald.WinUI.Views;
 using Emerald.WinUI.Views.Home;
 using Emerald.WinUI.Views.Store;
-using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Linq;
 using Windows.UI;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
+using Window = Microsoft.UI.Xaml.Window;
 
 namespace Emerald.WinUI
 {
@@ -27,11 +27,12 @@ namespace Emerald.WinUI
 
         public static TaskView TaskView { get; private set; } = new();
 
-        private Flyout TaskViewFlyout = new();
+        private static Flyout TaskViewFlyout = new();
 
         public static Frame MainFrame { get; private set; }
+        public static NavigationView MainNavigationView { get; private set; }
 
-        private InfoBadge TasksInfoBadge = new() { Value = 0 };
+        public InfoBadge TasksInfoBadge { get; private set; } = new() { Value = 0 };
 
         private (bool WantBackup, string Backup) BackupState = (false, "");
 
@@ -39,31 +40,43 @@ namespace Emerald.WinUI
         /// <para>Item1 - The Index.<br/>
         /// Item2 - The source (0-Menu, 1-Footer, 2-Unknown).</para>
         /// </summary>
-        private (int Index, int Source) SelectedItemIndex;
+        private static (int Index, int Source) SelectedItemIndex;
 
         public MainWindow()
         {
             InitializeComponent();
             Title = "Emerald";
 
+            MainNavigationView = NavView;
+            MainNavigationView.ItemInvoked += MainNavigationView_ItemInvoked;
             MainFrame = frame;
             SS.APINoMatch += (_, e) => BackupState = (true, e);
             SS.LoadData();
 
             (Content as FrameworkElement).Loaded += Initialize;
         }
+        public async void ShowMiniTask(string title, string message, InfoBarSeverity severity)
+        {
+            MiniTaskInfo.Title = title;
+            MiniTaskInfo.Message = message;
+            MiniTaskInfo.Severity = severity;
 
+            MiniTaskInfo.Visibility = Visibility.Visible;
+            await System.Threading.Tasks.Task.Delay(new TimeSpan(0, 0, 3));
+            MiniTaskInfo.Visibility = Visibility.Collapsed;
+        }
         public async void Initialize(object s, RoutedEventArgs e)
         {
             MicaBackground mica = WindowManager.IntializeWindow(this);
 
-            mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
-
-            SS.Settings.App.Appearance.PropertyChanged += (s, e)
-                => mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
-
-            NavView.Header = new NavViewHeader() { HeaderText = "Home".Localize(), HeaderMargin = GetNavViewHeaderMargin() };
-            NavView.DisplayModeChanged += (_, _) => (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
+            if (mica != null)
+            {
+                mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
+                SS.Settings.App.Appearance.PropertyChanged += (s, e)
+                    => mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
+            }
+            MainNavigationView.Header = new NavViewHeader() { HeaderText = "Home".Localize(), HeaderMargin = GetNavViewHeaderMargin() };
+            MainNavigationView.DisplayModeChanged += (_, _) => (MainNavigationView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
 
             WindowManager.SetTitleBar(this, AppTitleBar);
 
@@ -86,7 +99,7 @@ namespace Emerald.WinUI
                 }
             }
 
-            NavView.SelectedItem = NavView.MenuItems[0];
+            MainNavigationView.SelectedItem = MainNavigationView.MenuItems[0];
 
             void Tasks()
             {
@@ -97,28 +110,32 @@ namespace Emerald.WinUI
 
                 TaskViewFlyout.Content = g;
                 TaskViewFlyout.Closed += (s, e)
-                    => NavView.SelectedItem = SelectedItemIndex.Source == 0 ?
-                    NavView.MenuItems[SelectedItemIndex.Index] :
+                    => MainNavigationView.SelectedItem = SelectedItemIndex.Source == 0 ?
+                    MainNavigationView.MenuItems[SelectedItemIndex.Index] :
                     (SelectedItemIndex.Source == 1 ?
-                        NavView.FooterMenuItems[SelectedItemIndex.Index] :
-                        NavView.SelectedItem);
+                        MainNavigationView.FooterMenuItems[SelectedItemIndex.Index] :
+                        MainNavigationView.SelectedItem);
 
                 TasksHelper.TaskAddRequested += (_, e) =>
                 {
                     if (e is TaskAddRequestedEventArgs task)
                     {
-                        var id = TaskView.AddProgressTask(string.Join(" ", (task.Name ?? "").Split(" ").Select(s => s.Localize())), 0, InfoBarSeverity.Informational, true, task.ID);
+                        var c = string.Join(" ", (task.Name ?? "").Split(" ").Select(s => s.Localize()));
+                        var id = TaskView.AddProgressTask(c, 0, InfoBarSeverity.Informational, true, task.ID);
                         if (task.Message != null)
                             TaskView.ChangeDescription(id, task.Message);
 
                         TasksInfoBadge.Value++;
                         UpdateTasksInfoBadge();
+                        ShowMiniTask(c, null, InfoBarSeverity.Informational);
                     }
                     else if (e is ProgressTaskEventArgs Ptask)
                     {
+                        var c = string.Join(" ", (Ptask.Name ?? "").Split(" ").Select(s => s.Localize()));
                         var val = Ptask.Value / Ptask.MaxValue * 100;
-                        TaskView.AddProgressTask(string.Join(" ", (Ptask.Name ?? "").Split(" ").Select(s => s.Localize())), val, InfoBarSeverity.Informational, false, Ptask.ID);
+                        TaskView.AddProgressTask(c, val, InfoBarSeverity.Informational, false, Ptask.ID);
                         TasksInfoBadge.Value++;
+                        ShowMiniTask(c, null, InfoBarSeverity.Informational);
                         UpdateTasksInfoBadge();
                     }
                 };
@@ -131,10 +148,12 @@ namespace Emerald.WinUI
 
                 TasksHelper.TaskCompleteRequested += (_, e) =>
                 {
+                    var c = TaskView.AllTasks.FirstOrDefault(t => t.ID == e.ID).Content;
                     TaskView.ChangeProgress(e.ID, 100);
                     TaskView.ChangeIndeterminate(e.ID, false);
                     TaskView.ChangeDescription(e.ID, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.Localize())));
                     TaskView.ChangeSeverty(e.ID, e.Success ? InfoBarSeverity.Success : InfoBarSeverity.Error);
+                    ShowMiniTask(c, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.Localize())), e.Success ? InfoBarSeverity.Success : InfoBarSeverity.Error);
 
                 };
             }
@@ -148,84 +167,87 @@ namespace Emerald.WinUI
                     switch ((Helpers.Settings.Enums.MicaTintColor)SS.Settings.App.Appearance.MicaTintColor)
                     {
                         case Helpers.Settings.Enums.MicaTintColor.NoColor:
-                            MicaTintColorBrush.Color = Colors.Transparent;
-                            BGTintColor = Colors.Transparent;
+                            MainGrid.Background = null;
                             break;
                         case Helpers.Settings.Enums.MicaTintColor.AccentColor:
-                            MicaTintColorBrush.Color = (Color)Application.Current.Resources["SystemAccentColor"];
-                            BGTintColor = (Color)Application.Current.Resources["SystemAccentColor"];
+                            MainGrid.Background = new SolidColorBrush((Color)Application.Current.Resources["SystemAccentColor"])
+                            {
+                                Opacity = 0.1
+                            };
                             break;
                         case Helpers.Settings.Enums.MicaTintColor.CustomColor:
                             var c = SS.Settings.App.Appearance.CustomMicaTintColor;
-                            MicaTintColorBrush.Color = c == null ? Color.FromArgb(255, 234, 0, 94) : Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B);
-                            BGTintColor = c == null ? Color.FromArgb(255, 234, 0, 94) : Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B);
+                            MainGrid.Background = new SolidColorBrush() { Color = c == null ? Color.FromArgb(255, 234, 0, 94) : Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B), Opacity = 0.1 };
                             break;
                     }
                 }
 
                 SS.Settings.App.Appearance.PropertyChanged += (s, e) =>
                 {
-                    TintColor();
-                    (Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
-
+                    if (e.PropertyName != null)
+                    {
+                        TintColor();
+                        (Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
+                    }
                 };
+
+                (Content as FrameworkElement).ActualThemeChanged += (s, e) => SS.Settings.App.Appearance.InvokePropertyChanged();
 
                 TintColor();
                 (Content as FrameworkElement).RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme;
+                SS.Settings.App.Appearance.InvokePropertyChanged();
             }
 
             Settings();
 
             HomePage = new();
             MainFrame.Content = HomePage;
-            App.Current.Launcher.PropertyChanged += (_, e) =>
+            App.Current.Launcher.PropertyChanged += (_, _) =>
             {
-                if (e.PropertyName == nameof(App.Current.Launcher.UIState))
-                    UpdateUI();
+                UpdateUI();
             };
             (Content as FrameworkElement).Loaded -= Initialize;
         }
-        private void UpdateUI()
+        private static void UpdateUI()
         {
             var t = MainFrame.Content.GetType();
             MainFrame.IsEnabled = t == typeof(LogsPage) || t == typeof(NewsPage) || t == typeof(StorePage) || App.Current.Launcher.UIState;
         }
-        private void UpdateTasksInfoBadge() =>
+        public void UpdateTasksInfoBadge() =>
             TasksInfoBadge.Visibility = MainFrame.Content == TaskView || TasksInfoBadge.Value == 0 ? Visibility.Collapsed : Visibility.Visible;
 
-        private Thickness GetNavViewHeaderMargin()
+        private static Thickness GetNavViewHeaderMargin()
         {
-            if (NavView.DisplayMode == NavigationViewDisplayMode.Minimal)
+            if (MainNavigationView.DisplayMode == NavigationViewDisplayMode.Minimal)
             {
-                NavView.IsPaneToggleButtonVisible = true;
+                MainNavigationView.IsPaneToggleButtonVisible = true;
                 return new Thickness(35, -40, 0, 0);
             }
             else
             {
-                NavView.IsPaneToggleButtonVisible = false;
+                MainNavigationView.IsPaneToggleButtonVisible = false;
                 return new Thickness(-30, -20, 0, 10);
             }
         }
 
-        private void UpdateSelectedItem() =>
-            SelectedItemIndex = NavView.SelectedItem is SquareNavigationViewItem item ?
+        private static void UpdateSelectedItem() =>
+            SelectedItemIndex = MainNavigationView.SelectedItem is SquareNavigationViewItem item ?
                 (
-                 ((NavView.SelectedItem as SquareNavigationViewItem).Name.ToString() == "Tasks".Localize()) ?
+                 ((MainNavigationView.SelectedItem as SquareNavigationViewItem).Name.ToString() == "Tasks".Localize()) ?
                     SelectedItemIndex
                     :
-                    (NavView.MenuItems.IndexOf(NavView.MenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)) == -1 ?
+                    (MainNavigationView.MenuItems.IndexOf(MainNavigationView.MenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)) == -1 ?
                         (
-                         NavView.FooterMenuItems.IndexOf(NavView.FooterMenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)) == -1 ?
+                         MainNavigationView.FooterMenuItems.IndexOf(MainNavigationView.FooterMenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)) == -1 ?
                             (1, 2)
                             :
-                            (NavView.FooterMenuItems.IndexOf(NavView.FooterMenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)), 1)
+                            (MainNavigationView.FooterMenuItems.IndexOf(MainNavigationView.FooterMenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)), 1)
                          )
                         :
-                        (NavView.MenuItems.IndexOf(NavView.MenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)), 0))
+                        (MainNavigationView.MenuItems.IndexOf(MainNavigationView.MenuItems.FirstOrDefault(x => (SquareNavigationViewItem)x == item)), 0))
                 )
                 : (1, 2);
-
-        private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+        public static void InvokeNavigate(string h, NavigationViewItemInvokedEventArgs args = null)
         {
             void NavigateOnce(Type type)
             {
@@ -235,52 +257,56 @@ namespace Emerald.WinUI
                 }
             }
 
-            if (!args.IsSettingsInvoked && NavView.SelectedItem is SquareNavigationViewItem itm)
+            try
             {
-                try
+                if (h == "Home".Localize())
                 {
-                    var h = itm.Name.ToString();
-
-                    if (h == "Home".Localize())
-                    {
-                        MainFrame.Content = HomePage;
-                    }
-                    else if (h == "Store".Localize())
-                    {
-                        NavigateOnce(typeof(Views.Store.StorePage));
-                    }
-                    else if (h == "Tasks".Localize())
-                    {
-                        TaskViewFlyout.ShowAt(args.InvokedItemContainer, new() { Placement = FlyoutPlacementMode.Right, ShowMode = FlyoutShowMode.Standard });
-                        TasksInfoBadge.Value = 0;
-                    }
-                    else if (h == "Logs".Localize())
-                    {
-                        NavigateOnce(typeof(Views.LogsPage));
-                    }
-                    else if (h == "Settings".Localize())
-                    {
-                        NavigateOnce(typeof(Views.Settings.SettingsPage));
-                    }
-
-                    UpdateTasksInfoBadge();
-                    UpdateUI();
-                    (NavView.Header as NavViewHeader).HeaderText = h == "Tasks".Localize() ? (NavView.Header as NavViewHeader).HeaderText : h;
-                    (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
+                    MainFrame.Content = HomePage;
                 }
-                catch
+                else if (h == "Store".Localize())
                 {
+                    NavigateOnce(typeof(Views.Store.StorePage));
+                }
+                else if (h == "Tasks".Localize() && args != null)
+                {
+                    TaskViewFlyout.ShowAt(args.InvokedItemContainer, new() { Placement = FlyoutPlacementMode.Right, ShowMode = FlyoutShowMode.Standard });
+                    (App.Current.MainWindow as MainWindow).TasksInfoBadge.Value = 0;
+                }
+                else if (h == "Logs".Localize())
+                {
+                    NavigateOnce(typeof(Views.LogsPage));
+                }
+                else if (h == "Settings".Localize())
+                {
+                    NavigateOnce(typeof(Views.Settings.SettingsPage));
+                }
+                else if (h == "News".Localize())
+                {
+                    NavigateOnce(typeof(Views.Home.NewsPage));
                 }
 
-                var pitm = (SquareNavigationViewItem)(SelectedItemIndex.Source == 0 ?
-                        NavView.MenuItems[SelectedItemIndex.Index] :
-                        (SelectedItemIndex.Source == 1 ?
-                            NavView.FooterMenuItems[SelectedItemIndex.Index] :
-                            NavView.SelectedItem));
-                pitm.IsSelected = pitm == itm;
-
-                UpdateSelectedItem();
+                (App.Current.MainWindow as MainWindow).UpdateTasksInfoBadge();
+                UpdateUI();
+                (MainNavigationView.Header as NavViewHeader).HeaderText = h == "Tasks".Localize() ? (MainNavigationView.Header as NavViewHeader).HeaderText : h;
+                (MainNavigationView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
             }
+            catch
+            {
+            }
+
+            var pitm = (SquareNavigationViewItem)(SelectedItemIndex.Source == 0 ?
+                    MainNavigationView.MenuItems[SelectedItemIndex.Index] :
+                    (SelectedItemIndex.Source == 1 ?
+                        MainNavigationView.FooterMenuItems[SelectedItemIndex.Index] :
+                        MainNavigationView.SelectedItem));
+            pitm.IsSelected = pitm == MainNavigationView.SelectedItem as SquareNavigationViewItem;
+
+            UpdateSelectedItem();
+        }
+        private static void MainNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+        {
+            if (!args.IsSettingsInvoked && MainNavigationView.SelectedItem is SquareNavigationViewItem itm)
+                InvokeNavigate(itm.Name.ToString(), args);
         }
     }
 }

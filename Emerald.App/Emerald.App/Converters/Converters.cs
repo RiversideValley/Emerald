@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml;
+﻿using Emerald.WinUI.Helpers;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using System;
 
@@ -24,6 +25,24 @@ namespace Emerald.WinUI.Converters
         {
             throw new InvalidOperationException("Use the boolean to visibility converter in this situation. " +
                 "A string is very likely unnecessary in this case.");
+        }
+    }
+    public class StringToLocalString : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            if (value is string val)
+                return val.Localize();
+
+            return value;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            if (value is string val)
+                return val.Localize();
+
+            return value;
         }
     }
 

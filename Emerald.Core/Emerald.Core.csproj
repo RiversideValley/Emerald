@@ -7,11 +7,12 @@
       <RootNamespace>Emerald.Core</RootNamespace>
       <Configurations>Debug;Release</Configurations>
       <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+      <RuntimeIdentifiers>win10-x86;win10-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CmlLib.Core.Auth.Microsoft" Version="2.2.0" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.230118.102" />
+    <PackageReference Include="CmlLib.Core.Auth.Microsoft" Version="3.0.1" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.4.231008000" />
     <PackageReference Include="ProjBobcat" Version="1.16.0" />
   </ItemGroup>
 

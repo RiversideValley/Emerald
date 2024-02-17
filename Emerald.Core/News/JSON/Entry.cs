@@ -48,7 +48,7 @@ namespace Emerald.Core.News.JSON
         {
             get
             {
-                var d = Date.Split('-').Select(x => int.Parse(x)).ToArray();
+                var d = Date.Split('-').Select(int.Parse).ToArray();
                 return new DateTime(d[0], d[1], d[2]);
             }
         }

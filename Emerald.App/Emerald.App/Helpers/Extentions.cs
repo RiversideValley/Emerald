@@ -50,9 +50,6 @@ namespace Emerald.WinUI.Helpers
             if (num >= 100000)
                 return (num / 1000).ToString("#,0K");
 
-            if (num >= 10000)
-                return (num / 1000).ToString("0.#") + "K";
-
             if (num >= 1000)
                 return (num / 100).ToString("0.#") + "K";
 
@@ -82,7 +79,6 @@ namespace Emerald.WinUI.Helpers
             {
                 coll.Remove(itemToRemove);
             }
-
             return itemsToRemove.Count;
         }
 
@@ -130,7 +126,7 @@ namespace Emerald.WinUI.Helpers
             return sb.ToString();
         }
 
-        public static string Localize(this string resourceKey, string resw = null)
+        public static string Localize(this string resourceKey)
         {
             try
             {
@@ -138,9 +134,7 @@ namespace Emerald.WinUI.Helpers
                 string s;
 
                 if (cachedResources.TryGetValue(resourceKey, out var value))
-                {
                     return value;
-                }
 
                 rl = new ResourceManager();
 
@@ -157,26 +151,23 @@ namespace Emerald.WinUI.Helpers
             }
         }
 
-        public static string Localize(this Core.Localized resourceKey, string resw = null)
-        {
-            return resourceKey.ToString().Localize();
-        }
+        public static string Localize(this Core.Localized resourceKey) =>
+             resourceKey.ToString().Localize();
 
-        public static bool IsNullEmptyOrWhiteSpace(this string str)
-        {
-            return string.IsNullOrEmpty(str) || string.IsNullOrWhiteSpace(str);
-        }
+        public static bool IsNullEmptyOrWhiteSpace(this string str) =>
+            string.IsNullOrEmpty(str) || string.IsNullOrWhiteSpace(str);
+
 
         public static Models.Account ToAccount(this CmlLib.Core.Auth.MSession session, bool plusCount = true)
         {
             bool isOffline = session.UUID == "user_uuid";
-            return new Models.Account(session.Username, isOffline ? null : session.AccessToken, isOffline ? null : session.UUID, plusCount ? MainWindow.HomePage.AccountsPage.AllCount++ : 0, false,session.ClientToken);
+            return new Models.Account(session.Username, isOffline ? null : session.AccessToken, isOffline ? null : session.UUID, plusCount ? MainWindow.HomePage.AccountsPage.AllCount++ : 0, false, session.ClientToken);
         }
 
         public static CmlLib.Core.Auth.MSession ToMSession(this Models.Account account)
         {
             bool isOffline = account.UUID == null;
-            return new CmlLib.Core.Auth.MSession(account.UserName, isOffline ? "access_token" : account.AccessToken, isOffline ? "user_uuid" : account.UUID, account.ClientToken);
+            return new CmlLib.Core.Auth.MSession(account.UserName, isOffline ? "access_token" : account.AccessToken, isOffline ? Guid.NewGuid().ToString() : account.UUID ?? "2749420bc7a54b05ab622b34e61b8a79", account.ClientToken);
         }
     }
 }

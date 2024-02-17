@@ -35,7 +35,7 @@ namespace Emerald.WinUI.Helpers.Settings
             Settings = GetSerializedFromSettings("Settings", JSON.Settings.CreateNew());
             Accounts = GetSerializedFromSettings("Accounts", Array.Empty<Account>());
 
-            if (Settings.APIVersion != "1.3")
+            if (Settings.APIVersion != DirectResoucres.SettingsAPIVersion)
             {
                 APINoMatch?.Invoke(null, ApplicationData.Current.RoamingSettings.Values["Settings"] as string);
                 ApplicationData.Current.RoamingSettings.Values["Settings"] = JSON.Settings.CreateNew().Serialize();
@@ -81,6 +81,18 @@ namespace Emerald.WinUI.Helpers.Settings
 
             await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists), json);
         }
+        public static async Task RenameBackup(DateTime time, string name)
+        {
+            string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
+            var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonConvert.DeserializeObject<Backups>(json);
+
+            var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
+            bl.FirstOrDefault(x => x.Time == time).Name = name;
+            l.AllBackups = bl.ToArray();
+            json = l.Serialize();
+
+            await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists), json);
+        }
 
         public static async Task<List<SettingsBackup>> GetBackups()
         {
@@ -92,6 +104,7 @@ namespace Emerald.WinUI.Helpers.Settings
 
         public static void SaveData()
         {
+            Settings.LastSaved = DateTime.Now;
             ApplicationData.Current.RoamingSettings.Values["Settings"] = Settings.Serialize();
             ApplicationData.Current.RoamingSettings.Values["Accounts"] = JsonConvert.SerializeObject(Accounts);
         }

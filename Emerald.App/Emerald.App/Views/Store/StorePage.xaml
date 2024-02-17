@@ -7,7 +7,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ToolKit="using:CommunityToolkit.WinUI.UI.Controls"
     xmlns:animations="using:CommunityToolkit.WinUI.UI.Animations"
-    xmlns:SS="using:Emerald.WinUI.Helpers.Settings" xmlns:models="using:Emerald.WinUI.Models"
+    xmlns:SS="using:Emerald.WinUI.Helpers.Settings" 
+    xmlns:models="using:Emerald.WinUI.Models"
+    xmlns:helpers="using:Emerald.WinUI.Helpers"
     Loaded="Page_Loaded"
     Unloaded="Page_Unloaded"
     SizeChanged="Page_SizeChanged"
@@ -18,7 +20,7 @@
         DisplayMode="Inline" 
         PaneBackground="{ThemeResource LayerFillColorDefaultBrush}" 
         CornerRadius="{StaticResource ControlCornerRadius}" 
-        IsPaneOpen="True"
+        IsPaneOpen="False"
         x:Name="InstallerPane">
         <SplitView.Content>
 
@@ -33,13 +35,13 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Border
-            Height="Auto"
-            Margin="12,0,12,12"
-            Padding="12"
-            Background="{ThemeResource LayerFillColorDefaultBrush}"
-            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="1"
-            CornerRadius="4">
+                    Height="Auto"
+                    Margin="12,0,12,12"
+                    Padding="12"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -86,14 +88,14 @@
                 </Border>
                 <Grid Grid.Row="1">
                     <ToolKit:AdaptiveGridView
-                Padding="12,0"
+                        Padding="12,0"
                         Margin="0,12,6,12"
-                x:Name="storeItemsGrid"
-                DesiredWidth="400"
-                SelectionMode="None"
-                IsItemClickEnabled="False"
-                StretchContentForSingleRow="True"
-                animations:ItemsReorderAnimation.Duration="00:00:00.5000000">
+                        x:Name="storeItemsGrid"
+                        DesiredWidth="400"
+                        SelectionMode="None"
+                        IsItemClickEnabled="False"
+                        StretchContentForSingleRow="True"
+                        animations:ItemsReorderAnimation.Duration="00:00:00.5000000">
                         <ToolKit:AdaptiveGridView.ItemTemplate>
                             <DataTemplate x:DataType="models:StoreItem">
                                 <Button VerticalAlignment="Stretch" BorderThickness="0" Click="StoreItem_Click" HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" MinWidth="0">
@@ -135,15 +137,15 @@
                         </ToolKit:AdaptiveGridView.ItemTemplate>
                     </ToolKit:AdaptiveGridView>
                     <StackPanel x:Name="pnlEmpty" 
-                        Background="{ThemeResource LayerFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
-                        CornerRadius="8"
-                        BorderThickness="1"
-                        Padding="15"
-                        VerticalAlignment="Center" 
-                        HorizontalAlignment="Center">
-                        <TextBlock HorizontalAlignment="Center" Text="Whoops!" FontSize="25" FontWeight="SemiBold"/>
-                        <TextBlock TextAlignment="Center" TextWrapping="WrapWholeWords" Text="Cannot find mods with follwing name or you may have disconnected from the internet."/>
+                                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                CornerRadius="8"
+                                BorderThickness="1"
+                                Padding="16"
+                                VerticalAlignment="Center" 
+                                HorizontalAlignment="Center">
+                        <TextBlock HorizontalAlignment="Center" Text="{helpers:Localize Name=Whoops}" FontSize="25" FontWeight="SemiBold"/>
+                        <TextBlock TextAlignment="Center" TextWrapping="WrapWholeWords" Text="{helpers:Localize Name=ModsNoInternet}"/>
                     </StackPanel>
                 </Grid>
             </Grid>

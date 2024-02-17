@@ -1,6 +1,5 @@
 ﻿using CmlLib.Core.Auth;
 using CmlLib.Core.Auth.Microsoft;
-using CmlLib.Core.Auth.Microsoft.MsalClient;
 using Microsoft.Identity.Client;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -8,18 +7,26 @@ using Microsoft.UI.Xaml.Documents;
 using System;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using XboxAuthNet.Game.Authenticators;
+using XboxAuthNet.Game.Msal;
 
 namespace Emerald.WinUI.Helpers
 {
     public sealed class MSLoginHelper
     {
-        JavaEditionLoginHandler handler;
+        NestedAuthenticator? authenticator;
         ContentDialog InformDialog;
         OAuthMode mode;
         bool IsInTask;
+        bool IsInitizlied;
+
         public MSLoginHelper()
         {
         }
+
+        public MSLoginHelper(string cId, OAuthMode mode) =>
+            Initialize(cId, mode);
+
 
         public enum OAuthMode
         {
@@ -28,24 +35,29 @@ namespace Emerald.WinUI.Helpers
             DeviceCode
         }
 
-        public async Task Initialize(string cId, OAuthMode mode)
+        public async void Initialize(string cId, OAuthMode mode)
         {
+            IsInitizlied = true;
             this.mode = mode;
-            var app = await MsalMinecraftLoginHelper.BuildApplicationWithCache(cId);
-            var builder = new LoginHandlerBuilder().ForJavaEdition();
+
+            var app = await MsalClientHelper.BuildApplicationWithCache(cId);
+            var loginHandler = JELoginHandlerBuilder.BuildDefault();
+
+            authenticator = loginHandler.CreateAuthenticatorWithNewAccount(default);
 
             if (mode == OAuthMode.DeviceCode)
-                builder = builder.WithMsalOAuth(app, factory => factory.CreateDeviceCodeApi(result =>
+                authenticator.AddMsalOAuth(app, msal => msal.DeviceCode(deviceCode =>
                 {
-                    InitializeInformDialog(result);
+                    InitializeInformDialog(deviceCode);
                     return Task.CompletedTask;
                 }));
             else if (mode == OAuthMode.EmbededDialog)
-                builder = builder.WithMsalOAuth(app, factory => factory.CreateWithEmbeddedWebView());
+                authenticator.AddMsalOAuth(app, msal => msal.EmbeddedWebView());
             else
-                builder = builder.WithMsalOAuth(app, factory => new MsalInteractiveOAuthApi(app, x => x.WithUseEmbeddedWebView(false)));
+                authenticator.AddMsalOAuth(app, msal => msal.SystemBrowser());
 
-            handler = builder.Build();
+            authenticator.AddXboxAuthForJE(xbox => xbox.Basic());
+            authenticator.AddJEAuthenticator();
         }
         private void InitializeInformDialog(DeviceCodeResult result)
         {
@@ -60,8 +72,10 @@ namespace Emerald.WinUI.Helpers
                 };
                 cb.Click += (s, e) =>
                 {
-                    var p = new DataPackage();
-                    p.RequestedOperation = DataPackageOperation.Copy;
+                    var p = new DataPackage
+                    {
+                        RequestedOperation = DataPackageOperation.Copy
+                    };
                     p.SetText(result.UserCode);
                     Clipboard.SetContent(p);
                 };
@@ -117,15 +131,11 @@ namespace Emerald.WinUI.Helpers
                 _ = InformDialog.ShowAsync();
             });
         }
-        public async Task<bool> Logout()
-        {
-            await handler.ClearCache();
-
-            return true;
-        }
-
         public async Task<MSession> Login()
         {
+            if (!IsInitizlied)
+                return null;
+
             try
             {
                 if (mode == OAuthMode.FromBrowser)
@@ -135,13 +145,13 @@ namespace Emerald.WinUI.Helpers
                 }
                 App.Current.Launcher.UIState = false;
                 IsInTask = true;
-                var s = await handler.LoginFromOAuth();
+                var s = await authenticator.ExecuteForLauncherAsync();
                 App.Current.Launcher.UIState = true;
                 IsInTask = false;
                 if (mode != OAuthMode.EmbededDialog && InformDialog != null)
                     InformDialog.Hide();
 
-                return s.GameSession;
+                return s;
             }
             catch (Exception)
             {

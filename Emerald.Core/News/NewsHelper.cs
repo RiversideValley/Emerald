@@ -19,7 +19,7 @@ namespace Emerald.Core.News
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
-        private ObservableCollection<JSON.Entry> _Entries;
+        private ObservableCollection<JSON.Entry> _Entries = new();
 
         private ObservableCollection<JSON.Entry> AllEntries;
 
@@ -37,7 +37,11 @@ namespace Emerald.Core.News
 
             if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key))
             {
-                Entries = new(AllEntries.Where(x => filter == null || filter.Contains(x.Category)));
+                Entries.Clear();
+
+                foreach (var item in AllEntries.Where(x => filter == null || filter.Contains(x.Category)))
+                    Entries.Add(item);
+
                 return Entries;
             }
 
@@ -53,7 +57,10 @@ namespace Emerald.Core.News
                 }
             }
 
-            Entries = new(s.Where(x => filter == null || filter.Contains(x.Category)));
+            Entries.Clear();
+
+            foreach (var item in s.Where(x => filter == null || filter.Contains(x.Category)))
+                Entries.Add(item);
 
             return Entries;
         }
@@ -72,13 +79,18 @@ namespace Emerald.Core.News
 
                 var json = JsonConvert.DeserializeObject<JSON.Root>(response);
                 AllEntries = json?.entries != null ? new(json.entries.ToList()) : new();
-                Entries = new(AllEntries.Where(x => filter == null || filter.Contains(x.Category)));
-                return Entries;
+
+                Entries.Clear();
+
+                foreach (var item in AllEntries.Where(x => filter == null || filter.Contains(x.Category)))
+                    Entries.Add(item);
+
             }
             catch
             {
-                return new();
+                Entries.Clear();
             }
+            return Entries;
         }
     }
 }

@@ -33,49 +33,12 @@
 
             <uc:AdaptiveItemPane
                 HorizontalAlignment="Stretch"
-                IsStackedCenter="True"
+                StackCenter="True"
                 StretchContent="True">
 
-                <uc:AdaptiveItemPane.LeftPane>
-                    <StackPanel Orientation="Horizontal" Spacing="4">
-
-                        <Button
-                            Width="36"
-                            Height="32"
-                            Padding="0"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Click="BackButton_Click">
-                            <AnimatedIcon Height="20">
-                                <AnimatedIcon.Source>
-                                    <animatedvisuals:AnimatedBackVisualSource />
-                                </AnimatedIcon.Source>
-                                <AnimatedIcon.FallbackIconSource>
-                                    <SymbolIconSource Symbol="Back" />
-                                </AnimatedIcon.FallbackIconSource>
-                            </AnimatedIcon>
-                        </Button>
-
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            FontWeight="SemiBold"
-                            Style="{ThemeResource SubtitleTextBlockStyle}"
-                            Text="{helpers:Localize Name=News}" />
-
-                    </StackPanel>
-                </uc:AdaptiveItemPane.LeftPane>
 
                 <uc:AdaptiveItemPane.RightPane>
                     <StackPanel Spacing="8" Orientation="Horizontal">
-                        <AutoSuggestBox
-                            x:Name="SearchBox"
-                            BorderThickness="0,0,0,1"
-                            MinWidth="250"
-                            VerticalAlignment="Center"
-                            PlaceholderText="{helpers:Localize Name=Search}"
-                            QueryIcon="Find"
-                            TextChanged="SearchBox_TextChanged" />
-
                         <DropDownButton
                             x:Name="btnVerSort"
                             Grid.Column="1"
@@ -86,28 +49,37 @@
                                 <MenuFlyout>
                                     <ToggleMenuFlyoutItem
                                         Click="FilterButton_Click"
-                                        Text="{helpers:Localize CustomName=All}" 
+                                        Text="{helpers:Localize Name=All}" 
                                         IsChecked="{x:Bind SS:SettingsSystem.Settings.App.NewsFilter.All,Mode=TwoWay}"/>
                                     <MenuFlyoutSeparator/>
                                     <ToggleMenuFlyoutItem
                                         Click="FilterButton_Click"
-                                        Text="{helpers:Localize CustomName=MCJava}" 
+                                        Text="{helpers:Localize Name=MCJava}" 
                                         IsChecked="{x:Bind SS:SettingsSystem.Settings.App.NewsFilter.Java,Mode=TwoWay}"/>
                                     <ToggleMenuFlyoutItem
                                         Click="FilterButton_Click"
-                                        Text="{helpers:Localize CustomName=MCBedrock}" 
+                                        Text="{helpers:Localize Name=MCBedrock}" 
                                         IsChecked="{x:Bind SS:SettingsSystem.Settings.App.NewsFilter.Bedrock,Mode=TwoWay}"/>
                                     <ToggleMenuFlyoutItem
                                         Click="FilterButton_Click"
-                                        Text="{helpers:Localize CustomName=MCDungeons}" 
+                                        Text="{helpers:Localize Name=MCDungeons}" 
                                         IsChecked="{x:Bind SS:SettingsSystem.Settings.App.NewsFilter.Dungeons,Mode=TwoWay}"/>
                                     <ToggleMenuFlyoutItem
                                         Click="FilterButton_Click"
-                                        Text="{helpers:Localize CustomName=MCLegends}" 
+                                        Text="{helpers:Localize Name=MCLegends}" 
                                         IsChecked="{x:Bind SS:SettingsSystem.Settings.App.NewsFilter.Legends,Mode=TwoWay}"/>
                                 </MenuFlyout>
                             </DropDownButton.Flyout>
                         </DropDownButton>
+
+                        <AutoSuggestBox
+                            x:Name="SearchBox"
+                            BorderThickness="0,0,0,1"
+                            MinWidth="250"
+                            VerticalAlignment="Center"
+                            PlaceholderText="{helpers:Localize Name=Search}"
+                            QueryIcon="Find"
+                            TextChanged="SearchBox_TextChanged" />
                     </StackPanel>
                 </uc:AdaptiveItemPane.RightPane>
 
@@ -142,7 +114,7 @@
                             CornerRadius="4">
                             <uc:AdaptiveItemPane
                                 HorizontalAlignment="Stretch"
-                                IsStackedCenter="False"
+                                StackCenter="False"
                                 OnlyStacked="True"
                                 StretchContent="True">
 
@@ -153,7 +125,7 @@
                                 </uc:AdaptiveItemPane.LeftPane>
 
                                 <uc:AdaptiveItemPane.RightPane>
-                                    <StackPanel Margin="12,0" Spacing="6">
+                                    <StackPanel HorizontalAlignment="Left" Margin="12,0" Spacing="6">
 
                                         <TextBlock
                                             FontWeight="SemiBold"
@@ -194,6 +166,19 @@
             </toolkit:AdaptiveGridView.ItemTemplate>
 
         </toolkit:AdaptiveGridView>
+        <StackPanel
+            x:Name="pnlEmpty"
+            Grid.Row="1"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+            CornerRadius="8"
+            BorderThickness="1"
+            Padding="16"
+            VerticalAlignment="Center" 
+            HorizontalAlignment="Center">
+            <TextBlock HorizontalAlignment="Center" Text="{helpers:Localize Name=Whoops}" FontSize="25" FontWeight="SemiBold"/>
+            <TextBlock TextAlignment="Center" TextWrapping="WrapWholeWords" Text="{helpers:Localize Name=NewsNoInternet}"/>
+        </StackPanel>
 
     </Grid>
 </Page>

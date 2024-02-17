@@ -1,6 +1,9 @@
-﻿namespace Emerald.WinUI.Helpers
+﻿using Microsoft.UI.Xaml.Markup;
+
+namespace Emerald.WinUI.Helpers
 {
-    public class ConditionString
+    [MarkupExtensionReturnType(ReturnType = typeof(string))]
+    public class ConditionString : MarkupExtension
     {
         public string TrueString { get; set; }
 
@@ -13,5 +16,7 @@
 
         public override string ToString()
             => Result;
+
+        protected override object ProvideValue() => Result;
     }
 }

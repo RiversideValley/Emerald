@@ -1,6 +1,8 @@
 ﻿using CmlLib.Core;
 using Emerald.Core.Tasks;
 using Newtonsoft.Json;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
 
@@ -26,29 +28,27 @@ namespace Emerald.Core.Store
 
         private async Task<string> Get(string code)
         {
-            try
-            {
-                HttpResponseMessage response = await Client.GetAsync(code);
+            HttpResponseMessage response = await Client.GetAsync(code);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    return await response.Content.ReadAsStringAsync();
-                }
-                else
-                {
-                    throw new Exception("Failed to GET: \"" + code + "\"");
-                }
-            }
-            catch
-            {
-                throw new Exception("Failed to GET: \"" + code + "\"");
-            }
+            if (response.IsSuccessStatusCode)
+                return await response.Content.ReadAsStringAsync();
+
+            throw new Exception("Failed to GET: \"" + code + "\"");
+
         }
 
         private int DownloadTaskID;
+        private bool IsDownloading;
 
         public void DownloadMod(Results.File file, MinecraftPath mcPath = null)
         {
+            if (IsDownloading)
+            {
+                var id = TasksHelper.AddProgressTask("DownloadMod", 0, 1, 0, "");
+                TasksHelper.CompleteTask(id, false, "DownloaderBusy");
+                return;
+            }
+            IsDownloading = true;
             DownloadTaskID = Tasks.TasksHelper.AddProgressTask($"{Localized.Download} {file.Filename}");
             var mods = System.IO.Directory.CreateDirectory((mcPath == null ? MCPath.BasePath : mcPath.BasePath) + "\\mods").FullName;
             ModrinthDownload(file.Url, mods, file.Filename);
@@ -60,9 +60,9 @@ namespace Emerald.Core.Store
             client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
             {
                 TasksHelper.EditProgressTask(DownloadTaskID, Convert.ToInt32(progressPercentage));
-
                 if (progressPercentage == 100)
                 {
+                    IsDownloading = false;
                     client.Dispose();
                     TasksHelper.CompleteTask(DownloadTaskID, true);
                 }
@@ -130,7 +130,7 @@ namespace Emerald.Core.Store
             catch (Exception ex)
             {
                 Tasks.TasksHelper.CompleteTask(taskID, false, ex.Message);
-                return null;
+                return new();
             }
         }
     }
@@ -188,8 +188,11 @@ namespace Emerald.Core.Store.Results
         public int size { get; set; }
     }
 
-    public class Version
+    public class Version : INotifyPropertyChanged
     {
+        public bool IsDetailsVisible = false;
+        public string? FileName => Files.FirstOrDefault(x => x.Primary)?.Filename;
+
         [JsonPropertyName("id")]
         public string ID { get; set; }
 
@@ -234,6 +237,9 @@ namespace Emerald.Core.Store.Results
 
         [JsonPropertyName("loaders")]
         public string[] Loaders { get; set; }
+
+       public event PropertyChangedEventHandler? PropertyChanged;
+        public void InvokePropertyChanged(string propertyName = null)=> PropertyChanged?.Invoke(this, new(propertyName));
     }
 
     public class Hashes

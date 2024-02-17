@@ -1,12 +1,13 @@
 ﻿using CmlLib.Core;
-using ColorCode.Compilation.Languages;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.WinUI.Helpers;
 using Emerald.Core.Store.Enums;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-
+using Windows.UI;
 namespace Emerald.WinUI.Helpers.Settings.JSON
 {
     public class JSON : Models.Model
@@ -18,8 +19,10 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
     public class SettingsBackup : JSON
     {
         public string Backup { get; set; }
-
+        public string Name { get; set; }
         public DateTime Time { get; set; }
+        //ik there is Time.ToString() lol
+        public string DateString => $"{Time.ToLongDateString()} {Time.ToShortTimeString()}";
     }
 
     public class Backups : JSON
@@ -55,8 +58,8 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
             }
         };
 
-        public string APIVersion { get; set; } = "1.3";
-
+        public string APIVersion { get; set; } = DirectResoucres.SettingsAPIVersion;
+        public DateTime LastSaved { get; set; } = DateTime.Now;
         public Minecraft Minecraft { get; set; } = new();
 
         public App App { get; set; } = new();
@@ -76,7 +79,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         }
 
         [JsonIgnore]
-        public double RAMinGB => Math.Round(RAM / Math.Pow(1024, 1), 1);
+        public double RAMinGB => Math.Round((RAM / 1024.00), 2);
 
 
         [ObservableProperty]
@@ -112,29 +115,45 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
     {
 
         [ObservableProperty]
-        public bool _HashCheck;
+        private bool _HashCheck;
 
         [ObservableProperty]
-        public bool _AssetsCheck;
+        private bool _AssetsCheck;
     }
 
     public partial class JVM : JSON
     {
+        public JVM()
+        {
+            this.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName != null)
+                    this.InvokePropertyChanged();
+            };
+        }
 
         [ObservableProperty]
-        public string[] _Arguments;
+        private string[] _Arguments;
 
         [ObservableProperty]
-        public int _ScreenWidth;
+        private double _ScreenWidth;
 
         [ObservableProperty]
-        public int _ScreenHeight;
+        private double _ScreenHeight;
 
         [ObservableProperty]
-        public bool _FullScreen;
+        private bool _FullScreen;
 
         [ObservableProperty]
         private bool _GameLogs;
+
+        [JsonIgnore]
+        public string ScreenSizeStatus =>
+                 FullScreen ? "FullScreen".Localize() : ((ScreenWidth > 0 && ScreenHeight > 0) ? $"{ScreenWidth} × {ScreenHeight}" : "Default".Localize());
+
+        [JsonIgnore]
+        public bool SetSize => !(ScreenSizeStatus == "FullScreen".Localize() || ScreenSizeStatus == "Default".Localize());
+
     }
 
     public class App : JSON
@@ -147,6 +166,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public bool AutoClose { get; set; }
         public bool HideOnLaunch { get; set; }
         public bool WindowsHello { get; set; }
+
     }
     public partial class StoreFilter : JSON
     {
@@ -265,6 +285,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public StoreFilter Filter { get; set; } = new();
         public StoreSortOptions SortOptions { get; set; } = new();
     }
+
     public partial class StoreSortOptions : JSON
     {
 
@@ -381,7 +402,20 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         private int _MicaType = 0;
 
         [ObservableProperty]
-
         private (int A, int R, int G, int B)? _CustomMicaTintColor;
+
+
+        //I had to do this because whenever the app has no Mica it won't change the background color when requested theme changes unless the Windows main theme gets changed.
+        [JsonIgnore]
+        public Color Win10BackgroundColor => (SystemInformation.Instance.OperatingSystemVersion.Build < 22000) ? (Emerald.WinUI.App.Current.ActualTheme == ElementTheme.Light ? Colors.White : Colors.Black) : Colors.Transparent;
+
+        public Appearance()
+        {
+            this.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName != null)
+                    this.InvokePropertyChanged();
+            };
+        }
     }
 }

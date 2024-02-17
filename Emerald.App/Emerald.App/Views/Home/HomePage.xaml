@@ -73,7 +73,7 @@
                 CornerRadius="4"
                 DisplayMode="Inline"
                 IsPaneOpen="{x:Bind PaneIsOpen, Mode=OneWay}"
-                OpenPaneLength="350"
+                OpenPaneLength="352"
                 PaneBackground="{ThemeResource LayerFillColorDefaultBrush}"
                 PanePlacement="Left">
 
@@ -126,6 +126,7 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="auto" />
                             </Grid.ColumnDefinitions>
 
                             <AutoSuggestBox
@@ -135,36 +136,41 @@
                                 PlaceholderText="Search for a version"
                                 QueryIcon="Find"
                                 TextChanged="txtbxFindVer_TextChanged" />
-
+                            <Button
+                                x:Name="btnRefreshVers"
+                                Click="btnRefreshVers_Click"
+                                Content="{helpers:FontIcon FontSize=14,Glyph=&#xE149;}"
+                                Height="32"
+                                VerticalAlignment="Center"
+                                Grid.Column="2"/>
                             <DropDownButton
                                 x:Name="btnVerSort"
                                 Grid.Column="1"
                                 Height="32"
-                                VerticalAlignment="Center"
-                                IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">
+                                VerticalAlignment="Center">
                                 <FontIcon FontSize="14" Glyph="&#xE71C;" />
                                 <DropDownButton.Flyout>
                                     <MenuFlyout Placement="BottomEdgeAlignedLeft">
                                         <ToggleMenuFlyoutItem
                                             Click="tglMitVerSort_Click"
                                             IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Release, Mode=TwoWay}"
-                                            Text="{helpers:Localize CustomName=TypeRelease}" />
+                                            Text="{helpers:Localize Name=TypeRelease}" />
                                         <ToggleMenuFlyoutItem
                                             Click="tglMitVerSort_Click"
                                             IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Snapshot, Mode=TwoWay}"
-                                            Text="{helpers:Localize CustomName=TypeSnapshot}" />
+                                            Text="{helpers:Localize Name=TypeSnapshot}" />
                                         <ToggleMenuFlyoutItem
                                             Click="tglMitVerSort_Click"
                                             IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.OldBeta, Mode=TwoWay}"
-                                            Text="{helpers:Localize CustomName=TypeOldBeta}" />
+                                            Text="{helpers:Localize Name=TypeOldBeta}" />
                                         <ToggleMenuFlyoutItem
                                             Click="tglMitVerSort_Click"
                                             IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.OldAlpha, Mode=TwoWay}"
-                                            Text="{helpers:Localize CustomName=TypeOldAlpha}" />
+                                            Text="{helpers:Localize Name=TypeOldAlpha}" />
                                         <ToggleMenuFlyoutItem
                                             Click="tglMitVerSort_Click"
                                             IsChecked="{x:Bind settings:SettingsSystem.Settings.Minecraft.MCVerionsConfiguration.Custom, Mode=TwoWay}"
-                                            Text="{helpers:Localize CustomName=TypeCustom}" />
+                                            Text="{helpers:Localize Name=TypeCustom}" />
                                     </MenuFlyout>
                                 </DropDownButton.Flyout>
                             </DropDownButton>
@@ -243,57 +249,64 @@
                     Background="{ThemeResource LayerFillColorDefaultBrush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1"
+                    
+                    Shadow="{StaticResource CommandBarFlyoutOverflowShadow}"
                     CornerRadius="4">
 
                     <uc:AdaptiveItemPane
                         Margin="12,12,0,12"
                         VerticalAlignment="Center"
-                        IsStackedCenter="False"
+                        OnStacked="AdaptiveItemPane_OnStacked"
+                        OnStretched="AdaptiveItemPane_OnStretched"
+                        StackCenter="True"
                         StretchContent="True">
 
                         <uc:AdaptiveItemPane.LeftPane>
                             <HyperlinkButton
                                 x:Name="AccountButton"
-                                Height="66"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
-                                HorizontalContentAlignment="Left"
+                                HorizontalContentAlignment="Center"
                                 Click="AccountButton_Click"
                                 Content="{x:Bind SessionAsAccount, Mode=OneWay}"
                                 Foreground="{ThemeResource ApplicationForegroundThemeBrush}">
                                 <HyperlinkButton.ContentTemplate>
                                     <DataTemplate x:DataType="models:Account">
-                                        <StackPanel Orientation="Horizontal" Spacing="12">
-                                            <PersonPicture
+                                        <uc:AdaptiveItemPane StackCenter="True">
+                                            <uc:AdaptiveItemPane.LeftPane>
+                                                <PersonPicture
                                                 Width="48"
                                                 Height="48"
                                                 DisplayName="{x:Bind UserName}"
                                                 ProfilePicture="{x:Bind ProfilePicture}" />
-                                            <StackPanel VerticalAlignment="Center">
-                                                <TextBlock
-                                                    VerticalAlignment="Center"
+                                            </uc:AdaptiveItemPane.LeftPane>
+                                            <uc:AdaptiveItemPane.MiddlePane>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock
                                                     FontSize="20"
                                                     Style="{StaticResource BodyStrongTextBlockStyle}"
                                                     Text="{x:Bind UserName}" />
-                                                <TextBlock
-                                                    x:Name="type"
+                                                    <TextBlock
+                                                        x:Name="type"
                                                     Style="{StaticResource CaptionTextBlockStyle}"
                                                     Text="{x:Bind TypeString}" />
-                                            </StackPanel>
-                                        </StackPanel>
+                                                </StackPanel>
+                                            </uc:AdaptiveItemPane.MiddlePane>
+                                        </uc:AdaptiveItemPane>
                                     </DataTemplate>
                                 </HyperlinkButton.ContentTemplate>
                             </HyperlinkButton>
                         </uc:AdaptiveItemPane.LeftPane>
 
-                        <uc:AdaptiveItemPane.RightPane>
-                            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <uc:AdaptiveItemPane.MiddlePane>
+                            <StackPanel HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Center">
                                 <HyperlinkButton
                                     HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Left"
                                     Background="Transparent"
                                     BorderBrush="Transparent"
                                     Click="NewsButton_Click"
+                                    x:Name="NewsButton"
                                     Foreground="{ThemeResource ApplicationForegroundThemeBrush}">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <FontIcon
@@ -313,6 +326,7 @@
                                     HorizontalContentAlignment="Left"
                                     Background="Transparent"
                                     BorderBrush="Transparent"
+                                    x:Name="ChangelogsButton"
                                     Foreground="{ThemeResource ApplicationForegroundThemeBrush}">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <FontIcon
@@ -326,7 +340,7 @@
                                     </StackPanel>
                                 </HyperlinkButton>
                             </StackPanel>
-                        </uc:AdaptiveItemPane.RightPane>
+                        </uc:AdaptiveItemPane.MiddlePane>
 
                     </uc:AdaptiveItemPane>
 

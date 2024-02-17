@@ -39,19 +39,16 @@
 
             <NavigationView.MenuItems>
                 <uc:NavViewItem
-                    Content="{helpers:Localize CustomName=General,
-                                               RESW=Settings}"
+                    Content="{helpers:Localize Name=General}"
                     IconGlyph="&#xE713;"
                     IsSelected="True"
                     Tag="General" />
                 <uc:NavViewItem
-                    Content="{helpers:Localize CustomName=Appearance,
-                                               RESW=Settings}"
+                    Content="{helpers:Localize Name=Appearance}"
                     IconGlyph="&#xE771;"
                     Tag="Appearance" />
                 <uc:NavViewItem
-                    Content="{helpers:Localize CustomName=About,
-                                               RESW=Settings}"
+                    Content="{helpers:Localize Name=About}"
                     IconGlyph="&#xE946;"
                     Tag="About" />
             </NavigationView.MenuItems>

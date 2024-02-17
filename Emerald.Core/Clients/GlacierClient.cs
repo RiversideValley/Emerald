@@ -29,32 +29,30 @@ namespace Emerald.Core.Clients
 
                 try
                 {
-                    using (var client = new FileDownloader("https://slashonline.net/glacier/get/release/Glacier.zip", MainCore.Launcher.Launcher.MinecraftPath.Versions + "/Glacier.zip"))
+                    using var client = new FileDownloader("https://slashonline.net/glacier/get/release/Glacier.zip", MainCore.Launcher.Launcher.MinecraftPath.Versions + "/Glacier.zip");
+                    client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
                     {
-                        client.ProgressChanged += (totalFileSize, totalBytesDownloaded, progressPercentage) =>
+                        StatusChanged("Downloading Glacier Client", new EventArgs());
+                        try
                         {
-                            StatusChanged("Downloading Glacier Client", new EventArgs());
-                            try
-                            {
-                                ProgressChanged(this, new ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
-                            }
-                            catch
-                            {
-                            }
+                            ProgressChanged(this, new ProgressChangedEventArgs(currentProg: Convert.ToInt32(progressPercentage), maxfiles: 100, currentfile: Convert.ToInt32(progressPercentage)));
+                        }
+                        catch
+                        {
+                        }
 
-                            if (progressPercentage == 100)
-                            {
-                                StatusChanged("Ready", new EventArgs());
-                                Extract();
-                                client.Dispose();
-                                MainCore.GlacierClientVersion = ver;
-                                ProgressChanged(this, new ProgressChangedEventArgs(currentProg: 0, maxfiles: 100, currentfile: 00));
-                                TasksHelper.CompleteTask(taskID, true);
-                            }
-                        };
+                        if (progressPercentage == 100)
+                        {
+                            StatusChanged("Ready", new EventArgs());
+                            Extract();
+                            client.Dispose();
+                            MainCore.GlacierClientVersion = ver;
+                            ProgressChanged(this, new ProgressChangedEventArgs(currentProg: 0, maxfiles: 100, currentfile: 00));
+                            TasksHelper.CompleteTask(taskID, true);
+                        }
+                    };
 
-                        await client.StartDownload();
-                    }
+                    await client.StartDownload();
                 }
                 catch
                 {

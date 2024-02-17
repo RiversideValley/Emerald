@@ -16,6 +16,7 @@
         Ok,
         OkCancel,
         YesNo,
+        YesNoCancel,
         Custom,
         CustomWithCancel
     }

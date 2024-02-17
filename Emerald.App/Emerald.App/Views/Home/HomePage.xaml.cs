@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Windows.ApplicationModel.Core;
+using Windows.Storage.Pickers;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 using Task = System.Threading.Tasks.Task;
 
@@ -55,7 +56,7 @@ namespace Emerald.WinUI.Views.Home
             set
             {
                 Set(ref _paneIsOpen, value, nameof(PaneIsOpen));
-                VersionsSelectorPanelColumnDefinition.Width = value ? new(362) : new(0);
+                VersionsSelectorPanelColumnDefinition.Width = value ? new(364) : new(0);
             }
         }
 
@@ -74,10 +75,39 @@ namespace Emerald.WinUI.Views.Home
         private void InitializeWhenLoad(object sender, RoutedEventArgs e)
             => Initialize();
 
-        public void Initialize()
+        public async void Initialize()
         {
             Loaded -= InitializeWhenLoad;
+            MinecraftPath mcP;
+            bool retryMC = true;
+            while (retryMC)
+            {
+                try
+                {
+                    mcP = new(SS.Settings.Minecraft.Path);
+                    retryMC = false;
+                }
+                catch
+                {
+                    var r = await MessageBox.Show("Error".Localize(), "MCPathFailed".Localize().Replace("{Path}", SS.Settings.Minecraft.Path), MessageBoxButtons.CustomWithCancel, "Yes".Localize(), "SetDifMCPath".Localize());
+                    if (r == MessageBoxResults.Cancel)
+                        Process.GetCurrentProcess().Kill(); // Application.Current.Exit() didn't kill the process
 
+                    else if (r == MessageBoxResults.CustomResult2)
+                    {
+                        var fop = new FolderPicker
+                        {
+                            CommitButtonText = "Select".Localize()
+                        };
+                        WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
+                        var f = await fop.PickSingleFolderAsync();
+
+                        if (f != null)
+                            SS.Settings.Minecraft.Path = f.Path;
+                    }
+                }
+
+            }
             App.Current.Launcher.InitializeLauncher(new MinecraftPath(SS.Settings.Minecraft.Path));
 
             SS.Settings.Minecraft.PropertyChanged += (_, e) =>
@@ -122,7 +152,7 @@ namespace Emerald.WinUI.Views.Home
 
             if (SystemInformation.Instance.IsFirstRun)
                 ShowTips();
-            
+
         }
 
         public void ShowTips()
@@ -215,29 +245,38 @@ namespace Emerald.WinUI.Views.Home
 
         private void txtbxFindVer_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
+            if (txtbxFindVer.Text.IsNullEmptyOrWhiteSpace())
+            {
+                treeVer.ItemsSource = new MCVersionsCreator().CreateVersions();
+                return;
+            }
             var vers = new MCVersionsCreator().CreateVersions();
             var suitableItems = new ObservableCollection<MinecraftVersion>();
             var splitText = sender.Text.ToLower().Split(" ");
-            foreach (var ver in vers)
+
+            void FindSubVers(MinecraftVersion ver)
             {
-                var found = splitText.All((key) =>
+                foreach (var v in ver.SubVersions)
                 {
-                    return ver.Version.ToLower().Contains(key);
-                });
-                if (found)
-                {
-                    suitableItems.Add(ver);
+                    FindSubVers(v);
+                    var found = splitText.All((key) => v.Version.ToLower().Contains(key));
+                    if (found)
+                        suitableItems.Add(v);
+
                 }
             }
-            if (string.IsNullOrEmpty(txtbxFindVer.Text))
+
+            foreach (var ver in vers)
             {
-                treeVer.ItemsSource = new MCVersionsCreator().CreateVersions();
+                var found = splitText.All((key) => ver.Version.ToLower().Contains(key));
+                if (found)
+                    suitableItems.Add(ver);
+                FindSubVers(ver);
             }
-            else
-            {
-                treeVer.ItemsSource = suitableItems;
-            }
-            txtEmptyVers.Visibility = (treeVer.ItemsSource as IEnumerable<MinecraftVersion>).Count() == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+            treeVer.ItemsSource = suitableItems;
+
+            txtEmptyVers.Visibility = !(treeVer.ItemsSource as IEnumerable<MinecraftVersion>).Any() ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void treeVer_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
@@ -289,11 +328,12 @@ namespace Emerald.WinUI.Views.Home
                 MaximumRamMb = SS.Settings.Minecraft.RAM,
                 Session = Session,
             };
-
-            if (SS.Settings.Minecraft.JVM.ScreenWidth != 0 && SS.Settings.Minecraft.JVM.ScreenHeight != 0)
+            var w = SS.Settings.Minecraft.JVM.ScreenWidth;
+            var h = SS.Settings.Minecraft.JVM.ScreenHeight;
+            if (SS.Settings.Minecraft.JVM.SetSize)
             {
-                l.ScreenWidth = SS.Settings.Minecraft.JVM.ScreenWidth;
-                l.ScreenHeight = SS.Settings.Minecraft.JVM.ScreenHeight;
+                l.ScreenWidth = Convert.ToInt32(w);
+                l.ScreenHeight = Convert.ToInt32(h);
             }
             l.FullScreen = SS.Settings.Minecraft.JVM.FullScreen;
             l.JVMArguments = SS.Settings.Minecraft.JVM.Arguments;
@@ -302,7 +342,7 @@ namespace Emerald.WinUI.Views.Home
 
             if (process != null)
                 StartProcess(process);
-            
+
             UI(true);
         }
 
@@ -355,6 +395,8 @@ namespace Emerald.WinUI.Views.Home
         private void StartProcess(Process process)
         {
             GameProcess = process;
+            GameProcess.StartInfo.UseShellExecute = SS.Settings.Minecraft.IsAdmin ? true : GameProcess.StartInfo.UseShellExecute;
+            GameProcess.StartInfo.Verb = SS.Settings.Minecraft.IsAdmin ? "runas" : GameProcess.StartInfo.Verb;
             if (SS.Settings.Minecraft.ReadLogs())
             {
                 GameProcess.EnableRaisingEvents = true;
@@ -380,21 +422,48 @@ namespace Emerald.WinUI.Views.Home
 
         private void NewsButton_Click(object sender, RoutedEventArgs e)
         {
-            var n = new NewsPage();
-            n.BackRequested += (_, _) =>
-            {
-                SecondaryFrame.Content = null;
-                PrimaryFrameGrid.Visibility = Visibility.Visible;
-                SecondaryFrame.Visibility = Visibility.Collapsed;
-            };
-            SecondaryFrame.Content = n;
-            PrimaryFrameGrid.Visibility = Visibility.Collapsed;
-            SecondaryFrame.Visibility = Visibility.Visible;
+            MainWindow.MainNavigationView.SelectedItem = MainWindow.MainNavigationView.MenuItems[2];
+            MainWindow.InvokeNavigate("News".Localize());
         }
 
         private void btnCloseVerPane_Click(object sender, RoutedEventArgs e)
         {
             PaneIsOpen = false;
+        }
+
+        private void btnRefreshVers_Click(object sender, RoutedEventArgs e)
+        {
+            SS.Settings.Minecraft.InvokePropertyChanged("Path");
+        }
+        private void AdaptiveItemPane_OnStacked(object sender, EventArgs e)
+        {
+            AccountButton.HorizontalContentAlignment = HorizontalAlignment.Center;
+            AccountButton.Padding = new(24, 6, 0, 6);
+
+            var r = (AccountButton.ContentTemplateRoot as UserControls.AdaptiveItemPane);
+            r.OnlyStacked = true;
+            r.Update();
+            var s = (r.MiddlePane as StackPanel);
+            s.VerticalAlignment = VerticalAlignment.Top;
+            s.Children.OfType<TextBlock>().ToList().ForEach(x => x.HorizontalAlignment = HorizontalAlignment.Center);
+
+            NewsButton.HorizontalContentAlignment = ChangelogsButton.HorizontalContentAlignment = HorizontalAlignment.Center;
+        }
+
+        private void AdaptiveItemPane_OnStretched(object sender, EventArgs e)
+        {
+            AccountButton.HorizontalContentAlignment = HorizontalAlignment.Left;
+            AccountButton.Padding = new(6);
+
+            var r = (AccountButton.ContentTemplateRoot as UserControls.AdaptiveItemPane);
+            r.OnlyStacked = false;
+            r.Update();
+            var s = (r.MiddlePane as StackPanel);
+            s.VerticalAlignment = VerticalAlignment.Center;
+            s.Children.OfType<TextBlock>().ToList().ForEach(x => x.HorizontalAlignment = HorizontalAlignment.Left);
+
+            NewsButton.HorizontalContentAlignment = ChangelogsButton.HorizontalContentAlignment = HorizontalAlignment.Left;
+
         }
     }
 }

@@ -5,19 +5,9 @@ namespace Emerald.WinUI.Helpers
     [MarkupExtensionReturnType(ReturnType = typeof(string))]
     public sealed class Localize : MarkupExtension
     {
-        public enum ResourceFile
-        {
-            Main,
-            Settings
-        }
-
-        public Core.Localized Name { get; set; }
-
-        public string CustomName { get; set; }
-
-        public ResourceFile RESW { get; set; } = ResourceFile.Main;
+        public string Name { get; set; }
 
         protected override object ProvideValue()
-            => CustomName == null ? Name.Localize() : CustomName.Localize(RESW switch { ResourceFile.Settings => "Settings", _ => null });
+            => Name.Localize();
     }
 }

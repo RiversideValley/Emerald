@@ -16,11 +16,24 @@
         <RowDefinition Height="*" />
     </Grid.RowDefinitions>
     <Grid BorderBrush="{ThemeResource AppBarSeparatorForegroundThemeBrush}" BorderThickness="0,0,0,0.5">
-        <TextBlock
-            Margin="10,13"
-            FontSize="14"
-            FontWeight="SemiBold"
-            Text="{helpers:Localize Name=Tasks}" />
+        <StackPanel
+            VerticalAlignment="Center"
+            Spacing="4"
+            Orientation="Horizontal"
+            Margin="12,13">
+            <TextBlock
+                VerticalAlignment="Center"
+                FontSize="14"
+                FontWeight="SemiBold"
+                Text="{helpers:Localize Name=Tasks}" />
+            <Button
+                VerticalAlignment="Center"
+                ToolTipService.ToolTip="{helpers:Localize Name=TaskIntro}"
+                Padding="4"
+                Background="Transparent"
+                BorderBrush="Transparent"
+                Content="{helpers:FontIcon Glyph=&#xE946;}"/>
+        </StackPanel>
         <Button
             x:Name="bntClearAll"
             Height="32"

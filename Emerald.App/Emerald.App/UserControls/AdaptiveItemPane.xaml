@@ -99,8 +99,8 @@
                 <VisualState x:Name="Stacked">
                     <VisualState.Setters>
                         <Setter Target="Left.HorizontalAlignment" Value="Left" />
-                        <Setter Target="Middle.HorizontalAlignment" Value="Left" />
-                        <Setter Target="Right.HorizontalAlignment" Value="Left" />
+                        <Setter Target="Middle.HorizontalAlignment" Value="Center" />
+                        <Setter Target="Right.HorizontalAlignment" Value="Right" />
 
                         <Setter Target="LeftSpaceColumn.Width" Value="auto" />
                         <Setter Target="RightSpaceColumn.Width" Value="auto" />
