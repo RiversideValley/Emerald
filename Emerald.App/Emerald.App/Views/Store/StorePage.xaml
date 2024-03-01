@@ -14,17 +14,15 @@
     Unloaded="Page_Unloaded"
     SizeChanged="Page_SizeChanged"
     mc:Ignorable="d">
-    <SplitView
-        PanePlacement="Right"
+    <Grid
         Margin="24,0,24,24"
-        DisplayMode="Inline" 
-        PaneBackground="{ThemeResource LayerFillColorDefaultBrush}" 
-        CornerRadius="{StaticResource ControlCornerRadius}" 
-        IsPaneOpen="False"
-        x:Name="InstallerPane">
-        <SplitView.Content>
-
-            <Grid>
+        CornerRadius="{StaticResource ControlCornerRadius}"
+        x:Name="MainGrid">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid>
                 <Grid.ChildrenTransitions>
                     <TransitionCollection>
                         <AddDeleteThemeTransition/>
@@ -149,11 +147,8 @@
                     </StackPanel>
                 </Grid>
             </Grid>
-        </SplitView.Content>
-        <SplitView.Pane>
-            <Grid>
-                
-            </Grid>
-        </SplitView.Pane>
-    </SplitView>
+        <Frame CornerRadius="4" Grid.Column="1" Background="{ThemeResource LayerFillColorDefaultBrush}" x:Name="Pane">
+            
+        </Frame>
+    </Grid>
 </Page>

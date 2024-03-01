@@ -25,6 +25,7 @@ namespace Emerald.WinUI.Views.Store
             cmbxVers.SelectedIndex = 0;
             cmbxVers_SelectionChanged(null, null);
             btnInstall.IsEnabled = true;
+            des.Text = await Item.BigDescriptionAsync();
         }
 
         private void cmbxVers_SelectionChanged(object sender, SelectionChangedEventArgs e)

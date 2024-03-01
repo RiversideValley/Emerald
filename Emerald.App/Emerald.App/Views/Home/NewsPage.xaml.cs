@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 
 
@@ -16,10 +17,16 @@ namespace Emerald.WinUI.Views.Home
 
             _ = App.Current.Launcher.News.LoadEntries(SS.Settings.App.NewsFilter.GetResult());
 
-            this.Loaded += (_, _) => SearchBox.Focus(FocusState.Programmatic);
-            pnlEmpty.Visibility = App.Current.Launcher.News.Entries.Any() ? Visibility.Collapsed : Visibility.Visible;
-            App.Current.Launcher.News.Entries.CollectionChanged += (_, _) =>
+            this.Loaded += async (_, _) =>
+            {
+                SearchBox.Focus(FocusState.Programmatic);
+                
+                App.Current.Launcher.News.Entries.CollectionChanged += (_, _) =>
+                    pnlEmpty.Visibility = App.Current.Launcher.News.Entries.Any() ? Visibility.Collapsed : Visibility.Visible;
+
+                await Task.Delay(300);
                 pnlEmpty.Visibility = App.Current.Launcher.News.Entries.Any() ? Visibility.Collapsed : Visibility.Visible;
+            };
 
         }
         private void BackButton_Click(object sender, RoutedEventArgs e) =>
