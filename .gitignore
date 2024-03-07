@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /Emerald.App/Emerald.App/MsalClientID.txt
 /Emerald.Core/MsalClientID.txt
+/Emerald.App/Emerald.App/GithubClientID.txt
