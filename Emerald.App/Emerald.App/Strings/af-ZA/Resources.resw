@@ -697,4 +697,43 @@
   <data name="Install" xml:space="preserve">
     <value>Install</value>
   </data>
+  <data name="CheckingUpdates" xml:space="preserve">
+    <value>Checking for updates</value>
+  </data>
+  <data name="ConnectingGithub" xml:space="preserve">
+    <value>Connecting to github</value>
+  </data>
+  <data name="Downgrade" xml:space="preserve">
+    <value>Downgrade</value>
+  </data>
+  <data name="DowngradeAvailable" xml:space="preserve">
+    <value>Downgrade Available</value>
+  </data>
+  <data name="DowngradeDescription" xml:space="preserve">
+    <value>The current version is higher than the latest version in the servers. You must be using a private beta. Do you want to downgrade?</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Download Update</value>
+  </data>
+  <data name="InstallUpdate" xml:space="preserve">
+    <value>Install Update</value>
+  </data>
+  <data name="NoMsixUpdate" xml:space="preserve">
+    <value>Failed to find the installer package in the release</value>
+  </data>
+  <data name="NoUpdates" xml:space="preserve">
+    <value>You are on the latest version</value>
+  </data>
+  <data name="NoUpdatesAvailable" xml:space="preserve">
+    <value>No Updates Available</value>
+  </data>
+  <data name="ReleaseNotes" xml:space="preserve">
+    <value>Release notes</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>Update Available</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Update now</value>
+  </data>
 </root>
