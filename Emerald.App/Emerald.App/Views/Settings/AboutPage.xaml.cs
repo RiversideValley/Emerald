@@ -58,6 +58,7 @@ public sealed partial class AboutPage : Page, INotifyPropertyChanged
     private void vTip_ActionButtonClick(TeachingTip sender, object args)
     {
         vTip.IsOpen = false;
+        App.Current.Updater.CheckForUpdates();
     }
 
     private void vTip_CloseButtonClick(TeachingTip sender, object args)
@@ -66,7 +67,7 @@ public sealed partial class AboutPage : Page, INotifyPropertyChanged
         {
             RequestedOperation = DataPackageOperation.Copy
         };
-        VerData.SetText($"{"Version".Localize()}: {DirectResoucres.AppVersion}\n{"BuildType".Localize()}: {DirectResoucres.BuildType}");
+        VerData.SetText($"{"Version".Localize()}: {DirectResoucres.AppVersion}\n{"BuildType".Localize()}: {DirectResoucres.BuildType} {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString()}");
         Clipboard.SetContent(VerData);
     }
 

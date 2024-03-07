@@ -1,7 +1,10 @@
 ﻿using Emerald.WinUI.Helpers.AppInstancing;
+using Emerald.WinUI.Helpers.Updater;
 using Microsoft.UI.Xaml;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Windows.Management.Deployment;
 using Windows.Storage;
 
 namespace Emerald.WinUI;
@@ -10,12 +13,8 @@ public partial class App : Application
 {
     private readonly SingleInstanceDesktopApp _singleInstanceApp;
     public Core.Emerald Launcher { get; private set; } = new();
+    public Updater Updater { get; private set; } = new();
     public ElementTheme ActualTheme => (MainWindow.Content as FrameworkElement).ActualTheme;
-    public static Task<string> CheckForUpdates()
-    {
-        return null;
-    }
-
     public App()
     {
         InitializeComponent();
@@ -66,6 +65,7 @@ public partial class App : Application
         if (e.IsFirstLaunch)
         {
             System.Net.ServicePointManager.DefaultConnectionLimit = 256;
+            _ = Updater.Initialize();
             InitializeMainWindow();
         }
         else

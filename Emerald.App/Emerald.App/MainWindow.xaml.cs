@@ -1,6 +1,7 @@
 ﻿using Emerald.Core;
 using Emerald.Core.Tasks;
 using Emerald.WinUI.Helpers;
+using Emerald.WinUI.Helpers.Updater;
 using Emerald.WinUI.Models;
 using Emerald.WinUI.UserControls;
 using Emerald.WinUI.Views;
@@ -123,7 +124,7 @@ namespace Emerald.WinUI
                         var c = string.Join(" ", (task.Name ?? "").Split(" ").Select(s => s.Localize()));
                         var id = TaskView.AddProgressTask(c, 0, InfoBarSeverity.Informational, true, task.ID);
                         if (task.Message != null)
-                            TaskView.ChangeDescription(id, task.Message);
+                            TaskView.ChangeDescription(id, string.Join(" ", (task.Message ?? "").Split(" ").Select(s => s.Localize())));
 
                         TasksInfoBadge.Value++;
                         UpdateTasksInfoBadge();
@@ -206,6 +207,7 @@ namespace Emerald.WinUI
             {
                 UpdateUI();
             };
+            App.Current.Updater.CheckForUpdates();
             (Content as FrameworkElement).Loaded -= Initialize;
         }
         private static void UpdateUI()

@@ -224,8 +224,9 @@
                     </TextBlock>
                     <TextBlock
                         Grid.Row="1"
-                        Grid.Column="1"
-                        Text="{x:Bind App:DirectResoucres.BuildType}" />
+                        Grid.Column="1">
+                        <Run Text="{x:Bind App:DirectResoucres.BuildType}"/> <Run Text="{x:Bind App:DirectResoucres.Architecture}"/>
+                    </TextBlock>
                 </Grid>
             </TeachingTip.Content>
         </TeachingTip>

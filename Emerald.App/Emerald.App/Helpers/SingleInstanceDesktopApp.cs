@@ -62,8 +62,6 @@ namespace Emerald.WinUI.Helpers.AppInstancing
                 SendArgumentsToRunningInstance(arguments);
 
                 Process.GetCurrentProcess().Kill();
-                // Note: needed to kill the process in WinAppSDK 1.0, since Application.Current.Exit() does not work there.
-                //Application.Current.Exit();
             }
         }
 
