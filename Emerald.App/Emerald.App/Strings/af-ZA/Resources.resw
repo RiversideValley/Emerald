@@ -736,4 +736,22 @@
   <data name="UpdateNow" xml:space="preserve">
     <value>Update now</value>
   </data>
+  <data name="AutoDownloadUpdates" xml:space="preserve">
+    <value>Automatically download updates if available</value>
+  </data>
+  <data name="CheckForUpdatesAtStartup" xml:space="preserve">
+    <value>Check for updates when app starts</value>
+  </data>
+  <data name="CheckNow" xml:space="preserve">
+    <value>Check Now</value>
+  </data>
+  <data name="IncludePreReleases" xml:space="preserve">
+    <value>Include pre-releases</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="UpdatesDescription" xml:space="preserve">
+    <value>Automatically update, include prerelease etc..</value>
+  </data>
 </root>
