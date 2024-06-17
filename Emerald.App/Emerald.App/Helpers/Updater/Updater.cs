@@ -81,14 +81,18 @@ namespace Emerald.WinUI.Helpers.Updater
             if (!rel.Assets.Any(x => x.Name.EndsWith("msixbundle") && x.Name.ToLower().Contains(this.Architecture.ToString().ToLower())))
             {
                 TasksHelper.CompleteTask(id, false, "NoMsixUpdate");
-               goto Return;
+
+                if (!OnlyInformifHigherAvailable)
+                    MessageBox.Show("Error".Localize(), "NoMsixUpdate".Localize(), Enums.MessageBoxButtons.Ok);
+
+                goto Return;
             }
             var asset = rel.Assets.First(x => x.Name.EndsWith("msixbundle") && x.Name.ToLower().Contains(this.Architecture.ToString().ToLower()));
             if (ver > currentver)
             {
                 TasksHelper.CompleteTask(id, true, "UpdateAvailable");
 
-                var msg = await MessageBox.Show("UpdateAvailable".Localize(), "##ReleaseNotes".Localize() + "\n\n " + rel.Body,Enums.MessageBoxButtons.CustomWithCancel, "UpdateNow".Localize());
+                var msg = await MessageBox.Show("UpdateAvailable".Localize(), "## Version: " + ver.ToString() + "\n\n###ReleaseNotes".Localize() + "\n\n " + rel.Body,Enums.MessageBoxButtons.CustomWithCancel, "UpdateNow".Localize());
                 if(msg == Enums.MessageBoxResults.Cancel)
                    goto Return;
 
@@ -100,8 +104,7 @@ namespace Emerald.WinUI.Helpers.Updater
                 if(OnlyInformifHigherAvailable)
                     goto Return;
 
-                var msg = await MessageBox.Show("DowngradeAvailable".Localize(), "DowngradeDescription".Localize(),Enums.MessageBoxButtons.CustomWithCancel,"Downgrade".Localize());
-                if (msg == Enums.MessageBoxResults.Cancel)
+                var msg = await MessageBox.Show("DowngradeAvailable".Localize(), "DowngradeDescription".Localize(),Enums.MessageBoxButtons.Ok);
                    goto Return;
 
 
@@ -117,6 +120,8 @@ namespace Emerald.WinUI.Helpers.Updater
                 goto Return;
             }
             var a = rel.Assets.First(x => x.Name.EndsWith("msixbundle") && x.Name.ToLower().Contains(this.Architecture.ToString().ToLower()));
+            if(a == null)
+                goto Return ;
             DownloadQAndInstallUpdate(a.BrowserDownloadUrl,a.Name);
 
         Return:
