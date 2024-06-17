@@ -271,7 +271,7 @@
     <value>Load Mod</value>
   </data>
   <data name="LoadSettingsFailed" xml:space="preserve">
-    <value>Failed to load the app settings accounts. The version of the setting system is different. You may have recently updated the app. Contact a developer of this app to recover the settings</value>
+    <value>Failed to load the app settings and accounts. The version of the setting system is different. You may have recently updated the app. Contact a developer of this app to recover the settings</value>
   </data>
   <data name="Login" xml:space="preserve">
     <value>Login</value>
@@ -710,7 +710,7 @@
     <value>Downgrade Available</value>
   </data>
   <data name="DowngradeDescription" xml:space="preserve">
-    <value>The current version is higher than the latest version in the servers. You must be using a private beta. Do you want to downgrade?</value>
+    <value>The current version is higher than the latest version in the servers. You must be using a private beta. Please wait until a higher stable version be available</value>
   </data>
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>Download Update</value>
@@ -719,7 +719,7 @@
     <value>Install Update</value>
   </data>
   <data name="NoMsixUpdate" xml:space="preserve">
-    <value>Failed to find the installer package in the release</value>
+    <value>Failed to find the installer package in the release for this architecture</value>
   </data>
   <data name="NoUpdates" xml:space="preserve">
     <value>You are on the latest version</value>
@@ -752,6 +752,6 @@
     <value>Updates</value>
   </data>
   <data name="UpdatesDescription" xml:space="preserve">
-    <value>Automatically update, include prerelease etc..</value>
+    <value>Auto update, include prerelease etc..</value>
   </data>
 </root>
