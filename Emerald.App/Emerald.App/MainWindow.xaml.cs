@@ -210,7 +210,7 @@ namespace Emerald.WinUI
             };
 
             if (SS.Settings.App.Updates.CheckAtStartup)
-                App.Current.Updater.CheckForUpdates();
+                App.Current.Updater.CheckForUpdates(true);
             (Content as FrameworkElement).Loaded -= Initialize;
         }
         private static void UpdateUI()
