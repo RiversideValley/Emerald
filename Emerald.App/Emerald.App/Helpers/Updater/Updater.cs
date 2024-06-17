@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using Windows.Management.Deployment;
 using Windows.Storage;
 using static PInvoke.Kernel32;
+using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 
 namespace Emerald.WinUI.Helpers.Updater
 {
@@ -31,14 +32,14 @@ namespace Emerald.WinUI.Helpers.Updater
         public Architecture Architecture => RuntimeInformation.ProcessArchitecture;
 
         private GitHubClient Client;
-        public bool IsPrereleaseEnabled { get; set; } = false;
+        public bool IsPrereleaseEnabled => SS.Settings.App.Updates.IncludePreReleases;
         public Updater()
         {
         }
         bool IsInitialized = false;
         public async System.Threading.Tasks.Task Initialize()
         {
-            var cId = await FileIO.ReadTextAsync(await StorageFile.GetFileFromPathAsync($"{Windows.ApplicationModel.Package.Current.InstalledPath}\\MsalClientID.txt"));
+            var cId = await FileIO.ReadTextAsync(await StorageFile.GetFileFromPathAsync($"{Windows.ApplicationModel.Package.Current.InstalledPath}\\GithubClientID.txt"));
 
             Client = new GitHubClient(new Octokit.ProductHeaderValue(cId));
             IsInitialized = true;

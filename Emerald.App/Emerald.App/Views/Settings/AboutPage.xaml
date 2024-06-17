@@ -124,6 +124,28 @@
                     </StackPanel>
                 </uc:Expander>
                 <uc:Expander
+                    Title="{helpers:Localize Name=Updates}"
+                    Description="{helpers:Localize Name=UpdatesDescription}"
+                    ExpanderStyle="Default"
+                    Icon="&#xE12B;">
+                    <uc:Expander.Controls>
+                        <StackPanel Spacing="6">
+                            <uc:ExpanderItem BorderVisibility="Collapsed" Title="{helpers:Localize Name=CheckForUpdates}"  Margin="0,-12,0,0">
+                                <Button Click="btnCheckU_Click" Content="{helpers:Localize Name=CheckNow}"/>
+                            </uc:ExpanderItem>
+                            <uc:ExpanderItem Title="{helpers:Localize Name=IncludePreReleases}">
+                                <ToggleSwitch IsOn="{x:Bind SS:SettingsSystem.Settings.App.Updates.IncludePreReleases}"/>
+                            </uc:ExpanderItem>
+                            <uc:ExpanderItem Title="{helpers:Localize Name=CheckForUpdatesAtStartup}">
+                                <ToggleSwitch IsOn="{x:Bind SS:SettingsSystem.Settings.App.Updates.CheckAtStartup}"/>
+                            </uc:ExpanderItem>
+                            <uc:ExpanderItem Title="{helpers:Localize Name=AutoDownloadUpdates}" Margin="0,0,0,-10">
+                                <ToggleSwitch IsOn="{x:Bind SS:SettingsSystem.Settings.App.Updates.AutoDownload}"/>
+                            </uc:ExpanderItem>
+                        </StackPanel>
+                    </uc:Expander.Controls>
+                </uc:Expander>
+                <uc:Expander
                     IsExpanded="True"
                     Title="{helpers:Localize Name=SettingsBackups}"
                     Description="{helpers:Localize Name=SettingsBackupsDescription}"

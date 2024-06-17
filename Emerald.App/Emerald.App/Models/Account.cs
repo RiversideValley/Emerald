@@ -22,28 +22,27 @@ namespace Emerald.WinUI.Models
         public bool Last { get; set; }
 
         // For app UI
-        public string TypeIconGlyph { get => Type == AccountType.Offline ? "\xF384" : "\xEC05"; }
+        public string TypeIconGlyph { get => IsOffline ? "\xF384" : "\xEC05"; }
 
-        public string ProfilePicture { get => Type != AccountType.Offline ? "https://minotar.net/avatar/" + UUID : "https://minotar.net/avatar/MHF_Steve"; }
+        public string ProfilePicture { get => !IsOffline ? "https://minotar.net/avatar/" + UUID : "https://minotar.net/avatar/MHF_Steve"; }
 
-        public string BodyPicture { get => Type != AccountType.Offline ? "https://minotar.net/body/" + UUID : "https://minotar.net/body/MHF_Steve"; }
+        public string BodyPicture { get => !IsOffline ? "https://minotar.net/body/" + UUID : "https://minotar.net/body/MHF_Steve"; }
 
-        public string Skin { get => Type != AccountType.Offline ? "https://minotar.net/skin/" + UUID : "https://minotar.net/skin/MHF_Steve"; }
+        public string Skin { get => !IsOffline ? "https://minotar.net/skin/" + UUID : "https://minotar.net/skin/MHF_Steve"; }
 
-        public AccountType Type { get => UUID == null ? AccountType.Offline : AccountType.Microsoft; }
+        public AccountType Type { get => IsOffline ? AccountType.Offline : AccountType.Microsoft; }
 
         [ObservableProperty]
         private bool _CheckBoxLoaded;
 
         public string TypeString
-            => IsFake ? Localized.MicrosoftOrOffline.Localize() : (IsOffline ? Localized.OfflineAccount.Localize() : Localized.MicrosoftAccount.Localize());
+            => IsOffline ? Localized.OfflineAccount.Localize() : Localized.MicrosoftAccount.Localize();
 
         [ObservableProperty]
         private bool _IsChecked;
 
-        public bool IsOffline => UUID == null;
+        public bool IsOffline => string.IsNullOrWhiteSpace(AccessToken);
 
-        public bool IsFake => UUID == "fake" || AccessToken == "fake";
 
         public Account(string username, string accesstoken, string uuid, int count, bool last, string clientToken = null)
         {

@@ -1,6 +1,7 @@
 ﻿using Emerald.Core;
 using Emerald.Core.Tasks;
 using Emerald.WinUI.Helpers;
+using Emerald.WinUI.Helpers.Settings.JSON;
 using Emerald.WinUI.Helpers.Updater;
 using Emerald.WinUI.Models;
 using Emerald.WinUI.UserControls;
@@ -207,7 +208,9 @@ namespace Emerald.WinUI
             {
                 UpdateUI();
             };
-            App.Current.Updater.CheckForUpdates();
+
+            if (SS.Settings.App.Updates.CheckAtStartup)
+                App.Current.Updater.CheckForUpdates();
             (Content as FrameworkElement).Loaded -= Initialize;
         }
         private static void UpdateUI()

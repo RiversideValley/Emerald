@@ -8,7 +8,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:Emerald.WinUI.UserControls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    Spacing="6">
     <Rectangle
         Height="2"
         Margin="-16,0,-16,0"
@@ -17,6 +18,7 @@
         Visibility="{x:Bind BorderVisibility}" />
     <local:Expander
         Title="{x:Bind Title, Mode=OneWay}"
+        Description="{x:Bind Description,Mode=OneWay}"
         ExpanderStyle="Transparent"
         HeaderControls="{x:Bind Content, Mode=OneWay}" />
 </StackPanel>

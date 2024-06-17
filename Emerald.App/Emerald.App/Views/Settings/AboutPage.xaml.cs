@@ -86,22 +86,23 @@ public sealed partial class AboutPage : Page, INotifyPropertyChanged
         !SS.Settings.App.WindowsHello || (SS.Settings.App.WindowsHello && (!await WindowsHello.IsAvailable() || WindowsHello.IsRecentlyAuthenticated(5) || await WindowsHello.Authenticate()));
     private async void ToggleSwitch_Toggled(object sender, RoutedEventArgs e)
     {
-        if (SS.Settings.App.WindowsHello && !tglWinHello.IsOn)
-        {
-            if (!await WindowsHello.Authenticate())
+            if (SS.Settings.App.WindowsHello && !tglWinHello.IsOn)
             {
-                tglWinHello.IsOn = true;
-                _ = MessageBox.Show("Error".Localize(), "WinHelloChangeFailed".Localize(), MessageBoxButtons.Ok);
+                if (!await WindowsHello.Authenticate())
+                {
+                    tglWinHello.IsOn = true;
+                    _ = MessageBox.Show("Error".Localize(), "WinHelloChangeFailed".Localize(), MessageBoxButtons.Ok);
+                }
+                else
+                {
+                    SS.Settings.App.WindowsHello = false;
+                }
             }
             else
             {
-                SS.Settings.App.WindowsHello = false;
+                SS.Settings.App.WindowsHello = true;
             }
-        }
-        else
-        {
-            SS.Settings.App.WindowsHello = true;
-        }
+        
     }
 
     private async void DeleteBackup_Click(object sender, RoutedEventArgs e)
@@ -172,5 +173,10 @@ public sealed partial class AboutPage : Page, INotifyPropertyChanged
     {
         lvBackups.SelectedIndex = (lvBackups.ItemsSource as List<SettingsBackup>).IndexOf((sender as TextBox).DataContext as SettingsBackup);
         LoadBackupCMDBar = lvBackups.SelectedItems.Any();
+    }
+
+    private void btnCheckU_Click(object sender, RoutedEventArgs e)
+    {
+        App.Current.Updater.CheckForUpdates();
     }
 }

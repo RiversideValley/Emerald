@@ -18,6 +18,18 @@ namespace Emerald.WinUI.UserControls
 
 
 
+        public string Description
+        {
+            get { return (string)GetValue(DescriptionProperty); }
+            set { SetValue(DescriptionProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for Description.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty DescriptionProperty =
+            DependencyProperty.Register("Description", typeof(string), typeof(ExpanderItem), new PropertyMetadata(null));
+
+
+
         public string Title
         {
             get { return (string)GetValue(TitleProperty); }
