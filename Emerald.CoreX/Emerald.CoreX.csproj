@@ -6,4 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+	<ItemGroup>
+		<PackageReference Include="CmlLib.Core" Version="4.0.0" />
+		<PackageReference Include="CmlLib.Core.Auth.Microsoft" Version="3.1.0" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+		<PackageReference Include="ProjBobcat" Version="1.16.0" />
+	</ItemGroup>
 </Project>
