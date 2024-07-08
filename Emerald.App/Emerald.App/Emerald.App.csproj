@@ -17,6 +17,7 @@
   <ItemGroup>
     <None Remove="GithubClientID.txt" />
     <None Remove="Helpers\rlbl1cxv.0sq~" />
+    <None Remove="MsalClientID.txt" />
     <None Remove="Restart.bat" />
     <None Remove="Views\Store\InstallerPage.xaml" />
   </ItemGroup>
