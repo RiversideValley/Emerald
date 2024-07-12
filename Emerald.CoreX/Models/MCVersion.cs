@@ -1,4 +1,4 @@
-﻿using CmlLib.Core.Version;
+using CmlLib.Core.Version;
 using CmlLib.Core.VersionMetadata;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Emerald.CoreX.Enums;
@@ -25,6 +25,5 @@ namespace Emerald.CoreX.Models
         public bool Local { get; private set; }
 
         public MCVersion[] Subversions { get; private set; }
-
     }
 }
