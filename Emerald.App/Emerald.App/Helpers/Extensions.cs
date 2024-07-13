@@ -12,7 +12,7 @@ using Windows.System.Diagnostics;
 
 namespace Emerald.WinUI.Helpers
 {
-    public static class Extentions
+    public static class Extensions
     {
         private static readonly ConcurrentDictionary<string, string> cachedResources = new();
 
