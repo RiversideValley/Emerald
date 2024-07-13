@@ -99,6 +99,6 @@ git clone https://github.com/RiversideValley/Emerald
 
 ## ⚖️ License
 
-Copyright (c) 2022-2023 Riverside Valley Corporation
+Copyright (c) 2022-2024 Riverside Valley Corporation
 
 Licensed under the Nightshade Vexillum license as stated in the [LICENSE](LICENSE.md).
