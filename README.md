@@ -6,13 +6,13 @@
   <a title="GitHub Releases" target="_blank" href="https://github.com/RiversideValley/Emerald/releases">
     <img align="left" src="https://img.shields.io/github/v/release/RiversideValley/Emerald?include_prereleases" alt="Release" />
   </a>
-  <a title="Repository Size" target="_blank" href="https://github.com/RiversideValley/Emerald/releases">
+  <a title="Repository Size" target="_blank" href="https://github.com/RiversideValley/Emerald/activity">
     <img align="left" src="https://img.shields.io/github/repo-size/RiversideValley/Emerald?color=%23cc0000" alt="Release" />
   </a>
-  <a title="Platform" target="_blank" href="https://github.com/RiversideValley/Emerald/releases">
+  <a title="Platform" target="_blank" href="https://github.com/topics/windows">
     <img align="left" src="https://img.shields.io/badge/platform-windows-purple" alt="Platform" />
   </a>
-  <a title="Language" target="_blank" href="https://github.com/RiversideValley/Emerald/releases">
+  <a title="Language" target="_blank" href="https://github.com/RiversideValley/Emerald/search?l=c%23">
     <img align="left" src="https://img.shields.io/badge/language-c_sharp-green" alt="Platform" />
   </a>
 </p>
