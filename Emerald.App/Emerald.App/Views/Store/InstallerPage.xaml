@@ -34,7 +34,7 @@
                             <TextBlock Text="{x:Bind Name}"/>
                             <TextBlock Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource ButtonDisabledForegroundThemeBrush}">
                                 <Run Text="{x:Bind Version_type,Converter={StaticResource StringToLocalString}}"/> | 
-                                <Run Text="{x:Bind helpers:Extentions.KiloFormat(Downloads)}"/> Downloads
+                                <Run Text="{x:Bind helpers:Extensions.KiloFormat(Downloads)}"/> Downloads
                             </TextBlock>
 
                             <TextBlock Visibility="{x:Bind IsDetailsVisible,Mode=OneWay,Converter={StaticResource BoolToVisibilty}}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource ButtonDisabledForegroundThemeBrush}">
