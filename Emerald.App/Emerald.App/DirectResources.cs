@@ -8,7 +8,7 @@ namespace Emerald.WinUI;
 public static class DirectResoucres
 {
     public static int MaxRAM
-        => Extentions.GetMemoryGB() * 1024;
+        => Extensions.GetMemoryGB() * 1024;
 
     public static int MinRAM
         => 512;
