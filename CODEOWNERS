@@ -7,10 +7,9 @@
 *              @RiversideValley/Emerald @NoobNotFound
 /Emerald.*/    @RiversideValley/Emerald
 Emerald.*      @RiversideValley/Emerald
-.editorconfig  @RiversideValley/Emerald
-*.md           @Lamparter git@theriversi.de lamparter@theriversi.de
-/.github/      @RiversideValley/Emerald
-.gitattributes @RiversideValley/Emerald
+*.md           @Lamparter
+/.github/      @Lamparter
+.gitattributes @Lamparter
 .gitignore     @RiversideValley/Emerald
-.gitmodules    @RiversideValley/Emerald
-LICENSE.md     @Lamparter git@theriversi.de lamparter@theriversi.de
+.gitmodules    @NoobNotFound
+LICENSE.md     @Lamparter
