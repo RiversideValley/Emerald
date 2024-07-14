@@ -82,7 +82,7 @@
                     Description="{helpers:Localize Name=DownloadSettingsDescription}"
                     Icon="&#xE896;"
                     IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">
-                    <StackPanel Spacing="5">
+                    <StackPanel Spacing="6">
                         <uc:ExpanderItem
                             Title="{helpers:Localize Name=AssetsCheck}"
                             Margin="0,-10,0,0"

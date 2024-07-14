@@ -6,16 +6,16 @@
     xmlns:uc="using:Emerald.WinUI.UserControls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:helpers="using:Emerald.WinUI.Helpers"
-    xmlns:json="using:Emerald.Core.Store.Results"
+    xmlns:json="using:Emerald.Core.Store.Results" xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
     Loaded="Page_Loaded"
     mc:Ignorable="d">
 
-    <Grid>
-        <StackPanel Padding="12,0">
-            <Border HorizontalAlignment="Center" Margin="0,10" Padding="0" CornerRadius="4">
+    <ScrollView VerticalScrollMode="Enabled">
+        <StackPanel Spacing="6" Padding="12,0">
+            <Border HorizontalAlignment="Center" Margin="0,12,0,0" Padding="0" CornerRadius="4">
                 <Image Stretch="UniformToFill" HorizontalAlignment="Stretch" Source="{x:Bind Item.Icon}" Width="96" Height="96"/>
             </Border>
-            <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="SemiBold" Text="{x:Bind Item.Name}"/>
+            <TextBlock HorizontalAlignment="Center" FontSize="24" FontWeight="SemiBold" Text="{x:Bind Item.Name}"/>
             <TextBlock TextAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}">
                 <Run Text="{x:Bind Item.Author}"/>
                 <LineBreak/>
@@ -23,34 +23,28 @@
                 <Run Text="{x:Bind Item.FollowersString}"/> <Run Text="{helpers:Localize Name=Followers}"/>
             </TextBlock>
             <TextBlock TextWrapping="WrapWholeWords" TextAlignment="Center" Text="{x:Bind Item.Description}"/>
-            <uc:AdaptiveItemPane
-                StackCenter="True"
-                StretchContent="True">
-                <uc:AdaptiveItemPane.LeftPane>
-                    <ComboBox
+            <ComboBox
                 ItemsSource="{x:Bind Versions}"
                 HorizontalAlignment="Center"
                 x:Name="cmbxVers"
                 SelectionChanged="cmbxVers_SelectionChanged">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate x:DataType="json:Version">
-                                <StackPanel Orientation="Vertical">
-                                    <TextBlock Text="{x:Bind Name}"/>
-                                    <TextBlock Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource ButtonDisabledForegroundThemeBrush}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="json:Version">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="{x:Bind Name}"/>
+                            <TextBlock Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource ButtonDisabledForegroundThemeBrush}">
                                 <Run Text="{x:Bind Version_type,Converter={StaticResource StringToLocalString}}"/> | 
                                 <Run Text="{x:Bind helpers:Extentions.KiloFormat(Downloads)}"/> Downloads
-                                    </TextBlock>
+                            </TextBlock>
 
-                                    <TextBlock Visibility="{x:Bind IsDetailsVisible,Mode=OneWay,Converter={StaticResource BoolToVisibilty}}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource ButtonDisabledForegroundThemeBrush}">
+                            <TextBlock Visibility="{x:Bind IsDetailsVisible,Mode=OneWay,Converter={StaticResource BoolToVisibilty}}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource ButtonDisabledForegroundThemeBrush}">
                                 <Run Text="{x:Bind Version_number}"/> | <Run Text="{x:Bind FileName}"/>
-                                    </TextBlock>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                </uc:AdaptiveItemPane.LeftPane>
-                <uc:AdaptiveItemPane.MiddlePane>
-                    <Button
+                            </TextBlock>
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button
                         IsEnabled="False"
                         x:Name="btnInstall"
                         Grid.Column="2"
@@ -58,14 +52,13 @@
                         VerticalAlignment="Stretch"
                         Click="btnInstall_Click"
                         Style="{ThemeResource AccentButtonStyle}">
-                        <TextBlock
+                <TextBlock
                             TextWrapping="WrapWholeWords"
                             HorizontalAlignment="Center"
                             Style="{StaticResource BodyStrongTextBlockStyle}"
                             Text="{helpers:Localize Name=Download}" />
-                    </Button>
-                </uc:AdaptiveItemPane.MiddlePane>
-            </uc:AdaptiveItemPane>
+            </Button>
+            <controls:MarkdownTextBlock Margin="6,0,6,12" Padding="12" CornerRadius="8" Background="{ThemeResource LayerFillColorDefaultBrush}" x:Name="des"/>
         </StackPanel>
-    </Grid>
+    </ScrollView>
 </Page>

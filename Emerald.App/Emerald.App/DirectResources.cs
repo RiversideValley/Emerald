@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.WinUI.Helpers;
 using Emerald.WinUI.Helpers;
+using System.Runtime.InteropServices;
 using Windows.UI;
 
 namespace Emerald.WinUI;
@@ -26,6 +27,7 @@ public static class DirectResoucres
 #endif
         }
     }
+    public static Architecture Architecture => RuntimeInformation.ProcessArchitecture;
 
     public static string AppVersion
         => $"{SystemInformation.Instance.ApplicationVersion.Major}.{SystemInformation.Instance.ApplicationVersion.Minor}.{SystemInformation.Instance.ApplicationVersion.Build}.{SystemInformation.Instance.ApplicationVersion.Revision}";

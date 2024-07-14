@@ -51,6 +51,7 @@ namespace Emerald.WinUI.Helpers
                         Collection.Add(LoadCustomVers());
                     }
 
+                    AddItem("1.21");
                     AddItem("1.20");
                     AddItem("1.19");
                     AddItem("1.18");

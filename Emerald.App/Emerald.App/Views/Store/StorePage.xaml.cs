@@ -19,8 +19,8 @@ namespace Emerald.WinUI.Views.Store
 
         private void StoreItem_Click(object sender, RoutedEventArgs e)
         {
-            InstallerPane.IsPaneOpen = true;
-            InstallerPane.Pane = new InstallerPage() { Item = (sender as Button).DataContext as StoreItem };
+            Pane.Visibility = Visibility.Visible;
+            Pane.Content = new InstallerPage() { Item = (sender as Button).DataContext as StoreItem };
         }
 
         private async void txtSearch_TextChanged(object sender, TextChangedEventArgs e)
@@ -29,13 +29,14 @@ namespace Emerald.WinUI.Views.Store
             {
                 var r = await App.Current.Launcher.Labrinth.Search(txtSearch.Text, 30, SettingsSystem.Settings.App.Store.SortOptions.GetResult(), SettingsSystem.Settings.App.Store.Filter.GetResult());
                 storeItemsGrid.ItemsSource = r.Hits.Select(x => new StoreItem(x));
-                pnlEmpty.Visibility = r.Hits.Select(x => new StoreItem(x)).Any() ? Visibility.Collapsed : Visibility.Visible;
+                pnlEmpty.Visibility = r.Hits.Any() ? Visibility.Collapsed : Visibility.Visible;
             }
             catch { }
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            Pane.Visibility = Visibility.Collapsed;
             txtSearch.Focus(FocusState.Programmatic);
             SettingsSystem.Settings.App.Store.SortOptions.PropertyChanged += Store_PropertyChanged;
             SettingsSystem.Settings.App.Store.Filter.PropertyChanged += Store_PropertyChanged;
@@ -59,7 +60,7 @@ namespace Emerald.WinUI.Views.Store
 
         private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            InstallerPane.OpenPaneLength = InstallerPane.ActualWidth * 30 / 100;
+           Pane.Width = MainGrid.ActualWidth * 30 / 100;
         }
     }
 }

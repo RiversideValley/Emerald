@@ -163,10 +163,18 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public Discord Discord { get; set; } = new();
         public NewsFilter NewsFilter { get; set; } = new();
         public Store Store { get; set; } = new();
+        public Updates Updates { get; set; } = new();
         public bool AutoClose { get; set; }
         public bool HideOnLaunch { get; set; }
         public bool WindowsHello { get; set; }
 
+    }
+    public class Updates : JSON
+    {
+        
+        public bool CheckAtStartup { get; set; } = true;
+        public bool AutoDownload { get; set; }
+        public bool IncludePreReleases { get; set; }
     }
     public partial class StoreFilter : JSON
     {

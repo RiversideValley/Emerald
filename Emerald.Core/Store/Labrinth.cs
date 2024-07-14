@@ -33,7 +33,7 @@ namespace Emerald.Core.Store
             if (response.IsSuccessStatusCode)
                 return await response.Content.ReadAsStringAsync();
 
-            throw new Exception("Failed to GET: \"" + code + "\"");
+            throw new Exception("Failed to GET: \"" + code + "\", StatusCode: " + response.StatusCode.ToString());
 
         }
 

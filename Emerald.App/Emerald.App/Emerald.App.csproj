@@ -15,9 +15,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="GithubClientID.txt" />
     <None Remove="Helpers\rlbl1cxv.0sq~" />
+    <None Remove="MsalClientID.txt" />
     <None Remove="Restart.bat" />
     <None Remove="Views\Store\InstallerPage.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="GithubClientID.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -30,14 +38,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Animations" Version="7.1.2" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.4.231008000" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.25936-preview" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240227000" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26031-preview" />
+    <PackageReference Include="Octokit" Version="10.0.0" />
     <PackageReference Include="PInvoke.User32" Version="0.7.124" />
     <PackageReference Include="ProjBobcat" Version="1.16.0" />
-    <PackageReference Include="WinUIEx" Version="2.3.2" />
+    <PackageReference Include="WinUIEx" Version="2.3.4" />
     <PackageReference Include="XboxAuthNet.Game.Msal" Version="0.0.5" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>

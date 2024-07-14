@@ -55,14 +55,15 @@
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <EntryPointProjectUniqueName>..\Emerald.App\Emerald.App.csproj</EntryPointProjectUniqueName>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
-    <PackageCertificateThumbprint>BA30AECD14618A89C2822FC6912530F0B59E436D</PackageCertificateThumbprint>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
-    <AppxBundlePlatforms>x64</AppxBundlePlatforms>
+    <AppxBundlePlatforms>x86|x64|arm64</AppxBundlePlatforms>
     <AppInstallerUri>D:\Projects\Emerald\Emerald.App\Emerald.App.Package\AppPackages\</AppInstallerUri>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
+    <PackageCertificateKeyFile>Package.WinUI_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateThumbprint>C36FEB2A573AF2E3DD0737A454F36CB17B8C121C</PackageCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='SkipOld|x64'">
     <AppxBundle>Always</AppxBundle>
@@ -157,10 +158,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.230118.102">
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240227000">
       <IncludeAssets>build</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.25290-preview">
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26031-preview">
       <IncludeAssets>build</IncludeAssets>
     </PackageReference>
   </ItemGroup>
