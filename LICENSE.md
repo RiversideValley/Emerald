@@ -1,8 +1,8 @@
 **Nightshade Vexillum License**
 
 ```
-Emoji are used within this document to outwardly express conventions of easy-to-read documents, and/or help other cultures read the text at their convenience, if some words may be unclear to them.
-The Emoji contained within these documents are may not wholly represent the associated meaning, and the First Party does not warrant the misunderstanding of such.
+Emoji are used within this document to outwardly express conventions of easy-to-read documents, and/or help others understand the text at their convenience, if some words may be unclear to them.
+The Emoji contained within these documents may not wholly convey the associated meaning, and the First Party does not warrant the misunderstanding of such.
 ```
 
 ## 📖 Definitions
