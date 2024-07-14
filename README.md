@@ -12,6 +12,9 @@
   <a title="Platform" target="_blank" href="https://github.com/RiversideValley/Emerald/releases">
     <img align="left" src="https://img.shields.io/badge/platform-windows-purple" alt="Platform" />
   </a>
+  <a title="Language" target="_blank" href="https://github.com/RiversideValley/Emerald/releases">
+    <img align="left" src="https://img.shields.io/badge/language-c_sharp-green" alt="Platform" />
+  </a>
 </p>
 
 <br/>
