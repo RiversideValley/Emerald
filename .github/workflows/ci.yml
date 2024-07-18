@@ -16,7 +16,7 @@ env:
 
 jobs:
   smoke_test:
-    name: Emerald CI / Uno (debug)
+    name: Uno (debug)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
