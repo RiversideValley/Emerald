@@ -16,7 +16,7 @@ env:
 
 jobs:
   smoke_test:
-    name: Uno (debug)
+    name: Uno
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
