@@ -12,177 +12,141 @@ using Emerald.CoreX.Store.Modrinth.JSON;
 
 namespace Emerald.CoreX.Store.Modrinth;
 
-public abstract class ModrinthStore : IMinecraftStore
+public class ModStore : ModrinthStore
 {
-    protected readonly RestClient _client;
-    public MinecraftPath MCPath { get; }
-    protected readonly ILogger _logger;
-    protected readonly string _projectType;
-    protected Category[] Categories;
-    protected ModrinthStore(MinecraftPath path, ILogger logger, string projectType)
+    public ModStore(MinecraftPath path, ILogger logger) : base(path, logger, "mod")
     {
-        _client = new RestClient("https://api.modrinth.com/v2/");
-        _client.AddDefaultHeader("Accept", "application/json");
-        MCPath = path;
-        _logger = logger;
-        _projectType = projectType;
     }
 
-
-    protected async Task LoadCategoriesAsync()
+    public ModStore(ILogger logger) : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
     {
-        var request = new RestRequest("tag/category");
-
-        try
-        {
-            var response = await _client.ExecuteAsync(request);
-            if (response.IsSuccessful)
-            {
-                var all = JsonConvert.DeserializeObject<List<Category>>(response.Content);
-
-                var _categories = all
-                    .Where(i => i.header == "categories"
-                                && i.project_type == _projectType
-                                && !string.IsNullOrWhiteSpace(i.icon)
-                                && !string.IsNullOrWhiteSpace(i.name))
-                    .ToList();
-                Categories = _categories.ToArray();
-                _logger.LogInformation($"Loaded {_categories.Count} {_projectType} categories.");
-            }
-            else
-            {
-                _logger.LogError($"Failed to load {_projectType} categories. Status code: {response.StatusCode}");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error occurred while loading {_projectType} categories.");
-        }
-    }
-    public virtual async Task<SearchResult?> SearchAsync(string query, int limit = 15,
-        SearchSortOptions sortOptions = SearchSortOptions.Relevance, string[]? categories = null)
-    {
-        _logger.LogInformation($"Searching store for {_projectType}s with query: {query}");
-
-        try
-        {
-            string categoriesString = (categories != null && categories.Any())
-                ? $"[\"categories:{string.Join("\"],[\"categories:", categories)}]\"],"
-                : "";
-
-            var request = new RestRequest("search")
-                .AddParameter("index", sortOptions.ToString().ToLowerInvariant())
-                .AddParameter("facets", $"[{categoriesString}[\"project_type:{_projectType}\"]]")
-                .AddParameter("limit", limit);
-
-            if (!string.IsNullOrEmpty(query))
-            {
-                request.AddParameter("query", query);
-            }
-
-            var response = await _client.ExecuteAsync(request);
-            if (response.IsSuccessful)
-            {
-                var result = JsonConvert.DeserializeObject<SearchResult>(response.Content);
-                _logger.LogInformation($"Search completed successfully. Found {result.TotalHits} {_projectType}s.");
-                return result;
-            }
-            else
-            {
-                _logger.LogError($"API request failed: {response.ErrorMessage}");
-                throw new Exception($"API request failed: {response.ErrorMessage}");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error occurred while searching for {_projectType}s");
-            return null;
-        }
     }
 
-    public virtual async Task<StoreItem?> GetItemAsync(string id)
+    public override async Task<StoreItem?> GetItemAsync(string id)
     {
-        _logger.LogInformation($"Fetching {_projectType} with ID: {id}");
-
-        try
-        {
-            var request = new RestRequest($"project/{id}");
-            var response = await _client.ExecuteAsync(request);
-
-            if (response.IsSuccessful)
-            {
-                var item = JsonConvert.DeserializeObject<StoreItem>(response.Content);
-                _logger.LogInformation($"Successfully fetched {_projectType} with ID: {id}");
-                return item;
-            }
-            else
-            {
-                _logger.LogError($"API request failed: {response.ErrorMessage}");
-                throw new Exception($"API request failed: {response.ErrorMessage}");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error occurred while fetching {_projectType} with ID: {id}");
-            return null;
-        }
+        // Implement mod-specific logic if needed
+        return await base.GetItemAsync(id);
     }
 
-    public virtual async Task<List<ItemVersion>?> GetVersionsAsync(string id)
+    public override async Task<List<ItemVersion>?> GetVersionsAsync(string id)
     {
-        _logger.LogInformation($"Fetching versions for {_projectType} with ID: {id}");
-
-        try
-        {
-            var request = new RestRequest($"project/{id}/version");
-            var response = await _client.ExecuteAsync(request);
-
-            if (response.IsSuccessful)
-            {
-                var versions = JsonConvert.DeserializeObject<List<ItemVersion>>(response.Content);
-                _logger.LogInformation($"Successfully fetched versions for {_projectType} with ID: {id}");
-                return versions;
-            }
-            else
-            {
-                _logger.LogError($"API request failed: {response.ErrorMessage}");
-                throw new Exception($"API request failed: {response.ErrorMessage}");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error occurred while fetching versions for {_projectType} with ID: {id}");
-            return null;
-        }
+        // Implement mod-specific logic if needed
+        return await base.GetVersionsAsync(id);
     }
 
-    public virtual async Task DownloadItemAsync(ItemFile file, string projectType)
+    public override async Task DownloadItemAsync(ItemFile file, string projectType)
     {
-        _logger.LogInformation($"Downloading {projectType} file from URL: {file.Url}");
+        // Implement mod-specific download logic
+        await base.DownloadItemAsync(file, "mods");
+    }
+}
 
-        try
-        {
-            var request = new RestRequest(file.Url);
-            var response = await _client.ExecuteAsync(request);
+public class PluginStore : ModrinthStore
+{
+    public PluginStore(MinecraftPath path, ILogger logger) : base(path, logger, "plugin")
+    {
+    }
 
-            if (response.IsSuccessful)
-            {
-                var filePath = Path.Combine(MCPath.BasePath, projectType, file.Filename);
-                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-                await File.WriteAllBytesAsync(filePath, response.RawBytes);
+    public PluginStore(ILogger logger) : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
+    {
+    }
 
-                _logger.LogInformation($"Successfully downloaded {projectType} file to: {filePath}");
-            }
-            else
-            {
-                _logger.LogError($"File download failed: {response.ErrorMessage}");
-                throw new Exception($"File download failed: {response.ErrorMessage}");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error occurred while downloading {projectType} file from URL: {file.Url}");
-            throw;
-        }
+    public override async Task<StoreItem?> GetItemAsync(string id)
+    {
+        return await base.GetItemAsync(id);
+    }
+
+    public override async Task<List<ItemVersion>?> GetVersionsAsync(string id)
+    {
+        return await base.GetVersionsAsync(id);
+    }
+
+    public override async Task DownloadItemAsync(ItemFile file, string projectType)
+    {
+        await base.DownloadItemAsync(file, "mods");
+    }
+}
+
+public class ResourcePackStore : ModrinthStore
+{
+    public ResourcePackStore(MinecraftPath path, ILogger logger) : base(path, logger, "resourcepack")
+    {
+    }
+
+    public ResourcePackStore(ILogger logger) : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
+    {
+    }
+
+    public override async Task<StoreItem?> GetItemAsync(string id)
+    {
+        return await base.GetItemAsync(id);
+    }
+
+    public override async Task<List<ItemVersion>?> GetVersionsAsync(string id)
+    {
+        return await base.GetVersionsAsync(id);
+    }
+
+    public override async Task DownloadItemAsync(ItemFile file, string projectType)
+    {
+        await base.DownloadItemAsync(file, "resourcepacks");
+    }
+}
+
+public class ShaderStore : ModrinthStore
+{
+    public ShaderStore(MinecraftPath path, ILogger logger) : base(path, logger, "shader")
+    {
+    }
+
+    public ShaderStore(ILogger logger) : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
+    {
+    }
+
+    public override async Task<StoreItem?> GetItemAsync(string id)
+    {
+        // Implement shader-specific logic if needed
+        return await base.GetItemAsync(id);
+    }
+
+    public override async Task<List<ItemVersion>?> GetVersionsAsync(string id)
+    {
+        // Implement shader-specific logic if needed
+        return await base.GetVersionsAsync(id);
+    }
+
+    public override async Task DownloadItemAsync(ItemFile file, string projectType)
+    {
+        // Implement shader-specific download logic
+        await base.DownloadItemAsync(file, "shaders");
+    }
+}
+
+public class ModpackStore : ModrinthStore
+{
+    public ModpackStore(MinecraftPath path, ILogger logger) : base(path, logger, "modpack")
+    {
+    }
+
+    public ModpackStore(ILogger logger) : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
+    {
+    }
+
+    public override async Task<StoreItem?> GetItemAsync(string id)
+    {
+        // Implement modpack-specific logic if needed
+        return await base.GetItemAsync(id);
+    }
+
+    public override async Task<List<ItemVersion>?> GetVersionsAsync(string id)
+    {
+        // Implement modpack-specific logic if needed
+        return await base.GetVersionsAsync(id);
+    }
+
+    public override async Task DownloadItemAsync(ItemFile file, string projectType)
+    {
+        // Implement modpack-specific download logic
+        await base.DownloadItemAsync(file, "modpacks");
     }
 }

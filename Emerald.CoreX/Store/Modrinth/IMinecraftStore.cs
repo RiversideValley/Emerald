@@ -7,7 +7,7 @@ using Emerald.CoreX.Store.Modrinth.JSON;
 
 namespace Emerald.CoreX.Store.Modrinth;
 
-public interface IModrinthStore
+public interface IMinecraftStore
 {
     Task<SearchResult?> SearchAsync(string query, int limit = 15,
         SearchSortOptions sortOptions = SearchSortOptions.Relevance, string[]? categories = null);
@@ -15,4 +15,5 @@ public interface IModrinthStore
     Task<StoreItem?> GetItemAsync(string id);
     Task<List<ItemVersion>?> GetVersionsAsync(string id);
     Task DownloadItemAsync(ItemFile file, string projectType);
+    public Category[] Categories { get; }
 }
