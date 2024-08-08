@@ -66,7 +66,7 @@ public abstract class ModrinthStore : IMinecraftStore
 
         try
         {
-            string categoriesString = (categories != null && categories.Any())
+            string categoriesString = (categories != null && categories.Length != 0)
                 ? $"[\"categories:{string.Join("\"],[\"categories:", categories)}]\"],"
                 : "";
 
