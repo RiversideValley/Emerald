@@ -12,7 +12,6 @@ using Emerald.Core.Store;
 using Emerald.Core.Tasks;
 using ProjBobcat.Class.Model.Optifine;
 using System.ComponentModel;
-using Windows.System;
 using ProgressChangedEventArgs = Emerald.Core.Args.ProgressChangedEventArgs;
 
 namespace Emerald.Core
