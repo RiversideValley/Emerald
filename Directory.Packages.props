@@ -16,9 +16,6 @@
     <PackageVersion Include="ProjBobcat" Version="1.16.0" />
     <PackageVersion Include="WinUIEx" Version="2.3.4" />
     <PackageVersion Include="XboxAuthNet.Game.Msal" Version="0.0.5" />
-    <!--Emerald.Core
-    <PackageVersion Include="CmlLib.Core" Version="3.3.10" />
-		<PackageVersion Include="CmlLib.Core.Auth.Microsoft" Version="3.0.1" />-->
     <!--Emerald.CoreX-->
     <PackageVersion Include="CmlLib.Core" Version="4.0.0" />
 		<PackageVersion Include="CmlLib.Core.Auth.Microsoft" Version="3.1.0" />
