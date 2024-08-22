@@ -9,7 +9,7 @@ namespace Emerald.WinUI.Views.Store
     public sealed partial class InstallerPage : Page
     {
         public StoreItem Item { get; set; }
-        private ObservableCollection<Version> Versions = new();
+        private ObservableCollection<Core.Store.Results.Version> Versions = new();
         public InstallerPage()
         {
             InitializeComponent();
