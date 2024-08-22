@@ -67,7 +67,7 @@ public abstract class ModrinthStore : IMinecraftStore
         {
             // Prepare the facets parameter correctly
             string facets = "[[\"project_type:" + _projectType + "\"]";
-            if (categories != null && categories.Any())
+            if (categories != null && categories.Length != 0)
             {
                 var categoryFacets = categories.Select(cat => $"\"categories:{cat}\"");
                 facets += ",[" + string.Join(",", categoryFacets) + "]";
@@ -188,5 +188,4 @@ public abstract class ModrinthStore : IMinecraftStore
             throw;
         }
     }
-
 }
