@@ -402,9 +402,7 @@ solution-config.props
 # Publish Profiles
 !**/Properties/PublishProfiles/*.pubxml
 
-# Azure Active Directory and GitHub OAUTH tokens
+# Azure Active Directory tokens
 /Emerald.App/Emerald.App/MsalClientID.txt
 /Emerald.Core/MsalClientID.txt
-/Emerald.App/Emerald.App/GithubClientID.txt
-Emerald.App/GithubClientID.txt
 Emerald.App/MsalClientID.txt

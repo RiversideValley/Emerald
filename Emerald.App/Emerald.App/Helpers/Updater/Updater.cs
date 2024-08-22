@@ -1,4 +1,4 @@
-﻿using CmlLib.Core;
+using CmlLib.Core;
 using CommunityToolkit.WinUI.Helpers;
 using Emerald.Core;
 using Emerald.Core.Tasks;
@@ -39,9 +39,7 @@ namespace Emerald.WinUI.Helpers.Updater
         bool IsInitialized = false;
         public async System.Threading.Tasks.Task Initialize()
         {
-            var cId = await FileIO.ReadTextAsync(await StorageFile.GetFileFromPathAsync($"{Windows.ApplicationModel.Package.Current.InstalledPath}\\GithubClientID.txt"));
-
-            Client = new GitHubClient(new Octokit.ProductHeaderValue(cId));
+            Client = new GitHubClient(new Octokit.ProductHeaderValue("Reverside.Emerald"));
             IsInitialized = true;
         }
         private bool isRunning = false;
