@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Emerald.CoreX.Store.Modrinth.JSON;
 using Microsoft.Extensions.Logging;
-using CMLLib.Core;
+using CmlLib.Core;
 namespace Emerald.CoreX.Store.Modrinth;
 
 public class ModStore : ModrinthStore
