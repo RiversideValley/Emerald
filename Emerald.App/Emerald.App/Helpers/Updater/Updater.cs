@@ -39,7 +39,7 @@ namespace Emerald.WinUI.Helpers.Updater
         bool IsInitialized = false;
         public async System.Threading.Tasks.Task Initialize()
         {
-            Client = new GitHubClient(new Octokit.ProductHeaderValue("Reverside.Emerald"));
+            Client = new GitHubClient(new Octokit.ProductHeaderValue("Riverside.Emerald"));
             IsInitialized = true;
         }
         private bool isRunning = false;
