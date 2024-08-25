@@ -39,6 +39,7 @@
     <PackageReference Include="Octokit" />
     <PackageReference Include="PInvoke.User32" />
     <PackageReference Include="ProjBobcat" />
+    <PackageReference Include="System.Text.Json" />
     <PackageReference Include="WinUIEx" />
     <PackageReference Include="XboxAuthNet.Game.Msal" />
     <Manifest Include="$(ApplicationManifest)" />

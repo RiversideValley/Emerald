@@ -14,5 +14,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="RestSharp" />
+    <PackageReference Include="System.Text.Json" />
 	</ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
@@ -77,7 +77,7 @@ namespace Emerald.Core.News
                     response = await wc.GetStringAsync(url);
                 }
 
-                var json = JsonConvert.DeserializeObject<JSON.Root>(response);
+                var json = JsonSerializer.Deserialize<JSON.Root>(response);
                 AllEntries = json?.entries != null ? new(json.entries.ToList()) : new();
 
                 Entries.Clear();

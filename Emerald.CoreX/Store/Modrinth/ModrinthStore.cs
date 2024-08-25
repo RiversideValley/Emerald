@@ -1,5 +1,5 @@
 using CmlLib.Core;
-using Newtonsoft.Json;
+using System.Text.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -37,7 +37,7 @@ public abstract class ModrinthStore : IMinecraftStore
             var response = await _client.ExecuteAsync(request);
             if (response.IsSuccessful)
             {
-                var all = JsonConvert.DeserializeObject<List<Category>>(response.Content);
+                var all = JsonSerializer.Deserialize<List<Category>>(response.Content);
 
                 var _categories = all
                     .Where(i => i.header == "categories"
@@ -87,7 +87,7 @@ public abstract class ModrinthStore : IMinecraftStore
             var response = await _client.ExecuteAsync(request);
             if (response.IsSuccessful)
             {
-                var result = JsonConvert.DeserializeObject<SearchResult>(response.Content);
+                var result = JsonSerializer.Deserialize<SearchResult>(response.Content);
                 _logger.LogInformation($"Search completed successfully. Found {result.TotalHits} {_projectType}s.");
                 return result;
             }
@@ -115,7 +115,7 @@ public abstract class ModrinthStore : IMinecraftStore
 
             if (response.IsSuccessful)
             {
-                var item = JsonConvert.DeserializeObject<StoreItem>(response.Content);
+                var item = JsonSerializer.Deserialize<StoreItem>(response.Content);
                 _logger.LogInformation($"Successfully fetched {_projectType} with ID: {id}");
                 return item;
             }
@@ -143,7 +143,7 @@ public abstract class ModrinthStore : IMinecraftStore
 
             if (response.IsSuccessful)
             {
-                var versions = JsonConvert.DeserializeObject<List<ItemVersion>>(response.Content);
+                var versions = JsonSerializer.Deserialize<List<ItemVersion>>(response.Content);
                 _logger.LogInformation($"Successfully fetched versions for {_projectType} with ID: {id}");
                 return versions;
             }
