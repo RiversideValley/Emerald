@@ -5,7 +5,7 @@ using Emerald.Core.Tasks;
 using Emerald.WinUI.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Shapes;
-using Newtonsoft.Json;
+using System.Text.Json;
 using Octokit;
 using ProjBobcat.Class.Model;
 using System;
