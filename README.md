@@ -64,12 +64,6 @@ There are multiple ways to participate in the community:
 └──Emerald.Core                      // Emerald core code (such as code related to launching and modifying Minecraft
 ```
 
-### 🗃️ Contributors
-
-<a href="https://github.com/RiversideValley/Emerald/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=RiversideValley/Emerald" />
-</a>
-
 ## 🔨 Building the Code
 
 ### 1️⃣ Prerequisites
