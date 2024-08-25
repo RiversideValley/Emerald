@@ -65,12 +65,6 @@ There are multiple ways to participate in the community:
 └──Emerald.CoreX                     // Emerald core code for the ability to run different Minecraft installation profiles and mods.
 ```
 
-### 🗃️ Contributors
-
-<a href="https://github.com/RiversideValley/Emerald/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=RiversideValley/Emerald" />
-</a>
-
 ## 🔨 Building the Code
 
 ### 1️⃣ Prerequisites
