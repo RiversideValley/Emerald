@@ -14,6 +14,7 @@
     <PackageVersion Include="Octokit" Version="10.0.0" />
     <PackageVersion Include="PInvoke.User32" Version="0.7.124" />
     <PackageVersion Include="ProjBobcat" Version="1.16.0" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.4" />
     <PackageVersion Include="WinUIEx" Version="2.3.4" />
     <PackageVersion Include="XboxAuthNet.Game.Msal" Version="0.0.5" />
     <!--Emerald.CoreX-->
