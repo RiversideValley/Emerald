@@ -14,6 +14,6 @@ public interface IMinecraftStore
 
     Task<StoreItem?> GetItemAsync(string id);
     Task<List<ItemVersion>?> GetVersionsAsync(string id);
-    Task DownloadItemAsync(ItemFile file, string projectType);
+    Task DownloadItemAsync(ItemFile file, string projectType, IProgress<double>? progress = null, CancellationToken cancellationToken = default);
     public Category[] Categories { get; }
 }

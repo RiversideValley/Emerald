@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Emerald.CoreX.Helpers;
 
 namespace Emerald.CoreX.Store.Modrinth.JSON;
 
@@ -185,13 +186,6 @@ public class ItemFile
     [JsonPropertyName("primary")] public bool Primary { get; set; }
 
     [JsonPropertyName("size")] public int Size { get; set; }
-}
-
-public class Hashes
-{
-    [JsonPropertyName("sha512")] public string Sha512 { get; set; }
-
-    [JsonPropertyName("sha1")] public string Sha1 { get; set; }
 }
 
 public class License

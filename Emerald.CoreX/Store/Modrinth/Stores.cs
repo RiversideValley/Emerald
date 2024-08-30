@@ -39,7 +39,7 @@ public class ModStore : ModrinthStore
         return await base.GetVersionsAsync(id);
     }
 
-    public override async Task DownloadItemAsync(ItemFile file, string projectType)
+    public override async Task DownloadItemAsync(ItemFile file, string projectType, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
         // Implement mod-specific download logic
         await base.DownloadItemAsync(file, "mods");
@@ -75,7 +75,8 @@ public class PluginStore : ModrinthStore
         return await base.GetVersionsAsync(id);
     }
 
-    public override async Task DownloadItemAsync(ItemFile file, string projectType)
+    public override async Task DownloadItemAsync(ItemFile file, string projectType,
+        IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
         await base.DownloadItemAsync(file, "mods");
     }
@@ -110,7 +111,8 @@ public class ResourcePackStore : ModrinthStore
         return await base.GetVersionsAsync(id);
     }
 
-    public override async Task DownloadItemAsync(ItemFile file, string projectType)
+    public override async Task DownloadItemAsync(ItemFile file, string projectType,
+        IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
         await base.DownloadItemAsync(file, "resourcepacks");
     }
@@ -147,7 +149,8 @@ public class ShaderStore : ModrinthStore
         return await base.GetVersionsAsync(id);
     }
 
-    public override async Task DownloadItemAsync(ItemFile file, string projectType)
+    public override async Task DownloadItemAsync(ItemFile file, string projectType,
+        IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
         // Implement shader-specific download logic
         await base.DownloadItemAsync(file, "shaders");
@@ -185,7 +188,8 @@ public class ModpackStore : ModrinthStore
         return await base.GetVersionsAsync(id);
     }
 
-    public override async Task DownloadItemAsync(ItemFile file, string projectType)
+    public override async Task DownloadItemAsync(ItemFile file, string projectType,
+        IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
         // Implement modpack-specific download logic
         await base.DownloadItemAsync(file, "modpacks");
