@@ -11,7 +11,7 @@
     <PackageVersion Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.5.240227000" />
     <PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26031-preview" />
-    <PackageVersion Include="Octokit" Version="10.0.0" />
+    <PackageVersion Include="Octokit" Version="13.0.1" />
     <PackageVersion Include="PInvoke.User32" Version="0.7.124" />
     <PackageVersion Include="ProjBobcat" Version="1.16.0" />
     <PackageVersion Include="System.Text.Json" Version="8.0.4" />
@@ -20,8 +20,8 @@
     <!--Emerald.CoreX-->
     <PackageVersion Include="CmlLib.Core" Version="4.0.2" />
     <PackageVersion Include="CmlLib.Core.Auth.Microsoft" Version="3.2.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.0-preview.6.24327.7" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.0-preview.7.24405.7" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="RestSharp" Version="111.4.1" />
+    <PackageVersion Include="RestSharp" Version="112.0.0" />
   </ItemGroup>
 </Project>
