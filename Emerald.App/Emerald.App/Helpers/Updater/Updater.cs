@@ -5,7 +5,7 @@ using Emerald.Core.Tasks;
 using Emerald.WinUI.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Shapes;
-using Newtonsoft.Json;
+using System.Text.Json;
 using Octokit;
 using ProjBobcat.Class.Model;
 using System;
@@ -39,7 +39,7 @@ namespace Emerald.WinUI.Helpers.Updater
         bool IsInitialized = false;
         public async System.Threading.Tasks.Task Initialize()
         {
-            Client = new GitHubClient(new Octokit.ProductHeaderValue("Reverside.Emerald"));
+            Client = new GitHubClient(new Octokit.ProductHeaderValue("Riverside.Emerald"));
             IsInitialized = true;
         }
         private bool isRunning = false;

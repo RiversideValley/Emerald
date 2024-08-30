@@ -164,6 +164,7 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools">
       <IncludeAssets>build</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

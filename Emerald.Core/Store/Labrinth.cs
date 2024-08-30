@@ -1,6 +1,6 @@
 ﻿using CmlLib.Core;
 using Emerald.Core.Tasks;
-using Newtonsoft.Json;
+using System.Text.Json;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Net.Http.Headers;
@@ -84,7 +84,7 @@ namespace Emerald.Core.Store
                 var fn = string.IsNullOrEmpty(name) ? "" : $"query={name}";
                 var url = $"search?{fn}&index={sortOptions.ToString().ToLower()}&facets=[{categouriesString}[\"project_type:mod\"]]&limit={limit}";
                 var json = await Get(url);
-                s = JsonConvert.DeserializeObject<Results.SearchResult>(json);
+                s = JsonSerializer.Deserialize<Results.SearchResult>(json);
                 Tasks.TasksHelper.CompleteTask(taskID, true, name);
 
                 return s;
@@ -104,7 +104,7 @@ namespace Emerald.Core.Store
             try
             {
                 var json = await Get("project/" + id);
-                s = JsonConvert.DeserializeObject<Results.ModrinthProject>(json);
+                s = JsonSerializer.Deserialize<Results.ModrinthProject>(json);
                 Tasks.TasksHelper.CompleteTask(taskID, true, name);
                 return s;
             }
@@ -123,7 +123,7 @@ namespace Emerald.Core.Store
             try
             {
                 var json = await Get("project/" + id + "/version");
-                s = JsonConvert.DeserializeObject<List<Results.Version>>(json);
+                s = JsonSerializer.Deserialize<List<Results.Version>>(json);
                 Tasks.TasksHelper.CompleteTask(taskID, true);
                 return s;
             }

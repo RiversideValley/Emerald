@@ -43,7 +43,7 @@ See [this section](#-building-the-code)
 
 ### 📸 Screenshots
 
-[![Emerald screenshot](https://user-images.githubusercontent.com/71598437/212673147-54e79843-76aa-44ff-9db3-60b025334f07.png)](https://github.com/RiversideValley/Emerald)
+[![emerald-screenshot](https://github.com/user-attachments/assets/eb65ec6e-3dce-46a9-8f0a-1ffaf9dc43c3)](https://github.com/RiversideValley/Emerald)
 
 ## 🦜 Contributing & Feedback
 
@@ -64,12 +64,6 @@ There are multiple ways to participate in the community:
 ├──Emerald.Core                      // Emerald core code (such as code related to launching and modifying Minecraft
 └──Emerald.CoreX                     // Emerald core code for the ability to run different Minecraft installation profiles and mods.
 ```
-
-### 🗃️ Contributors
-
-<a href="https://github.com/RiversideValley/Emerald/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=RiversideValley/Emerald" />
-</a>
 
 ## 🔨 Building the Code
 
