@@ -10,10 +10,19 @@ namespace Emerald.CoreX.Store.Modrinth;
 
 public class ModStore : ModrinthStore
 {
+    /// <summary>
+    /// Initializes a new instance of the ModStore class with a custom Minecraft path.
+    /// </summary>
+    /// <param name="path">The custom Minecraft path.</param>
+    /// <param name="logger">The logger instance.</param>
     public ModStore(MinecraftPath path, ILogger logger) : base(path, logger, "mod")
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the ModStore class with the default Minecraft path.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
     public ModStore(ILogger logger) : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
     {
     }
@@ -39,10 +48,19 @@ public class ModStore : ModrinthStore
 
 public class PluginStore : ModrinthStore
 {
+    /// <summary>
+    /// Initializes a new instance of the PluginStore class with a custom Minecraft path.
+    /// </summary>
+    /// <param name="path">The custom Minecraft path.</param>
+    /// <param name="logger">The logger instance.</param>
     public PluginStore(MinecraftPath path, ILogger logger) : base(path, logger, "plugin")
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the PluginStore class with the default Minecraft path.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
     public PluginStore(ILogger logger) : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
     {
     }
@@ -65,10 +83,19 @@ public class PluginStore : ModrinthStore
 
 public class ResourcePackStore : ModrinthStore
 {
+    /// <summary>
+    /// Initializes a new instance of the ResourcePackStore class with a custom Minecraft path.
+    /// </summary>
+    /// <param name="path">The custom Minecraft path.</param>
+    /// <param name="logger">The logger instance.</param>
     public ResourcePackStore(MinecraftPath path, ILogger logger) : base(path, logger, "resourcepack")
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the ResourcePackStore class with the default Minecraft path.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
     public ResourcePackStore(ILogger logger) : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
     {
     }
@@ -91,10 +118,19 @@ public class ResourcePackStore : ModrinthStore
 
 public class ShaderStore : ModrinthStore
 {
+    /// <summary>
+    /// Initializes a new instance of the ShaderStore class with a custom Minecraft path.
+    /// </summary>
+    /// <param name="path">The custom Minecraft path.</param>
+    /// <param name="logger">The logger instance.</param>
     public ShaderStore(MinecraftPath path, ILogger logger) : base(path, logger, "shader")
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the ShaderStore class with the default Minecraft path.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
     public ShaderStore(ILogger logger) : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
     {
     }
@@ -120,10 +156,19 @@ public class ShaderStore : ModrinthStore
 
 public class ModpackStore : ModrinthStore
 {
+    /// <summary>
+    /// Initializes a new instance of the ModpackStore class with a custom Minecraft path.
+    /// </summary>
+    /// <param name="path">The custom Minecraft path.</param>
+    /// <param name="logger">The logger instance.</param>
     public ModpackStore(MinecraftPath path, ILogger logger) : base(path, logger, "modpack")
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the ModpackStore class with the default Minecraft path.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
     public ModpackStore(ILogger logger) : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
     {
     }

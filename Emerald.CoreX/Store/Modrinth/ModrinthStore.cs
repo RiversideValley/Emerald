@@ -19,6 +19,13 @@ public abstract class ModrinthStore : IMinecraftStore
     protected readonly ILogger _logger;
     protected readonly string _projectType;
     public Category[] Categories { get; private set; } = [];
+
+    /// <summary>
+    /// Initializes a new instance of the ModrinthStore class.
+    /// </summary>
+    /// <param name="path">The Minecraft path.</param>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="projectType">The type of project (e.g., mod, plugin, resourcepack).</param>
     protected ModrinthStore(MinecraftPath path, ILogger logger, string projectType)
     {
         _client = new RestClient("https://api.modrinth.com/v2/");
@@ -28,6 +35,11 @@ public abstract class ModrinthStore : IMinecraftStore
         _projectType = projectType;
     }
 
+
+    /// <summary>
+    /// Loads categories for the specified project type from the Modrinth API.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task LoadCategoriesAsync()
     {
         var request = new RestRequest("tag/category");
@@ -58,6 +70,15 @@ public abstract class ModrinthStore : IMinecraftStore
             _logger.LogError(ex, $"Error occurred while loading {_projectType} categories.");
         }
     }
+
+    /// <summary>
+    /// Searches for items in the Modrinth store based on the provided query and options.
+    /// </summary>
+    /// <param name="query">The search query string.</param>
+    /// <param name="limit">The maximum number of results to return (default is 15).</param>
+    /// <param name="sortOptions">The sorting options for the search results.</param>
+    /// <param name="categories">An optional array of category names to filter the results.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the search results or null if an error occurred.</returns>
     public virtual async Task<SearchResult?> SearchAsync(string query, int limit = 15,
         SearchSortOptions sortOptions = SearchSortOptions.Relevance, string[]? categories = null)
     {
@@ -104,6 +125,11 @@ public abstract class ModrinthStore : IMinecraftStore
         }
     }
 
+    /// <summary>
+    /// Retrieves detailed information about a specific item from the Modrinth store.
+    /// </summary>
+    /// <param name="id">The unique identifier of the item.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the item details or null if an error occurred.</returns>
     public virtual async Task<StoreItem?> GetItemAsync(string id)
     {
         _logger.LogInformation($"Fetching {_projectType} with ID: {id}");
@@ -132,6 +158,11 @@ public abstract class ModrinthStore : IMinecraftStore
         }
     }
 
+    /// <summary>
+    /// Retrieves all versions of a specific item from the Modrinth store.
+    /// </summary>
+    /// <param name="id">The unique identifier of the item.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a list of item versions or null if an error occurred.</returns>
     public virtual async Task<List<ItemVersion>?> GetVersionsAsync(string id)
     {
         _logger.LogInformation($"Fetching versions for {_projectType} with ID: {id}");
@@ -160,6 +191,12 @@ public abstract class ModrinthStore : IMinecraftStore
         }
     }
 
+    /// <summary>
+    /// Downloads a specific file for an item from the Modrinth store.
+    /// </summary>
+    /// <param name="file">The file information object containing download details.</param>
+    /// <param name="projectType">The type of project being downloaded (e.g., "mods", "resourcepacks").</param>
+    /// <returns>A task that represents the asynchronous download operation.</returns>
     public virtual async Task DownloadItemAsync(ItemFile file, string projectType)
     {
         _logger.LogInformation($"Downloading {projectType} file from URL: {file.Url}");
