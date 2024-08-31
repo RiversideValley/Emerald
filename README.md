@@ -1,6 +1,6 @@
 # 💎 Emerald
 
-#### A swift Minecraft launcher made using WinUI technologies in the fast C# language really pushes the boundary of the platform.
+#### A swift Minecraft launcher made using WinUI technologies in the fast C# language that really pushes the boundary of the platform.
 
 <p align="center">
   <a title="GitHub Releases" target="_blank" href="https://github.com/RiversideValley/Emerald/releases">
