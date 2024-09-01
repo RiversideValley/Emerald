@@ -1,4 +1,4 @@
-﻿using CmlLib.Core;
+using CmlLib.Core;
 using Emerald.Core.Tasks;
 using System.Text.Json;
 using System.Collections.Specialized;
@@ -34,7 +34,6 @@ namespace Emerald.Core.Store
                 return await response.Content.ReadAsStringAsync();
 
             throw new Exception("Failed to GET: \"" + code + "\", StatusCode: " + response.StatusCode.ToString());
-
         }
 
         private int DownloadTaskID;
@@ -75,7 +74,7 @@ namespace Emerald.Core.Store
         {
             int taskID = name == "" ? Tasks.TasksHelper.AddTask(Localized.GettingMods) : TasksHelper.AddTask(Localized.SearchStore, name);
 
-            string categouriesString = (categories != null && categories.Any() && categories.Length != 15) ? $"[\"categories:{string.Join("\"],[\"categories:", categories)}\"],".ToLower() : "";
+            string categouriesString = (categories != null && categories.Length != 0 && categories.Length != 15) ? $"[\"categories:{string.Join("\"],[\"categories:", categories)}\"],".ToLower() : "";
 
             Results.SearchResult s;
 
@@ -163,15 +162,12 @@ namespace Emerald.Core.Store.Enums
         Technology,
         Utility,
         Worldgen
-
     }
 }
 namespace Emerald.Core.Store.Results
 {
-
     public class File
     {
-
         [JsonPropertyName("hashes")]
         public Hashes Hashes { get; set; }
 
@@ -244,7 +240,6 @@ namespace Emerald.Core.Store.Results
 
     public class Hashes
     {
-
         [JsonPropertyName("sha512")]
         public string Sha512 { get; set; }
 
@@ -254,7 +249,6 @@ namespace Emerald.Core.Store.Results
 
     public class SearchResult
     {
-
         [JsonPropertyName("hits")]
         public Hit[] Hits { get; set; }
 
@@ -270,7 +264,6 @@ namespace Emerald.Core.Store.Results
 
     public class Hit
     {
-
         [JsonPropertyName("slug")]
         public string Slug { get; set; }
 
@@ -421,7 +414,6 @@ namespace Emerald.Core.Store.Results
 
     public class Donation_Urls
     {
-
         [JsonPropertyName("id")]
         public string ID { get; set; }
 

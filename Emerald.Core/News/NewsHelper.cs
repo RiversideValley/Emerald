@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
@@ -84,7 +84,6 @@ namespace Emerald.Core.News
 
                 foreach (var item in AllEntries.Where(x => filter == null || filter.Contains(x.Category)))
                     Entries.Add(item);
-
             }
             catch
             {
