@@ -114,7 +114,6 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
 
     public partial class Downloader : JSON
     {
-
         [ObservableProperty]
         private bool _HashCheck;
 
@@ -154,7 +153,6 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
 
         [JsonIgnore]
         public bool SetSize => !(ScreenSizeStatus == "FullScreen".Localize() || ScreenSizeStatus == "Default".Localize());
-
     }
 
     public class App : JSON
@@ -168,11 +166,9 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public bool AutoClose { get; set; }
         public bool HideOnLaunch { get; set; }
         public bool WindowsHello { get; set; }
-
     }
     public class Updates : JSON
     {
-        
         public bool CheckAtStartup { get; set; } = true;
         public bool AutoDownload { get; set; }
         public bool IncludePreReleases { get; set; }
@@ -297,7 +293,6 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
 
     public partial class StoreSortOptions : JSON
     {
-
         [ObservableProperty]
         private bool _Relevance = true;
 

@@ -93,7 +93,6 @@ namespace Emerald.WinUI.Helpers.Updater
                 var msg = await MessageBox.Show("UpdateAvailable".Localize(), "## Version: " + ver.ToString() + "\n\n###ReleaseNotes".Localize() + "\n\n " + rel.Body,Enums.MessageBoxButtons.CustomWithCancel, "UpdateNow".Localize());
                 if(msg == Enums.MessageBoxResults.Cancel)
                    goto Return;
-
             }
             else if(ver < currentver)
             {
@@ -104,8 +103,6 @@ namespace Emerald.WinUI.Helpers.Updater
 
                 var msg = await MessageBox.Show("DowngradeAvailable".Localize(), "DowngradeDescription".Localize(),Enums.MessageBoxButtons.Ok);
                    goto Return;
-
-
             }
             else if(ver == currentver)
             {

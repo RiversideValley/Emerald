@@ -1,11 +1,10 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
 
 namespace Emerald.WinUI.Models
 {
     public partial class NavViewHeader : Model
     {
-
         [ObservableProperty]
         private string _HeaderText;
 

@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.WinUI.UI.Controls;
+using CommunityToolkit.WinUI.UI.Controls;
 using Emerald.Core;
 using Emerald.WinUI.Enums;
 using Emerald.WinUI.Helpers;
@@ -102,7 +102,6 @@ public sealed partial class AboutPage : Page, INotifyPropertyChanged
             {
                 SS.Settings.App.WindowsHello = true;
             }
-        
     }
 
     private async void DeleteBackup_Click(object sender, RoutedEventArgs e)

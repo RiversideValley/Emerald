@@ -1,4 +1,4 @@
-﻿using Emerald.WinUI.Helpers.Settings.JSON;
+using Emerald.WinUI.Helpers.Settings.JSON;
 using System.Text.Json;
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,6 @@ namespace Emerald.WinUI.Helpers.Settings
             string json;
             try
             {
-
                 json = ApplicationData.Current.RoamingSettings.Values[key] as string;
                 return JsonSerializer.Deserialize<T>(json);
             }

@@ -1,4 +1,4 @@
-﻿using CmlLib.Core;
+using CmlLib.Core;
 using System.Text.Json;
 using ProjBobcat.Class.Helper;
 using ProjBobcat.Class.Model.Optifine;
@@ -49,7 +49,7 @@ namespace Emerald.Core
                     javaResult.Add(java);
                 }
 
-                if (!javaResult.Any())
+                if (javaResult.Count == 0)
                     return (false, "NoJRE");
 
                 ProgressChanged(this, 0);

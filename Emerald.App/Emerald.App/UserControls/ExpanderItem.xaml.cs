@@ -64,7 +64,5 @@ namespace Emerald.WinUI.UserControls
         // Using a DependencyProperty as the backing store for BorderVisibility.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty BorderVisibilityProperty =
             DependencyProperty.Register("BorderVisibility", typeof(Visibility), typeof(ExpanderItem), new PropertyMetadata(null));
-
-
     }
 }
