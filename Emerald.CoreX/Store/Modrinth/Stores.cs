@@ -42,7 +42,7 @@ public class ModStore : ModrinthStore
     public override async Task DownloadItemAsync(ItemFile file, string projectType, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
         // Implement mod-specific download logic
-        await base.DownloadItemAsync(file, "mods");
+        await base.DownloadItemAsync(file, "mods",progress, cancellationToken);
     }
 }
 
@@ -78,7 +78,7 @@ public class PluginStore : ModrinthStore
     public override async Task DownloadItemAsync(ItemFile file, string projectType,
         IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
-        await base.DownloadItemAsync(file, "mods");
+        await base.DownloadItemAsync(file, "mods", progress, cancellationToken);
     }
 }
 
@@ -114,7 +114,7 @@ public class ResourcePackStore : ModrinthStore
     public override async Task DownloadItemAsync(ItemFile file, string projectType,
         IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
-        await base.DownloadItemAsync(file, "resourcepacks");
+        await base.DownloadItemAsync(file, "resourcepacks", progress, cancellationToken);
     }
 }
 
@@ -153,7 +153,7 @@ public class ShaderStore : ModrinthStore
         IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
         // Implement shader-specific download logic
-        await base.DownloadItemAsync(file, "shaders");
+        await base.DownloadItemAsync(file, "shaderpacks", progress, cancellationToken);
     }
 }
 
@@ -192,6 +192,6 @@ public class ModpackStore : ModrinthStore
         IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
         // Implement modpack-specific download logic
-        await base.DownloadItemAsync(file, "modpacks");
+        await base.DownloadItemAsync(file, "modpacks", progress, cancellationToken);
     }
 }
