@@ -13,7 +13,7 @@ using Emerald.CoreX.Helpers;
 
 namespace Emerald.CoreX.Store.Modrinth;
 
-public abstract class ModrinthStore : IMinecraftStore
+public abstract class ModrinthStore : IModrinthStore
 {
     protected readonly RestClient _client;
     protected readonly ILogger _logger;
