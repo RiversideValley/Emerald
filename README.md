@@ -1,6 +1,6 @@
-# 💎 Emerald
+![Emerald Banner](https://github.com/user-attachments/assets/dbe4839c-eddf-49fa-97cc-edbd70b3d81f)
 
-#### A swift Minecraft launcher made using WinUI technologies in the fast C# language really pushes the boundary of the platform.
+#### A swift Minecraft launcher made using WinUI technologies in the fast C# language that really pushes the boundary of the platform.
 
 <p align="center">
   <a title="GitHub Releases" target="_blank" href="https://github.com/RiversideValley/Emerald/releases">
@@ -43,7 +43,7 @@ See [this section](#-building-the-code)
 
 ### 📸 Screenshots
 
-[![Emerald screenshot](https://user-images.githubusercontent.com/71598437/212673147-54e79843-76aa-44ff-9db3-60b025334f07.png)](https://github.com/RiversideValley/Emerald)
+[![emerald-screenshot](https://github.com/user-attachments/assets/eb65ec6e-3dce-46a9-8f0a-1ffaf9dc43c3)](https://github.com/RiversideValley/Emerald)
 
 ## 🦜 Contributing & Feedback
 
@@ -63,12 +63,6 @@ There are multiple ways to participate in the community:
 |  └──Emerald.App.Package            // Package code for generating an uploadable MSIX bundle.
 └──Emerald.Core                      // Emerald core code (such as code related to launching and modifying Minecraft
 ```
-
-### 🗃️ Contributors
-
-<a href="https://github.com/RiversideValley/Emerald/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=RiversideValley/Emerald" />
-</a>
 
 ## 🔨 Building the Code
 
