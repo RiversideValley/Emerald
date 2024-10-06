@@ -12,7 +12,7 @@ public partial class App : Application
         this.InitializeComponent();
     }
 
-    protected Window? MainWindow { get; private set; }
+    public Window? MainWindow { get; private set; }
     protected IHost? Host { get; private set; }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -31,6 +31,7 @@ public partial class App : Application
             );
         MainWindow = builder.Window;
 
+
 #if DEBUG
         MainWindow.EnableHotReload();
 #endif
@@ -48,6 +49,9 @@ public partial class App : Application
             // Place the frame in the current Window
             MainWindow.Content = rootFrame;
         }
+#if WINDOWS
+        var mica = Emerald.Uno.Helpers.WindowManager.IntializeWindow(MainWindow);
+#endif
 
         if (rootFrame.Content == null)
         {
@@ -59,4 +63,9 @@ public partial class App : Application
         // Ensure the current window is active
         MainWindow.Activate();
     }
+
+    /// <summary>
+    /// Gets the current <see cref="App"/> instance in use
+    /// </summary>
+    public new static App Current => (App)Application.Current;
 }
