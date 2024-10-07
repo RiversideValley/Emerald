@@ -12,6 +12,7 @@
     <Configurations>Debug;Release</Configurations>
     <Nullable>enable</Nullable>
     <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
   <ItemGroup>

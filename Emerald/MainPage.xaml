@@ -116,53 +116,7 @@
         </DataTemplate>
       </NavigationView.MenuItemTemplate>
 
-      <NavigationView.MenuItems>
-        <models:SquareNavigationViewItem
-                    Name="{helpers:Localize Name=Home}"
-                    SolidFontIconGlyph="&#xEA8A;"
-                    FontIconGlyph="&#xE80F;"
-                    IsSelected="True"
-                    ShowFontIcons="True"
-                    Thumbnail="Assets/NavigationViewIcons/home.png" />
-        <models:SquareNavigationViewItem
-                    Name="{helpers:Localize Name=Store}"
-                    FontIconGlyph="&#xE7BF;"
-                    SolidFontIconGlyph="&#xE7BF;"
-                    IsSelected="False"
-                    ShowFontIcons="True"
-                    Thumbnail="Assets/NavigationViewIcons/store.png" />
-        <models:SquareNavigationViewItem
-                    Name="{helpers:Localize Name=News}"
-                    FontIconGlyph="&#xF57E;"
-                    SolidFontIconGlyph="&#xF57E;"
-                    IsSelected="False"
-                    ShowFontIcons="True"
-                    Thumbnail="Assets/NavigationViewIcons/news.png" />
-      </NavigationView.MenuItems>
-
-      <NavigationView.FooterMenuItems>
-        <models:SquareNavigationViewItem
-                    Name="{helpers:Localize Name=Tasks}"
-                    FontIconGlyph="&#xE9D5;"
-                    SolidFontIconGlyph="&#xE9D5;"
-                    IsSelected="False"
-                    ShowFontIcons="True"
-                    Thumbnail="Assets/NavigationViewIcons/tasks.png" />
-        <models:SquareNavigationViewItem
-                    Name="{helpers:Localize Name=Logs}"
-                    FontIconGlyph="&#xE756;"
-                    SolidFontIconGlyph="&#xE756;"
-                    IsSelected="False"
-                    ShowFontIcons="True"
-                    Thumbnail="Assets/NavigationViewIcons/logs.png" />
-        <models:SquareNavigationViewItem
-                    Name="{helpers:Localize Name=Settings}"
-                    FontIconGlyph="&#xE713;"
-                    SolidFontIconGlyph="&#xE713;"
-                    IsSelected="False"
-                    ShowFontIcons="True"
-                    Thumbnail="Assets/NavigationViewIcons/settings.png" />
-      </NavigationView.FooterMenuItems>
+        
 
       <Frame x:Name="frame"/>
 
