@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.WinUI.Helpers;
+using CommunityToolkit.WinUI.Helpers;
 using Microsoft.UI;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Composition.SystemBackdrops;
@@ -48,7 +48,6 @@ namespace Emerald.WinUI.Helpers
         /// <exception cref="NullReferenceException"/>
         public static void SetTitleBar(Window window, UIElement AppTitleBar)
         {
-
             FrameworkElement RootUI = (FrameworkElement)window.Content;
             if (AppWindowTitleBar.IsCustomizationSupported())
             {
@@ -168,7 +167,6 @@ namespace Emerald.WinUI.Helpers
             {
                 SetConfigurationSourceTheme();
             }
-
         }
 
         private void SetConfigurationSourceTheme()

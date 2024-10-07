@@ -1,4 +1,4 @@
-﻿namespace Emerald.Core
+namespace Emerald.Core
 {
     public static class Util
     {
@@ -91,7 +91,7 @@
             using var fileStream = new FileStream(_destinationFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
             do
             {
-                var bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length);
+                var bytesRead = await contentStream.ReadAsync(buffer);
                 if (bytesRead == 0)
                 {
                     isMoreToRead = false;

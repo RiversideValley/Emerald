@@ -1,4 +1,4 @@
-﻿using CmlLib.Core.Auth;
+using CmlLib.Core.Auth;
 using Emerald.Core;
 using Emerald.WinUI.Helpers;
 using Emerald.WinUI.Models;
@@ -122,7 +122,6 @@ public sealed partial class AccountsPage : Page, INotifyPropertyChanged
             item.IsChecked = val;
         }
         UpdateAll();
-
     }
     private void RemoveSelected() =>
         Accounts.Remove(x => x.IsChecked);
@@ -161,7 +160,6 @@ public sealed partial class AccountsPage : Page, INotifyPropertyChanged
         var a = (sender as Button).DataContext as Account;
         SetEditor(null);
         Accounts.Add(a);
-
     }
     public void UpdateMainSource() =>
         SS.Accounts = Accounts.Select(x =>
@@ -244,7 +242,6 @@ public sealed partial class AccountsPage : Page, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-
             Core.Tasks.TasksHelper.CompleteTask(taskID, false, ex.Message);
         }
     }

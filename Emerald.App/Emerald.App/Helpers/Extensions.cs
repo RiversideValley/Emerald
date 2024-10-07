@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
@@ -112,15 +112,11 @@ namespace Emerald.WinUI.Helpers
         public static string ToMD5(this string s)
         {
             StringBuilder sb = new();
+            byte[] hashValue = MD5.HashData(Encoding.UTF8.GetBytes(s));
 
-            using (MD5 md5 = MD5.Create())
+            foreach (byte b in hashValue)
             {
-                byte[] hashValue = md5.ComputeHash(Encoding.UTF8.GetBytes(s));
-
-                foreach (byte b in hashValue)
-                {
-                    sb.Append($"{b:X2}");
-                }
+                sb.Append($"{b:X2}");
             }
 
             return sb.ToString();

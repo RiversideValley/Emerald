@@ -1,4 +1,4 @@
-﻿using Emerald.Core;
+using Emerald.Core;
 using Emerald.WinUI.Helpers;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.ObjectModel;
@@ -93,7 +93,6 @@ public sealed partial class AppearancePage : Page
 
     private void CustomTintColor_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-
         var c = SS.Settings.App.Appearance.CustomMicaTintColor;
         var cp = new ColorPicker()
         {

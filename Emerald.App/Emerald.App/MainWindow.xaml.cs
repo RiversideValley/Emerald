@@ -1,4 +1,4 @@
-﻿using Emerald.Core;
+using Emerald.Core;
 using Emerald.Core.Tasks;
 using Emerald.WinUI.Helpers;
 using Emerald.WinUI.Helpers.Settings.JSON;
@@ -87,7 +87,6 @@ namespace Emerald.WinUI
 
             if (BackupState.WantBackup)
             {
-
                 var r = await MessageBox.Show(
                      Localized.Error.Localize(),
                      Localized.LoadSettingsFailed.Localize(),
@@ -156,7 +155,6 @@ namespace Emerald.WinUI
                     TaskView.ChangeDescription(e.ID, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.Localize())));
                     TaskView.ChangeSeverty(e.ID, e.Success ? InfoBarSeverity.Success : InfoBarSeverity.Error);
                     ShowMiniTask(c, string.Join(" ", (e.Message ?? "").Split(" ").Select(s => s.Localize())), e.Success ? InfoBarSeverity.Success : InfoBarSeverity.Error);
-
                 };
             }
 

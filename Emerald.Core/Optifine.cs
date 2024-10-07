@@ -1,5 +1,5 @@
-﻿using CmlLib.Core;
-using Newtonsoft.Json;
+using CmlLib.Core;
+using System.Text.Json;
 using ProjBobcat.Class.Helper;
 using ProjBobcat.Class.Model.Optifine;
 using ProjBobcat.DefaultComponent.Installer;
@@ -27,7 +27,7 @@ namespace Emerald.Core
 
                 c.Dispose();
 
-                return JsonConvert.DeserializeObject<List<OptifineDownloadVersionModel>>(json);
+                return JsonSerializer.Deserialize<List<OptifineDownloadVersionModel>>(json);
             }
             catch
             {
@@ -49,7 +49,7 @@ namespace Emerald.Core
                     javaResult.Add(java);
                 }
 
-                if (!javaResult.Any())
+                if (javaResult.Count == 0)
                     return (false, "NoJRE");
 
                 ProgressChanged(this, 0);

@@ -27,7 +27,6 @@ namespace Emerald.WinUI.Views.Home
                 await Task.Delay(300);
                 pnlEmpty.Visibility = App.Current.Launcher.News.Entries.Any() ? Visibility.Collapsed : Visibility.Visible;
             };
-
         }
         private void BackButton_Click(object sender, RoutedEventArgs e) =>
             BackRequested?.Invoke(this, new EventArgs());

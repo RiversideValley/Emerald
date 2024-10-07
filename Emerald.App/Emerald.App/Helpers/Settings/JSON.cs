@@ -1,10 +1,11 @@
-﻿using CmlLib.Core;
+using CmlLib.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.WinUI.Helpers;
 using Emerald.Core.Store.Enums;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using Windows.UI;
@@ -13,7 +14,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
     public class JSON : Models.Model
     {
         public string Serialize()
-            => JsonConvert.SerializeObject(this, Formatting.Indented);
+            => JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
     }
 
     public class SettingsBackup : JSON
@@ -21,7 +22,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public string Backup { get; set; }
         public string Name { get; set; }
         public DateTime Time { get; set; }
-        //ik there is Time.ToString() lol
+        // ik there is Time.ToString() lol
         public string DateString => $"{Time.ToLongDateString()} {Time.ToShortTimeString()}";
     }
 
@@ -113,7 +114,6 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
 
     public partial class Downloader : JSON
     {
-
         [ObservableProperty]
         private bool _HashCheck;
 
@@ -153,7 +153,6 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
 
         [JsonIgnore]
         public bool SetSize => !(ScreenSizeStatus == "FullScreen".Localize() || ScreenSizeStatus == "Default".Localize());
-
     }
 
     public class App : JSON
@@ -167,11 +166,9 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
         public bool AutoClose { get; set; }
         public bool HideOnLaunch { get; set; }
         public bool WindowsHello { get; set; }
-
     }
     public class Updates : JSON
     {
-        
         public bool CheckAtStartup { get; set; } = true;
         public bool AutoDownload { get; set; }
         public bool IncludePreReleases { get; set; }
@@ -296,7 +293,6 @@ namespace Emerald.WinUI.Helpers.Settings.JSON
 
     public partial class StoreSortOptions : JSON
     {
-
         [ObservableProperty]
         private bool _Relevance = true;
 

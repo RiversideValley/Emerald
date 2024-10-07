@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="CmlLib.Core" />
+		<PackageReference Include="CmlLib.Core.Auth.Microsoft" />
+		<PackageReference Include="CommunityToolkit.Mvvm" />
+		<PackageReference Include="ProjBobcat" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="RestSharp" />
+    <PackageReference Include="System.Text.Json" />
+	</ItemGroup>
+</Project>
