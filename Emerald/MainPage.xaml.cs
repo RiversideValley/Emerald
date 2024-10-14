@@ -9,8 +9,14 @@ public sealed partial class MainPage : Page
     {
         this.InitializeComponent();
         this.Loaded += MainPage_Loaded;
+        NavView.ItemInvoked += MainNavigationView_ItemInvoked;
     }
-
+        private void MainNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+        {
+            if (!args.IsSettingsInvoked && NavView.SelectedItem is SquareNavigationViewItem itm){
+                itm.InvokePropertyChanged();
+            }
+        }
     private void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
 #if WINDOWS

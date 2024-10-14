@@ -61,7 +61,7 @@
           <NavigationViewItem
                         Height="64"
                         IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
-                        IsSelected="{x:Bind IsSelected, Mode=TwoWay}"
+                        IsSelected="{x:Bind IsSelected, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
                         Tag="{x:Bind Name}">
             <Grid
                             Margin="-5,4,-9,0"
@@ -106,7 +106,7 @@
                                 x:Name="txtNavItemName"
                                 Grid.Row="1"
                                 HorizontalAlignment="Center"
-                                x:Load="{x:Bind IsSelected.Equals(x:False)}"
+                                x:Load="{x:Bind IsSelected.Equals(x:False), Mode=OneWay}"
                                 FontSize="10"
                                 Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"

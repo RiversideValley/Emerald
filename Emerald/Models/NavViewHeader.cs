@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Emerald.Uno.Models;
 
-public partial class NavViewHeader : ObservableObject
+public partial class NavViewHeader : Model
 {
     [ObservableProperty]
     private string _HeaderText;
