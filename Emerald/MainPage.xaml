@@ -105,6 +105,7 @@
               <TextBlock
                                 x:Name="txtNavItemName"
                                 Grid.Row="1"
+                                Visibility="{x:Bind IsSelected.Equals(x:False), Converter={StaticResource StrToVis}}"
                                 HorizontalAlignment="Center"
                                 x:Load="{x:Bind IsSelected.Equals(x:False), Mode=OneWay}"
                                 FontSize="10"
