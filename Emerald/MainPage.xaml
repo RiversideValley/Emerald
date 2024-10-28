@@ -5,7 +5,11 @@
       xmlns:utu="using:Uno.Toolkit.UI"
       xmlns:models="using:Emerald.Uno.Models"
       xmlns:uc="using:Emerald.Uno.UserControls"
+    xmlns:conv="using:Emerald.Helpers.Converters"
       xmlns:helpers="using:Emerald.Uno.Helpers">
+  <Page.Resources>
+    <conv:BoolToVisibility x:Key="BoolToVisibilty"/>
+  </Page.Resources>
   <Grid x:Name="MainGrid">
       <uc:TitleBar
             x:Name="AppTitleBar"
@@ -105,7 +109,7 @@
               <TextBlock
                                 x:Name="txtNavItemName"
                                 Grid.Row="1"
-                                Visibility="{x:Bind IsSelected.Equals(x:False), Converter={StaticResource StrToVis}}"
+                                Visibility="{x:Bind IsSelected.Equals(x:False), Converter={StaticResource BoolToVisibilty}}"
                                 HorizontalAlignment="Center"
                                 x:Load="{x:Bind IsSelected.Equals(x:False), Mode=OneWay}"
                                 FontSize="10"
