@@ -1,4 +1,4 @@
-﻿namespace Emerald.Uno.Helpers.Settings.Enums
+﻿namespace Emerald.Helpers.Settings.Enums
 {
     public enum MicaTintColor : int
     {

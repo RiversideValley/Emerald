@@ -1,6 +1,6 @@
 ﻿using Microsoft.UI.Xaml.Markup;
 
-namespace Emerald.Uno.Helpers;
+namespace Emerald.Helpers;
 
 [MarkupExtensionReturnType(ReturnType = typeof(string))]
 public class ConditionString : MarkupExtension

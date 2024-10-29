@@ -2,7 +2,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 using System;
 
-namespace Emerald.Uno.Views.Settings
+namespace Emerald.Views.Settings
 {
     public sealed partial class SettingsPage : Page
     {

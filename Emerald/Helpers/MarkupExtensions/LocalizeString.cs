@@ -1,6 +1,6 @@
 using Microsoft.UI.Xaml.Markup;
 using CommunityToolkit.Mvvm;
-namespace Emerald.Uno.Helpers;
+namespace Emerald.Helpers;
 
 [MarkupExtensionReturnType(ReturnType = typeof(string))]
 public sealed class Localize : MarkupExtension

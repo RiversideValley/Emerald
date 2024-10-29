@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace Emerald.Uno.Models;
+namespace Emerald.Models;
 
 public partial class NavViewHeader : Model
 {

@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.ComponentModel;
 
-namespace Emerald.Uno.Models;
+namespace Emerald.Models;
 
 public partial class Model : ObservableObject
 {

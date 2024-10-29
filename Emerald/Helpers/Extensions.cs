@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Windows.System.Diagnostics;
 
-namespace Emerald.Uno.Helpers;
+namespace Emerald.Helpers;
 
 public static class Extensions
 {

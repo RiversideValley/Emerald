@@ -1,6 +1,6 @@
 using Microsoft.UI.Xaml.Markup;
 
-namespace Emerald.Uno.Helpers;
+namespace Emerald.Helpers;
 
 [MarkupExtensionReturnType(ReturnType = typeof(Microsoft.UI.Xaml.Controls.FontIcon))]
 public sealed class FontIcon : MarkupExtension

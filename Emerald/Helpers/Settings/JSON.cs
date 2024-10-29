@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using Windows.UI;
 using Emerald.CoreX.Store.Modrinth;
-namespace Emerald.Uno.Helpers.Settings.JSON;
+namespace Emerald.Helpers.Settings.JSON;
 
 public class JSON : Models.Model
 {

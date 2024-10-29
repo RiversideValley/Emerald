@@ -1,6 +1,6 @@
 using Uno.Resizetizer;
 
-namespace Emerald.Uno;
+namespace Emerald;
 public partial class App : Application
 {
     /// <summary>
@@ -50,7 +50,7 @@ public partial class App : Application
             MainWindow.Content = rootFrame;
         }
 #if WINDOWS
-        var mica = Emerald.Uno.Helpers.WindowManager.IntializeWindow(MainWindow);
+        var mica = Emerald.Helpers.WindowManager.IntializeWindow(MainWindow);
 #endif
 
         if (rootFrame.Content == null)

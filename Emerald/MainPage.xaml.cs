@@ -1,10 +1,10 @@
-using Emerald.Uno.Helpers;
-using Emerald.Uno.Models;
-using Emerald.Uno.Views.Settings;
+using Emerald.Helpers;
+using Emerald.Models;
+using Emerald.Views.Settings;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 
-namespace Emerald.Uno;
+namespace Emerald;
 
 public sealed partial class MainPage : Page
 {
@@ -24,7 +24,7 @@ public sealed partial class MainPage : Page
     private void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
 #if WINDOWS
-        Emerald.Uno.Helpers.WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
+        Emerald.Helpers.WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
 #endif
         NavView.MenuItems.Add(new SquareNavigationViewItem("Home".Localize())
         {

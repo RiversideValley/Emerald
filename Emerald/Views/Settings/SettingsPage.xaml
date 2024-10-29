@@ -1,12 +1,12 @@
 ﻿<Page
-    x:Class="Emerald.Uno.Views.Settings.SettingsPage"
+    x:Class="Emerald.Views.Settings.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:helpers="using:Emerald.Uno.Helpers"
-    xmlns:local="using:Emerald.Uno.Views.Settings"
+    xmlns:helpers="using:Emerald.Helpers"
+    xmlns:local="using:Emerald.Views.Settings"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:uc="using:Emerald.Uno.UserControls"
+    xmlns:uc="using:Emerald.UserControls"
     mc:Ignorable="d">
 
   <Page.Resources>

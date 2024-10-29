@@ -1,4 +1,4 @@
-﻿<Project Sdk="Uno.Sdk">
+<Project Sdk="Uno.Sdk">
   <PropertyGroup>
     <TargetFrameworks>
       net8.0-maccatalyst;
@@ -10,9 +10,9 @@
     <UnoSingleProject>true</UnoSingleProject>
 
     <!-- Display name -->
-    <ApplicationTitle>Emerald.Uno</ApplicationTitle>
+    <ApplicationTitle>Emerald</ApplicationTitle>
     <!-- App Identifier -->
-    <ApplicationId>Riverside.Emerald.Uno</ApplicationId>
+    <ApplicationId>Riverside.Emerald</ApplicationId>
     <!-- Versions -->
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>

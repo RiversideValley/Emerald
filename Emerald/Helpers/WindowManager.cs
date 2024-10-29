@@ -9,7 +9,7 @@ using Windows.ApplicationModel;
 using WinRT;
 using WinRT.Interop;
 
-namespace Emerald.Uno.Helpers
+namespace Emerald.Helpers
 {
 #if WINDOWS
     public static class WindowManager

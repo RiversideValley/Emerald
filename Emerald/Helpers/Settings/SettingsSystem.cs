@@ -1,4 +1,4 @@
-using Emerald.Uno.Helpers.Settings.JSON;
+using Emerald.Helpers.Settings.JSON;
 using System.Text.Json;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage;
 
-namespace Emerald.Uno.Helpers.Settings;
+namespace Emerald.Helpers.Settings;
 
 public static class SettingsSystem
 {
