@@ -1,6 +1,6 @@
 using Uno.Resizetizer;
 
-namespace Emerald;
+namespace Emerald.Uno;
 public partial class App : Application
 {
     /// <summary>

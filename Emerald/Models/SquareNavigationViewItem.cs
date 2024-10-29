@@ -29,7 +29,7 @@ public partial class SquareNavigationViewItem : Model
             }
         };
     }
-
+    public string Tag { get; set; }
 
     [ObservableProperty]
     private string _Name;
@@ -57,6 +57,7 @@ public partial class SquareNavigationViewItem : Model
 
     public Visibility FontIconVisibility => ShowFontIcons && !IsSelected ? Visibility.Visible : Visibility.Collapsed;
     public Visibility SolidFontIconVisibility => ShowFontIcons && IsSelected ? Visibility.Visible : Visibility.Collapsed;
-
+    public Visibility SelectionVisibility => IsSelected ? Visibility.Collapsed : Visibility.Visible;
+    
     public bool ShowThumbnail => !ShowFontIcons;
 }

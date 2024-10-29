@@ -7,13 +7,13 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="Emerald"
+    Name="Emerald.Uno"
     Publisher="O=Riverside Valley"
     Version="1.0.0.0" />
 
   <Properties>
-    <DisplayName>Emerald</DisplayName>
-    <PublisherDisplayName>Emerald</PublisherDisplayName>
+    <DisplayName>Emerald.Uno</DisplayName>
+    <PublisherDisplayName>Emerald.Uno</PublisherDisplayName>
   </Properties>
 
   <Dependencies>
@@ -30,8 +30,8 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="Emerald"
-        Description="Emerald">
+        DisplayName="Emerald.Uno"
+        Description="Emerald.Uno">
         <uap:SplashScreen />
       </uap:VisualElements>
     </Application>

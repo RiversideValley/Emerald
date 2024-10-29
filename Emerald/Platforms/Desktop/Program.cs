@@ -1,6 +1,6 @@
 using Uno.UI.Runtime.Skia;
 
-namespace Emerald;
+namespace Emerald.Uno;
 public class Program
 {
     [STAThread]

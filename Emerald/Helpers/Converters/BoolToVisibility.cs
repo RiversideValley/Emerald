@@ -1,7 +1,7 @@
 
 using Microsoft.UI.Xaml.Data;
 
-namespace Emerald.Helpers.Converters;
+namespace Emerald.Uno.Helpers.Converters;
 public class BoolToVisibility : IValueConverter
     {
         public bool Reversed { get; set; }

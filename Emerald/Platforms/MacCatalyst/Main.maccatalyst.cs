@@ -1,6 +1,6 @@
 using UIKit;
 
-namespace Emerald.MacCatalyst;
+namespace Emerald.Uno.MacCatalyst;
 public class EntryPoint
 {
     // This is the main entry point of the application.
