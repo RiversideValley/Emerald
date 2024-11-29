@@ -6,16 +6,16 @@
   -->
   <ItemGroup>
     <!--Emerald.App-->
-    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.3.2" />
     <PackageVersion Include="CommunityToolkit.WinUI.UI.Animations" Version="7.1.2" />
     <PackageVersion Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
     <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.106" />
-    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.5.240227000" />
-    <PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26031-preview" />
+    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.6.241114003" />
+    <PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
     <PackageVersion Include="Octokit" Version="13.0.1" />
     <PackageVersion Include="PInvoke.User32" Version="0.7.124" />
     <PackageVersion Include="ProjBobcat" Version="1.16.0" />
-    <PackageVersion Include="System.Text.Json" Version="8.0.4" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
     <PackageVersion Include="WinUIEx" Version="2.3.4" />
     <PackageVersion Include="XboxAuthNet.Game.Msal" Version="0.0.5" />
     <!--Emerald.CoreX-->

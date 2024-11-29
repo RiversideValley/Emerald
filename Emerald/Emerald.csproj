@@ -29,6 +29,11 @@
     <!-- <WindowsSdkPackageVersion>10.0.22621.28</WindowsSdkPackageVersion> -->
 
     <!--
+    I had to add this unless it throws an error, with duplicate Webview files.
+    <ErrorOnDuplicatePublishOutputFiles>true</ErrorOnDuplicatePublishOutputFiles>
+    
+    -->
+    <!--
       UnoFeatures let's you quickly add and manage implicit package references based on the features you want to use.
       https://aka.platform.uno/singleproject-features
     -->
@@ -37,9 +42,11 @@
       Hosting;
       Toolkit;
       Mvvm;
+      Localization;
       ThemeService;
     </UnoFeatures>
   </PropertyGroup>
+
   <ItemGroup>
     <None Remove="Assets\icon.png" />
     <None Remove="UserControls\Titlebar.xaml" />
@@ -60,6 +67,7 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
+
   <ItemGroup>
     <Page Update="Views\Settings\SettingsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
