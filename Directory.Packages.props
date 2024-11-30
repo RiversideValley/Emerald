@@ -1,0 +1,30 @@
+<Project ToolsVersion="15.0">
+  <!--
+    To update the version of Uno, you should instead update the Sdk version in the global.json file.
+
+    See https://aka.platform.uno/using-uno-sdk for more information.
+  -->
+  <ItemGroup>
+    <!--Emerald.App-->
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <PackageVersion Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.1.240916" />
+    <PackageVersion Include="CommunityToolkit.WinUI.Helpers" Version="8.1.240916" />
+    <PackageVersion Include="CommunityToolkit.WinUI.UI.Animations" Version="7.1.2" />
+    <PackageVersion Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
+    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.106" />
+    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.6.241114003" />
+    <PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.57" />
+    <PackageVersion Include="Octokit" Version="13.0.1" />
+    <PackageVersion Include="PInvoke.User32" Version="0.7.124" />
+    <PackageVersion Include="ProjBobcat" Version="1.16.0" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
+    <PackageVersion Include="WinUIEx" Version="2.3.4" />
+    <PackageVersion Include="XboxAuthNet.Game.Msal" Version="0.0.5" />
+    <!--Emerald.CoreX-->
+    <PackageVersion Include="CmlLib.Core" Version="4.0.2" />
+    <PackageVersion Include="CmlLib.Core.Auth.Microsoft" Version="3.2.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.0-preview.7.24405.7" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="RestSharp" Version="112.0.0" />
+  </ItemGroup>
+</Project>

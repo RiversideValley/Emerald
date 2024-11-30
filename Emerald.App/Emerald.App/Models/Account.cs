@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Emerald.Core;
 using Emerald.WinUI.Enums;
 using Emerald.WinUI.Helpers;
@@ -7,7 +7,6 @@ namespace Emerald.WinUI.Models
 {
     public partial class Account : Model
     {
-
         [ObservableProperty]
         private string _UserName;
 

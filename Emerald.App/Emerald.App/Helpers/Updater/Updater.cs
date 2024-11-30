@@ -1,11 +1,11 @@
-﻿using CmlLib.Core;
+using CmlLib.Core;
 using CommunityToolkit.WinUI.Helpers;
 using Emerald.Core;
 using Emerald.Core.Tasks;
 using Emerald.WinUI.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Shapes;
-using Newtonsoft.Json;
+using System.Text.Json;
 using Octokit;
 using ProjBobcat.Class.Model;
 using System;
@@ -39,9 +39,7 @@ namespace Emerald.WinUI.Helpers.Updater
         bool IsInitialized = false;
         public async System.Threading.Tasks.Task Initialize()
         {
-            var cId = await FileIO.ReadTextAsync(await StorageFile.GetFileFromPathAsync($"{Windows.ApplicationModel.Package.Current.InstalledPath}\\GithubClientID.txt"));
-
-            Client = new GitHubClient(new Octokit.ProductHeaderValue(cId));
+            Client = new GitHubClient(new Octokit.ProductHeaderValue("Riverside.Emerald"));
             IsInitialized = true;
         }
         private bool isRunning = false;
@@ -95,7 +93,6 @@ namespace Emerald.WinUI.Helpers.Updater
                 var msg = await MessageBox.Show("UpdateAvailable".Localize(), "## Version: " + ver.ToString() + "\n\n###ReleaseNotes".Localize() + "\n\n " + rel.Body,Enums.MessageBoxButtons.CustomWithCancel, "UpdateNow".Localize());
                 if(msg == Enums.MessageBoxResults.Cancel)
                    goto Return;
-
             }
             else if(ver < currentver)
             {
@@ -106,8 +103,6 @@ namespace Emerald.WinUI.Helpers.Updater
 
                 var msg = await MessageBox.Show("DowngradeAvailable".Localize(), "DowngradeDescription".Localize(),Enums.MessageBoxButtons.Ok);
                    goto Return;
-
-
             }
             else if(ver == currentver)
             {

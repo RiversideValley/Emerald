@@ -1,4 +1,4 @@
-﻿using CmlLib.Core;
+using CmlLib.Core;
 using CmlLib.Core.Downloader;
 using CmlLib.Core.Files;
 using CmlLib.Core.Installer.FabricMC;
@@ -12,7 +12,6 @@ using Emerald.Core.Store;
 using Emerald.Core.Tasks;
 using ProjBobcat.Class.Model.Optifine;
 using System.ComponentModel;
-using Windows.System;
 using ProgressChangedEventArgs = Emerald.Core.Args.ProgressChangedEventArgs;
 
 namespace Emerald.Core
@@ -141,7 +140,7 @@ namespace Emerald.Core
                 prog = e.ProgressPercentage;
                 if (createTask)
                     TasksHelper.EditProgressTask(id, prog, message: message);
-            };
+            }
 
             void FileChange(DownloadFileChangedEventArgs e)
             {
@@ -149,7 +148,7 @@ namespace Emerald.Core
 
                 if (createTask)
                     TasksHelper.EditProgressTask(id, prog, message: message);
-            };
+            }
 
             try
             {

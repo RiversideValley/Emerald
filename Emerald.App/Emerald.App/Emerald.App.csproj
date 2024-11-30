@@ -1,31 +1,25 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	  <TargetFramework>net7.0-windows10.0.22000.0</TargetFramework>
+	  <TargetFramework>net8.0-windows10.0.22000.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>Emerald.WinUI</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x86;x64;arm64</Platforms>
-    <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <UseWinUI>true</UseWinUI>
     <Configurations>Debug;Release</Configurations>
     <Nullable>enable</Nullable>
     <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="GithubClientID.txt" />
     <None Remove="Helpers\rlbl1cxv.0sq~" />
     <None Remove="MsalClientID.txt" />
     <None Remove="Restart.bat" />
     <None Remove="Views\Store\InstallerPage.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="GithubClientID.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -38,16 +32,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
-    <PackageReference Include="CommunityToolkit.WinUI.UI.Animations" Version="7.1.2" />
-    <PackageReference Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240227000" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26031-preview" />
-    <PackageReference Include="Octokit" Version="10.0.0" />
-    <PackageReference Include="PInvoke.User32" Version="0.7.124" />
-    <PackageReference Include="ProjBobcat" Version="1.16.0" />
-    <PackageReference Include="WinUIEx" Version="2.3.4" />
-    <PackageReference Include="XboxAuthNet.Game.Msal" Version="0.0.5" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="CommunityToolkit.WinUI.UI.Animations" />
+    <PackageReference Include="CommunityToolkit.WinUI.UI.Controls" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
+    <PackageReference Include="Octokit" />
+    <PackageReference Include="PInvoke.User32" />
+    <PackageReference Include="ProjBobcat" />
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="WinUIEx" />
+    <PackageReference Include="XboxAuthNet.Game.Msal" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 

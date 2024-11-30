@@ -1,5 +1,5 @@
-﻿using Emerald.WinUI.Helpers.Settings.JSON;
-using Newtonsoft.Json;
+using Emerald.WinUI.Helpers.Settings.JSON;
+using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,13 +19,12 @@ namespace Emerald.WinUI.Helpers.Settings
             string json;
             try
             {
-
                 json = ApplicationData.Current.RoamingSettings.Values[key] as string;
-                return JsonConvert.DeserializeObject<T>(json);
+                return JsonSerializer.Deserialize<T>(json);
             }
             catch
             {
-                json = JsonConvert.SerializeObject(def);
+                json = JsonSerializer.Serialize(def);
                 ApplicationData.Current.RoamingSettings.Values[key] = json;
                 return def;
             }
@@ -39,14 +38,14 @@ namespace Emerald.WinUI.Helpers.Settings
             {
                 APINoMatch?.Invoke(null, ApplicationData.Current.RoamingSettings.Values["Settings"] as string);
                 ApplicationData.Current.RoamingSettings.Values["Settings"] = JSON.Settings.CreateNew().Serialize();
-                Settings = JsonConvert.DeserializeObject<JSON.Settings>(ApplicationData.Current.RoamingSettings.Values["Settings"] as string);
+                Settings = JsonSerializer.Deserialize<JSON.Settings>(ApplicationData.Current.RoamingSettings.Values["Settings"] as string);
             }
         }
 
         public static async Task CreateBackup(string system)
         {
             string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
-            var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonConvert.DeserializeObject<Backups>(json);
+            var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonSerializer.Deserialize<Backups>(json);
 
             var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
             bl.Add(new SettingsBackup() { Time = DateTime.Now, Backup = system });
@@ -59,7 +58,7 @@ namespace Emerald.WinUI.Helpers.Settings
         public static async Task DeleteBackup(int Index)
         {
             string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
-            var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonConvert.DeserializeObject<Backups>(json);
+            var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonSerializer.Deserialize<Backups>(json);
 
             var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
             bl.RemoveAt(Index);
@@ -72,7 +71,7 @@ namespace Emerald.WinUI.Helpers.Settings
         public static async Task DeleteBackup(DateTime time)
         {
             string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
-            var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonConvert.DeserializeObject<Backups>(json);
+            var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonSerializer.Deserialize<Backups>(json);
 
             var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
             bl.Remove(x => x.Time == time);
@@ -84,7 +83,7 @@ namespace Emerald.WinUI.Helpers.Settings
         public static async Task RenameBackup(DateTime time, string name)
         {
             string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
-            var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonConvert.DeserializeObject<Backups>(json);
+            var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonSerializer.Deserialize<Backups>(json);
 
             var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
             bl.FirstOrDefault(x => x.Time == time).Name = name;
@@ -97,7 +96,7 @@ namespace Emerald.WinUI.Helpers.Settings
         public static async Task<List<SettingsBackup>> GetBackups()
         {
             string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
-            var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonConvert.DeserializeObject<Backups>(json);
+            var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonSerializer.Deserialize<Backups>(json);
 
             return l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
         }
@@ -106,7 +105,7 @@ namespace Emerald.WinUI.Helpers.Settings
         {
             Settings.LastSaved = DateTime.Now;
             ApplicationData.Current.RoamingSettings.Values["Settings"] = Settings.Serialize();
-            ApplicationData.Current.RoamingSettings.Values["Accounts"] = JsonConvert.SerializeObject(Accounts);
+            ApplicationData.Current.RoamingSettings.Values["Accounts"] = JsonSerializer.Serialize(Accounts);
         }
     }
 }
