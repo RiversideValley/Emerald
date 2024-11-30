@@ -4,13 +4,11 @@ using System;
 
 namespace Emerald.WinUI.UserControls
 {
-
     /// <summary>
     /// A nice control from the RiseMP
     /// </summary>
     public sealed partial class AdaptiveItemPane : UserControl
     {
-
         public static DependencyProperty LeftPaneProperty =
             DependencyProperty.Register("LeftPane", typeof(object),
                 typeof(AdaptiveItemPane), new PropertyMetadata(null));

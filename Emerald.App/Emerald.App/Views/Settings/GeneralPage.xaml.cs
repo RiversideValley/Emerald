@@ -1,4 +1,4 @@
-﻿using CmlLib.Core;
+using CmlLib.Core;
 using Emerald.WinUI.Enums;
 using Emerald.WinUI.Helpers;
 using Microsoft.UI.Xaml;
@@ -54,10 +54,8 @@ namespace Emerald.WinUI.Views.Settings
                             Try();
                         else
                             Start();
-
                     }
                 }
-
             }
             Start();
         }
@@ -72,7 +70,5 @@ namespace Emerald.WinUI.Views.Settings
 
         private void btnAutoRAM_Click(object sender, RoutedEventArgs e) =>
             SS.Settings.Minecraft.RAM = DirectResoucres.MaxRAM / 2;
-
-
     }
 }

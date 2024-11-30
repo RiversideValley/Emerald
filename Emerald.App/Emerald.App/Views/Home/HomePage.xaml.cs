@@ -1,4 +1,4 @@
-﻿using CmlLib.Core;
+using CmlLib.Core;
 using CmlLib.Core.Auth;
 using CmlLib.Core.Downloader;
 using CommunityToolkit.WinUI.Helpers;
@@ -92,7 +92,6 @@ namespace Emerald.WinUI.Views.Home
                     var r = await MessageBox.Show("Error".Localize(), "MCPathFailed".Localize().Replace("{Path}", SS.Settings.Minecraft.Path), MessageBoxButtons.CustomWithCancel, "Yes".Localize(), "SetDifMCPath".Localize());
                     if (r == MessageBoxResults.Cancel)
                         Process.GetCurrentProcess().Kill(); // Application.Current.Exit() didn't kill the process
-
                     else if (r == MessageBoxResults.CustomResult2)
                     {
                         var fop = new FolderPicker
@@ -106,7 +105,6 @@ namespace Emerald.WinUI.Views.Home
                             SS.Settings.Minecraft.Path = f.Path;
                     }
                 }
-
             }
             App.Current.Launcher.InitializeLauncher(new MinecraftPath(SS.Settings.Minecraft.Path));
 
@@ -152,7 +150,6 @@ namespace Emerald.WinUI.Views.Home
 
             if (SystemInformation.Instance.IsFirstRun)
                 ShowTips();
-
         }
 
         public void ShowTips()
@@ -262,7 +259,6 @@ namespace Emerald.WinUI.Views.Home
                     var found = splitText.All((key) => v.Version.ToLower().Contains(key));
                     if (found)
                         suitableItems.Add(v);
-
                 }
             }
 
@@ -463,7 +459,6 @@ namespace Emerald.WinUI.Views.Home
             s.Children.OfType<TextBlock>().ToList().ForEach(x => x.HorizontalAlignment = HorizontalAlignment.Left);
 
             NewsButton.HorizontalContentAlignment = ChangelogsButton.HorizontalContentAlignment = HorizontalAlignment.Left;
-
         }
     }
 }

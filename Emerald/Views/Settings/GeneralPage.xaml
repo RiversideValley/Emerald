@@ -1,0 +1,149 @@
+﻿<Page
+  x:Class="Emerald.Views.Settings.GeneralPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="using:Emerald.Views.Settings" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  mc:Ignorable="d" xmlns:Main="using:Emerald" xmlns:SS="using:Emerald.Helpers.Settings" xmlns:helpers="using:Emerald.Helpers"
+  DataContext="{x:Bind SS:SettingsSystem.Settings}" xmlns:cn="using:CommunityToolkit.WinUI.Controls" xmlns:uc="using:Emerald.UserControls">
+  <Grid>
+    <StackPanel Spacing="16">
+      <StackPanel Spacing="4">
+        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize Name=GeneralSettings}" />
+        <cn:SettingsCard
+          HeaderIcon="{helpers:FontIcon Glyph=}"
+          Header="{helpers:Localize Name=MinecraftPath}"
+          Description="{helpers:Localize Name=MinecraftPathDescription}">
+          <HyperlinkButton
+            ToolTipService.ToolTip="{Binding Minecraft.Path, Mode=OneWay}"
+            Click="btnChangeMPath_Click">
+            <TextBlock
+              MaxWidth="250"
+              VerticalAlignment="Center"
+              Text="{Binding Minecraft.Path, Mode=OneWay}"
+              TextTrimming="CharacterEllipsis" />
+          </HyperlinkButton>
+        </cn:SettingsCard>
+        <cn:SettingsCard
+          HeaderIcon="{helpers:FontIcon Glyph=}"
+          Header="{helpers:Localize Name=RAM}"
+          Description="{helpers:Localize Name=RAMDescription}">
+          <StackPanel
+            Orientation="Horizontal"
+            Spacing="5">
+            <TextBlock
+              x:Name="txtRam"
+              VerticalAlignment="Center">
+              <Run
+                Text="{Binding Minecraft.RAMinGB, Mode=OneWay}" />
+                                GB</TextBlock>
+            <RepeatButton
+              Padding="5"
+              Click="btnRamPlus_Click"
+              Content="{helpers:FontIcon Glyph=}"
+              FontWeight="SemiBold" />
+            <RepeatButton
+              Padding="5"
+              Click="btnRamMinus_Click"
+              Content="{helpers:FontIcon Glyph=}"
+              FontWeight="SemiBold" />
+          </StackPanel>
+        </cn:SettingsCard>
+        <cn:SettingsExpander
+          Header="{helpers:Localize Name=DownloadSettings}"
+          HeaderIcon="{helpers:FontIcon Glyph=}"
+          Description="{helpers:Localize Name=DownloadSettingsDescription}">
+          <cn:SettingsExpander.Items>
+            <cn:SettingsCard
+              Header="{helpers:Localize Name=AssetsCheck}">
+              <ToggleSwitch
+                IsOn="{Binding Minecraft.Downloader.AssetsCheck, Mode=TwoWay}" />
+            </cn:SettingsCard>
+            <cn:SettingsCard
+              Header="{helpers:Localize Name=HashCheck}">
+              <ToggleSwitch
+                IsOn="{Binding Minecraft.Downloader.HashCheck, Mode=TwoWay}" />
+            </cn:SettingsCard>
+          </cn:SettingsExpander.Items>
+        </cn:SettingsExpander>
+        <cn:SettingsCard
+          Header="{helpers:Localize Name=AutoLogin}"
+          Description="{helpers:Localize Name=AutoLoginDescription}"
+          HeaderIcon="{helpers:FontIcon Glyph=}">
+          <ToggleSwitch
+            IsOn="{Binding App.AutoLogin, Mode=TwoWay}"
+            OffContent="{helpers:Localize Name=No}"
+            OnContent="{helpers:Localize Name=Yes}" />
+        </cn:SettingsCard>
+      </StackPanel>
+      <StackPanel
+        Spacing="4">
+        <TextBlock
+          FontWeight="SemiBold"
+          Text="{helpers:Localize Name=AdvancedMinecraftSettings}" />
+        <cn:SettingsCard
+          Header="{helpers:Localize Name=MCasAdmin}"
+          Description="{helpers:Localize Name=MCasAdminDescription}"
+          HeaderIcon="{helpers:FontIcon Glyph=}">
+          <ToggleSwitch
+            IsOn="{Binding Minecraft.IsAdmin, Mode=TwoWay}"
+            OffContent="{helpers:Localize Name=No}"
+            OnContent="{helpers:Localize Name=Yes}" />
+        </cn:SettingsCard>
+        <cn:SettingsCard
+          Header="{helpers:Localize Name=GameLogs}"
+          Description="{helpers:Localize Name=GameLogsDescription}"
+          HeaderIcon="{helpers:FontIcon Glyph=}">
+          <ToggleSwitch
+            IsOn="{Binding Minecraft.JVM.GameLogs, Mode=TwoWay}"
+            OffContent="{helpers:Localize Name=No}"
+            OnContent="{helpers:Localize Name=Yes}" />
+        </cn:SettingsCard>
+        <cn:SettingsExpander
+          Header="{helpers:Localize Name=MCWindowsSize}"
+          Description="{helpers:Localize Name=MCWindowsSizeDescription}"
+          HeaderIcon="{helpers:FontIcon Glyph=}">
+          <cn:SettingsExpander.Content>
+            <TextBlock
+              Text="{Binding Minecraft.JVM.ScreenSizeStatus, Mode=OneWay}" />
+          </cn:SettingsExpander.Content>
+          <cn:SettingsExpander.Items>
+            <cn:SettingsCard
+              Header="{helpers:Localize Name=Width}">
+              <NumberBox
+                Minimum="0"
+                Value="{Binding Minecraft.JVM.ScreenWidth, Mode=TwoWay}"
+                SpinButtonPlacementMode="Inline"
+                LargeChange="80"
+                SmallChange="10"
+                PlaceholderText="{helpers:Localize Name=Default}" />
+            </cn:SettingsCard>
+            <cn:SettingsCard
+              Header="{helpers:Localize Name=Height}">
+              <NumberBox
+                Minimum="0"
+                Value="{Binding Minecraft.JVM.ScreenHeight, Mode=TwoWay}"
+                SpinButtonPlacementMode="Inline"
+                LargeChange="80"
+                SmallChange="10"
+                PlaceholderText="{helpers:Localize Name=Default}" />
+            </cn:SettingsCard>
+            <cn:SettingsCard
+              Header="{helpers:Localize Name=FullScreen}">
+              <ToggleSwitch
+                IsOn="{Binding Minecraft.JVM.FullScreen, Mode=TwoWay}" />
+            </cn:SettingsCard>
+          </cn:SettingsExpander.Items>
+        </cn:SettingsExpander>
+        <cn:SettingsExpander
+          Header="{helpers:Localize Name=JVMArgs}"
+          Description="{helpers:Localize Name=JVMArgsDescription}"
+          HeaderIcon="{helpers:FontIcon Glyph=}">
+          <cn:SettingsExpander.ItemsHeader>
+            <Grid
+              Padding="12"
+              Background="{StaticResource ExpanderHeaderBackground}">
+              <uc:ArgumentsListView />
+            </Grid>
+          </cn:SettingsExpander.ItemsHeader>
+        </cn:SettingsExpander>
+      </StackPanel>
+    </StackPanel>
+  </Grid>
+</Page>
