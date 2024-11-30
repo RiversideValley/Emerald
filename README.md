@@ -61,7 +61,7 @@ There are multiple ways to participate in the community:
 ├──Emerald.App                       // Emerald app code and packager
 |  ├──Emerald.App                    // Emerald app code (such as code related to UI but not Minecraft)
 |  └──Emerald.App.Package            // Package code for generating an uploadable MSIX bundle.
-├──Emerald.Core                      // Emerald core code (such as code related to launching and modifying Minecraft
+├──Emerald.Core                      // Emerald core code (such as code related to launching and modifying Minecraft)
 └──Emerald.CoreX                     // Emerald core code for the ability to run different Minecraft installation profiles and mods.
 ```
 
