@@ -33,7 +33,7 @@ public partial class App : Application
 
 
 #if DEBUG
-        MainWindow.EnableHotReload();
+        MainWindow.UseStudio();
 #endif
         MainWindow.SetWindowIcon();
 

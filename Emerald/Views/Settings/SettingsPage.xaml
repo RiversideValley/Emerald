@@ -61,7 +61,7 @@
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0,1,0,0">
       <ScrollViewer>
-        <Frame x:Name="contentframe" />
+        <Frame Padding="16" x:Name="contentframe" />
       </ScrollViewer>
     </Grid>
   </Grid>
