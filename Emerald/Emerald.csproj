@@ -1,4 +1,4 @@
-<Project Sdk="Uno.Sdk">
+﻿<Project Sdk="Uno.Sdk">
   <PropertyGroup>
     <TargetFrameworks>
       net8.0-maccatalyst;
@@ -49,6 +49,7 @@
     <None Remove="Assets\icon.png" />
     <None Remove="UserControls\ArgumentsListView.xaml" />
     <None Remove="UserControls\Titlebar.xaml" />
+    <None Remove="Views\Settings\AppearancePage.xaml" />
     <None Remove="Views\Settings\GeneralPage.xaml" />
     <None Remove="Views\Settings\SettingsPage.xaml" />
   </ItemGroup>
@@ -88,6 +89,10 @@
 
   <ItemGroup>
     <UpToDateCheckInput Remove="UserControls\ArgumentsListView.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Views\Settings\AppearancePage.xaml" />
   </ItemGroup>
 
 </Project>

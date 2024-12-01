@@ -1,0 +1,116 @@
+﻿<Page
+  x:Class="Emerald.Views.Settings.AppearancePage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="using:Emerald.Views.Settings" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  mc:Ignorable="d" xmlns:Main="using:Emerald" xmlns:SS="using:Emerald.Helpers.Settings" xmlns:helpers="using:Emerald.Helpers"
+  DataContext="{x:Bind SS:SettingsSystem.Settings}" xmlns:cn="using:CommunityToolkit.WinUI.Controls" xmlns:uc="using:Emerald.UserControls" xmlns:windowsui="using:Windows.UI">
+  <Grid
+    Margin="16">
+    <StackPanel
+      Spacing="4">
+      <cn:SettingsCard
+        Header="{helpers:Localize Name=ColorMode}"
+        Description="{helpers:Localize Name=ColorModeDescription}"
+        HeaderIcon="{helpers:FontIcon Glyph=}">
+        <ComboBox
+          SelectedIndex="{Binding App.Appearance.Theme, Mode=TwoWay}">
+          <ComboBoxItem
+            Content="{helpers:Localize Name=SystemDefault}" />
+          <ComboBoxItem
+            Content="{helpers:Localize Name=Light}" />
+          <ComboBoxItem
+            Content="{helpers:Localize Name=Dark}" />
+        </ComboBox>
+      </cn:SettingsCard>
+      <cn:SettingsCard
+        Header="{helpers:Localize Name=MicaType}"
+        Description="{helpers:Localize Name=MicaTypeDescription}"
+        HeaderIcon="{helpers:FontIcon Glyph=}">
+        <ComboBox
+          SelectedIndex="{Binding App.Appearance.MicaType, Mode=TwoWay}">
+          <ComboBoxItem
+            Content="Mica" />
+          <ComboBoxItem
+            Content="Mica Alt" />
+        </ComboBox>
+      </cn:SettingsCard>
+      <cn:SettingsCard
+        Header="{helpers:Localize Name=NavIconStyle}"
+        Description="{helpers:Localize Name=NavIconStyleDescription}"
+        HeaderIcon="{helpers:FontIcon Glyph=}">
+        <ComboBox
+          SelectedIndex="{Binding App.Appearance.NavIconType, Mode=TwoWay}">
+          <ComboBoxItem
+            Content="{helpers:Localize Name=Default}" />
+          <ComboBoxItem
+            Content="{helpers:Localize Name=Colorful}" />
+        </ComboBox>
+      </cn:SettingsCard>
+      <cn:SettingsExpander
+        IsExpanded="True"
+        Header="{helpers:Localize Name=WindowTintColor}"
+        Description="{helpers:Localize Name=WindowTintColorDescription}"
+        HeaderIcon="{helpers:FontIcon Glyph=}">
+        <cn:SettingsExpander.Content>
+          <ComboBox
+            SelectedIndex="{Binding App.Appearance.MicaTintColor, Mode=TwoWay}">
+            <ComboBoxItem
+              Content="{helpers:Localize Name=NoColor}" />
+            <ComboBoxItem
+              Content="{helpers:Localize Name=AccentColor}" />
+            <ComboBoxItem
+              Content="{helpers:Localize Name=CustomColor}" />
+          </ComboBox>
+        </cn:SettingsExpander.Content>
+        <cn:SettingsExpander.ItemsHeader>
+          <Grid
+            Padding="12"
+            Background="{StaticResource ExpanderHeaderBackground}">
+            <GridView
+              DataContext="{x:Bind}"
+              x:Name="GVColorList"
+              ItemsSource="{x:Bind TintColorsList}"
+              SelectionChanged="GVColorList_SelectionChanged"
+              SelectionMode="Single">
+              <GridView.ItemContainerStyle>
+                <Style
+                  TargetType="GridViewItem">
+                  <Setter
+                    Property="Margin"
+                    Value="2" />
+                </Style>
+              </GridView.ItemContainerStyle>
+              <GridView.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <ItemsWrapGrid
+                    MaximumRowsOrColumns="12"
+                    Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+              </GridView.ItemsPanel>
+              <GridView.ItemTemplate>
+                <DataTemplate
+                  x:DataType="windowsui:Color">
+                  <Border
+                    Width="48"
+                    Height="48"
+                    CornerRadius="6">
+                    <Border.Background>
+                      <SolidColorBrush
+                        Color="{x:Bind}" />
+                    </Border.Background>
+                  </Border>
+                </DataTemplate>
+              </GridView.ItemTemplate>
+            </GridView>
+          </Grid>
+        </cn:SettingsExpander.ItemsHeader>
+        <cn:SettingsExpander.Items>
+          <cn:SettingsCard
+            Header="{helpers:Localize Name=CustomColors}">
+            <Button
+              Click="CustomTintColor_Click"
+              Content="{helpers:Localize Name=Add}" />
+          </cn:SettingsCard>
+        </cn:SettingsExpander.Items>
+      </cn:SettingsExpander>
+    </StackPanel>
+  </Grid>
+</Page>

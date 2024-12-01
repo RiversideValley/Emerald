@@ -23,7 +23,7 @@ public sealed partial class SettingsPage : Page
         switch (itm.Tag)
         {
             case "Appearance":
-                NavigateOnce(typeof(SettingsPage));
+                NavigateOnce(typeof(AppearancePage));
                 break;
             case "About":
                 NavigateOnce(typeof(SettingsPage));

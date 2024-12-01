@@ -31,12 +31,20 @@ public static class Extensions
     //    }
     //}
 
-    public static int GetMemoryGB()
+    public static int? GetMemoryGB()
     {
-        SystemMemoryUsageReport systemMemoryUsageReport = SystemDiagnosticInfo.GetForCurrentSystem().MemoryUsage.GetReport();
+        SystemMemoryUsageReport? systemMemoryUsageReport = SystemDiagnosticInfo.GetForCurrentSystem()?.MemoryUsage?.GetReport();
 
-        long memkb = Convert.ToInt64(systemMemoryUsageReport.TotalPhysicalSizeInBytes);
-        return Convert.ToInt32(memkb / Math.Pow(1024, 3));
+        try
+        {
+            long memkb = Convert.ToInt64(systemMemoryUsageReport?.TotalPhysicalSizeInBytes);
+            return Convert.ToInt32(memkb / Math.Pow(1024, 3));
+        }
+        catch
+        {
+
+            return null;
+        }
     }
 
     public static string KiloFormat(this int num)
@@ -56,20 +64,24 @@ public static class Extensions
         return num.ToString("#,0");
     }
 
-    //public static ContentDialog ToContentDialog(this UIElement content, string title, string closebtnText = null, ContentDialogButton defaultButton = ContentDialogButton.Close)
-    //{
-    //    ContentDialog dialog = new()
-    //    {
-    //        XamlRoot = App.Current.MainWindow.Content.XamlRoot,
-    //        Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
-    //        Title = title,
-    //        CloseButtonText = closebtnText,
-    //        DefaultButton = defaultButton,
-    //        Content = content,
-    //        RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme
-    //    };
-    //    return dialog;
-    //}
+    public static ContentDialog ToContentDialog(this UIElement content, string title, string closebtnText = null, ContentDialogButton defaultButton = ContentDialogButton.Close, bool addScrollBar = true)
+    {
+        ContentDialog dialog = new()
+        {
+            XamlRoot = App.Current.MainWindow.Content.XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            Title = title,
+            CloseButtonText = closebtnText,
+            DefaultButton = defaultButton,
+            Content = addScrollBar ? new ScrollViewer()
+            { 
+                Content = content, 
+                Padding = new(12) 
+            } : content,
+            RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme
+        };
+        return dialog;
+    }
 
     public static int Remove<T>(this ObservableCollection<T> coll, Func<T, bool> condition)
     {
