@@ -103,11 +103,21 @@
           </Grid>
         </cn:SettingsExpander.ItemsHeader>
         <cn:SettingsExpander.Items>
-          <cn:SettingsCard
-            Header="{helpers:Localize Name=CustomColors}">
+          <cn:SettingsCard Header="{helpers:Localize Name=CustomColors}">
             <Button
               Click="CustomTintColor_Click"
               Content="{helpers:Localize Name=Add}" />
+          </cn:SettingsCard>
+          <cn:SettingsCard Header="{helpers:Localize Name=TintOpacity}">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
+              <Slider
+                Minimum="0"
+                Maximum="100"
+                SmallChange="1"
+                LargeChange="10"
+                Value="{Binding App.Appearance.TintOpacity, Mode=TwoWay}"/>
+              <TextBlock Text="{Binding App.Appearance.TintOpacity, Mode=OneWay}"/>
+            </StackPanel>
           </cn:SettingsCard>
         </cn:SettingsExpander.Items>
       </cn:SettingsExpander>

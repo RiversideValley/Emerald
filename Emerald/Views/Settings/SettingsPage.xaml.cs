@@ -10,7 +10,7 @@ public sealed partial class SettingsPage : Page
     {
         InitializeComponent();
 
-        //Loaded += (_, _) => Navigate(navView.SelectedItem as NavigationViewItem);
+        Loaded += (_, _) => Navigate(navView.SelectedItem as NavigationViewItem);
     }
 
     private void navView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)

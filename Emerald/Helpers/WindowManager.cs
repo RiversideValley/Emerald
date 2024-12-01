@@ -11,17 +11,19 @@ using WinRT.Interop;
 
 namespace Emerald.Helpers;
 
-#if WINDOWS
 public static class WindowManager
 {
     /// <summary>
     /// Add mica and the icon to the <paramref name="window"/>
     /// </summary>
-    public static MicaBackground IntializeWindow(Window window)
+    public static MicaBackground? IntializeWindow(Window window)
     {
-            var s = new MicaBackground(window);
+#if WINDOWS
+        var s = new MicaBackground(window);
             s.TrySetMicaBackdrop();
             return s;
+#endif
+        return null;
     }
 
     /// <summary>
@@ -105,6 +107,7 @@ public class WindowsSystemDispatcherQueueHelper
 
 public class MicaBackground
 {
+#if WINDOWS
     private readonly Window _window;
     public readonly MicaController MicaController = new();
     private SystemBackdropConfiguration _backdropConfiguration = new();
@@ -171,5 +174,5 @@ public class MicaBackground
     {
         _backdropConfiguration.IsInputActive = args.WindowActivationState is not WindowActivationState.Deactivated;
     }
-}
 #endif
+}

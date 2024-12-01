@@ -1,8 +1,11 @@
 using Emerald.Helpers;
 using Emerald.Models;
 using Emerald.Views.Settings;
+using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
+using Windows.UI;
+using SS = Emerald.Helpers.Settings.SettingsSystem;
 
 namespace Emerald;
 
@@ -21,11 +24,56 @@ public sealed partial class MainPage : Page
             itm.InvokePropertyChanged();
         }
     }
-    private void MainPage_Loaded(object sender, RoutedEventArgs e)
+
+    void InitializeAppearance()
     {
+        SS.Settings.App.Appearance.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName != null)
+            {
+                TintColor();
+                this.GetThemeService().SetThemeAsync((AppTheme)SS.Settings.App.Appearance.Theme);
+            }
+        };
+        void TintColor()
+        {
+            switch ((Helpers.Settings.Enums.MicaTintColor)SS.Settings.App.Appearance.MicaTintColor)
+            {
+                case Helpers.Settings.Enums.MicaTintColor.NoColor:
+                    MainGrid.Background = null;
+                    break;
+                case Helpers.Settings.Enums.MicaTintColor.AccentColor:
+                    MainGrid.Background = new SolidColorBrush((Color)Application.Current.Resources["SystemAccentColor"])
+                    {
+                        Opacity = (double)SS.Settings.App.Appearance.TintOpacity / 100
+                    };
+                    break;
+                case Helpers.Settings.Enums.MicaTintColor.CustomColor:
+                    var c = SS.Settings.App.Appearance.CustomMicaTintColor;
+                    MainGrid.Background = new SolidColorBrush() 
+                    { 
+                        Color = c == null ? Color.FromArgb(255, 234, 0, 94) : Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B),
+                        Opacity = (double)SS.Settings.App.Appearance.TintOpacity / 100
+                    };
+                    break;
+            }
+        }
+        TintColor();
+        
+        //Mica (Windows 11)
+        var mica = WindowManager.IntializeWindow(App.Current.MainWindow);
 #if WINDOWS
-        Emerald.Helpers.WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
+        if (mica != null)
+        {
+            mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
+            SS.Settings.App.Appearance.PropertyChanged += (s, e)
+                => mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
+        }
 #endif
+    }
+    void InitializeNavView()
+    {
+
         NavView.MenuItems.Add(new SquareNavigationViewItem("Home".Localize())
         {
             FontIconGlyph = "\xE80F",
@@ -81,6 +129,16 @@ public sealed partial class MainPage : Page
         NavView.Header = new NavViewHeader() { HeaderText = "Home".Localize(), HeaderMargin = GetNavViewHeaderMargin() };
         NavView.DisplayModeChanged += (_, _) => (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
         Navigate(NavView.SelectedItem as SquareNavigationViewItem);
+
+
+    }
+    private void MainPage_Loaded(object sender, RoutedEventArgs e)
+    {
+#if WINDOWS
+        Emerald.Helpers.WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
+#endif
+        InitializeNavView();
+        InitializeAppearance();
     }
 
     private  Thickness GetNavViewHeaderMargin()

@@ -757,4 +757,7 @@
     <value>Invalid RAM</value>
     <comment>Rarely Used</comment>
   </data>
+  <data name="TintOpacity" xml:space="preserve">
+    <value>Tint opacity</value>
+  </data>
 </root>

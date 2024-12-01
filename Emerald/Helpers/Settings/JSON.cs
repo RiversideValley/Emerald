@@ -354,6 +354,9 @@ public partial class Appearance : JSON
     private (int A, int R, int G, int B)? _CustomMicaTintColor;
 
 
+    [ObservableProperty]
+    private int _TintOpacity = 10;
+
     public Appearance()
     {
         this.PropertyChanged += (_, e) =>

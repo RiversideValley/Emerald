@@ -49,9 +49,6 @@ public partial class App : Application
             // Place the frame in the current Window
             MainWindow.Content = rootFrame;
         }
-#if WINDOWS
-        var mica = Emerald.Helpers.WindowManager.IntializeWindow(MainWindow);
-#endif
 
         if (rootFrame.Content == null)
         {

@@ -8,6 +8,7 @@
     <!--Emerald.App-->
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.3.2" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.1.240916" />
+    <PackageVersion Include="CommunityToolkit.WinUI.Converters" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.Helpers" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.UI.Animations" Version="7.1.2" />
     <PackageVersion Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
