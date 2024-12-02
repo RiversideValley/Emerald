@@ -1,6 +1,12 @@
+using CommonServiceLocator;
+using Serilog;
+using Serilog.Sinks.File;
 using Uno.Resizetizer;
+using Uno.UI.HotDesign;
+using Microsoft.Extensions.DependencyInjection;
+using Emerald.CoreX.Store.Modrinth;
 
-namespace Emerald;
+namespace Emerald; 
 public partial class App : Application
 {
     /// <summary>
@@ -14,30 +20,60 @@ public partial class App : Application
 
     public Window? MainWindow { get; private set; }
     protected IHost? Host { get; private set; }
+    public void ConfigureServices(IServiceCollection services)
+    {
+
+        services.AddTransient(provider => new ModStore(typeof(ModStore).Log()));
+        services.AddTransient(provider => new PluginStore(typeof(PluginStore).Log()));
+        services.AddTransient(provider => new ResourcePackStore(typeof(ResourcePackStore).Log()));
+        services.AddTransient(provider => new ResourcePackStore(typeof(ShaderStore).Log()));
+        services.AddTransient(provider => new ModpackStore(typeof(ModpackStore).Log()));
+        
+    }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+
+        var logPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Emerald",
+            "logs",
+            "app_.log");
+
+
         var builder = this.CreateBuilder(args)
             .Configure(host => host
 #if DEBUG
                 // Switch to Development environment when running in DEBUG
                 .UseEnvironment(Environments.Development)
 #endif
+
+                //Enable Logging
+                .UseSerilog(true, configureLogger: x=> x
+                            .MinimumLevel.Debug()
+                            .WriteTo.File(logPath,
+                                            rollingInterval: RollingInterval.Day,
+                                            retainedFileCountLimit: 7,
+                                            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] ({SourceContext}.{Method}) {Message}{NewLine}{Exception}"))
+
                 .ConfigureServices((context, services) =>
                 {
-                    // TODO: Register your services
-                    //services.AddSingleton<IMyService, MyService>();
+                    ConfigureServices(services);
                 })
             );
+
         MainWindow = builder.Window;
-
-
 #if DEBUG
         MainWindow.UseStudio();
 #endif
         MainWindow.SetWindowIcon();
 
         Host = builder.Build();
+
+        //Help me.
+        ServiceLocator.SetLocatorProvider(() => new Emerald.Helpers.Services.ServiceProviderLocator(Host!.Services));
+
+        this.Log().LogInformation("New Instance was created. Logs are being saved at: {logPath}",logPath);
 
         // Do not repeat app initialization when the Window already has content,
         // just ensure that the window is active

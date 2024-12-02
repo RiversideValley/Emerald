@@ -191,7 +191,7 @@ public class ModpackStore : ModrinthStore
     public override async Task DownloadItemAsync(ItemFile file, string projectType,
         IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
-        // Implement modpack-specific download logic
+        // Implement modpack-specific download logic. needs to be extracted to use them.
         await base.DownloadItemAsync(file, "modpacks", progress, cancellationToken);
     }
 }

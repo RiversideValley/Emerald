@@ -12,17 +12,14 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using Uno.Logging;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI;
 using SS = Emerald.Helpers.Settings.SettingsSystem;
 
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
-
 namespace Emerald.Views.Settings;
-/// <summary>
-/// An empty page that can be used on its own or navigated to within a Frame.
-/// </summary>
+
 public sealed partial class AppearancePage : Page
 {
 
@@ -78,23 +75,31 @@ public sealed partial class AppearancePage : Page
         Color.FromArgb(255, 126, 115, 95)
     };
 
+
     public AppearancePage()
     {
         InitializeComponent();
+        this.Log().Info("Initializing AppearancePage...");
+
 
         if (SS.Settings.App.Appearance.MicaTintColor == (int)Helpers.Settings.Enums.MicaTintColor.CustomColor)
         {
             if (SS.Settings.App.Appearance.CustomMicaTintColor != null)
             {
+                this.Log().Info("Custom Mica Tint Color found. Processing...");
                 var c = SS.Settings.App.Appearance.CustomMicaTintColor;
                 var cl = Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B);
 
                 if (TintColorsList.Contains(cl))
+                {
                     GVColorList.SelectedIndex = TintColorsList.IndexOf(cl);
+                    this.Log().Info($"Custom color matched: {cl}. Selected index: {GVColorList.SelectedIndex}");
+                }
                 else
                 {
                     TintColorsList.Add(cl);
                     GVColorList.SelectedIndex = TintColorsList.Count - 1;
+                    this.Log().Info($"Added new custom color: {cl}. Updated selected index: {GVColorList.SelectedIndex}");
                 }
             }
         }
@@ -103,13 +108,16 @@ public sealed partial class AppearancePage : Page
     private void GVColorList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var c = TintColorsList[GVColorList.SelectedIndex];
-
         SS.Settings.App.Appearance.MicaTintColor = (int)Helpers.Settings.Enums.MicaTintColor.CustomColor;
         SS.Settings.App.Appearance.CustomMicaTintColor = (c.A, c.R, c.G, c.B);
+
+        this.Log().Info($"Selected tint color changed to: {c}");
+
     }
 
     private void CustomTintColor_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
+
         var c = SS.Settings.App.Appearance.CustomMicaTintColor;
         var cp = new ColorPicker()
         {
@@ -134,12 +142,15 @@ public sealed partial class AppearancePage : Page
             if (TintColorsList.Contains(cl))
             {
                 GVColorList.SelectedIndex = TintColorsList.IndexOf(cl);
+                this.Log().Info($"Color already exists. Selected existing color: {cl}");
             }
             else
             {
                 TintColorsList.Add(cl);
                 GVColorList.SelectedIndex = TintColorsList.Count - 1;
+                this.Log().Info($"Added new color: {cl}. Updated selected index: {GVColorList.SelectedIndex}");
             }
+
         };
 
         _ = d.ShowAsync();

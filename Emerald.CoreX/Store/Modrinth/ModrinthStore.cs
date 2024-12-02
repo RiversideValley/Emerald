@@ -19,7 +19,7 @@ public abstract class ModrinthStore : IModrinthStore
     protected readonly ILogger _logger;
     protected readonly string _projectType;
     protected readonly FileDownloader _fileDownloader;
-    public MinecraftPath MCPath { get; }
+    public MinecraftPath MCPath { get; set; }
     public Category[] Categories { get; private set; } = [];
 
     /// <summary>

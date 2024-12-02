@@ -30,45 +30,29 @@ public sealed partial class GeneralPage : Page
     {
         this.InitializeComponent();
     }
-    private void btnChangeMPath_Click(object sender, RoutedEventArgs e)
+    private async void btnChangeMPath_Click(object sender, RoutedEventArgs e)
     {
-        //MinecraftPath mcP;
-        //string path = "";
-        //async void Start()
-        //{
-        //    var fop = new FolderPicker
-        //    {
-        //        CommitButtonText = "Select".Localize()
-        //    };
-        //    WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
-        //    var f = await fop.PickSingleFolderAsync();
+        this.Log().LogInformation("Choosing MC path");
+        string path;
 
-        //    if (f != null)
-        //        path = f.Path;
-        //    else
-        //        return;
+        var fop = new FolderPicker
+        {
+            CommitButtonText = "Select".Localize()
+        };
+        fop.FileTypeFilter.Add("*");
 
-        //    Try();
+        var f = await fop.PickSingleFolderAsync();
 
-        //    async void Try()
-        //    {
-        //        try
-        //        {
-        //            mcP = new(path);
-        //            SS.Settings.Minecraft.Path = path;
-        //            App.Current.Launcher.InitializeLauncher(mcP);
-        //        }
-        //        catch
-        //        {
-        //            var r = await MessageBox.Show("Error".Localize(), "MCPathFailed".Localize().Replace("{Path}", path), MessageBoxButtons.Custom, "Yes".Localize(), "SetDifMCPath".Localize());
-        //            if (r == MessageBoxResults.Yes)
-        //                Try();
-        //            else
-        //                Start();
-        //        }
-        //    }
-        //}
-        //Start();
+        if (f != null)
+            path = f.Path;
+        else
+        {
+            this.Log().LogInformation("User did not select a MC path");
+            return;
+        }
+
+        this.Log().LogInformation("New Minecraft path: {path}",path);
+        SS.Settings.Minecraft.Path = path;
     }
 
     private void btnRamPlus_Click(object sender, RoutedEventArgs e) =>

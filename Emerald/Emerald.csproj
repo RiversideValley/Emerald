@@ -39,8 +39,10 @@
       Lottie;
       Hosting;
       Toolkit;
+      Logging;
       Mvvm;
       Localization;
+      LoggingSerilog;
       ThemeService;
     </UnoFeatures>
   </PropertyGroup>

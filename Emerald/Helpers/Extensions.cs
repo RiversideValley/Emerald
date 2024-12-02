@@ -80,6 +80,7 @@ public static class Extensions
             } : content,
             RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme
         };
+        App.Current.Log().LogInformation("Created ContentDialog with title: {title}", title);
         return dialog;
     }
 
