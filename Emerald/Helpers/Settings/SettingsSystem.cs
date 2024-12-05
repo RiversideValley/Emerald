@@ -1,4 +1,5 @@
 using Emerald.Helpers.Settings.JSON;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System;
 using System.Collections.Generic;
@@ -7,105 +8,142 @@ using System.Threading.Tasks;
 using Windows.Storage;
 
 namespace Emerald.Helpers.Settings;
-
-public static class SettingsSystem
+public class SettingsSystem
 {
-    public static JSON.Settings Settings { get; private set; } = JSON.Settings.CreateNew();
-    public static Account[] Accounts { get; set; }
+    private readonly ILogger<SettingsSystem> _logger;
 
-    public static event EventHandler<string>? APINoMatch;
-//    public static T GetSerializedFromSettings<T>(string key, T def)
-//    {
-//        string json;
-//        try
-//        {
-//            json = ApplicationData.Current.RoamingSettings.Values[key] as string;
-//            return JsonSerializer.Deserialize<T>(json);
-//        }
-//        catch
-//        {
-//            json = JsonSerializer.Serialize(def);
-//            ApplicationData.Current.RoamingSettings.Values[key] = json;
-//            return def;
-//        }
-//    }
-//    public static void LoadData()
-//    {
-//        Settings = GetSerializedFromSettings("Settings", JSON.Settings.CreateNew());
-//        Accounts = GetSerializedFromSettings("Accounts", Array.Empty<Account>());
+    public JSON.Settings Settings { get; private set; }
+    public Account[] Accounts { get; set; }
 
-//        if (Settings.APIVersion != DirectResoucres.SettingsAPIVersion)
-//        {
-//            APINoMatch?.Invoke(null, ApplicationData.Current.RoamingSettings.Values["Settings"] as string);
-//            ApplicationData.Current.RoamingSettings.Values["Settings"] = JSON.Settings.CreateNew().Serialize();
-//            Settings = JsonSerializer.Deserialize<JSON.Settings>(ApplicationData.Current.RoamingSettings.Values["Settings"] as string);
-//        }
-//    }
+    public event EventHandler<string>? APINoMatch;
 
-//    public static async Task CreateBackup(string system)
-//    {
-//        string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
-//        var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonSerializer.Deserialize<Backups>(json);
+    public SettingsSystem(ILogger<SettingsSystem> logger)
+    {
+        _logger = logger;
+    }
 
-//        var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
-//        bl.Add(new SettingsBackup() { Time = DateTime.Now, Backup = system });
-//        l.AllBackups = bl.ToArray();
-//        json = l.Serialize();
+    public T GetSerializedFromSettings<T>(string key, T def)
+    {
+        try
+        {
+            string json = ApplicationData.Current.LocalSettings.Values[key] as string;
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                return JsonSerializer.Deserialize<T>(json);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deserializing key '{Key}' from settings", key);
+        }
 
-//        await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists), json);
-//    }
+        // Save default value if deserialization fails or key is missing
+        try
+        {
+            string json = JsonSerializer.Serialize(def);
+            ApplicationData.Current.LocalSettings.Values[key] = json;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error serializing default value for key '{Key}'", key);
+        }
 
-//    public static async Task DeleteBackup(int Index)
-//    {
-//        string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
-//        var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonSerializer.Deserialize<Backups>(json);
+        return def;
+    }
 
-//        var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
-//        bl.RemoveAt(Index);
-//        l.AllBackups = bl.ToArray();
-//        json = l.Serialize();
+    public void LoadData()
+    {
+        try
+        {
+            _logger.LogInformation("Loading settings and accounts.");
+            Settings = GetSerializedFromSettings("Settings", JSON.Settings.CreateNew());
+            Accounts = GetSerializedFromSettings("Accounts", Array.Empty<Account>());
 
-//        await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists), json);
-//    }
+            if (Settings.APIVersion != DirectResoucres.SettingsAPIVersion)
+            {
+                _logger.LogWarning("API version mismatch. Triggering APINoMatch event.");
+                APINoMatch?.Invoke(this, ApplicationData.Current.LocalSettings.Values["Settings"] as string);
+                ApplicationData.Current.LocalSettings.Values["Settings"] = JSON.Settings.CreateNew().Serialize();
+                Settings = JsonSerializer.Deserialize<JSON.Settings>(ApplicationData.Current.LocalSettings.Values["Settings"] as string);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading settings data.");
+        }
+    }
 
-//    public static async Task DeleteBackup(DateTime time)
-//    {
-//        string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
-//        var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonSerializer.Deserialize<Backups>(json);
+    public async Task CreateBackup(string system)
+    {
+        try
+        {
+            string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
+            var backups = string.IsNullOrWhiteSpace(json) ? new Backups() : JsonSerializer.Deserialize<Backups>(json);
 
-//        var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
-//        bl.Remove(x => x.Time == time);
-//        l.AllBackups = bl.ToArray();
-//        json = l.Serialize();
+            backups.AllBackups ??= Array.Empty<SettingsBackup>();
+            backups.AllBackups = backups.AllBackups.Append(new SettingsBackup { Time = DateTime.Now, Backup = system }).ToArray();
 
-//        await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists), json);
-//    }
-//    public static async Task RenameBackup(DateTime time, string name)
-//    {
-//        string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
-//        var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonSerializer.Deserialize<Backups>(json);
+            json = backups.Serialize();
+            await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists), json);
 
-//        var bl = l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
-//        bl.FirstOrDefault(x => x.Time == time).Name = name;
-//        l.AllBackups = bl.ToArray();
-//        json = l.Serialize();
+            _logger.LogInformation("Backup created successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating backup.");
+        }
+    }
 
-//        await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists), json);
-//    }
+    public async Task DeleteBackup(int index)
+    {
+        try
+        {
+            string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
+            var backups = string.IsNullOrWhiteSpace(json) ? new Backups() : JsonSerializer.Deserialize<Backups>(json);
 
-//    public static async Task<List<SettingsBackup>> GetBackups()
-//    {
-//        string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
-//        var l = json.IsNullEmptyOrWhiteSpace() ? new Backups() : JsonSerializer.Deserialize<Backups>(json);
+            backups.AllBackups?.ToList().RemoveAt(index);
+            json = backups.Serialize();
 
-//        return l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
-//    }
+            await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists), json);
 
-//    public static void SaveData()
-//    {
-//        Settings.LastSaved = DateTime.Now;
-//        ApplicationData.Current.RoamingSettings.Values["Settings"] = Settings.Serialize();
-//        ApplicationData.Current.RoamingSettings.Values["Accounts"] = JsonSerializer.Serialize(Accounts);
-//    }
-//}
+            _logger.LogInformation("Backup at index {Index} deleted successfully.", index);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting backup at index {Index}.", index);
+        }
+    }
+
+    public async Task<List<SettingsBackup>> GetBackups()
+    {
+        try
+        {
+            string json = await FileIO.ReadTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("backups.json", CreationCollisionOption.OpenIfExists));
+            var backups = string.IsNullOrWhiteSpace(json) ? new Backups() : JsonSerializer.Deserialize<Backups>(json);
+
+            _logger.LogInformation("Backups retrieved successfully.");
+            return backups.AllBackups?.ToList() ?? [];
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving backups.");
+            return [];
+        }
+    }
+
+    public void SaveData()
+    {
+        try
+        {
+            Settings.LastSaved = DateTime.Now;
+            ApplicationData.Current.LocalSettings.Values["Settings"] = JsonSerializer.Serialize(Settings);
+            ApplicationData.Current.LocalSettings.Values["Accounts"] = JsonSerializer.Serialize(Accounts);
+
+            _logger.LogInformation("Settings and accounts saved successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving data.");
+        }
+    }
 }

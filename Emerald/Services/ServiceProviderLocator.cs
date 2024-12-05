@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CommonServiceLocator;
 
-namespace Emerald.Helpers.Services;
+namespace Emerald.Services;
 
 //Bruh I can't get uno services to work. help me.
 

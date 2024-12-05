@@ -1,3 +1,4 @@
+using CommonServiceLocator;
 using Emerald.Helpers;
 using Emerald.Models;
 using Emerald.Views.Settings;
@@ -5,14 +6,15 @@ using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 using Windows.UI;
-using SS = Emerald.Helpers.Settings.SettingsSystem;
 
 namespace Emerald;
 
 public sealed partial class MainPage : Page
 {
+    private readonly Helpers.Settings.SettingsSystem SS;
     public MainPage()
     {
+        SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
         this.InitializeComponent();
         this.Loaded += MainPage_Loaded;
         NavView.ItemInvoked += MainNavigationView_ItemInvoked;

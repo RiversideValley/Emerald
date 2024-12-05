@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using CommonServiceLocator;
 using Emerald.Helpers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -16,7 +17,6 @@ using Uno.Logging;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI;
-using SS = Emerald.Helpers.Settings.SettingsSystem;
 
 namespace Emerald.Views.Settings;
 
@@ -75,12 +75,13 @@ public sealed partial class AppearancePage : Page
         Color.FromArgb(255, 126, 115, 95)
     };
 
-
+    private readonly Helpers.Settings.SettingsSystem SS;
     public AppearancePage()
     {
         InitializeComponent();
         this.Log().Info("Initializing AppearancePage...");
 
+        SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
 
         if (SS.Settings.App.Appearance.MicaTintColor == (int)Helpers.Settings.Enums.MicaTintColor.CustomColor)
         {

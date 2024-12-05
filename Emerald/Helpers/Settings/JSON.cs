@@ -13,7 +13,7 @@ namespace Emerald.Helpers.Settings.JSON;
 public class JSON : Models.Model
 {
     public string Serialize()
-        => JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+        => JsonSerializer.Serialize(this);
 }
 
 public class SettingsBackup : JSON
@@ -58,7 +58,7 @@ public class Settings : JSON
         }
     };
 
-   // public string APIVersion { get; set; } = DirectResoucres.SettingsAPIVersion;
+    public string APIVersion { get; set; } = DirectResoucres.SettingsAPIVersion;
     public DateTime LastSaved { get; set; } = DateTime.Now;
     public Minecraft Minecraft { get; set; } = new();
 

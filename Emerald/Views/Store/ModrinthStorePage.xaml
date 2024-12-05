@@ -1,0 +1,130 @@
+﻿<Page
+    x:Class="Emerald.Views.Store.ModrinthStorePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Emerald.Views.Store"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+   xmlns:helpers="using:Emerald.Helpers">
+
+  <!--<Grid
+        Margin="24,0,24,24"
+        CornerRadius="{StaticResource ControlCornerRadius}"
+        x:Name="MainGrid">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="auto"/>
+    </Grid.ColumnDefinitions>
+    <Grid>
+      <Grid.ChildrenTransitions>
+        <TransitionCollection>
+          <AddDeleteThemeTransition/>
+        </TransitionCollection>
+      </Grid.ChildrenTransitions>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="auto"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+      <Border
+                    Height="Auto"
+                    Margin="12,0,12,12"
+                    Padding="12"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+          </Grid.ColumnDefinitions>
+          <TextBox VerticalAlignment="Center" Grid.Column="0" PlaceholderText="{helpers:Localize Name=Search}" x:Name="txtSearch" TextChanged="txtSearch_TextChanged" MinWidth="20" />
+          <StackPanel Grid.Column="1" Orientation="Horizontal">
+            <DropDownButton Margin="5,0" Content="Sort By">
+              <DropDownButton.Flyout>
+                <MenuFlyout Placement="Bottom">
+                  <RadioMenuFlyoutItem IsChecked="{Binding App.Store.SortOptions.Relevance,Mode=TwoWay}" Text="Relevance"/>
+                  <RadioMenuFlyoutItem IsChecked="{Binding App.Store.SortOptions.Downloads,Mode=TwoWay}" Text="Downloads"/>
+                  <RadioMenuFlyoutItem IsChecked="{Binding App.Store.SortOptions.Follows,Mode=TwoWay}" Text="Follows"/>
+                  <RadioMenuFlyoutItem IsChecked="{Binding App.Store.SortOptions.Updated,Mode=TwoWay}" Text="Updated"/>
+                  <RadioMenuFlyoutItem IsChecked="{Binding App.Store.SortOptions.Newest,Mode=TwoWay}" Text="Newest"/>
+                </MenuFlyout>
+              </DropDownButton.Flyout>
+            </DropDownButton>
+            <DropDownButton Content="{helpers:Localize Name=Categories}">
+              <DropDownButton.Flyout>
+                <MenuFlyout x:Name="CategoriesFlyout" Placement="Bottom">
+                </MenuFlyout>
+              </DropDownButton.Flyout>
+            </DropDownButton>
+          </StackPanel>
+        </Grid>
+      </Border>
+      <Grid Grid.Row="1">
+        <GridView
+                        Padding="12,0"
+                        Margin="0,12,6,12"
+                        x:Name="storeItemsGrid"
+                        SelectionMode="None"
+                        IsItemClickEnabled="False"
+                        StretchContentForSingleRow="True"
+                        animations:ItemsReorderAnimation.Duration="00:00:00.5000000">
+          <ToolKit:AdaptiveGridView.ItemTemplate>
+            <DataTemplate x:DataType="models:StoreItem">
+              <Button VerticalAlignment="Stretch" BorderThickness="0" Click="StoreItem_Click" HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" MinWidth="0">
+                <Grid HorizontalAlignment="Stretch">
+                  <Grid HorizontalAlignment="Left">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="auto"/>
+                      <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid VerticalAlignment="Center" Margin="6,6,16,6">
+                      <Border  Margin="0,10" Padding="0" CornerRadius="4">
+                        <Image Stretch="UniformToFill" HorizontalAlignment="Left" Source="{x:Bind Icon}" Width="96" Height="96"/>
+                      </Border>
+                    </Grid>
+                    <Grid Margin="0,16,0,0" Grid.Column="1">
+                      <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                      </Grid.RowDefinitions>
+                      <StackPanel Orientation="Vertical" Grid.Row="0">
+                        <TextBlock FontWeight="SemiBold" FontSize="20" TextTrimming="CharacterEllipsis" Text="{x:Bind Name}"/>
+                        <TextBlock VerticalAlignment="Bottom" Style="{ThemeResource CaptionTextBlockStyle}">
+                                            By <Run  Text="{x:Bind Author}" />
+                        </TextBlock>
+                        <TextBlock VerticalAlignment="Bottom" Style="{ThemeResource CaptionTextBlockStyle}">
+                                            <Run Text="&#xe896;" FontFamily="{ThemeResource SymbolThemeFontFamily}"/> 
+                                            <Run Text="{x:Bind TotalDownloadsString}"/> 
+                                            Downloads | 
+                                            <Run Text="{x:Bind FollowersString}"/> 
+                                            Followers
+                        </TextBlock>
+                      </StackPanel>
+                      <TextBlock MaxHeight="65" TextWrapping="WrapWholeWords" MaxLines="2" TextTrimming="CharacterEllipsis" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}" Grid.Row="1" Text="{x:Bind Description}"/>
+                    </Grid>
+                  </Grid>
+                </Grid>
+              </Button>
+            </DataTemplate>
+          </ToolKit:AdaptiveGridView.ItemTemplate>
+        </GridView>
+        <StackPanel x:Name="pnlEmpty" 
+                                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                CornerRadius="8"
+                                BorderThickness="1"
+                                Padding="16"
+                                VerticalAlignment="Center" 
+                                HorizontalAlignment="Center">
+          <TextBlock HorizontalAlignment="Center" Text="{helpers:Localize Name=Whoops}" FontSize="25" FontWeight="SemiBold"/>
+          <TextBlock TextAlignment="Center" TextWrapping="WrapWholeWords" Text="{helpers:Localize Name=ModsNoInternet}"/>
+        </StackPanel>
+      </Grid>
+    </Grid>
+    <Frame CornerRadius="4" Grid.Column="1" Background="{ThemeResource LayerFillColorDefaultBrush}" x:Name="Pane">
+
+    </Frame>
+  </Grid>-->
+</Page>

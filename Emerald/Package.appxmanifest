@@ -7,13 +7,13 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="Emerald"
+    Name="Riverside.Emerald"
     Publisher="O=Riverside Valley"
     Version="1.0.0.0" />
 
   <Properties>
     <DisplayName>Emerald</DisplayName>
-    <PublisherDisplayName>Emerald</PublisherDisplayName>
+    <PublisherDisplayName>Riverside Valley</PublisherDisplayName>
   </Properties>
 
   <Dependencies>
@@ -33,6 +33,7 @@
         DisplayName="Emerald"
         Description="Emerald">
         <uap:SplashScreen />
+        <uap:DefaultTile/>
       </uap:VisualElements>
     </Application>
   </Applications>

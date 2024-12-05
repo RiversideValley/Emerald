@@ -13,8 +13,8 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System.Collections.ObjectModel;
-using SS = Emerald.Helpers.Settings.SettingsSystem;
 using Emerald.Models;
+using CommonServiceLocator;
 
 
 namespace Emerald.UserControls;
@@ -23,8 +23,10 @@ namespace Emerald.UserControls;
     public sealed partial class ArgumentsListView : UserControl
     {
         private int count = 0;
+    private readonly Helpers.Settings.SettingsSystem SS;
         public ArgumentsListView()
         {
+        SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
             InitializeComponent();
             view.ItemsSource = Source;
             UpdateSource();

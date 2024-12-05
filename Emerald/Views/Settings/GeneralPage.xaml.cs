@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using CmlLib.Core;
+using CommonServiceLocator;
 using CommunityToolkit.WinUI.Controls;
 using Emerald.Helpers;
 using Microsoft.UI.Xaml;
@@ -26,8 +27,10 @@ namespace Emerald.Views.Settings;
 /// </summary>
 public sealed partial class GeneralPage : Page
 {
+    private readonly Helpers.Settings.SettingsSystem SS;
     public GeneralPage()
     {
+        SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
         this.InitializeComponent();
     }
     private async void btnChangeMPath_Click(object sender, RoutedEventArgs e)
