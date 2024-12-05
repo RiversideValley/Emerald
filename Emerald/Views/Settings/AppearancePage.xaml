@@ -78,25 +78,18 @@
                     Value="2" />
                 </Style>
               </GridView.ItemContainerStyle>
-              <GridView.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <ItemsWrapGrid
-                    MaximumRowsOrColumns="12"
-                    Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-              </GridView.ItemsPanel>
               <GridView.ItemTemplate>
                 <DataTemplate
                   x:DataType="windowsui:Color">
-                  <Border
+                  <Grid
                     Width="48"
                     Height="48"
                     CornerRadius="6">
-                    <Border.Background>
+                    <Grid.Background>
                       <SolidColorBrush
                         Color="{x:Bind}" />
-                    </Border.Background>
-                  </Border>
+                    </Grid.Background>
+                  </Grid>
                 </DataTemplate>
               </GridView.ItemTemplate>
             </GridView>

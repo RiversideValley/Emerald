@@ -34,10 +34,10 @@ public static class Extensions
 
     public static int? GetMemoryGB()
     {
-        SystemMemoryUsageReport? systemMemoryUsageReport = SystemDiagnosticInfo.GetForCurrentSystem()?.MemoryUsage?.GetReport();
 
         try
         {
+        SystemMemoryUsageReport? systemMemoryUsageReport = SystemDiagnosticInfo.GetForCurrentSystem()?.MemoryUsage?.GetReport();
             long memkb = Convert.ToInt64(systemMemoryUsageReport?.TotalPhysicalSizeInBytes);
             return Convert.ToInt32(memkb / Math.Pow(1024, 3));
         }
