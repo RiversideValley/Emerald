@@ -75,13 +75,29 @@ public sealed partial class AppearancePage : Page
         Color.FromArgb(255, 126, 115, 95)
     };
 
+
+/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
+Before:
     private readonly Helpers.Settings.SettingsSystem SS;
+    public AppearancePage()
+After:
+    private readonly SettingsSystem SS;
+    public AppearancePage()
+*/
+    private readonly Services.SettingsService SS;
     public AppearancePage()
     {
         InitializeComponent();
         this.Log().Info("Initializing AppearancePage...");
 
+
+/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
+Before:
         SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
+After:
+        SS = ServiceLocator.Current.GetInstance<SettingsSystem>();
+*/
+        SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
 
         if (SS.Settings.App.Appearance.MicaTintColor == (int)Helpers.Settings.Enums.MicaTintColor.CustomColor)
         {

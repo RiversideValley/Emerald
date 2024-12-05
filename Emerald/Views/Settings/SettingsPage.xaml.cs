@@ -28,7 +28,6 @@ public sealed partial class SettingsPage : Page
                 break;
             case "About":
                 throw new NotImplementedException();
-                break;
             default:
                 NavigateOnce(typeof(GeneralPage));
                 break;

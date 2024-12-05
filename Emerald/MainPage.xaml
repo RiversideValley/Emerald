@@ -65,6 +65,7 @@
         <DataTemplate x:DataType="models:SquareNavigationViewItem">
           <NavigationViewItem
                         Height="64"
+            x:DefaultBindMode="OneWay"
                         IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
                         IsSelected="{x:Bind IsSelected, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
                         Tag="{x:Bind Name}">
@@ -89,20 +90,17 @@
                                 VerticalAlignment="Top"
                                 Content="{x:Bind InfoBadge}" />
               <Image
-                    x:Load="{x:Bind SS.Settings.App.Appearance.NavIconType.Equals(1), Mode=OneWay}"
                                 x:Name="Image"
                                 Width="28"
                                 Height="28"
+                                Visibility="{x:Bind ImageVisibility}"
                                 Source="{x:Bind Thumbnail}" />
               <FontIcon
-                                x:Name="fontIcon"
-                    x:Load="{x:Bind SS.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                                 Visibility="{x:Bind FontIconVisibility}"
                                 FontSize="22"
+                Foreground="{ThemeResource SystemBaseMediumColor}"
                                 Glyph="{x:Bind FontIconGlyph}" />
               <FontIcon
-                                x:Name="fontIconSolid"
-                    x:Load="{x:Bind SS.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                                 Visibility="{x:Bind SolidFontIconVisibility}"
                                 FontSize="22"
                                 Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"

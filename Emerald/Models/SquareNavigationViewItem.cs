@@ -6,31 +6,45 @@ namespace Emerald.Models;
 
 public partial class SquareNavigationViewItem : Model
 {
-    public Helpers.Settings.SettingsSystem SS { get; private set; }
+
+/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
+Before:
+    private readonly Helpers.Settings.SettingsSystem SS;
+    public SquareNavigationViewItem()
+After:
+    private readonly SettingsSystem SS;
+    public SquareNavigationViewItem()
+*/
+    private readonly Services.SettingsService SS;
     public SquareNavigationViewItem()
     {
+
+/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
+Before:
         SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
         PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(IsSelected) || e.PropertyName == nameof(ShowFontIcons))
-            {
-                InvokePropertyChanged(null);
-            }
-        };
-    }
-    public SquareNavigationViewItem(string name, bool isSelected = false, ImageSource image = null, InfoBadge infoBadge = null)
-    {
-        Name = name;
-        IsSelected = isSelected;
-        Thumbnail = image;
-        InfoBadge = infoBadge;
+After:
+        SS = ServiceLocator.Current.GetInstance<SettingsSystem>();
+        PropertyChanged += (_, e) =>
+*/
+        SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
         PropertyChanged += (_, e) =>
         {
+            //idk why I did this
             if (e.PropertyName == nameof(IsSelected) || e.PropertyName == nameof(ShowFontIcons))
             {
                 InvokePropertyChanged(null);
             }
         };
+
+        SS.Settings.App.Appearance.PropertyChanged += (_, e) =>
+        {
+            InvokePropertyChanged(null);
+        };
+    }
+    public SquareNavigationViewItem(string name) : this()
+    {
+        Name = name;
     }
     public string Tag { get; set; }
 
@@ -50,17 +64,18 @@ public partial class SquareNavigationViewItem : Model
     private bool _IsEnabled = true;
 
     [ObservableProperty]
-    private ImageSource _Thumbnail;
+    private string _Thumbnail;
 
     [ObservableProperty]
     private InfoBadge _InfoBadge;
 
-    [ObservableProperty]
-    private bool _ShowFontIcons;
 
+    private bool ShowFontIcons => SS.Settings.App.Appearance.ShowFontIcons;
+
+    //Using Converters is a pain in uno.
     public Visibility FontIconVisibility => ShowFontIcons && !IsSelected ? Visibility.Visible : Visibility.Collapsed;
     public Visibility SolidFontIconVisibility => ShowFontIcons && IsSelected ? Visibility.Visible : Visibility.Collapsed;
     public Visibility SelectionVisibility => IsSelected ? Visibility.Collapsed : Visibility.Visible;
+    public Visibility ImageVisibility => ShowFontIcons ? Visibility.Collapsed : Visibility.Visible;
     
-    public bool ShowThumbnail => !ShowFontIcons;
 }

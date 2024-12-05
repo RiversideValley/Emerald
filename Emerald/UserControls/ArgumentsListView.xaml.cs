@@ -19,76 +19,77 @@ using CommonServiceLocator;
 
 namespace Emerald.UserControls;
 
-    //Copied from Emerald.UWP
-    public sealed partial class ArgumentsListView : UserControl
+//Copied from Emerald.UWP
+public sealed partial class ArgumentsListView : UserControl
+{
+    private int count = 0;
+
+    private readonly Services.SettingsService SS;
+    public ArgumentsListView()
     {
-        private int count = 0;
-    private readonly Helpers.Settings.SettingsSystem SS;
-        public ArgumentsListView()
-        {
-        SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
-            InitializeComponent();
-            view.ItemsSource = Source;
-            UpdateSource();
-        }
-
-        private ObservableCollection<ArgTemplate> Source = new();
-        private void btnAdd_Click(object sender, RoutedEventArgs e)
-        {
-            count++;
-            var r = new ArgTemplate { Arg = "", Count = count };
-            Source.Add(r);
-            UpdateMainSource();
-            view.SelectedItem = r;
-        }
-        public void UpdateSource()
-        {
-            Source.Clear();
-            if (SS.Settings.Minecraft.JVM.Arguments != null)
-            {
-                foreach (var item in SS.Settings.Minecraft.JVM.Arguments)
-                {
-                    count++;
-                    var r = new ArgTemplate { Arg = item, Count = count };
-                    r.PropertyChanged += (_, _) =>
-                    {
-                        UpdateMainSource();
-                    };
-                    Source.Add(r);
-                }
-            }
-            btnRemove.IsEnabled = Source.Any();
-        }
-        private void UpdateMainSource() =>
-            SS.Settings.Minecraft.JVM.Arguments = Source.Select(x => x.Arg).ToArray();
-
-        private void btnRemove_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (var item in view.SelectedItems)
-            {
-                Source.Remove((ArgTemplate)item);
-            }
-            UpdateMainSource();
-        }
-
-        private void TextBox_PointerPressed(object sender, PointerRoutedEventArgs e)
-        {
-            view.SelectedIndex = Source.IndexOf(Source.FirstOrDefault(x => x.Count == ((sender as FrameworkElement).DataContext as ArgTemplate).Count));
-        }
-
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            view.SelectedIndex = Source.IndexOf(Source.FirstOrDefault(x => x.Count == ((sender as FrameworkElement).DataContext as ArgTemplate).Count));
-            UpdateMainSource();
-        }
-
-        private void TextBox_GotFocus(object sender, RoutedEventArgs e)
-        {
-            view.SelectedIndex = Source.IndexOf(Source.FirstOrDefault(x => x.Count == ((sender as FrameworkElement).DataContext as ArgTemplate).Count));
-        }
-
-        private void view_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            btnRemove.IsEnabled = view.SelectedItems.Any();
-        }
+        SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
+        InitializeComponent();
+        view.ItemsSource = Source;
+        UpdateSource();
     }
+
+    private ObservableCollection<ArgTemplate> Source = new();
+    private void btnAdd_Click(object sender, RoutedEventArgs e)
+    {
+        count++;
+        var r = new ArgTemplate { Arg = "", Count = count };
+        Source.Add(r);
+        UpdateMainSource();
+        view.SelectedItem = r;
+    }
+    public void UpdateSource()
+    {
+        Source.Clear();
+        if (SS.Settings.Minecraft.JVM.Arguments != null)
+        {
+            foreach (var item in SS.Settings.Minecraft.JVM.Arguments)
+            {
+                count++;
+                var r = new ArgTemplate { Arg = item, Count = count };
+                r.PropertyChanged += (_, _) =>
+                {
+                    UpdateMainSource();
+                };
+                Source.Add(r);
+            }
+        }
+        btnRemove.IsEnabled = Source.Any();
+    }
+    private void UpdateMainSource() =>
+        SS.Settings.Minecraft.JVM.Arguments = Source.Select(x => x.Arg).ToArray();
+
+    private void btnRemove_Click(object sender, RoutedEventArgs e)
+    {
+        foreach (var item in view.SelectedItems)
+        {
+            Source.Remove((ArgTemplate)item);
+        }
+        UpdateMainSource();
+    }
+
+    private void TextBox_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        view.SelectedIndex = Source.IndexOf(Source.FirstOrDefault(x => x.Count == ((sender as FrameworkElement).DataContext as ArgTemplate).Count));
+    }
+
+    private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        view.SelectedIndex = Source.IndexOf(Source.FirstOrDefault(x => x.Count == ((sender as FrameworkElement).DataContext as ArgTemplate).Count));
+        UpdateMainSource();
+    }
+
+    private void TextBox_GotFocus(object sender, RoutedEventArgs e)
+    {
+        view.SelectedIndex = Source.IndexOf(Source.FirstOrDefault(x => x.Count == ((sender as FrameworkElement).DataContext as ArgTemplate).Count));
+    }
+
+    private void view_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        btnRemove.IsEnabled = view.SelectedItems.Any();
+    }
+}

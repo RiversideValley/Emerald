@@ -11,10 +11,28 @@ namespace Emerald;
 
 public sealed partial class MainPage : Page
 {
+
+/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
+Before:
     private readonly Helpers.Settings.SettingsSystem SS;
     public MainPage()
+After:
+    private readonly SettingsSystem SS;
+    public MainPage()
+*/
+    private readonly Services.SettingsService SS;
+    public MainPage()
     {
+
+/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
+Before:
         SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
+        this.InitializeComponent();
+After:
+        SS = ServiceLocator.Current.GetInstance<SettingsSystem>();
+        this.InitializeComponent();
+*/
+        SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
         this.InitializeComponent();
         this.Loaded += MainPage_Loaded;
         NavView.ItemInvoked += MainNavigationView_ItemInvoked;
@@ -61,7 +79,8 @@ public sealed partial class MainPage : Page
             }
         }
         TintColor();
-        
+        this.GetThemeService().SetThemeAsync((AppTheme)SS.Settings.App.Appearance.Theme);
+
         //Mica (Windows 11)
         var mica = WindowManager.IntializeWindow(App.Current.MainWindow);
 #if WINDOWS
@@ -78,52 +97,52 @@ public sealed partial class MainPage : Page
 
         NavView.MenuItems.Add(new SquareNavigationViewItem("Home".Localize())
         {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/home.png",
             FontIconGlyph = "\xE80F",
             Tag = "Home",
             SolidFontIconGlyph = "\xEA8A",
-            IsSelected = true,
-            ShowFontIcons = true
+            IsSelected = true
         });
         NavView.MenuItems.Add(new SquareNavigationViewItem("Store".Localize())
         {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/store.png",
             Tag = "Store",
             FontIconGlyph = "\xE7BF",
             SolidFontIconGlyph = "\xE7BF",
-            IsSelected = false,
-            ShowFontIcons = true
+            IsSelected = false
         });
         NavView.MenuItems.Add(new SquareNavigationViewItem("News".Localize())
         {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/news.png",
             Tag = "News",
             FontIconGlyph = "\xF57E",
             SolidFontIconGlyph = "\xF57E",
-            IsSelected = false,
-            ShowFontIcons = true
+            IsSelected = false
         });
 
         NavView.FooterMenuItems.Add(new SquareNavigationViewItem("Tasks".Localize())
         {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/tasks.png",
             Tag = "Tasks",
             FontIconGlyph = "\xE9D5",
             SolidFontIconGlyph = "\xE9D5",
-            IsSelected = false,
-            ShowFontIcons = true
+            IsSelected = false
         });
         NavView.FooterMenuItems.Add(new SquareNavigationViewItem("Logs".Localize())
         {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/logs.png",
             Tag = "Logs",
             FontIconGlyph = "\xE756",
             SolidFontIconGlyph = "\xE756",
-            IsSelected = false,
-            ShowFontIcons = true
+            IsSelected = false
         });
         NavView.FooterMenuItems.Add(new SquareNavigationViewItem("Settings".Localize())
         {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/settings.png",
             Tag = "Settings",
             FontIconGlyph = "\xE713",
             SolidFontIconGlyph = "\xE713",
-            IsSelected = false,
-            ShowFontIcons = true
+            IsSelected = false
         });
 
         NavView.SelectedItem = NavView.MenuItems[0];
@@ -139,8 +158,8 @@ public sealed partial class MainPage : Page
 #if WINDOWS
         Emerald.Helpers.WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
 #endif
-        InitializeNavView();
         InitializeAppearance();
+        InitializeNavView();
     }
 
     private  Thickness GetNavViewHeaderMargin()
