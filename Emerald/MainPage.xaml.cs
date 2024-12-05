@@ -11,10 +11,10 @@ namespace Emerald;
 
 public sealed partial class MainPage : Page
 {
-    private readonly Helpers.Settings.SettingsSystem SS;
+    private readonly Services.SettingsService SS;
     public MainPage()
     {
-        SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
+        SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
         this.InitializeComponent();
         this.Loaded += MainPage_Loaded;
         NavView.ItemInvoked += MainNavigationView_ItemInvoked;
@@ -52,16 +52,17 @@ public sealed partial class MainPage : Page
                     break;
                 case Helpers.Settings.Enums.MicaTintColor.CustomColor:
                     var c = SS.Settings.App.Appearance.CustomMicaTintColor;
-                    MainGrid.Background = new SolidColorBrush() 
-                    { 
-                        Color = c == null ? Color.FromArgb(255, 234, 0, 94) : Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B),
+                    MainGrid.Background = new SolidColorBrush()
+                    {
+                        Color = c ?? Color.FromArgb(255, 234, 0, 94),
                         Opacity = (double)SS.Settings.App.Appearance.TintOpacity / 100
                     };
                     break;
             }
         }
         TintColor();
-        
+        this.GetThemeService().SetThemeAsync((AppTheme)SS.Settings.App.Appearance.Theme);
+
         //Mica (Windows 11)
         var mica = WindowManager.IntializeWindow(App.Current.MainWindow);
 #if WINDOWS
@@ -78,52 +79,52 @@ public sealed partial class MainPage : Page
 
         NavView.MenuItems.Add(new SquareNavigationViewItem("Home".Localize())
         {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/home.png",
             FontIconGlyph = "\xE80F",
             Tag = "Home",
             SolidFontIconGlyph = "\xEA8A",
-            IsSelected = true,
-            ShowFontIcons = true
+            IsSelected = true
         });
         NavView.MenuItems.Add(new SquareNavigationViewItem("Store".Localize())
         {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/store.png",
             Tag = "Store",
             FontIconGlyph = "\xE7BF",
             SolidFontIconGlyph = "\xE7BF",
-            IsSelected = false,
-            ShowFontIcons = true
+            IsSelected = false
         });
         NavView.MenuItems.Add(new SquareNavigationViewItem("News".Localize())
         {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/news.png",
             Tag = "News",
             FontIconGlyph = "\xF57E",
             SolidFontIconGlyph = "\xF57E",
-            IsSelected = false,
-            ShowFontIcons = true
+            IsSelected = false
         });
 
         NavView.FooterMenuItems.Add(new SquareNavigationViewItem("Tasks".Localize())
         {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/tasks.png",
             Tag = "Tasks",
             FontIconGlyph = "\xE9D5",
             SolidFontIconGlyph = "\xE9D5",
-            IsSelected = false,
-            ShowFontIcons = true
+            IsSelected = false
         });
         NavView.FooterMenuItems.Add(new SquareNavigationViewItem("Logs".Localize())
         {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/logs.png",
             Tag = "Logs",
             FontIconGlyph = "\xE756",
             SolidFontIconGlyph = "\xE756",
-            IsSelected = false,
-            ShowFontIcons = true
+            IsSelected = false
         });
         NavView.FooterMenuItems.Add(new SquareNavigationViewItem("Settings".Localize())
         {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/settings.png",
             Tag = "Settings",
             FontIconGlyph = "\xE713",
             SolidFontIconGlyph = "\xE713",
-            IsSelected = false,
-            ShowFontIcons = true
+            IsSelected = false
         });
 
         NavView.SelectedItem = NavView.MenuItems[0];
@@ -139,8 +140,8 @@ public sealed partial class MainPage : Page
 #if WINDOWS
         Emerald.Helpers.WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
 #endif
-        InitializeNavView();
         InitializeAppearance();
+        InitializeNavView();
     }
 
     private  Thickness GetNavViewHeaderMargin()

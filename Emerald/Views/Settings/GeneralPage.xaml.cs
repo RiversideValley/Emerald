@@ -18,7 +18,7 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage.Pickers;
 
-using SS = Emerald.Helpers.Settings.SettingsSystem;
+using SS = Emerald.Services.SettingsService;
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace Emerald.Views.Settings;
@@ -27,10 +27,28 @@ namespace Emerald.Views.Settings;
 /// </summary>
 public sealed partial class GeneralPage : Page
 {
+
+/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
+Before:
     private readonly Helpers.Settings.SettingsSystem SS;
     public GeneralPage()
+After:
+    private readonly SS SS;
+    public GeneralPage()
+*/
+    private readonly Services.SettingsService SS;
+    public GeneralPage()
     {
+
+/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
+Before:
         SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
+        this.InitializeComponent();
+After:
+        SS = ServiceLocator.Current.GetInstance<SS>();
+        this.InitializeComponent();
+*/
+        SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
         this.InitializeComponent();
     }
     private async void btnChangeMPath_Click(object sender, RoutedEventArgs e)

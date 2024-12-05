@@ -75,13 +75,14 @@ public sealed partial class AppearancePage : Page
         Color.FromArgb(255, 126, 115, 95)
     };
 
-    private readonly Helpers.Settings.SettingsSystem SS;
+
+    private readonly Services.SettingsService SS;
     public AppearancePage()
     {
         InitializeComponent();
         this.Log().Info("Initializing AppearancePage...");
 
-        SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
+        SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
 
         if (SS.Settings.App.Appearance.MicaTintColor == (int)Helpers.Settings.Enums.MicaTintColor.CustomColor)
         {
@@ -110,7 +111,7 @@ public sealed partial class AppearancePage : Page
     {
         var c = TintColorsList[GVColorList.SelectedIndex];
         SS.Settings.App.Appearance.MicaTintColor = (int)Helpers.Settings.Enums.MicaTintColor.CustomColor;
-        SS.Settings.App.Appearance.CustomMicaTintColor = (c.A, c.R, c.G, c.B);
+        SS.Settings.App.Appearance.CustomMicaTintColor = c;
 
         this.Log().Info($"Selected tint color changed to: {c}");
 

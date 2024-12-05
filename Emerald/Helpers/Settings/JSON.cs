@@ -351,7 +351,7 @@ public partial class Appearance : JSON
     private int _MicaType = 0;
 
     [ObservableProperty]
-    private (int A, int R, int G, int B)? _CustomMicaTintColor;
+    private Color? _CustomMicaTintColor;
 
 
     [ObservableProperty]

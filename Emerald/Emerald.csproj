@@ -49,6 +49,12 @@
 
   <ItemGroup>
     <None Remove="Assets\icon.png" />
+    <None Remove="Assets\NavigationViewIcons\home.png" />
+    <None Remove="Assets\NavigationViewIcons\logs.png" />
+    <None Remove="Assets\NavigationViewIcons\news.png" />
+    <None Remove="Assets\NavigationViewIcons\settings.png" />
+    <None Remove="Assets\NavigationViewIcons\store.png" />
+    <None Remove="Assets\NavigationViewIcons\tasks.png" />
     <None Remove="UserControls\ArgumentsListView.xaml" />
     <None Remove="UserControls\Titlebar.xaml" />
     <None Remove="Views\Settings\AppearancePage.xaml" />

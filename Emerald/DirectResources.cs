@@ -33,6 +33,17 @@ public static class DirectResoucres
 #endif
         }
     }
+    public static string LocalDataPath
+    {
+        get
+        {
+#if WINDOWS
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Emerald");
+#else
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Emerald");
+#endif
+        }
+    }
     public static string BuildType
     {
         get

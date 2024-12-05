@@ -129,7 +129,16 @@ public partial class MessageBox : ContentDialog
     public static async Task<MessageBoxResults> Show(string title, string caption, MessageBoxButtons buttons, string customResult1 = null, string customResult2 = null, bool waitUntilOpens = true)
     {
         var theme = ServiceLocator.IsLocationProviderSet ? 
+
+/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
+Before:
             (ElementTheme)ServiceLocator.Current.GetInstance<Settings.SettingsSystem>().Settings.App.Appearance.Theme :
+            ElementTheme.Default;
+After:
+            (ElementTheme)ServiceLocator.Current.GetInstance<SettingsSystem>().Settings.App.Appearance.Theme :
+            ElementTheme.Default;
+*/
+            (ElementTheme)ServiceLocator.Current.GetInstance<Services.SettingsService>().Settings.App.Appearance.Theme :
             ElementTheme.Default;
         var d = new MessageBox(title, caption, buttons, customResult1, customResult2)
         {
@@ -171,7 +180,16 @@ public partial class MessageBox : ContentDialog
     public static async Task<MessageBoxResults> Show(string text)
     {
         var theme = ServiceLocator.IsLocationProviderSet ?
+
+/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
+Before:
             (ElementTheme)ServiceLocator.Current.GetInstance<Settings.SettingsSystem>().Settings.App.Appearance.Theme :
+            ElementTheme.Default;
+After:
+            (ElementTheme)ServiceLocator.Current.GetInstance<SettingsSystem>().Settings.App.Appearance.Theme :
+            ElementTheme.Default;
+*/
+            (ElementTheme)ServiceLocator.Current.GetInstance<Services.SettingsService>().Settings.App.Appearance.Theme :
             ElementTheme.Default;
         var d = new MessageBox("Information".Localize(), text, MessageBoxButtons.Ok)
         {

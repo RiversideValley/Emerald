@@ -9,10 +9,19 @@ using System.Diagnostics;
 using System;
 using Emerald.Helpers;
 
-namespace Emerald; 
+namespace Emerald;
 public partial class App : Application
 {
+
+/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
+Before:
     private Helpers.Settings.SettingsSystem SS;
+    /// <summary>
+After:
+    private SettingsSystem SS;
+    /// <summary>
+*/
+    private Services.SettingsService SS;
     /// <summary>
     /// Initializes the singleton application object. This is the first line of authored code
     /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -41,7 +50,14 @@ public partial class App : Application
         services.AddTransient(provider => new ModpackStore(typeof(ModpackStore).Log()));
 
         //Settings
+
+/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
+Before:
         services.AddSingleton<Helpers.Settings.SettingsSystem>();
+After:
+        services.AddSingleton<SettingsSystem>();
+*/
+        services.AddSingleton<Services.SettingsService>();
 
 
     }
@@ -49,8 +65,7 @@ public partial class App : Application
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         var logPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Emerald",
+            DirectResoucres.LocalDataPath,
             "logs",
             "app_.log");
 
@@ -86,8 +101,20 @@ public partial class App : Application
         //Help me.
         ServiceLocator.SetLocatorProvider(() => new Emerald.Services.ServiceProviderLocator(Host!.Services));
 
+
+/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
+Before:
         SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
         this.Log().LogInformation("New Instance was created. Logs are being saved at: {logPath}",logPath);
+After:
+        SS = ServiceLocator.Current.GetInstance<SettingsSystem>();
+        this.Log().LogInformation("New Instance was created. Logs are being saved at: {logPath}",logPath);
+*/
+        SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
+        this.Log().LogInformation("New Instance was created. Logs are being saved at: {logPath}",logPath);
+
+        //load settings,
+        SS.LoadData();
 
         // Do not repeat app initialization when the Window already has content,
         // just ensure that the window is active
@@ -95,9 +122,6 @@ public partial class App : Application
         {
             // Create a Frame to act as the navigation context and navigate to the first page
             rootFrame = new Frame();
-
-            //load settings,
-            SS.LoadData();
 
             // Place the frame in the current Window
             MainWindow.Content = rootFrame;
@@ -130,31 +154,22 @@ public partial class App : Application
     #region UnhandledExceptions
     private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
     {
-        var logPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Emerald");
         e.Handled = true;
         LogUnhandledException(e.Exception, "UI UnhandledException");
-        ShowPlatformErrorDialog($"An unexpected error occurred. The application needs to be closed.\n see logs at {logPath} for more details");
+        ShowPlatformErrorDialog($"An unexpected error occurred. The application needs to be closed.\nSee crash details at {DirectResoucres.LocalDataPath} for more details");
     }
 
     private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
     {
-        var logPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Emerald");
         LogUnhandledException((Exception)e.ExceptionObject, "AppDomain UnhandledException");
-        ShowPlatformErrorDialog($"A critical error occurred. The application needs to be closed.\n see logs at {logPath} for more details");
+        ShowPlatformErrorDialog($"A critical error occurred. The application needs to be closed.\nSee crash details at {DirectResoucres.LocalDataPath} for more details");
     }
 
     private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
     {
-        var logPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Emerald");
         e.SetObserved();
         LogUnhandledException(e.Exception, "Task UnobservedException");
-        ShowPlatformErrorDialog($"A unobserved error occurred. The application needs to be closed.\n see logs at {logPath} for more details");
+        ShowPlatformErrorDialog($"A unobserved error occurred. The application needs to be closed.\nSee crash details at {DirectResoucres.LocalDataPath} for more details");
     }
 
     private void LogUnhandledException(Exception exception, string source)
@@ -169,12 +184,7 @@ public partial class App : Application
 
             // Save to crash file (platform-specific path)
             var crashPath = Path.Combine(
-#if WINDOWS
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-#else
-                Environment.GetFolderPath(Environment.SpecialFolder.Personal),
-#endif
-                "Emerald",
+                DirectResoucres.LocalDataPath,
                 "crashes",
                 $"crash_{DateTime.Now:yyyyMMdd_HHmmss}.txt"
             );
