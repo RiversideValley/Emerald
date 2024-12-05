@@ -54,6 +54,7 @@
     <None Remove="Views\Settings\AppearancePage.xaml" />
     <None Remove="Views\Settings\GeneralPage.xaml" />
     <None Remove="Views\Settings\SettingsPage.xaml" />
+    <None Remove="Views\Store\ModrinthStorePage.xaml" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
@@ -96,6 +97,14 @@
 
   <ItemGroup>
     <UpToDateCheckInput Remove="Views\Settings\AppearancePage.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Views\Store\ModrinthStorePage.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\Interfaces\" />
   </ItemGroup>
 
 </Project>

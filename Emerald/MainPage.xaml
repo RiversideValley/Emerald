@@ -5,7 +5,6 @@
       xmlns:utu="using:Uno.Toolkit.UI"
       xmlns:models="using:Emerald.Models"
       xmlns:uc="using:Emerald.UserControls"
-       xmlns:SS="using:Emerald.Helpers.Settings"
     xmlns:conv="using:Emerald.Helpers.Converters"
       xmlns:helpers="using:Emerald.Helpers">
   <Page.Resources>
@@ -90,20 +89,20 @@
                                 VerticalAlignment="Top"
                                 Content="{x:Bind InfoBadge}" />
               <Image
-                    x:Load="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(1), Mode=OneWay}"
+                    x:Load="{x:Bind SS.Settings.App.Appearance.NavIconType.Equals(1), Mode=OneWay}"
                                 x:Name="Image"
                                 Width="28"
                                 Height="28"
                                 Source="{x:Bind Thumbnail}" />
               <FontIcon
                                 x:Name="fontIcon"
-                    x:Load="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
+                    x:Load="{x:Bind SS.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                                 Visibility="{x:Bind FontIconVisibility}"
                                 FontSize="22"
                                 Glyph="{x:Bind FontIconGlyph}" />
               <FontIcon
                                 x:Name="fontIconSolid"
-                    x:Load="{x:Bind SS:SettingsSystem.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
+                    x:Load="{x:Bind SS.Settings.App.Appearance.NavIconType.Equals(0), Mode=OneWay}"
                                 Visibility="{x:Bind SolidFontIconVisibility}"
                                 FontSize="22"
                                 Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"

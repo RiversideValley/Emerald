@@ -1,3 +1,4 @@
+using CommonServiceLocator;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -78,7 +79,7 @@ public static class Extensions
                 Content = content, 
                 Padding = new(12) 
             } : content,
-            RequestedTheme = (ElementTheme)Settings.SettingsSystem.Settings.App.Appearance.Theme
+            RequestedTheme = (ElementTheme)ServiceLocator.Current.GetInstance< Helpers.Settings.SettingsSystem>().Settings.App.Appearance.Theme
         };
         App.Current.Log().LogInformation("Created ContentDialog with title: {title}", title);
         return dialog;

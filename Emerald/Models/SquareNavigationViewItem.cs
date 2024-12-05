@@ -1,12 +1,15 @@
 using System.ComponentModel;
+using CommonServiceLocator;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Emerald.Models;
 
 public partial class SquareNavigationViewItem : Model
 {
+    public Helpers.Settings.SettingsSystem SS { get; private set; }
     public SquareNavigationViewItem()
     {
+        SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
         PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(IsSelected) || e.PropertyName == nameof(ShowFontIcons))

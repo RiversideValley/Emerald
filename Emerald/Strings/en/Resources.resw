@@ -760,4 +760,7 @@
   <data name="TintOpacity" xml:space="preserve">
     <value>Tint opacity</value>
   </data>
+  <data name="AppCrash" xml:space="preserve">
+    <value>Emerald Got Crashed!</value>
+  </data>
 </root>

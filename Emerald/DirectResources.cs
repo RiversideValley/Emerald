@@ -18,6 +18,21 @@ public static class DirectResoucres
     public static string SettingsAPIVersion
         => "1.3";
 
+    public static string Platform
+    {
+        get
+        {
+#if WINDOWS
+            return "Windows";
+#elif MACCATALYST
+            return "OSX";
+#elif DESKTOP
+            return "Skia";
+#else
+            return "Unknown";
+#endif
+        }
+    }
     public static string BuildType
     {
         get
