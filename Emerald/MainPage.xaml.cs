@@ -11,27 +11,9 @@ namespace Emerald;
 
 public sealed partial class MainPage : Page
 {
-
-/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
-Before:
-    private readonly Helpers.Settings.SettingsSystem SS;
-    public MainPage()
-After:
-    private readonly SettingsSystem SS;
-    public MainPage()
-*/
     private readonly Services.SettingsService SS;
     public MainPage()
     {
-
-/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
-Before:
-        SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
-        this.InitializeComponent();
-After:
-        SS = ServiceLocator.Current.GetInstance<SettingsSystem>();
-        this.InitializeComponent();
-*/
         SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
         this.InitializeComponent();
         this.Loaded += MainPage_Loaded;
@@ -70,9 +52,9 @@ After:
                     break;
                 case Helpers.Settings.Enums.MicaTintColor.CustomColor:
                     var c = SS.Settings.App.Appearance.CustomMicaTintColor;
-                    MainGrid.Background = new SolidColorBrush() 
-                    { 
-                        Color = c == null ? Color.FromArgb(255, 234, 0, 94) : Color.FromArgb((byte)c.Value.A, (byte)c.Value.R, (byte)c.Value.G, (byte)c.Value.B),
+                    MainGrid.Background = new SolidColorBrush()
+                    {
+                        Color = c ?? Color.FromArgb(255, 234, 0, 94),
                         Opacity = (double)SS.Settings.App.Appearance.TintOpacity / 100
                     };
                     break;

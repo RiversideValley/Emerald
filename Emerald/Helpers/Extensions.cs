@@ -149,9 +149,9 @@ After:
     {
         try
         {
-            string s = Windows.ApplicationModel.Resources.ResourceLoader
-   .GetForViewIndependentUse()
-   .GetString(resourceKey);
+            string s = Windows.ApplicationModel.Resources.ResourceLoader 
+                .GetForViewIndependentUse() 
+                .GetString(resourceKey);
 
             return string.IsNullOrEmpty(s) ? resourceKey : s;
         }
