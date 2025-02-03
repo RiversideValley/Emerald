@@ -79,15 +79,6 @@ public static class Extensions
                 Content = content, 
                 Padding = new(12) 
             } : content,
-
-/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
-Before:
-            RequestedTheme = (ElementTheme)ServiceLocator.Current.GetInstance< Helpers.Settings.SettingsSystem>().Settings.App.Appearance.Theme
-        };
-After:
-            RequestedTheme = (ElementTheme)ServiceLocator.Current.GetInstance< SettingsSystem>().Settings.App.Appearance.Theme
-        };
-*/
             RequestedTheme = (ElementTheme)ServiceLocator.Current.GetInstance< Services.SettingsService>().Settings.App.Appearance.Theme
         };
         App.Current.Log().LogInformation("Created ContentDialog with title: {title}", title);

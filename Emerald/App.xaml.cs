@@ -136,7 +136,6 @@ After:
         }
         // Ensure the current window is active
         MainWindow.Activate();
-
         MainWindow.Closed += MainWindow_Closed;
     }
 
