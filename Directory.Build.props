@@ -15,9 +15,9 @@
 
   <!-- See https://aka.platform.uno/using-uno-sdk#implicit-packages for more information regarding the Implicit Packages version properties. -->
   <PropertyGroup>
-    <UnoExtensionsVersion>4.1.24</UnoExtensionsVersion>
-    <UnoToolkitVersion>6.3.7</UnoToolkitVersion>
-    <UnoThemesVersion>5.0.13</UnoThemesVersion>
-    <UnoCSharpMarkupVersion>5.2.14</UnoCSharpMarkupVersion>
+    <UnoExtensionsVersion>5.2.7</UnoExtensionsVersion>
+    <UnoToolkitVersion>6.4.1</UnoToolkitVersion>
+    <UnoThemesVersion>5.4.0</UnoThemesVersion>
+    <UnoCSharpMarkupVersion>5.4.0</UnoCSharpMarkupVersion>
   </PropertyGroup>
 </Project>
