@@ -21,29 +21,24 @@ public partial class MessageBox : ContentDialog
 
     public async Task NavigateWebview(string message)
     {
-        try
-        {
-            var rtb = new RichTextBlock();
-            await MarkdownConverter.SetMarkdownTextAsync(rtb, message);
-
-        //    var wb2 = new WebView2();
-        //await wb2.EnsureCoreWebView2Async();
-        //    var html = Markdig.Markdown.ToHtml(message);
-        //wb2.NavigateToString(html);
-        Content = rtb;
-        }
-        catch (Exception ex) // webview doesnt seem to load correctly in uno
-        {
-            this.Log().LogError(ex,"Failed to set messagebox content markdown");
             var scrollview = new ScrollViewer
             {
-                Content = new TextBlock { Text = message },
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Visible,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 Padding = new Thickness(6)
             };
-            Content = scrollview;
+        try
+        {
+            var rtb = new RichTextBlock();
+            await new MarkdownConverter().SetMarkdownTextAsync(rtb, message);
+            scrollview.Content = rtb;
         }
+        catch (Exception ex)
+        {
+            this.Log().LogError(ex,"Failed to set messagebox content markdown");
+             scrollview.Content = new TextBlock { Text = message };
+        }
+            Content = scrollview;
     }
 
     public MessageBox(string title, string caption, MessageBoxButtons buttons, string cusbtn1 = null, string cusbtn2 = null)

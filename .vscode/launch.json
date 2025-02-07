@@ -20,7 +20,7 @@
       "request": "launch",
       "preLaunchTask": "build-desktop",
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/Emerald/bin/Debug/net8.0-desktop/Emerald.dll",
+      "program": "${workspaceFolder}/Emerald/bin/Debug/net9.0-desktop/Emerald.dll",
       "args": [],
       "launchSettingsProfile": "Emerald (Desktop)",
       "env": {

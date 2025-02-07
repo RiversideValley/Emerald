@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq; // For FirstOrDefault, IndexOf, etc.
+using System.Linq;
 using System.Threading.Tasks;
 using Markdig;
 using Markdig.Extensions.Tables;
@@ -11,8 +11,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;             // For FontFamily, SolidColorBrush
-using Microsoft.UI.Xaml.Media.Imaging;      // For BitmapImage
-using Microsoft.UI.Xaml.Shapes;             // For Rectangle
+using Microsoft.UI.Xaml.Media.Imaging;     // For BitmapImage
+using Microsoft.UI.Xaml.Shapes;            // For Rectangle
 
 // --- Aliases for Markdig (Markdown) types ---
 using MdBlock = Markdig.Syntax.Block;
@@ -42,422 +42,403 @@ using XamlItalic = Microsoft.UI.Xaml.Documents.Italic;
 using XamlHyperlink = Microsoft.UI.Xaml.Documents.Hyperlink;
 using XamlSpan = Microsoft.UI.Xaml.Documents.Span;
 using XamlInline = Microsoft.UI.Xaml.Documents.Inline;
+using System.Runtime.CompilerServices;
 
-namespace Emerald.Helpers.Markdown;
-
-public static class MarkdownConverter
+namespace Emerald.Helpers.Markdown
 {
-    /// <summary>
-    /// Parses the given Markdown text and sets the corresponding formatted content
-    /// on the provided RichTextBlock using Markdig.
-    /// </summary>
-    /// <param name="richTextBlock">The target RichTextBlock.</param>
-    /// <param name="markdown">The Markdown text to convert.</param>
-    public static async Task SetMarkdownTextAsync(RichTextBlock richTextBlock, string markdown)
+    public class MarkdownConverter
     {
-        // Build a pipeline with advanced extensions (footnotes, task lists, tables, etc.)
-        var pipeline = new MarkdownPipelineBuilder()
-                            .UseAdvancedExtensions()
-                            .Build();
-
-        // Parse the Markdown into a syntax tree
-        MarkdownDocument document = Markdig.Markdown.Parse(markdown, pipeline);
-
-        // Clear any existing blocks
-        richTextBlock.Blocks.Clear();
-
-        // Convert each Markdig block into a corresponding WinUI Block
-        foreach (XamlBlock block in ConvertBlocks(document))
+        /// <summary>
+        /// Parses the given Markdown text and sets the corresponding formatted content
+        /// on the provided RichTextBlock using Markdig.
+        /// </summary>
+        /// <param name="richTextBlock">The target RichTextBlock.</param>
+        /// <param name="markdown">The Markdown text to convert.</param>
+        public async Task SetMarkdownTextAsync(RichTextBlock richTextBlock, string markdown)
         {
-            richTextBlock.Blocks.Add(block);
-        }
+            this.Log().LogInformation("Starting Markdown conversion.");
+            var pipeline = new MarkdownPipelineBuilder()
+                                .UseAdvancedExtensions()
+                                .Build();
 
-        await Task.CompletedTask;
-    }
+            // Fully qualify Markdig.Markdown.Parse to avoid namespace conflicts.
+            MarkdownDocument document = Markdig.Markdown.Parse(markdown, pipeline);
+            richTextBlock.Blocks.Clear();
 
-    #region Conversion Methods
-
-    private static IEnumerable<XamlBlock> ConvertBlocks(MarkdownDocument document)
-    {
-        foreach (MarkdownObject markdownObj in document)
-        {
-            foreach (XamlBlock block in ConvertBlock(markdownObj))
+            int blockCount = 0;
+            foreach (XamlBlock block in ConvertBlocks(document))
             {
-                yield return block;
+                this.Log().LogDebug("Adding block of type {BlockType} to RichTextBlock.", block.GetType().Name);
+                richTextBlock.Blocks.Add(block);
+                blockCount++;
             }
+
+            if (blockCount == 0)
+            {
+                this.Log().LogWarning("No blocks were added to the RichTextBlock. Conversion may have failed.");
+            }
+            else
+            {
+                this.Log().LogInformation("Added {Count} blocks to the RichTextBlock.", blockCount);
+            }
+
+            this.Log().LogInformation("Markdown conversion completed.");
+            await Task.CompletedTask;
         }
-    }
 
-    /// <summary>
-    /// Converts a single Markdig MarkdownObject into one or more WinUI Blocks.
-    /// </summary>
-    private static IEnumerable<XamlBlock> ConvertBlock(MarkdownObject markdownObj)
-    {
-        switch (markdownObj)
+        #region Conversion Methods
+
+        private IEnumerable<XamlBlock> ConvertBlocks(MarkdownDocument document)
         {
-            case MdParagraphBlock pb:
-                yield return ConvertParagraphBlock(pb);
-                break;
-
-            case MdHeadingBlock hb:
-                yield return ConvertHeadingBlock(hb);
-                break;
-
-            case MdFencedCodeBlock fcb:
-                yield return ConvertFencedCodeBlock(fcb);
-                break;
-
-            case MdThematicBreakBlock thb:
-                yield return ConvertThematicBreakBlock(thb);
-                break;
-
-            case MdQuoteBlock qb:
-                yield return ConvertQuoteBlock(qb);
-                break;
-
-            case MdListBlock lb:
-                foreach (XamlBlock listBlock in ConvertListBlock(lb))
-                    yield return listBlock;
-                break;
-
-            case Markdig.Extensions.Tables.Table table:
-                foreach (XamlBlock tableBlock in ConvertTableBlock(table))
-                    yield return tableBlock;
-                break;
-
-            case MdContainerBlock container:
-                // A container block might hold child blocks, so convert them recursively
-                foreach (MarkdownObject child in container)
+            this.Log().LogDebug("Converting document with {Count} top-level items.", document.Count());
+            foreach (MarkdownObject markdownObj in document)
+            {
+                foreach (XamlBlock block in ConvertBlock(markdownObj))
                 {
-                    foreach (XamlBlock block in ConvertBlock(child))
-                        yield return block;
+                    this.Log().LogDebug("Converted block: {BlockType}.", block.GetType().Name);
+                    yield return block;
                 }
-                break;
-
-            default:
-                // Optionally, handle unknown blocks as plain text or ignore them
-                break;
-        }
-    }
-
-    private static XamlParagraph ConvertParagraphBlock(MdParagraphBlock paragraphBlock)
-    {
-        XamlParagraph paragraph = new XamlParagraph();
-
-        if (paragraphBlock.Inline != null)
-        {
-            foreach (XamlInline inline in ConvertInlineCollection(paragraphBlock.Inline))
-            {
-                paragraph.Inlines.Add(inline);
             }
         }
 
-        return paragraph;
-    }
-
-    private static XamlParagraph ConvertHeadingBlock(MdHeadingBlock headingBlock)
-    {
-        XamlParagraph paragraph = new XamlParagraph
+        private IEnumerable<XamlBlock> ConvertBlock(MarkdownObject markdownObj)
         {
-            FontSize = GetFontSizeForHeading(headingBlock.Level),
-            FontWeight = FontWeights.Bold
-        };
-
-        if (headingBlock.Inline != null)
-        {
-            foreach (XamlInline inline in ConvertInlineCollection(headingBlock.Inline))
+            this.Log().LogDebug("Converting block of type {Type}.", markdownObj.GetType().Name);
+            switch (markdownObj)
             {
-                paragraph.Inlines.Add(inline);
-            }
-        }
-
-        return paragraph;
-    }
-
-    private static double GetFontSizeForHeading(int level)
-    {
-        // Example mapping: H1=32, H2=28, H3=24, H4=20, H5=16, H6=14
-        return level switch
-        {
-            1 => 32,
-            2 => 28,
-            3 => 24,
-            4 => 20,
-            5 => 16,
-            6 => 14,
-            _ => 14,
-        };
-    }
-
-    /// <summary>
-    /// Creates a paragraph for fenced code blocks. 
-    /// Note that WinUI's Paragraph does not support a Background property,
-    /// so if you want a background or a border, you'd need to wrap this in an InlineUIContainer.
-    /// </summary>
-    private static XamlParagraph ConvertFencedCodeBlock(MdFencedCodeBlock codeBlock)
-    {
-        XamlParagraph paragraph = new XamlParagraph
-        {
-            FontFamily = new FontFamily("Consolas")
-        };
-
-        // Combine all lines of code
-        string codeText = "";
-        foreach (var line in codeBlock.Lines.Lines)
-        {
-            codeText += line.Slice.ToString() + "\n";
-        }
-        paragraph.Inlines.Add(new XamlRun { Text = codeText });
-
-        return paragraph;
-    }
-
-    private static XamlParagraph ConvertThematicBreakBlock(MdThematicBreakBlock _)
-    {
-        // A simple horizontal rule
-        XamlParagraph paragraph = new XamlParagraph();
-
-        Rectangle line = new Rectangle
-        {
-            Height = 1,
-            Fill = new SolidColorBrush(Microsoft.UI.Colors.Gray),
-            HorizontalAlignment = HorizontalAlignment.Stretch
-        };
-
-        InlineUIContainer container = new InlineUIContainer { Child = line };
-        paragraph.Inlines.Add(container);
-
-        return paragraph;
-    }
-
-    private static XamlParagraph ConvertQuoteBlock(MdQuoteBlock quoteBlock)
-    {
-        // WinUI Paragraph doesn't have Margin, so we use TextIndent for a simple indentation
-        XamlParagraph paragraph = new XamlParagraph
-        {
-            TextIndent = 20
-        };
-
-        foreach (MarkdownObject child in quoteBlock)
-        {
-            foreach (XamlBlock block in ConvertBlock(child))
-            {
-                if (block is XamlParagraph childParagraph)
-                {
-                    foreach (XamlInline inline in childParagraph.Inlines)
+                case MdParagraphBlock pb:
+                    yield return ConvertParagraphBlock(pb);
+                    break;
+                case MdHeadingBlock hb:
+                    yield return ConvertHeadingBlock(hb);
+                    break;
+                case MdFencedCodeBlock fcb:
+                    yield return ConvertFencedCodeBlock(fcb);
+                    break;
+                case MdThematicBreakBlock thb:
+                    yield return ConvertThematicBreakBlock(thb);
+                    break;
+                case MdQuoteBlock qb:
+                    yield return ConvertQuoteBlock(qb);
+                    break;
+                case MdListBlock lb:
+                    foreach (XamlBlock listBlock in ConvertListBlock(lb))
+                        yield return listBlock;
+                    break;
+                case Markdig.Extensions.Tables.Table table:
+                    foreach (XamlBlock tableBlock in ConvertTableBlock(table))
+                        yield return tableBlock;
+                    break;
+                case MdContainerBlock container:
+                    foreach (MarkdownObject child in container)
                     {
-                        paragraph.Inlines.Add(inline);
+                        foreach (XamlBlock block in ConvertBlock(child))
+                            yield return block;
                     }
-                    paragraph.Inlines.Add(new LineBreak());
-                }
+                    break;
+                default:
+                    this.Log().LogWarning("Unhandled markdown block type: {Type}. Returning raw content.", markdownObj.GetType().Name);
+                    // Fallback: output the raw markdown content as text.
+                    XamlParagraph fallback = new XamlParagraph();
+                    fallback.Inlines.Add(new XamlRun { Text = markdownObj.ToString() });
+                    yield return fallback;
+                    break;
             }
         }
 
-        return paragraph;
-    }
-
-    private static IEnumerable<XamlBlock> ConvertListBlock(MdListBlock listBlock)
-    {
-        int index = 1;
-        foreach (var listItem in listBlock)
+        private XamlParagraph ConvertParagraphBlock(MdParagraphBlock paragraphBlock)
         {
-            if (listItem is MdListItemBlock item)
+            this.Log().LogDebug("Converting ParagraphBlock.");
+            XamlParagraph paragraph = new XamlParagraph();
+            if (paragraphBlock.Inline != null)
             {
-                foreach (MarkdownObject child in item)
+                foreach (XamlInline inline in ConvertInlineCollection(paragraphBlock.Inline))
                 {
-                    foreach (XamlBlock block in ConvertBlock(child))
-                    {
-                        if (block is XamlParagraph paragraph)
-                        {
-                            // Prepend a bullet or number
-                            string prefix = listBlock.IsOrdered ? $"{index}. " : "• ";
-                            XamlRun prefixRun = new XamlRun { Text = prefix };
+                    paragraph.Inlines.Add(inline);
+                }
+            }
+            return paragraph;
+        }
 
-                            var firstInline = paragraph.Inlines.FirstOrDefault();
-                            if (firstInline != null)
+        private XamlParagraph ConvertHeadingBlock(MdHeadingBlock headingBlock)
+        {
+            this.Log().LogDebug("Converting HeadingBlock of level {Level}.", headingBlock.Level);
+            XamlParagraph paragraph = new XamlParagraph
+            {
+                FontSize = GetFontSizeForHeading(headingBlock.Level),
+                FontWeight = FontWeights.Bold
+            };
+
+            if (headingBlock.Inline != null)
+            {
+                foreach (XamlInline inline in ConvertInlineCollection(headingBlock.Inline))
+                {
+                    paragraph.Inlines.Add(inline);
+                }
+            }
+            return paragraph;
+        }
+
+        private double GetFontSizeForHeading(int level)
+        {
+            return level switch
+            {
+                1 => 32,
+                2 => 28,
+                3 => 24,
+                4 => 20,
+                5 => 16,
+                6 => 14,
+                _ => 14,
+            };
+        }
+
+        private XamlParagraph ConvertFencedCodeBlock(MdFencedCodeBlock codeBlock)
+        {
+            this.Log().LogDebug("Converting FencedCodeBlock.");
+            XamlParagraph paragraph = new XamlParagraph
+            {
+                FontFamily = new FontFamily("Consolas")
+            };
+
+            string codeText = "";
+            // codeBlock.Lines is a struct, so we directly access its Lines collection.
+            var lines = codeBlock.Lines.Lines;
+            if (lines != null)
+            {
+                foreach (var line in lines)
+                {
+                    codeText += line.Slice.ToString() + "\n";
+                }
+            }
+            paragraph.Inlines.Add(new XamlRun { Text = codeText });
+            return paragraph;
+        }
+
+        private XamlParagraph ConvertThematicBreakBlock(MdThematicBreakBlock _)
+        {
+            this.Log().LogDebug("Converting ThematicBreakBlock.");
+            XamlParagraph paragraph = new XamlParagraph();
+            Rectangle line = new Rectangle
+            {
+                Height = 1,
+                Fill = new SolidColorBrush(Microsoft.UI.Colors.Gray),
+                HorizontalAlignment = HorizontalAlignment.Stretch
+            };
+            InlineUIContainer container = new InlineUIContainer { Child = line };
+            paragraph.Inlines.Add(container);
+            return paragraph;
+        }
+
+        private XamlParagraph ConvertQuoteBlock(MdQuoteBlock quoteBlock)
+        {
+            this.Log().LogDebug("Converting QuoteBlock.");
+            XamlParagraph paragraph = new XamlParagraph
+            {
+                TextIndent = 20
+            };
+
+            foreach (MarkdownObject child in quoteBlock)
+            {
+                foreach (XamlBlock block in ConvertBlock(child))
+                {
+                    if (block is XamlParagraph childParagraph)
+                    {
+                        foreach (XamlInline inline in childParagraph.Inlines)
+                        {
+                            paragraph.Inlines.Add(inline);
+                        }
+                        paragraph.Inlines.Add(new LineBreak());
+                    }
+                }
+            }
+            return paragraph;
+        }
+
+        private IEnumerable<XamlBlock> ConvertListBlock(MdListBlock listBlock)
+        {
+            this.Log().LogDebug("Converting ListBlock.");
+            int index = 1;
+            foreach (var listItem in listBlock)
+            {
+                if (listItem is MdListItemBlock item)
+                {
+                    foreach (MarkdownObject child in item)
+                    {
+                        foreach (XamlBlock block in ConvertBlock(child))
+                        {
+                            if (block is XamlParagraph paragraph)
                             {
-                                int idx = paragraph.Inlines.IndexOf(firstInline);
-                                if (idx >= 0)
+                                string prefix = listBlock.IsOrdered ? $"{index}. " : "• ";
+                                XamlRun prefixRun = new XamlRun { Text = prefix };
+
+                                var firstInline = paragraph.Inlines.FirstOrDefault();
+                                if (firstInline != null)
                                 {
-                                    paragraph.Inlines.Insert(idx, prefixRun);
+                                    int idx = paragraph.Inlines.IndexOf(firstInline);
+                                    if (idx >= 0)
+                                    {
+                                        paragraph.Inlines.Insert(idx, prefixRun);
+                                    }
                                 }
+                                else
+                                {
+                                    paragraph.Inlines.Add(prefixRun);
+                                }
+                                paragraph.TextIndent = 20;
+                                yield return paragraph;
                             }
                             else
                             {
-                                paragraph.Inlines.Add(prefixRun);
+                                yield return block;
                             }
-
-                            // Use TextIndent to visually separate list items
-                            paragraph.TextIndent = 20;
-                            yield return paragraph;
-                        }
-                        else
-                        {
-                            yield return block;
                         }
                     }
+                    index++;
                 }
-                index++;
             }
         }
-    }
 
-    private static IEnumerable<XamlBlock> ConvertTableBlock(Markdig.Extensions.Tables.Table table)
-    {
-        // Basic table conversion: each row is a Paragraph, cells separated by tabs
-        bool isHeader = true;
-        foreach (MarkdownObject rowObj in table)
+        private IEnumerable<XamlBlock> ConvertTableBlock(Markdig.Extensions.Tables.Table table)
         {
-            if (rowObj is Markdig.Extensions.Tables.TableRow row)
+            this.Log().LogDebug("Converting Table block.");
+            bool isHeader = true;
+            foreach (MarkdownObject rowObj in table)
             {
-                XamlParagraph paragraph = new XamlParagraph();
-                int cellIndex = 0;
-
-                foreach (MarkdownObject cellObj in row)
+                if (rowObj is Markdig.Extensions.Tables.TableRow row)
                 {
-                    if (cellObj is Markdig.Extensions.Tables.TableCell cell)
+                    XamlParagraph paragraph = new XamlParagraph();
+                    int cellIndex = 0;
+                    foreach (MarkdownObject cellObj in row)
                     {
-                        string cellText = "";
-                        foreach (MarkdownObject child in cell)
+                        if (cellObj is Markdig.Extensions.Tables.TableCell cell)
                         {
-                            if (child is MdParagraphBlock pb && pb.Inline != null)
+                            string cellText = "";
+                            foreach (MarkdownObject child in cell)
                             {
-                                foreach (XamlInline inline in ConvertInlineCollection(pb.Inline))
+                                if (child is MdParagraphBlock pb && pb.Inline != null)
                                 {
-                                    if (inline is XamlRun run)
+                                    foreach (XamlInline inline in ConvertInlineCollection(pb.Inline))
                                     {
-                                        cellText += run.Text;
+                                        if (inline is XamlRun run)
+                                        {
+                                            cellText += run.Text;
+                                        }
                                     }
                                 }
                             }
+                            XamlRun runCell = new XamlRun { Text = cellText };
+                            if (isHeader)
+                            {
+                                runCell.FontWeight = FontWeights.Bold;
+                            }
+                            paragraph.Inlines.Add(runCell);
+                            if (cellIndex < row.Count - 1)
+                            {
+                                paragraph.Inlines.Add(new XamlRun { Text = "\t" });
+                            }
+                            cellIndex++;
                         }
-
-                        XamlRun runCell = new XamlRun { Text = cellText };
-                        if (isHeader)
-                        {
-                            runCell.FontWeight = FontWeights.Bold;
-                        }
-                        paragraph.Inlines.Add(runCell);
-
-                        // Add a tab between cells (except after the last cell)
-                        if (cellIndex < row.Count - 1)
-                        {
-                            paragraph.Inlines.Add(new XamlRun { Text = "\t" });
-                        }
-                        cellIndex++;
                     }
+                    yield return paragraph;
+                    isHeader = false;
                 }
-
-                yield return paragraph;
-                isHeader = false;
             }
         }
-    }
 
-    /// <summary>
-    /// Converts a Markdig inline container into a collection of WinUI inlines.
-    /// </summary>
-    private static IEnumerable<XamlInline> ConvertInlineCollection(MdContainerInline container)
-    {
-        foreach (MarkdownObject inlineObj in container)
+        private IEnumerable<XamlInline> ConvertInlineCollection(MdContainerInline container)
         {
-            XamlInline converted = ConvertInline(inlineObj);
-            if (converted != null)
-                yield return converted;
+            foreach (MarkdownObject inlineObj in container)
+            {
+                XamlInline converted = ConvertInline(inlineObj);
+                if (converted != null)
+                {
+                    yield return converted;
+                }
+            }
         }
-    }
 
-    /// <summary>
-    /// Converts a single Markdig inline element into a WinUI Inline.
-    /// </summary>
-    private static XamlInline ConvertInline(MarkdownObject markdownObj)
-    {
-        switch (markdownObj)
+        private XamlInline ConvertInline(MarkdownObject markdownObj)
         {
-            case MdLiteralInline literal:
-                return new XamlRun { Text = literal.Content.ToString() };
+            this.Log().LogDebug("Converting inline of type {Type}.", markdownObj.GetType().Name);
+            switch (markdownObj)
+            {
+                case MdLiteralInline literal:
+                    return new XamlRun { Text = literal.Content.ToString() };
 
-            case MdLineBreakInline _:
-                return new LineBreak();
+                case MdLineBreakInline _:
+                    return new LineBreak();
 
-            case MdCodeInline codeInline:
-                // Note: WinUI's Run doesn't have a Background property. 
-                // If you want a background highlight, wrap this in an InlineUIContainer with a Border.
-                return new XamlRun
-                {
-                    Text = codeInline.Content,
-                    FontFamily = new FontFamily("Consolas")
-                };
-
-            case MdEmphasisInline emphasis:
-                // Double emphasis => Bold; single => Italic
-                if (emphasis.IsDouble)
-                {
-                    XamlBold bold = new XamlBold();
-                    foreach (XamlInline child in ConvertInlineCollection(emphasis))
+                case MdCodeInline codeInline:
+                    return new XamlRun
                     {
-                        bold.Inlines.Add(child);
-                    }
-                    return bold;
-                }
-                else
-                {
-                    XamlItalic italic = new XamlItalic();
-                    foreach (XamlInline child in ConvertInlineCollection(emphasis))
-                    {
-                        italic.Inlines.Add(child);
-                    }
-                    return italic;
-                }
-
-            case MdLinkInline link:
-                if (link.IsImage)
-                {
-                    // Render images (local or remote) as an Image control in an InlineUIContainer
-                    Image image = new Image { Height = 100 };
-                    BitmapImage bitmap = new BitmapImage();
-
-                    try
-                    {
-                        bitmap.UriSource = new Uri(link.Url);
-                    }
-                    catch
-                    {
-                        // If URL is invalid, ignore or handle as needed
-                    }
-
-                    image.Source = bitmap;
-                    return new InlineUIContainer { Child = image };
-                }
-                else
-                {
-                    // Render hyperlinks
-                    XamlHyperlink hyperlink = new XamlHyperlink
-                    {
-                        NavigateUri = new Uri(link.Url)
+                        Text = codeInline.Content,
+                        FontFamily = new FontFamily("Consolas")
                     };
 
-                    foreach (XamlInline child in ConvertInlineCollection(link))
+                case MdEmphasisInline emphasis:
+                    if (emphasis.IsDouble)
                     {
-                        hyperlink.Inlines.Add(child);
+                        XamlBold bold = new XamlBold();
+                        foreach (XamlInline child in ConvertInlineCollection(emphasis))
+                        {
+                            bold.Inlines.Add(child);
+                        }
+                        return bold;
                     }
-                    return hyperlink;
-                }
+                    else
+                    {
+                        XamlItalic italic = new XamlItalic();
+                        foreach (XamlInline child in ConvertInlineCollection(emphasis))
+                        {
+                            italic.Inlines.Add(child);
+                        }
+                        return italic;
+                    }
 
-            case MdContainerInline container:
-                // A container might hold nested inlines (like nested emphasis)
-                XamlSpan span = new XamlSpan();
-                foreach (XamlInline child in ConvertInlineCollection(container))
-                {
-                    span.Inlines.Add(child);
-                }
-                return span;
+                case MdLinkInline link:
+                    if (link.IsImage)
+                    {
+                        Image image = new Image { Height = 100 };
+                        BitmapImage bitmap = new BitmapImage();
+                        try
+                        {
+                            bitmap.UriSource = new Uri(link.Url);
+                        }
+                        catch (Exception ex)
+                        {
+                            this.Log().LogError(ex, "Error loading image from {Url}", link.Url);
+                        }
+                        image.Source = bitmap;
+                        return new InlineUIContainer { Child = image };
+                    }
+                    else
+                    {
+                        XamlHyperlink hyperlink = new XamlHyperlink
+                        {
+                            NavigateUri = new Uri(link.Url)
+                        };
+                        foreach (XamlInline child in ConvertInlineCollection(link))
+                        {
+                            hyperlink.Inlines.Add(child);
+                        }
+                        return hyperlink;
+                    }
 
-            default:
-                // Unknown inline => return null or handle differently
-                return null;
+                case MdContainerInline container:
+                    XamlSpan span = new XamlSpan();
+                    foreach (XamlInline child in ConvertInlineCollection(container))
+                    {
+                        span.Inlines.Add(child);
+                    }
+                    return span;
+
+                default:
+                    this.Log().LogWarning("Unhandled inline type: {Type}.", markdownObj.GetType().Name);
+                    return null;
+            }
         }
-    }
 
-    #endregion
+        #endregion
+    }
 }
