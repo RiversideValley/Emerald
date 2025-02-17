@@ -24,7 +24,7 @@
     <!--Emerald.CoreX-->
     <PackageVersion Include="CmlLib.Core" Version="4.0.2" />
     <PackageVersion Include="CmlLib.Core.Auth.Microsoft" Version="3.2.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.2" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="RestSharp" Version="112.1.0" />
   </ItemGroup>
