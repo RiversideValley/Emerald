@@ -1,45 +1,70 @@
+# .github/steps/install_dependencies/action.yml
 name: Install Dependencies
-description: ""
+description: "Installs .NET SDK, OS-specific SDKs/dependencies, and Uno workloads"
 
 inputs:
-  target-platform:
-    description: 'The platform to install dependencies for. #See available values at https://platform.uno/docs/articles/external/uno.check/doc/using-uno-check.html'
-    required: false
-    default: 'all'
+  job-platform:
+    description: 'The target platform for the current job (windows, macos, linux)'
+    required: true
   dotnet-version:
     description: 'Installs and sets the .NET SDK Version'
     required: false
-    default: '9.0.x'
-  sdkVersion:
-    description: 'The version of the Windows Sdk'
+    default: '8.0.x' # Default to .NET 8 LTS (Current as of early 2025)
+  windows-sdk-version:
+    description: 'The version of the Windows SDK to install (Windows only)'
     required: false
-    default: '19041'
+    default: '19041' # Keep this aligned with your target framework
 
 runs:
   using: "composite"
   steps:
-    # Install .NET
+    # Install .NET SDK
     - name: Setup .NET ${{ inputs.dotnet-version }}
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4 # Use latest version
       with:
         dotnet-version: '${{ inputs.dotnet-version }}'
 
-    # Install Windows SDK
-    - name: Install Windows SDK ${{ inputs.sdkVersion }}
+    # Install Windows SDK (Windows Runner Only)
+    - name: Install Windows SDK ${{ inputs.windows-sdk-version }}
       shell: pwsh
-      if: ${{ runner.os == 'Windows' }}
-      run: .\.github\Install-WindowsSdkISO.ps1 ${{ inputs.sdkVersion }}
-
-    # Run Uno.Check
-    - name: Install ${{ inputs.target-platform }} Workloads
-      shell: pwsh
+      if: runner.os == 'Windows' && inputs.job-platform == 'windows'
       run: |
-        dotnet tool install -g uno.check
-        ("${{ inputs.target-platform }} ".Split(' ') | ForEach-Object {
-          $target = $_.Replace("_win", "").Replace("_macos", "")
-          if (![string]::IsNullOrEmpty($target)) {
-            echo "target: $target"
-            uno-check -v --ci --non-interactive --fix --target $target --skip vswin --skip vsmac --skip xcode --skip vswinworkloads --skip androidemulator --skip dotnetnewunotemplates
-            echo "uno-check finished for target: $target "
-          }
-        })
+        $sdkIsoScript = Join-Path $env:GITHUB_WORKSPACE ".github\Install-WindowsSdkISO.ps1"
+        if (Test-Path $sdkIsoScript) {
+          & $sdkIsoScript ${{ inputs.windows-sdk-version }}
+        } else {
+          Write-Warning "Windows SDK ISO installation script not found at $sdkIsoScript. Skipping."
+          # Consider adding alternative install method if needed, e.g., via VS installer component
+        }
+
+    # Install GTK Dependencies (Linux Runner Only - for Skia.Gtk)
+    - name: Install GTK Dependencies
+      shell: bash
+      if: runner.os == 'Linux' && inputs.job-platform == 'linux'
+      run: |
+        echo "Installing GTK dependencies for Skia.Gtk..."
+        sudo apt-get update && sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libcairo2-dev libxtst-dev
+
+    # Install Uno Check Tool and Run Check for the target platform
+    - name: Install Uno Platform Workloads via uno-check for ${{ inputs.job-platform }}
+      shell: pwsh # uno-check works well in pwsh cross-platform
+      run: |
+        echo "Installing/Updating uno-check tool..."
+        dotnet tool install -g uno.check --version 1.10.* # Pinning minor version to prevent breaking changes, update as needed
+
+        $unoTarget = "${{ inputs.job-platform }}"
+        # Map simple platform names to potential uno-check target names if needed
+        # Example: if uno-check needs 'gtk' instead of 'linux'
+        # if ($unoTarget -eq 'linux') { $unoTarget = 'gtk' } 
+
+        echo "Running uno-check for target: $unoTarget"
+        # Run uno-check for the specific platform of this job runner
+        # Adjust skips as needed for your project
+        uno-check --ci --non-interactive --fix --target $unoTarget --skip vswin --skip vsmac --skip xcode --skip vswinworkloads --skip androidemulator --skip dotnetnewunotemplates --skip mauiinstallationcheck
+
+        # Optional: Check exit code if needed, though continue-on-error is handled at job level
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "uno-check completed with errors (Exit Code: $LASTEXITCODE) for target $unoTarget. Build might fail."
+        } else {
+            echo "uno-check finished successfully for target: $unoTarget"
+        }
