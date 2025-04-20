@@ -29,27 +29,39 @@ jobs:
         run: |
           echo "Installing dependencies..."
           # Include your dependency installation commands here
-          # If you have a custom action, make sure it exists
-          # For now we'll set this as a placeholder
 
-      # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+      # Add MSBuild to the PATH
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.3.1
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '7.0.x'
+          dotnet-version: '9.0.x'
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v1.2.0
+        
+      - name: Restore NuGet packages
+        shell: pwsh
+        run: |
+          dotnet restore ./Emerald/Emerald.csproj
+          nuget restore ./Emerald/Emerald.csproj
 
       - name: Build Emerald (Windows)
         shell: pwsh
-        run: msbuild ./Emerald/Emerald.csproj /p:Configuration=Release
+        run: msbuild ./Emerald/Emerald.csproj /p:Configuration=Release /t:Restore,Build
         
       - name: Create Windows Build Directory
         shell: pwsh
         run: |
           mkdir -p build-artifacts/windows
-          Copy-Item -Path ./Emerald/bin/Release/* -Destination build-artifacts/windows -Recurse
+          Copy-Item -Path ./Emerald/bin/Release/* -Destination build-artifacts/windows -Recurse -ErrorAction SilentlyContinue
+          if (-not (Test-Path -Path build-artifacts/windows/*)) {
+            Write-Host "Warning: No build artifacts found. Creating empty directory."
+            mkdir -p build-artifacts/windows/placeholder
+            Set-Content -Path build-artifacts/windows/placeholder/README.txt -Value "Build may have failed. Check logs for details."
+          }
 
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
@@ -57,25 +69,32 @@ jobs:
           name: emerald-windows-build
           path: build-artifacts/windows
           retention-days: 7
+          if-no-files-found: warn
 
   build_macos:
     name: Build macOS
     runs-on: macos-latest
     continue-on-error: true  # This will make the workflow continue even if this job fails
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Install Dependencies
         timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
-        uses: "./.github/steps/install_dependencies"
+        run: |
+          echo "Installing dependencies..."
+          # Include your dependency installation commands here
         continue-on-error: true  # Continue even if dependency installation fails
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '7.0.x'
+          dotnet-version: '9.0.x'
+
+      - name: Restore NuGet packages (macOS)
+        run: dotnet restore ./Emerald/Emerald.csproj
+        continue-on-error: true
 
       - name: Build Emerald (macOS)
         run: dotnet build ./Emerald/Emerald.csproj -c Release
@@ -84,7 +103,12 @@ jobs:
       - name: Create macOS Build Directory
         run: |
           mkdir -p build-artifacts/macos
-          cp -r ./Emerald/bin/Release/* build-artifacts/macos/ || echo "No artifacts to copy"
+          cp -r ./Emerald/bin/Release/* build-artifacts/macos/ 2>/dev/null || echo "No artifacts to copy"
+          if [ ! "$(ls -A build-artifacts/macos)" ]; then
+            echo "Warning: No build artifacts found. Creating empty directory."
+            mkdir -p build-artifacts/macos/placeholder
+            echo "Build may have failed. Check logs for details." > build-artifacts/macos/placeholder/README.txt
+          fi
         continue-on-error: true
 
       - name: Upload macOS Artifacts
@@ -93,6 +117,7 @@ jobs:
           name: emerald-macos-build
           path: build-artifacts/macos
           retention-days: 7
+          if-no-files-found: warn
         continue-on-error: true  # Continue even if there are no artifacts to upload
 
   build_linux:
@@ -100,19 +125,25 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true  # This will make the workflow continue even if this job fails
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Install Dependencies
         timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
-        uses: "./.github/steps/install_dependencies"
+        run: |
+          echo "Installing dependencies..."
+          # Include your dependency installation commands here
         continue-on-error: true  # Continue even if dependency installation fails
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '7.0.x'
+          dotnet-version: '9.0.x'
+
+      - name: Restore NuGet packages (Linux)
+        run: dotnet restore ./Emerald/Emerald.csproj
+        continue-on-error: true
 
       - name: Build Emerald (Linux)
         run: dotnet build ./Emerald/Emerald.csproj -c Release
@@ -121,7 +152,12 @@ jobs:
       - name: Create Linux Build Directory
         run: |
           mkdir -p build-artifacts/linux
-          cp -r ./Emerald/bin/Release/* build-artifacts/linux/ || echo "No artifacts to copy"
+          cp -r ./Emerald/bin/Release/* build-artifacts/linux/ 2>/dev/null || echo "No artifacts to copy"
+          if [ ! "$(ls -A build-artifacts/linux)" ]; then
+            echo "Warning: No build artifacts found. Creating empty directory."
+            mkdir -p build-artifacts/linux/placeholder
+            echo "Build may have failed. Check logs for details." > build-artifacts/linux/placeholder/README.txt
+          fi
         continue-on-error: true
 
       - name: Upload Linux Artifacts
@@ -130,6 +166,7 @@ jobs:
           name: emerald-linux-build
           path: build-artifacts/linux
           retention-days: 7
+          if-no-files-found: warn
         continue-on-error: true  # Continue even if there are no artifacts to upload
 
   create_nightly:
