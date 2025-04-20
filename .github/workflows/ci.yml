@@ -11,12 +11,13 @@ on:
     branches:
       - main
       - release/**
+
 env:
   STEP_TIMEOUT_MINUTES: 60
 
 jobs:
-  smoke_test:
-    name: Uno
+  build_windows:
+    name: Build Windows
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
@@ -27,10 +28,131 @@ jobs:
         timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
         uses: "./.github/steps/install_dependencies"
 
-      # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+      # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.3.1
 
-      - name: Build Emerald (Debug)
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+
+      - name: Build Emerald (Windows)
         shell: pwsh
-        run: msbuild ./Emerald/Emerald.csproj /r
+        run: msbuild ./Emerald/Emerald.csproj /p:Configuration=Release
+        
+      - name: Create Windows Build Directory
+        shell: pwsh
+        run: |
+          mkdir -p build-artifacts/windows
+          Copy-Item -Path ./Emerald/bin/Release/* -Destination build-artifacts/windows -Recurse
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: emerald-windows-build
+          path: build-artifacts/windows
+          retention-days: 7
+
+  build_macos:
+    name: Build macOS
+    runs-on: macos-latest
+    continue-on-error: true  # This will make the workflow continue even if this job fails
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install Dependencies
+        timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
+        uses: "./.github/steps/install_dependencies"
+        continue-on-error: true  # Continue even if dependency installation fails
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+
+      - name: Build Emerald (macOS)
+        run: dotnet build ./Emerald/Emerald.csproj -c Release
+        continue-on-error: true  # Continue even if build fails
+        
+      - name: Create macOS Build Directory
+        run: |
+          mkdir -p build-artifacts/macos
+          cp -r ./Emerald/bin/Release/* build-artifacts/macos/ || echo "No artifacts to copy"
+        continue-on-error: true
+
+      - name: Upload macOS Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: emerald-macos-build
+          path: build-artifacts/macos
+          retention-days: 7
+        continue-on-error: true  # Continue even if there are no artifacts to upload
+
+  build_linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    continue-on-error: true  # This will make the workflow continue even if this job fails
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install Dependencies
+        timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
+        uses: "./.github/steps/install_dependencies"
+        continue-on-error: true  # Continue even if dependency installation fails
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+
+      - name: Build Emerald (Linux)
+        run: dotnet build ./Emerald/Emerald.csproj -c Release
+        continue-on-error: true  # Continue even if build fails
+        
+      - name: Create Linux Build Directory
+        run: |
+          mkdir -p build-artifacts/linux
+          cp -r ./Emerald/bin/Release/* build-artifacts/linux/ || echo "No artifacts to copy"
+        continue-on-error: true
+
+      - name: Upload Linux Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: emerald-linux-build
+          path: build-artifacts/linux
+          retention-days: 7
+        continue-on-error: true  # Continue even if there are no artifacts to upload
+
+  create_nightly:
+    name: Create Nightly Build
+    needs: [build_windows, build_macos, build_linux]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' # Only run on main branch
+    steps:
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: all-artifacts
+
+      - name: Create nightly release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Nightly Build ${{ steps.date.outputs.date }}
+          tag_name: nightly-${{ steps.date.outputs.date }}
+          prerelease: true
+          files: all-artifacts/**/*
+          body: |
+            Nightly build created on ${{ steps.date.outputs.date }}
+            
+            This is an automated nightly build from the latest code in the main branch.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
