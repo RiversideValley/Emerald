@@ -1,199 +1,100 @@
-name: CI
+# .github/workflows/CI.yml
+name: CI Build & Artifacts
 
 on:
   push:
     branches:
       - main
       - release/**
-
   pull_request:
     types: [opened, synchronize, reopened]
     branches:
       - main
       - release/**
 
-env:
-  STEP_TIMEOUT_MINUTES: 60
+# Use concurrency to cancel intermediate builds for PRs/pushes
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build_windows:
-    name: Build Windows
-    runs-on: windows-latest
+  build:
+    name: Build (${{ matrix.os }})
+    # Run on Windows, macOS, and Linux
+    runs-on: ${{ matrix.os }}
+    # Treat macOS and Linux build failures as warnings (allow workflow to succeed)
+    continue-on-error: ${{ matrix.os != 'windows-latest' }}
+
+    strategy:
+      fail-fast: false # Don't cancel other jobs if one fails
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        include:
+          - os: windows-latest
+            platform: windows
+            # Adjust target framework based on your Emerald.csproj for Windows
+            target_framework: 'net8.0-windows10.0.19041.0' 
+            # Adjust this path if your output structure is different
+            publish_path: './Emerald/bin/Release/${{ matrix.target_framework }}/win-x64/publish/' 
+            artifact_name: 'Emerald-Windows'
+            # Define the project path to build/publish
+            project_path: './Emerald/Emerald.csproj' 
+
+          - os: macos-latest
+            platform: macos
+            # Adjust target framework based on your Emerald.csproj for macOS
+            target_framework: 'net8.0-maccatalyst' 
+             # Adjust this path if your output structure is different
+            publish_path: './Emerald/bin/Release/${{ matrix.target_framework }}/maccatalyst-x64/publish/'
+            artifact_name: 'Emerald-macOS'
+            project_path: './Emerald/Emerald.csproj'
+
+          - os: ubuntu-latest
+            platform: linux
+            # Framework for Skia.Gtk head (often just net8.0, net7.0 etc.) Adjust as needed.
+            target_framework: 'net8.0' 
+            # Assuming a separate Skia.Gtk project. Adjust path if needed.
+            # If your main project targets Skia.Gtk, use that path and adjust publish_path accordingly.
+            project_path: './Emerald.Skia.Gtk/Emerald.Skia.Gtk.csproj' 
+            # Adjust this path based on the Skia.Gtk project output
+            publish_path: './Emerald.Skia.Gtk/bin/Release/${{ matrix.target_framework }}/publish/' 
+            artifact_name: 'Emerald-Linux'
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4 # Use latest version
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Required for versioning schemes like Nerdbank.GitVersioning
 
-      - name: Install Dependencies
-        timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
-        run: |
-          echo "Installing dependencies..."
-          # Include your dependency installation commands here
-
-      # Add MSBuild to the PATH
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v1.3.1
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - name: Install Dependencies for ${{ matrix.platform }}
+        timeout-minutes: 15 # Adjust timeout as needed
+        uses: ./.github/steps/install_dependencies
         with:
-          dotnet-version: '9.0.x'
+          job-platform: ${{ matrix.platform }}
+          # You can override dotnet-version here if needed per OS, otherwise uses default from action.yml
+          # dotnet-version: '8.0.x' 
 
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v1.2.0
-        
-      - name: Restore NuGet packages
-        shell: pwsh
+      - name: Build and Publish Emerald (${{ matrix.platform }})
+        timeout-minutes: 20 # Adjust timeout as needed
+        shell: pwsh # Use PowerShell Core, which is cross-platform
         run: |
-          dotnet restore ./Emerald/Emerald.csproj
-          nuget restore ./Emerald/Emerald.csproj
-
-      - name: Build Emerald (Windows)
-        shell: pwsh
-        run: msbuild ./Emerald/Emerald.csproj /p:Configuration=Release /t:Restore,Build
-        
-      - name: Create Windows Build Directory
-        shell: pwsh
-        run: |
-          mkdir -p build-artifacts/windows
-          Copy-Item -Path ./Emerald/bin/Release/* -Destination build-artifacts/windows -Recurse -ErrorAction SilentlyContinue
-          if (-not (Test-Path -Path build-artifacts/windows/*)) {
-            Write-Host "Warning: No build artifacts found. Creating empty directory."
-            mkdir -p build-artifacts/windows/placeholder
-            Set-Content -Path build-artifacts/windows/placeholder/README.txt -Value "Build may have failed. Check logs for details."
+          Write-Host "Publishing project: ${{ matrix.project_path }} for framework: ${{ matrix.target_framework }}"
+          # Use dotnet publish - creates a runnable output layout
+          # Use -f for multi-targeted projects (Windows/macOS). Skia.Gtk might not need -f if it's single-targeted.
+          if ('${{ matrix.platform }}' -eq 'linux') {
+            # Linux/Skia.Gtk often doesn't need -f if the project file targets only netX.0
+            dotnet publish "${{ matrix.project_path }}" -c Release --no-self-contained
+          } else {
+            dotnet publish "${{ matrix.project_path }}" -c Release -f "${{ matrix.target_framework }}" --no-self-contained 
           }
+          Write-Host "Publish completed."
 
-      - name: Upload Windows Artifacts
+
+      - name: Upload Artifact (${{ matrix.artifact_name }})
+        # Only upload artifacts for pushes to main or release branches (like nightly builds)
+        if: success() && github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))
         uses: actions/upload-artifact@v4
         with:
-          name: emerald-windows-build
-          path: build-artifacts/windows
-          retention-days: 7
-          if-no-files-found: warn
-
-  build_macos:
-    name: Build macOS
-    runs-on: macos-latest
-    continue-on-error: true  # This will make the workflow continue even if this job fails
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Install Dependencies
-        timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
-        run: |
-          echo "Installing dependencies..."
-          # Include your dependency installation commands here
-        continue-on-error: true  # Continue even if dependency installation fails
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.0.x'
-
-      - name: Restore NuGet packages (macOS)
-        run: dotnet restore ./Emerald/Emerald.csproj
-        continue-on-error: true
-
-      - name: Build Emerald (macOS)
-        run: dotnet build ./Emerald/Emerald.csproj -c Release
-        continue-on-error: true  # Continue even if build fails
-        
-      - name: Create macOS Build Directory
-        run: |
-          mkdir -p build-artifacts/macos
-          cp -r ./Emerald/bin/Release/* build-artifacts/macos/ 2>/dev/null || echo "No artifacts to copy"
-          if [ ! "$(ls -A build-artifacts/macos)" ]; then
-            echo "Warning: No build artifacts found. Creating empty directory."
-            mkdir -p build-artifacts/macos/placeholder
-            echo "Build may have failed. Check logs for details." > build-artifacts/macos/placeholder/README.txt
-          fi
-        continue-on-error: true
-
-      - name: Upload macOS Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: emerald-macos-build
-          path: build-artifacts/macos
-          retention-days: 7
-          if-no-files-found: warn
-        continue-on-error: true  # Continue even if there are no artifacts to upload
-
-  build_linux:
-    name: Build Linux
-    runs-on: ubuntu-latest
-    continue-on-error: true  # This will make the workflow continue even if this job fails
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Install Dependencies
-        timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
-        run: |
-          echo "Installing dependencies..."
-          # Include your dependency installation commands here
-        continue-on-error: true  # Continue even if dependency installation fails
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.0.x'
-
-      - name: Restore NuGet packages (Linux)
-        run: dotnet restore ./Emerald/Emerald.csproj
-        continue-on-error: true
-
-      - name: Build Emerald (Linux)
-        run: dotnet build ./Emerald/Emerald.csproj -c Release
-        continue-on-error: true  # Continue even if build fails
-        
-      - name: Create Linux Build Directory
-        run: |
-          mkdir -p build-artifacts/linux
-          cp -r ./Emerald/bin/Release/* build-artifacts/linux/ 2>/dev/null || echo "No artifacts to copy"
-          if [ ! "$(ls -A build-artifacts/linux)" ]; then
-            echo "Warning: No build artifacts found. Creating empty directory."
-            mkdir -p build-artifacts/linux/placeholder
-            echo "Build may have failed. Check logs for details." > build-artifacts/linux/placeholder/README.txt
-          fi
-        continue-on-error: true
-
-      - name: Upload Linux Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: emerald-linux-build
-          path: build-artifacts/linux
-          retention-days: 7
-          if-no-files-found: warn
-        continue-on-error: true  # Continue even if there are no artifacts to upload
-
-  create_nightly:
-    name: Create Nightly Build
-    needs: [build_windows, build_macos, build_linux]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' # Only run on main branch
-    steps:
-      - name: Get current date
-        id: date
-        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: all-artifacts
-
-      - name: Create nightly release
-        uses: softprops/action-gh-release@v1
-        with:
-          name: Nightly Build ${{ steps.date.outputs.date }}
-          tag_name: nightly-${{ steps.date.outputs.date }}
-          prerelease: true
-          files: all-artifacts/**/*
-          body: |
-            Nightly build created on ${{ steps.date.outputs.date }}
-            
-            This is an automated nightly build from the latest code in the main branch.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.publish_path }}
+          retention-days: 7 # Optional: Adjust how long artifacts are kept
