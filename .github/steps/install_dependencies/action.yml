@@ -9,7 +9,7 @@ inputs:
   dotnet-version:
     description: 'Installs and sets the .NET SDK Version'
     required: false
-    default: '8.0.x'
+    default: '9.0.x'
   sdkVersion:
     description: 'The version of the Windows Sdk'
     required: false
