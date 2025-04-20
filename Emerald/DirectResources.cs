@@ -22,15 +22,14 @@ public static class DirectResoucres
     {
         get
         {
-#if WINDOWS
+           if( OperatingSystem.IsWindows())
             return "Windows";
-#elif MACCATALYST
-            return "OSX";
-#elif DESKTOP
-            return "Skia";
-#else
-            return "Unknown";
-#endif
+            else if (OperatingSystem.IsLinux())
+                return "Linux";
+            else if (OperatingSystem.IsMacOS())
+                return "OSX";
+           else
+                return "Unknown";
         }
     }
     public static string LocalDataPath

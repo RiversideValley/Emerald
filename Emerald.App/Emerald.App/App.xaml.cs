@@ -1,4 +1,4 @@
-﻿using Emerald.WinUI.Helpers.AppInstancing;
+using Emerald.WinUI.Helpers.AppInstancing;
 using Emerald.WinUI.Helpers.Updater;
 using Microsoft.UI.Xaml;
 using System;

@@ -41,7 +41,7 @@ namespace Emerald.Core
 
             try
             {
-                var jl = SystemInfoHelper.FindJavaFull();
+                var jl = SystemInfoHelper.FindJava();
                 var javaResult = new List<string>();
 
                 await foreach (var java in jl)

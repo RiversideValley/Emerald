@@ -27,27 +27,9 @@ namespace Emerald.Views.Settings;
 /// </summary>
 public sealed partial class GeneralPage : Page
 {
-
-/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
-Before:
-    private readonly Helpers.Settings.SettingsSystem SS;
-    public GeneralPage()
-After:
-    private readonly SS SS;
-    public GeneralPage()
-*/
     private readonly Services.SettingsService SS;
     public GeneralPage()
     {
-
-/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
-Before:
-        SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
-        this.InitializeComponent();
-After:
-        SS = ServiceLocator.Current.GetInstance<SS>();
-        this.InitializeComponent();
-*/
         SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
         this.InitializeComponent();
     }
@@ -62,6 +44,9 @@ After:
         };
         fop.FileTypeFilter.Add("*");
 
+        if(DirectResoucres.Platform == "Windows")
+            WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
+      
         var f = await fop.PickSingleFolderAsync();
 
         if (f != null)

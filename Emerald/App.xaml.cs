@@ -12,15 +12,6 @@ using Emerald.Helpers;
 namespace Emerald;
 public partial class App : Application
 {
-
-/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
-Before:
-    private Helpers.Settings.SettingsSystem SS;
-    /// <summary>
-After:
-    private SettingsSystem SS;
-    /// <summary>
-*/
     private Services.SettingsService SS;
     /// <summary>
     /// Initializes the singleton application object. This is the first line of authored code
@@ -28,8 +19,9 @@ After:
     /// </summary>
     public App()
     {
-        this.InitializeComponent(); 
+        this.InitializeComponent();
 
+        System.Net.ServicePointManager.DefaultConnectionLimit = 256;
         // Register exception handlers
 
         this.UnhandledException += App_UnhandledException;
@@ -50,13 +42,6 @@ After:
         services.AddTransient(provider => new ModpackStore(typeof(ModpackStore).Log()));
 
         //Settings
-
-/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
-Before:
-        services.AddSingleton<Helpers.Settings.SettingsSystem>();
-After:
-        services.AddSingleton<SettingsSystem>();
-*/
         services.AddSingleton<Services.SettingsService>();
 
 
@@ -102,14 +87,6 @@ After:
         ServiceLocator.SetLocatorProvider(() => new Emerald.Services.ServiceProviderLocator(Host!.Services));
 
 
-/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
-Before:
-        SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
-        this.Log().LogInformation("New Instance was created. Logs are being saved at: {logPath}",logPath);
-After:
-        SS = ServiceLocator.Current.GetInstance<SettingsSystem>();
-        this.Log().LogInformation("New Instance was created. Logs are being saved at: {logPath}",logPath);
-*/
         SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
         this.Log().LogInformation("New Instance was created. Logs are being saved at: {logPath}",logPath);
 
