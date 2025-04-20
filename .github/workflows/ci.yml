@@ -1,6 +1,7 @@
 # .github/workflows/CI.yml
 name: CI Build & Artifacts
 
+# Workflow triggers
 on:
   push:
     branches:
@@ -12,89 +13,116 @@ on:
       - main
       - release/**
 
-# Use concurrency to cancel intermediate builds for PRs/pushes
+# Concurrency control to cancel older runs on the same branch/PR
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
+    # Job name includes the OS from the matrix
     name: Build (${{ matrix.os }})
-    # Run on Windows, macOS, and Linux
+    # Runner OS defined by the matrix
     runs-on: ${{ matrix.os }}
-    # Treat macOS and Linux build failures as warnings (allow workflow to succeed)
+    # Allow macOS and Linux builds to fail without failing the entire workflow run
     continue-on-error: ${{ matrix.os != 'windows-latest' }}
 
     strategy:
-      fail-fast: false # Don't cancel other jobs if one fails
+      # Don't cancel other matrix jobs if one fails
+      fail-fast: false 
       matrix:
+        # Define the operating systems to run on
         os: [windows-latest, macos-latest, ubuntu-latest]
+        # Include specific configurations for each OS
         include:
+          # == WINDOWS CONFIGURATION ==
           - os: windows-latest
             platform: windows
-            # Adjust target framework based on your Emerald.csproj for Windows
-            target_framework: 'net8.0-windows10.0.19041.0' 
-            # Adjust this path if your output structure is different
-            publish_path: './Emerald/bin/Release/${{ matrix.target_framework }}/win-x64/publish/' 
+            # IMPORTANT: Define the target framework for Windows build
+            target_framework: 'net8.0-windows10.0.19041.0' # Adjust framework as needed for your project
+            # CORRECTED: Publish path with hardcoded framework string (NO matrix reference here)
+            # IMPORTANT: Verify this path matches your actual build output structure and Runtime Identifier (RID)
+            publish_path: './Emerald/bin/Release/net8.0-windows10.0.19041.0/win-x64/publish/' 
             artifact_name: 'Emerald-Windows'
-            # Define the project path to build/publish
-            project_path: './Emerald/Emerald.csproj' 
+            # IMPORTANT: Define the path to your Windows/Shared project file
+            project_path: './Emerald/Emerald.csproj' # Adjust project path if needed
 
+          # == MACOS CONFIGURATION ==
           - os: macos-latest
             platform: macos
-            # Adjust target framework based on your Emerald.csproj for macOS
-            target_framework: 'net8.0-maccatalyst' 
-             # Adjust this path if your output structure is different
-            publish_path: './Emerald/bin/Release/${{ matrix.target_framework }}/maccatalyst-x64/publish/'
+            # IMPORTANT: Define the target framework for macOS build
+            target_framework: 'net8.0-maccatalyst' # Adjust framework as needed for your project
+            # CORRECTED: Publish path with hardcoded framework string (NO matrix reference here)
+            # IMPORTANT: Verify this path matches your actual build output structure and RID
+            publish_path: './Emerald/bin/Release/net8.0-maccatalyst/maccatalyst-x64/publish/'
             artifact_name: 'Emerald-macOS'
-            project_path: './Emerald/Emerald.csproj'
+            # IMPORTANT: Define the path to your macOS/Shared project file
+            project_path: './Emerald/Emerald.csproj' # Adjust project path if needed
 
+          # == LINUX CONFIGURATION ==
           - os: ubuntu-latest
             platform: linux
-            # Framework for Skia.Gtk head (often just net8.0, net7.0 etc.) Adjust as needed.
-            target_framework: 'net8.0' 
-            # Assuming a separate Skia.Gtk project. Adjust path if needed.
-            # If your main project targets Skia.Gtk, use that path and adjust publish_path accordingly.
-            project_path: './Emerald.Skia.Gtk/Emerald.Skia.Gtk.csproj' 
-            # Adjust this path based on the Skia.Gtk project output
-            publish_path: './Emerald.Skia.Gtk/bin/Release/${{ matrix.target_framework }}/publish/' 
+            # IMPORTANT: Define the target framework for your Skia.Gtk project
+            target_framework: 'net8.0' # Adjust framework as needed
+            # IMPORTANT: Define the path to your Skia.Gtk specific project file
+            project_path: './Emerald.Skia.Gtk/Emerald.Skia.Gtk.csproj' # Adjust project path if needed
+            # CORRECTED: Publish path with hardcoded framework string (NO matrix reference here)
+            # IMPORTANT: Verify this path matches your actual build output structure. Linux might not use an RID folder.
+            publish_path: './Emerald.Skia.Gtk/bin/Release/net8.0/publish/' 
             artifact_name: 'Emerald-Linux'
 
+    # Steps to execute for each job in the matrix
     steps:
+      # Step 1: Check out the repository code
       - name: Checkout code
-        uses: actions/checkout@v4 # Use latest version
+        uses: actions/checkout@v4 # Use latest version of the checkout action
         with:
-          fetch-depth: 0 # Required for versioning schemes like Nerdbank.GitVersioning
+          fetch-depth: 0 # Fetch all history for accurate versioning if needed
 
+      # Step 2: Install dependencies using the composite action
       - name: Install Dependencies for ${{ matrix.platform }}
-        timeout-minutes: 15 # Adjust timeout as needed
-        uses: ./.github/steps/install_dependencies
+        timeout-minutes: 15 # Set a timeout for dependency installation
+        uses: ./.github/steps/install_dependencies # Reference the local composite action
         with:
+          # Pass the platform identifier from the matrix to the action
           job-platform: ${{ matrix.platform }}
-          # You can override dotnet-version here if needed per OS, otherwise uses default from action.yml
+          # Optionally override dotnet-version here if needed per OS
           # dotnet-version: '8.0.x' 
 
+      # Step 3: Build and publish the application
       - name: Build and Publish Emerald (${{ matrix.platform }})
-        timeout-minutes: 20 # Adjust timeout as needed
-        shell: pwsh # Use PowerShell Core, which is cross-platform
+        timeout-minutes: 20 # Set a timeout for the build/publish step
+        shell: pwsh # Use PowerShell Core (pwsh) for cross-platform compatibility
         run: |
           Write-Host "Publishing project: ${{ matrix.project_path }} for framework: ${{ matrix.target_framework }}"
-          # Use dotnet publish - creates a runnable output layout
-          # Use -f for multi-targeted projects (Windows/macOS). Skia.Gtk might not need -f if it's single-targeted.
+          
+          # Use 'dotnet publish' to create a runnable output package
+          # The '-c Release' flag specifies the Release configuration
+          # '--no-self-contained' creates a framework-dependent deployment (requires .NET runtime on target machine)
+          
+          # Conditional publish command:
+          # Linux/Skia.Gtk often doesn't need the '-f' (framework) flag if its project file only targets one framework (e.g., net8.0)
           if ('${{ matrix.platform }}' -eq 'linux') {
-            # Linux/Skia.Gtk often doesn't need -f if the project file targets only netX.0
             dotnet publish "${{ matrix.project_path }}" -c Release --no-self-contained
-          } else {
+          } 
+          # Windows and macOS projects are often multi-targeted, requiring the '-f' flag
+          else {
             dotnet publish "${{ matrix.project_path }}" -c Release -f "${{ matrix.target_framework }}" --no-self-contained 
           }
+          
           Write-Host "Publish completed."
 
-
+      # Step 4: Upload the build artifact
       - name: Upload Artifact (${{ matrix.artifact_name }})
-        # Only upload artifacts for pushes to main or release branches (like nightly builds)
+        # Only upload artifacts if the build succeeded ('success()') AND
+        # the event triggering the workflow was a push ('github.event_name == 'push'') AND
+        # the push was to the 'main' branch OR a branch starting with 'release/'
         if: success() && github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4 # Use latest version of the upload action
         with:
+          # Name of the artifact (e.g., Emerald-Windows)
           name: ${{ matrix.artifact_name }}
+          # Path to the files to upload (uses the corrected matrix variable)
           path: ${{ matrix.publish_path }}
-          retention-days: 7 # Optional: Adjust how long artifacts are kept
+          # Optional: How long to keep the artifact (default is 90 days)
+          retention-days: 7 
