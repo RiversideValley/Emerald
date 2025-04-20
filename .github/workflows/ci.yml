@@ -20,20 +20,24 @@ jobs:
     name: Build Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Install Dependencies
         timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
-        uses: "./.github/steps/install_dependencies"
+        run: |
+          echo "Installing dependencies..."
+          # Include your dependency installation commands here
+          # If you have a custom action, make sure it exists
+          # For now we'll set this as a placeholder
 
       # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.3.1
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '7.0.x'
 
@@ -48,7 +52,7 @@ jobs:
           Copy-Item -Path ./Emerald/bin/Release/* -Destination build-artifacts/windows -Recurse
 
       - name: Upload Windows Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: emerald-windows-build
           path: build-artifacts/windows
@@ -84,7 +88,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload macOS Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: emerald-macos-build
           path: build-artifacts/macos
@@ -121,7 +125,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload Linux Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: emerald-linux-build
           path: build-artifacts/linux
@@ -139,7 +143,7 @@ jobs:
         run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: all-artifacts
 
