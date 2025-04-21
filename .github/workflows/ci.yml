@@ -38,91 +38,101 @@ jobs:
           # == WINDOWS CONFIGURATION ==
           - os: windows-latest
             platform: windows
-            # IMPORTANT: Define the target framework for Windows build
-            target_framework: 'net9.0-windows10.0.22621'
-            # CORRECTED: Publish path with hardcoded framework string (NO matrix reference here)
+            # UPDATED: Use the correct .NET 9 Windows target framework from your project
+            target_framework: 'net9.0-windows10.0.22621' 
+            # UPDATED: Adjust publish path for the new framework
             # IMPORTANT: Verify this path matches your actual build output structure and Runtime Identifier (RID)
             publish_path: './Emerald/bin/Release/net9.0-windows10.0.22621/win-x64/publish/' 
             artifact_name: 'Emerald-Windows'
             # IMPORTANT: Define the path to your Windows/Shared project file
-            project_path: './Emerald/Emerald.csproj' # Adjust project path if needed
+            project_path: './Emerald/Emerald.csproj' 
 
           # == MACOS CONFIGURATION ==
           - os: macos-latest
             platform: macos
-            # IMPORTANT: Define the target framework for macOS build
-            target_framework: 'net9.0-maccatalyst' # Adjust framework as needed for your project
-            # CORRECTED: Publish path with hardcoded framework string (NO matrix reference here)
+            # UPDATED: Use the correct .NET 9 macOS target framework from your project
+            target_framework: 'net9.0-maccatalyst' 
+            # UPDATED: Adjust publish path for the new framework
             # IMPORTANT: Verify this path matches your actual build output structure and RID
             publish_path: './Emerald/bin/Release/net9.0-maccatalyst/maccatalyst-x64/publish/'
             artifact_name: 'Emerald-macOS'
             # IMPORTANT: Define the path to your macOS/Shared project file
-            project_path: './Emerald/Emerald.csproj' # Adjust project path if needed
+            project_path: './Emerald/Emerald.csproj' 
 
           # == LINUX CONFIGURATION ==
           - os: ubuntu-latest
             platform: linux
-            # IMPORTANT: Define the target framework for your Skia.Gtk project
-            target_framework: 'net9.0-desktop'
-            # IMPORTANT: Define the path to your Skia.Gtk specific project file
-            project_path: './Emerald.Skia.Gtk/Emerald.Skia.Gtk.csproj' # Adjust project path if needed
-            # CORRECTED: Publish path with hardcoded framework string (NO matrix reference here)
-            # IMPORTANT: Verify this path matches your actual build output structure. Linux might not use an RID folder.
-            publish_path: './Emerald.Skia.Gtk/bin/Release/net9.0/publish/' 
+            # UPDATED: Use the correct .NET 9 Linux target framework from your project
+            target_framework: 'net9.0-desktop' 
+            # UPDATED: Point to the main project since 'net9.0-desktop' is likely defined there
+            project_path: './Emerald/Emerald.csproj' 
+            # UPDATED: Adjust publish path for the new framework and project
+            # IMPORTANT: Verify this path matches your actual build output structure.
+            publish_path: './Emerald/bin/Release/net9.0-desktop/publish/' 
             artifact_name: 'Emerald-Linux'
 
     # Steps to execute for each job in the matrix
     steps:
       # Step 1: Check out the repository code
       - name: Checkout code
-        uses: actions/checkout@v4 # Use latest version of the checkout action
+        uses: actions/checkout@v4 
         with:
-          fetch-depth: 0 # Fetch all history for accurate versioning if needed
+          fetch-depth: 0 
 
       # Step 2: Install dependencies using the composite action
       - name: Install Dependencies for ${{ matrix.platform }}
-        timeout-minutes: 15 # Set a timeout for dependency installation
-        uses: ./.github/steps/install_dependencies # Reference the local composite action
+        timeout-minutes: 15 
+        uses: ./.github/steps/install_dependencies 
         with:
-          # Pass the platform identifier from the matrix to the action
           job-platform: ${{ matrix.platform }}
-          # Optionally override dotnet-version here if needed per OS
-          # dotnet-version: '8.0.x' 
+          # Ensure correct .NET 9 SDK is used (default in action.yml)
+          # Ensure correct Windows SDK is used (default in action.yml)
 
       # Step 3: Build and publish the application
       - name: Build and Publish Emerald (${{ matrix.platform }})
-        timeout-minutes: 20 # Set a timeout for the build/publish step
-        shell: pwsh # Use PowerShell Core (pwsh) for cross-platform compatibility
+        timeout-minutes: 20 
+        shell: pwsh 
         run: |
           Write-Host "Publishing project: ${{ matrix.project_path }} for framework: ${{ matrix.target_framework }}"
           
-          # Use 'dotnet publish' to create a runnable output package
-          # The '-c Release' flag specifies the Release configuration
-          # '--no-self-contained' creates a framework-dependent deployment (requires .NET runtime on target machine)
-          
-          # Conditional publish command:
-          # Linux/Skia.Gtk often doesn't need the '-f' (framework) flag if its project file only targets one framework (e.g., net8.0)
-          if ('${{ matrix.platform }}' -eq 'linux') {
-            dotnet publish "${{ matrix.project_path }}" -c Release --no-self-contained
+          # UPDATED: Use msbuild /t:publish for Windows based on Uno documentation for unpackaged apps
+          if ('${{ matrix.platform }}' -eq 'windows') {
+            # Navigate to project directory - Made mandatory as requested
+            cd (Split-Path -Path "${{ matrix.project_path }}" -Parent) # Navigate to the directory containing the csproj
+            
+            Write-Host "Using msbuild /t:publish for Windows (x64)..."
+            # Use msbuild with specified parameters.
+            # /r: Restore dependencies
+            # /t:publish: Execute the publish target
+            # /p:TargetFramework: Set the target framework from the matrix
+            # /p:Configuration: Set the build configuration
+            # /p:Platform: Set the target platform (x64 for standard windows-latest runner)
+            # /p:PublishDir: Set the output directory using the path from the matrix
+            # Pass only the project file name since we changed directory
+            msbuild /r /t:publish `
+              /p:TargetFramework=${{ matrix.target_framework }} `
+              /p:Configuration=Release `
+              /p:Platform=x64 `
+              /p:PublishDir=${{ matrix.publish_path }} `
+              (Split-Path -Path "${{ matrix.project_path }}" -Leaf) # Pass only the project file name
+              
+            # Note: Building for x86/arm64 would require additional msbuild calls with different /p:Platform values
+            # and potentially different PublishDir paths, or separate matrix jobs.
           } 
-          # Windows and macOS projects are often multi-targeted, requiring the '-f' flag
+          # Use dotnet publish for macOS and Linux
           else {
+            Write-Host "Using dotnet publish for ${{ matrix.platform }}..."
+            # The '-f' flag specifies the target framework
             dotnet publish "${{ matrix.project_path }}" -c Release -f "${{ matrix.target_framework }}" --no-self-contained 
           }
-          
-          Write-Host "Publish completed."
+                    
+          Write-Host "Publish completed for ${{ matrix.platform }}."
 
       # Step 4: Upload the build artifact
       - name: Upload Artifact (${{ matrix.artifact_name }})
-        # Only upload artifacts if the build succeeded ('success()') AND
-        # the event triggering the workflow was a push ('github.event_name == 'push'') AND
-        # the push was to the 'main' branch OR a branch starting with 'release/'
         if: success() && github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))
-        uses: actions/upload-artifact@v4 # Use latest version of the upload action
+        uses: actions/upload-artifact@v4 
         with:
-          # Name of the artifact (e.g., Emerald-Windows)
           name: ${{ matrix.artifact_name }}
-          # Path to the files to upload (uses the corrected matrix variable)
           path: ${{ matrix.publish_path }}
-          # Optional: How long to keep the artifact (default is 90 days)
           retention-days: 7 
