@@ -42,8 +42,10 @@ jobs:
             target_framework: 'net9.0-windows10.0.22621' 
             # UPDATED: Adjust publish path for the new framework
             # IMPORTANT: Verify this path matches your actual build output structure and Runtime Identifier (RID)
-            publish_path: './Emerald/bin/Release/net9.0-windows10.0.22621/win-x64/publish/' 
+            publish_path: './bin/Release/net9.0-windows10.0.22621/win-x64/publish/' 
             artifact_name: 'Emerald-Windows'
+            
+            artifact_Path: './Emerald/bin/Release/net9.0-windows10.0.22621/win-x64/publish/'
             # IMPORTANT: Define the path to your Windows/Shared project file
             project_path: './Emerald/Emerald.csproj' 
 
@@ -55,6 +57,9 @@ jobs:
             # UPDATED: Adjust publish path for the new framework
             # IMPORTANT: Verify this path matches your actual build output structure and RID
             publish_path: './Emerald/bin/Release/net9.0-maccatalyst/maccatalyst-x64/publish/'
+            
+            artifact_Path: './Emerald/bin/Release/net9.0-maccatalyst/maccatalyst-x64/publish/'
+            
             artifact_name: 'Emerald-macOS'
             # IMPORTANT: Define the path to your macOS/Shared project file
             project_path: './Emerald/Emerald.csproj' 
@@ -69,6 +74,9 @@ jobs:
             # UPDATED: Adjust publish path for the new framework and project
             # IMPORTANT: Verify this path matches your actual build output structure.
             publish_path: './Emerald/bin/Release/net9.0-desktop/publish/' 
+            
+            artifact_Path: './Emerald/bin/Release/net9.0-desktop/publish/' 
+            
             artifact_name: 'Emerald-Linux'
 
     # Steps to execute for each job in the matrix
@@ -139,5 +147,5 @@ jobs:
         uses: actions/upload-artifact@v4 
         with:
           name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.publish_path }}
+          path: ${{ matrix.artifact_Path }}
           retention-days: 7 
