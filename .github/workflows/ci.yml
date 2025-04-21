@@ -39,10 +39,10 @@ jobs:
           - os: windows-latest
             platform: windows
             # IMPORTANT: Define the target framework for Windows build
-            target_framework: 'net8.0-windows10.0.19041.0' # Adjust framework as needed for your project
+            target_framework: 'net9.0-windows10.0.22621'
             # CORRECTED: Publish path with hardcoded framework string (NO matrix reference here)
             # IMPORTANT: Verify this path matches your actual build output structure and Runtime Identifier (RID)
-            publish_path: './Emerald/bin/Release/net8.0-windows10.0.19041.0/win-x64/publish/' 
+            publish_path: './Emerald/bin/Release/net9.0-windows10.0.22621/win-x64/publish/' 
             artifact_name: 'Emerald-Windows'
             # IMPORTANT: Define the path to your Windows/Shared project file
             project_path: './Emerald/Emerald.csproj' # Adjust project path if needed
@@ -51,10 +51,10 @@ jobs:
           - os: macos-latest
             platform: macos
             # IMPORTANT: Define the target framework for macOS build
-            target_framework: 'net8.0-maccatalyst' # Adjust framework as needed for your project
+            target_framework: 'net9.0-maccatalyst' # Adjust framework as needed for your project
             # CORRECTED: Publish path with hardcoded framework string (NO matrix reference here)
             # IMPORTANT: Verify this path matches your actual build output structure and RID
-            publish_path: './Emerald/bin/Release/net8.0-maccatalyst/maccatalyst-x64/publish/'
+            publish_path: './Emerald/bin/Release/net9.0-maccatalyst/maccatalyst-x64/publish/'
             artifact_name: 'Emerald-macOS'
             # IMPORTANT: Define the path to your macOS/Shared project file
             project_path: './Emerald/Emerald.csproj' # Adjust project path if needed
@@ -63,12 +63,12 @@ jobs:
           - os: ubuntu-latest
             platform: linux
             # IMPORTANT: Define the target framework for your Skia.Gtk project
-            target_framework: 'net8.0' # Adjust framework as needed
+            target_framework: 'net9.0-desktop'
             # IMPORTANT: Define the path to your Skia.Gtk specific project file
             project_path: './Emerald.Skia.Gtk/Emerald.Skia.Gtk.csproj' # Adjust project path if needed
             # CORRECTED: Publish path with hardcoded framework string (NO matrix reference here)
             # IMPORTANT: Verify this path matches your actual build output structure. Linux might not use an RID folder.
-            publish_path: './Emerald.Skia.Gtk/bin/Release/net8.0/publish/' 
+            publish_path: './Emerald.Skia.Gtk/bin/Release/net9.0/publish/' 
             artifact_name: 'Emerald-Linux'
 
     # Steps to execute for each job in the matrix
