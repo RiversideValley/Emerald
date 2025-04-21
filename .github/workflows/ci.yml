@@ -88,6 +88,11 @@ jobs:
           # Ensure correct .NET 9 SDK is used (default in action.yml)
           # Ensure correct Windows SDK is used (default in action.yml)
 
+      # Step 2.5: Setup MSBuild (Windows Only) - ADDED BACK
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2 # Use latest major version
+        if: matrix.os == 'windows-latest' # Only run this step on Windows runners
+
       # Step 3: Build and publish the application
       - name: Build and Publish Emerald (${{ matrix.platform }})
         timeout-minutes: 20 
@@ -101,7 +106,7 @@ jobs:
             cd (Split-Path -Path "${{ matrix.project_path }}" -Parent) # Navigate to the directory containing the csproj
             
             Write-Host "Using msbuild /t:publish for Windows (x64)..."
-            # Use msbuild with specified parameters.
+            # Use msbuild with specified parameters. MSBuild should now be in the PATH thanks to the setup-msbuild step.
             # /r: Restore dependencies
             # /t:publish: Execute the publish target
             # /p:TargetFramework: Set the target framework from the matrix
