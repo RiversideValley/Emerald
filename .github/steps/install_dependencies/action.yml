@@ -46,7 +46,15 @@ runs:
       if: runner.os == 'Linux' && inputs.job-platform == 'linux'
       run: |
         echo "Installing GTK dependencies for Skia.Gtk/Desktop..."
-        sudo apt-get update && sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libcairo2-dev libxtst-dev
+        sudo apt-get update
+        sudo apt-get install -y snapd
+        sudo snap install core24
+        sudo snap install multipass
+        sudo snap install lxd
+        sudo snap install snapcraft
+        lxd init --minimal
+        sudo usermod --append --groups lxd $USER # In order for the current user to use LXD
+
 
     # Install Uno Check Tool and Run Check for the target platform
     - name: Install Uno Platform Workloads via uno-check for ${{ inputs.job-platform }}
