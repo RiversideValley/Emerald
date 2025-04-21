@@ -65,7 +65,7 @@ jobs:
             project_path: './Emerald/Emerald.csproj' 
 
           # == LINUX CONFIGURATION ==
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             platform: linux
             # UPDATED: Use the correct .NET 9 Linux target framework from your project
             target_framework: 'net9.0-desktop' 
@@ -75,7 +75,7 @@ jobs:
             # IMPORTANT: Verify this path matches your actual build output structure.
             publish_path: './Emerald/bin/Release/net9.0-desktop/publish/' 
             
-            artifact_Path: './Emerald/bin/Release/net9.0-desktop/publish/' 
+            artifact_Path: './Emerald/bin/Release/net9.0-desktop/' 
             
             artifact_name: 'Emerald-Linux'
 
@@ -134,9 +134,15 @@ jobs:
           } 
           # Use dotnet publish for macOS and Linux
           else {
+          
             Write-Host "Using dotnet publish for ${{ matrix.platform }}..."
-            # The '-f' flag specifies the target framework
-            dotnet publish "${{ matrix.project_path }}" -c Release -f "${{ matrix.target_framework }}" --no-self-contained 
+              if ('${{ matrix.platform }}' -eq 'linux') {
+                dotnet publish "${{ matrix.project_path }}" -c Release -f "${{ matrix.target_framework }}" -p:SelfContained=true -p:PackageFormat=snap -p:UnoSnapcraftAdditionalParameters=--destructive-mode
+
+              }
+              else {
+                dotnet publish "${{ matrix.project_path }}" -c Release -f "${{ matrix.target_framework }}" --no-self-contained 
+                }
           }
                     
           Write-Host "Publish completed for ${{ matrix.platform }}."
