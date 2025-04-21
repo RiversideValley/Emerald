@@ -90,7 +90,7 @@ jobs:
 
       # Step 2.5: Setup MSBuild (Windows Only) - ADDED BACK
       - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v@v1.3.1
+        uses: microsoft/setup-msbuild@v1.3.1
         if: matrix.os == 'windows-latest' # Only run this step on Windows runners
 
       # Step 3: Build and publish the application
