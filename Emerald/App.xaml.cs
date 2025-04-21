@@ -2,7 +2,6 @@ using CommonServiceLocator;
 using Serilog;
 using Serilog.Sinks.File;
 using Uno.Resizetizer;
-using Uno.UI.HotDesign;
 using Microsoft.Extensions.DependencyInjection;
 using Emerald.CoreX.Store.Modrinth;
 using System.Diagnostics;
