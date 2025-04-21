@@ -51,7 +51,7 @@ runs:
         sudo snap install core24
         sudo snap install multipass
         sudo snap install lxd
-        sudo snap install snapcraft
+        sudo snap install snapcraft --classic
         lxd init --minimal
         sudo usermod --append --groups lxd $USER # In order for the current user to use LXD
 
