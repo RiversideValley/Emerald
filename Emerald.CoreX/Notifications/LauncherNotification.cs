@@ -18,6 +18,8 @@ public partial class Notification : ObservableObject
     [ObservableProperty] private bool _isIndeterminate;
     [ObservableProperty] private bool _isCompleted;
     [ObservableProperty] private bool _isCancellable;
+    [ObservableProperty] private Exception _exception;
+
 
     public DateTime Timestamp { get; set; }
     public TimeSpan? Duration { get; set; }

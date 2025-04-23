@@ -43,11 +43,19 @@ public partial class App : Application
 
         //Settings
         services.AddSingleton<Services.SettingsService>();
+        //Notifications
+        services.AddSingleton<CoreX.Notifications.INotificationService, CoreX.Notifications.NotificationService>();
 
+        //Mod Loaders
+        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Fabric>();
+        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Forge>();
+        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.LiteLoader>();
+        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Quilt>();
+        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Optifine>();
 
     }
 
-    protected override async void OnLaunched(LaunchActivatedEventArgs args)
+    protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         var logPath = Path.Combine(
             DirectResoucres.LocalDataPath,

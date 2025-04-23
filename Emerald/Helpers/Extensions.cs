@@ -1,4 +1,5 @@
 using CommonServiceLocator;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -80,14 +81,6 @@ public static class Extensions
                 Padding = new(12) 
             } : content,
 
-/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
-Before:
-            RequestedTheme = (ElementTheme)Ioc.Default.GetService< Helpers.Settings.SettingsSystem>().Settings.App.Appearance.Theme
-        };
-After:
-            RequestedTheme = (ElementTheme)Ioc.Default.GetService< SettingsSystem>().Settings.App.Appearance.Theme
-        };
-*/
             RequestedTheme = (ElementTheme)Ioc.Default.GetService< Services.SettingsService>().Settings.App.Appearance.Theme
         };
         App.Current.Log().LogInformation("Created ContentDialog with title: {title}", title);

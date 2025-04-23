@@ -7,9 +7,10 @@ using CmlLib.Core;
 
 namespace Emerald.CoreX.Installers;
 
-public class Forge : IModLoaderInstaller
+public class Quilt : IModLoaderInstaller
 {
-    public Versions.Type Type => Versions.Type.Forge;
+    public Versions.Type Type => Versions.Type.Quilt;
+
     public Task<List<LoaderInfo>> GetVersionsAsync(string mcVersion)
     {
         throw new NotImplementedException();

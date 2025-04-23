@@ -20,7 +20,7 @@ public interface INotificationService
         bool isIndeterminate = false);
 
     void Update(string? id = null, string? title = null, string? message = null, double? progress = null, bool? isIndeterminate = null);
-    void Complete(string id, bool success, string message = null);
+    void Complete(string id, bool success, string message = null, Exception ex = null);
     string Warning(string title, string message, TimeSpan? duration = null);
     string Info(string title, string message, TimeSpan? duration = null);
     string Error(string title, string message, TimeSpan? duration = null);

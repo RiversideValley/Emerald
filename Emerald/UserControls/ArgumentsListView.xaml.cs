@@ -15,6 +15,7 @@ using Microsoft.UI.Xaml.Navigation;
 using System.Collections.ObjectModel;
 using Emerald.Models;
 using CommonServiceLocator;
+using CommunityToolkit.Mvvm.DependencyInjection;
 
 
 namespace Emerald.UserControls;

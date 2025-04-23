@@ -763,4 +763,16 @@
   <data name="AppCrash" xml:space="preserve">
     <value>Emerald Got Crashed!</value>
   </data>
+  <data name="GettingFabricLoaders" xml:space="preserve">
+    <value>Getting Fabric Loaders</value>
+  </data>
+  <data name="GettingForgeLoaders" xml:space="preserve">
+    <value>Getting Forge Loaders</value>
+  </data>
+  <data name="GettingQuiltLoaders" xml:space="preserve">
+    <value>Getting Quilt Loaders</value>
+  </data>
+  <data name="GettingLiteLoaders" xml:space="preserve">
+    <value>Getting LiteLoaders</value>
+  </data>
 </root>

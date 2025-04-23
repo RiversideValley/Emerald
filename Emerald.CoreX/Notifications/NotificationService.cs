@@ -65,7 +65,7 @@ public class NotificationService : ObservableObject, INotificationService
     }
 
     // Mark a task as completed
-    public void Complete(string id, bool success, string message = null)
+    public void Complete(string id, bool success, string message = null, Exception ex = null)
     {
         if (_notificationLookup.TryGetValue(id, out var notification))
         {
@@ -176,10 +176,4 @@ public class NotificationService : ObservableObject, INotificationService
         return Guid.NewGuid().ToString();
 
     }
-}
-
-//lol.
-public static class Noti
-{
-    public static INotificationService fy = new NotificationService();
 }

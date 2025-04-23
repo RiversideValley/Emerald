@@ -1,4 +1,7 @@
+using System.Security.Cryptography.X509Certificates;
 using CommonServiceLocator;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Emerald.CoreX.Installers;
 using Emerald.Helpers;
 using Emerald.Models;
 using Emerald.Views.Settings;
@@ -137,12 +140,12 @@ public sealed partial class MainPage : Page
     }
     private void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
-#if WINDOWS
-        Emerald.Helpers.WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
-#endif
+        if (OperatingSystem.IsWindows())
+            Emerald.Helpers.WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
+
         InitializeAppearance();
         InitializeNavView();
-    }
+}
 
     private  Thickness GetNavViewHeaderMargin()
     {

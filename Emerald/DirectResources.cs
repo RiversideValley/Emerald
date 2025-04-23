@@ -1,4 +1,3 @@
-using CommunityToolkit.WinUI.Helpers;
 using Emerald.Helpers;
 using System.Reflection;
 using System.Runtime.InteropServices;

@@ -1,32 +1,15 @@
 using System.ComponentModel;
 using CommonServiceLocator;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.DependencyInjection;
 
 namespace Emerald.Models;
 
 public partial class SquareNavigationViewItem : Model
 {
-
-/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
-Before:
-    private readonly Helpers.Settings.SettingsSystem SS;
-    public SquareNavigationViewItem()
-After:
-    private readonly SettingsSystem SS;
-    public SquareNavigationViewItem()
-*/
     private readonly Services.SettingsService SS;
     public SquareNavigationViewItem()
     {
-
-/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
-Before:
-        SS = Ioc.Default.GetService<Helpers.Settings.SettingsSystem>();
-        PropertyChanged += (_, e) =>
-After:
-        SS = Ioc.Default.GetService<SettingsSystem>();
-        PropertyChanged += (_, e) =>
-*/
         SS = Ioc.Default.GetService<Services.SettingsService>();
         PropertyChanged += (_, e) =>
         {

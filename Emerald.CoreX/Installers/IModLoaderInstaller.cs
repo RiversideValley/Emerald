@@ -7,11 +7,12 @@ using CmlLib.Core;
 
 namespace Emerald.CoreX.Installers;
 
-internal interface IModLoaderInstaller
+public interface IModLoaderInstaller
 {
-    public Task<List<string>> GetVersionsAsync(string mcVersion);
+    public Versions.Type Type { get; }
+    public Task<List<LoaderInfo>> GetVersionsAsync(string mcVersion);
 
-    public Task InstallAsync(
+    public Task<string> InstallAsync(
         MinecraftPath path,
         string mcversion,
         string? modversion = null
