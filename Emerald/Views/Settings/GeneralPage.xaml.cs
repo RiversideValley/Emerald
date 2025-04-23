@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -72,4 +73,9 @@ public sealed partial class GeneralPage : Page
 
     private void btnAutoRAM_Click(object sender, RoutedEventArgs e) =>
         SS.Settings.Minecraft.RAM = DirectResoucres.MaxRAM / 2;
+
+    private void ArgumentsListView_OnArgumentsChanged(object sender, IEnumerable<string> e)
+    {
+        SS.Settings.Minecraft.JVM.Arguments = e.ToArray();
+    }
 }

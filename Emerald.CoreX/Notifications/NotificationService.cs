@@ -27,7 +27,7 @@ public class NotificationService : ObservableObject, INotificationService
     // Creates a new task progress notification and returns its ID and CancellationToken
     public (string Id, CancellationToken CancellationToken) Create(
         string title,
-        string message,
+        string message = null,
         double progress = 0,
         bool isIndeterminate = false)
     {

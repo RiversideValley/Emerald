@@ -3,55 +3,103 @@ using CmlLib.Core;
 using CmlLib.Core.VersionMetadata;
 using CmlLib.Core.Installers;
 using Windows.System;
+using CmlLib.Core.VersionLoader;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using CmlLib.Core.ProcessBuilder;
+using System.Diagnostics;
 namespace Emerald.CoreX;
 
 public class Game
 {
     private readonly ILogger _logger;
-    private readonly Notifications.INotificationService _notify;
-    public MinecraftLauncher Launcher { get; set; }
 
-    public Game(ILogger logger, Notifications.INotificationService notificationService , MinecraftPath path)
+    private readonly Notifications.INotificationService _notify;
+
+    private MinecraftLauncher Launcher { get; set; }
+
+    public Versions.Version Version { get; set; } = new();
+    public MinecraftPath Path { get; set; }
+
+
+    public Models.Game Options { get; set; }
+
+    public Game(MinecraftPath path, Models.Game options)
     {
-        _notify = notificationService;
-        Launcher = new MinecraftLauncher(path);
-        _logger = logger;
+
+        _notify = Ioc.Default.GetService<Notifications.INotificationService>();
+        _logger = this.Log();
+        Launcher = new MinecraftLauncher();
+        Path = path;
+        Options = options;
     }
 
-    public async Task DownloadVersion(Versions.Version version, bool showFileProgress = false)
+    public async Task InstallVersion(bool isOffline = false, bool showFileProgress = false)
     {
-        
+        var param = MinecraftLauncherParameters.CreateDefault(Path);
+
+        if (isOffline)
+            param.VersionLoader = new LocalJsonVersionLoader(Path);
+
+        Launcher = new MinecraftLauncher(param);
+
+
         var not = _notify.Create(
             "Initializing Version",
-            $"Initializing {version.Type} version {version.DisplayName}",
+            $"Initializing {Version.Type} version {Version.DisplayName}",
             0,
             false
         );
 
-        (string Files,string bytes, double prog) prog = (string.Empty, string.Empty, 0);
+        _notify.Update(
+            not.Id,
+            message: $"Initializing {Version.Type} version {Version.DisplayName}",
+            isIndeterminate: true);
 
-        await Launcher.InstallAsync(
-            "1.20.4",
-            new Progress<InstallerProgressChangedEventArgs>(e =>
-            {
-                prog.Files = $"{e.Name} ({e.ProgressedTasks}/{e.TotalTasks}). ";
+        try
+        {
+            string ver = await Ioc.Default.GetService<Installers.ModLoaderRouter>().RouteAndInitializeAsync(Path, Version);
 
-                _notify.Update(
-                    not.Id,
-                    message: prog.Files + prog.bytes,
-                    progress: prog.prog
-                );
-            }),
-            new Progress<ByteProgress>(e =>
-            {
-                prog.bytes = $"{e.ProgressedBytes * Math.Pow(10, -6)} MB/{e.TotalBytes * Math.Pow(10, -6)} MB";
+            (string Files, string bytes, double prog) prog = (string.Empty, string.Empty, 0);
 
-                _notify.Update(
-                    not.Id,
-                    message: prog.Files + prog.bytes,
-                    progress: prog.prog
-                );
-            }),
-            not.CancellationToken);
+            await Launcher.InstallAsync(
+                ver,
+                new Progress<InstallerProgressChangedEventArgs>(e =>
+                {
+                    prog.Files = $"{e.Name} ({e.ProgressedTasks}/{e.TotalTasks}). ";
+
+                    _notify.Update(
+                        not.Id,
+                        message: prog.Files + prog.bytes,
+                        progress: prog.prog,
+                        isIndeterminate: false
+                    );
+                }),
+                new Progress<ByteProgress>(e =>
+                {
+                    prog.bytes = $"{e.ProgressedBytes * Math.Pow(10, -6)} MB/{e.TotalBytes * Math.Pow(10, -6)} MB";
+
+                    _notify.Update(
+                        not.Id,
+                        message: prog.Files + prog.bytes,
+                        progress: prog.prog,
+                        isIndeterminate: false
+                    );
+                }),
+                not.CancellationToken);
+
+
+            _notify.Complete(not.Id, true, $"Finished downloading {Version.Type} version {Version.DisplayName}");
+        }
+        catch
+        {
+            
+        }
+    }
+
+    public async Task<Process> BuildProcess(string version)
+    {
+        return await Launcher.BuildProcessAsync(
+            version, Options.ToMLaunchOption());
+
     }
 }

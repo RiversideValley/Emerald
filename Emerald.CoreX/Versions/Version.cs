@@ -22,9 +22,11 @@ public  class Version
     
     public string BasedOn { get; set; }
 
+    public string ReleaseType { get; set; }
+
     public string? ModVersion { get; set; }
 
-    public CmlLib.Core.Version.MinecraftVersion? McVersion { get; set; }
+    public CmlLib.Core.VersionMetadata.IVersionMetadata? Metadata { get; set; }
 
     public string DisplayName;
 }

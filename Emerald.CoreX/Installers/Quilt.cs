@@ -36,7 +36,7 @@ public class Quilt : IModLoaderInstaller
             if (versions == null || !versions.Any())
                 throw new NullReferenceException();
 
-            var l = versions.Select(x => new LoaderInfo { Build = x.Build, Version = x.Version, Maven = x.Maven, Separator = x.Separator, Stable = x.Stable });
+            var l = versions.Select(x => new LoaderInfo { Version = x.Version, Stable = x.Stable });
 
             this.Log().LogInformation("Found {count} Quilt Loaders", versions.Count);
             _notify.Complete(not.Id, true);

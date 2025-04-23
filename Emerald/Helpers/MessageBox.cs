@@ -174,14 +174,7 @@ public partial class MessageBox : ContentDialog
     {
         var theme = ServiceLocator.IsLocationProviderSet ?
 
-/* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
-Before:
-            (ElementTheme)Ioc.Default.GetService<Settings.SettingsSystem>().Settings.App.Appearance.Theme :
-            ElementTheme.Default;
-After:
-            (ElementTheme)Ioc.Default.GetService<SettingsSystem>().Settings.App.Appearance.Theme :
-            ElementTheme.Default;
-*/
+
             (ElementTheme)Ioc.Default.GetService<Services.SettingsService>().Settings.App.Appearance.Theme :
             ElementTheme.Default;
         var d = new MessageBox("Information".Localize(), text, MessageBoxButtons.Ok)

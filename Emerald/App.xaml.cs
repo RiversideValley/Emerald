@@ -43,6 +43,7 @@ public partial class App : Application
 
         //Settings
         services.AddSingleton<Services.SettingsService>();
+        services.AddSingleton<Services.BaseSettingsService>();
         //Notifications
         services.AddSingleton<CoreX.Notifications.INotificationService, CoreX.Notifications.NotificationService>();
 
@@ -52,6 +53,9 @@ public partial class App : Application
         services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.LiteLoader>();
         services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Quilt>();
         services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Optifine>();
+
+        services.AddTransient<CoreX.Installers.ModLoaderRouter>();
+
 
     }
 

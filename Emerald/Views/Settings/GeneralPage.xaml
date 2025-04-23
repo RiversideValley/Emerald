@@ -139,7 +139,7 @@
             <Grid
               Padding="12"
               Background="{StaticResource ExpanderHeaderBackground}">
-              <uc:ArgumentsListView />
+              <uc:ArgumentsListView OnArgumentsChanged="ArgumentsListView_OnArgumentsChanged"/>
             </Grid>
           </cn:SettingsExpander.ItemsHeader>
         </cn:SettingsExpander>

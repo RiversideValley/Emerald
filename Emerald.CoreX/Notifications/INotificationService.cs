@@ -15,7 +15,7 @@ public interface INotificationService
     // Updated to return both ID and cancellation token
     (string Id, CancellationToken CancellationToken) Create(
         string title,
-        string message,
+        string message = null,
         double progress = 0,
         bool isIndeterminate = false);
 
