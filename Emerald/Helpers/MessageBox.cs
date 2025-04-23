@@ -132,13 +132,13 @@ public partial class MessageBox : ContentDialog
 
 /* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
 Before:
-            (ElementTheme)ServiceLocator.Current.GetInstance<Settings.SettingsSystem>().Settings.App.Appearance.Theme :
+            (ElementTheme)Ioc.Default.GetService<Settings.SettingsSystem>().Settings.App.Appearance.Theme :
             ElementTheme.Default;
 After:
-            (ElementTheme)ServiceLocator.Current.GetInstance<SettingsSystem>().Settings.App.Appearance.Theme :
+            (ElementTheme)Ioc.Default.GetService<SettingsSystem>().Settings.App.Appearance.Theme :
             ElementTheme.Default;
 */
-            (ElementTheme)ServiceLocator.Current.GetInstance<Services.SettingsService>().Settings.App.Appearance.Theme :
+            (ElementTheme)Ioc.Default.GetService<Services.SettingsService>().Settings.App.Appearance.Theme :
             ElementTheme.Default;
         var d = new MessageBox(title, caption, buttons, customResult1, customResult2)
         {
@@ -183,13 +183,13 @@ After:
 
 /* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
 Before:
-            (ElementTheme)ServiceLocator.Current.GetInstance<Settings.SettingsSystem>().Settings.App.Appearance.Theme :
+            (ElementTheme)Ioc.Default.GetService<Settings.SettingsSystem>().Settings.App.Appearance.Theme :
             ElementTheme.Default;
 After:
-            (ElementTheme)ServiceLocator.Current.GetInstance<SettingsSystem>().Settings.App.Appearance.Theme :
+            (ElementTheme)Ioc.Default.GetService<SettingsSystem>().Settings.App.Appearance.Theme :
             ElementTheme.Default;
 */
-            (ElementTheme)ServiceLocator.Current.GetInstance<Services.SettingsService>().Settings.App.Appearance.Theme :
+            (ElementTheme)Ioc.Default.GetService<Services.SettingsService>().Settings.App.Appearance.Theme :
             ElementTheme.Default;
         var d = new MessageBox("Information".Localize(), text, MessageBoxButtons.Ok)
         {

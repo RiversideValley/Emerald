@@ -7,6 +7,7 @@ using Emerald.CoreX.Store.Modrinth;
 using System.Diagnostics;
 using System;
 using Emerald.Helpers;
+using CommunityToolkit.Mvvm.DependencyInjection;
 
 namespace Emerald;
 public partial class App : Application
@@ -82,11 +83,9 @@ public partial class App : Application
 
         Host = builder.Build();
 
-        //Help me.
-        ServiceLocator.SetLocatorProvider(() => new Emerald.Services.ServiceProviderLocator(Host!.Services));
+        Ioc.Default.ConfigureServices(Host.Services);
 
-
-        SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
+        SS = Ioc.Default.GetService<Services.SettingsService>();
         this.Log().LogInformation("New Instance was created. Logs are being saved at: {logPath}",logPath);
 
         //load settings,

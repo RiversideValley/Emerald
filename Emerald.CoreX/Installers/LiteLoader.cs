@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Emerald.CoreX.Installers
+namespace Emerald.CoreX.Installers;
+
+internal class LiteLoader: IModLoaderInstaller
 {
-    internal class LiteLoader: IModLoaderInstaller
-    {
-    }
 }

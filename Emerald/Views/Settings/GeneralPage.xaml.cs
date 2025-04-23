@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using CmlLib.Core;
 using CommonServiceLocator;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.WinUI.Controls;
 using Emerald.Helpers;
 using Microsoft.UI.Xaml;
@@ -30,7 +31,7 @@ public sealed partial class GeneralPage : Page
     private readonly Services.SettingsService SS;
     public GeneralPage()
     {
-        SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
+        SS = Ioc.Default.GetService<Services.SettingsService>();
         this.InitializeComponent();
     }
     private async void btnChangeMPath_Click(object sender, RoutedEventArgs e)

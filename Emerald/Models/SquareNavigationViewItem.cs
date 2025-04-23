@@ -21,13 +21,13 @@ After:
 
 /* Unmerged change from project 'Emerald (net8.0-windows10.0.22621)'
 Before:
-        SS = ServiceLocator.Current.GetInstance<Helpers.Settings.SettingsSystem>();
+        SS = Ioc.Default.GetService<Helpers.Settings.SettingsSystem>();
         PropertyChanged += (_, e) =>
 After:
-        SS = ServiceLocator.Current.GetInstance<SettingsSystem>();
+        SS = Ioc.Default.GetService<SettingsSystem>();
         PropertyChanged += (_, e) =>
 */
-        SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
+        SS = Ioc.Default.GetService<Services.SettingsService>();
         PropertyChanged += (_, e) =>
         {
             //idk why I did this

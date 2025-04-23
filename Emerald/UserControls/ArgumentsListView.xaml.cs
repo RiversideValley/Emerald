@@ -27,7 +27,7 @@ public sealed partial class ArgumentsListView : UserControl
     private readonly Services.SettingsService SS;
     public ArgumentsListView()
     {
-        SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
+        SS = Ioc.Default.GetService<Services.SettingsService>();
         InitializeComponent();
         view.ItemsSource = Source;
         UpdateSource();

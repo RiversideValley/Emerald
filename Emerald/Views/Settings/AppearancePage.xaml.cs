@@ -82,7 +82,7 @@ public sealed partial class AppearancePage : Page
         InitializeComponent();
         this.Log().Info("Initializing AppearancePage...");
 
-        SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
+        SS = Ioc.Default.GetService<Services.SettingsService>();
 
         if (SS.Settings.App.Appearance.MicaTintColor == (int)Helpers.Settings.Enums.MicaTintColor.CustomColor)
         {

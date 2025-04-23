@@ -14,7 +14,7 @@ public sealed partial class MainPage : Page
     private readonly Services.SettingsService SS;
     public MainPage()
     {
-        SS = ServiceLocator.Current.GetInstance<Services.SettingsService>();
+        SS = Ioc.Default.GetService<Services.SettingsService>();
         this.InitializeComponent();
         this.Loaded += MainPage_Loaded;
         NavView.ItemInvoked += MainNavigationView_ItemInvoked;

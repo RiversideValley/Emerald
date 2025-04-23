@@ -1,12 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Emerald.CoreX.Installers
+namespace Emerald.CoreX.Installers;
+
+internal class Forge : IModLoaderInstaller
 {
-    internal class Forge : IModLoaderInstaller
-    {
-    }
 }

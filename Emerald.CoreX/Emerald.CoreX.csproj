@@ -20,6 +20,17 @@
     <!--
     <UnoFeatures></UnoFeatures>
     -->
+
+    <UnoFeatures>
+      Lottie;
+      Hosting;
+      Toolkit;
+      Logging;
+      Mvvm;
+      Localization;
+      LoggingSerilog;
+      ThemeService;
+    </UnoFeatures>
   </PropertyGroup>
 
   <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
@@ -41,7 +52,6 @@
     <PackageReference Include="CmlLib.Core" />
     <PackageReference Include="CmlLib.Core.Auth.Microsoft" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
-    <PackageReference Include="ProjBobcat" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="RestSharp" />
