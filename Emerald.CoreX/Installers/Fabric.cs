@@ -52,7 +52,7 @@ public class Fabric : IModLoaderInstaller
         }
     }
 
-    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null)
+    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null, bool online = true)
     {
         var not = _notify.Create(
             "InstallFabric",
@@ -64,6 +64,14 @@ public class Fabric : IModLoaderInstaller
         {
 
             var fabricInstaller = new FabricInstaller(new HttpClient());
+
+            if (!online)
+            {
+                this.Log().LogWarning("Fabric Loader installation is not supported offline. sending the version name");
+                _notify.Complete(not.Id, false, "Fabric Loader installation is not supported offline. Passed the version name.");
+                return FabricInstaller.GetVersionName(mcversion, modversion ?? (await fabricInstaller.GetFirstLoader(modversion)).Version);
+            }
+
 
             string? versionName = null;
 
@@ -79,7 +87,7 @@ public class Fabric : IModLoaderInstaller
         }
         catch (Exception ex)
         {
-            this.Log().LogError(ex,"Failed to install Fabric for {0}", mcversion);
+            this.Log().LogError(ex,"Failed to install/load Fabric for {0}", mcversion);
             _notify.Complete(not.Id, false, ex.Message, ex);
             return null;
         }

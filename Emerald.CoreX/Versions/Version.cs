@@ -16,10 +16,10 @@ public enum Type
     LiteLoader,
     OptiFine
 }
-public  class Version
+public class Version
 {
     public Type Type { get; set; }
-    
+
     public string BasedOn { get; set; }
 
     public string ReleaseType { get; set; }
@@ -29,4 +29,22 @@ public  class Version
     public CmlLib.Core.VersionMetadata.IVersionMetadata? Metadata { get; set; }
 
     public string DisplayName;
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not Version other)
+            return false;
+
+        return Type == other.Type &&
+               BasedOn == other.BasedOn &&
+               ReleaseType == other.ReleaseType &&
+               ModVersion == other.ModVersion &&
+               Equals(Metadata, other.Metadata) &&
+               DisplayName == other.DisplayName;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Type, BasedOn, ReleaseType, ModVersion, Metadata, DisplayName);
+    }
 }

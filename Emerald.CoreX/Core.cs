@@ -21,8 +21,11 @@ public class Core(ILogger<Core> _logger, INotificationService _notify, BaseSetti
 
     private bool initialized = false;
 
-    public Models.Game GameOptions = new();
+    public Models.GameSettings GameOptions = new();
+    public async Task Refresh()
+    {
 
+    }
     public async Task InitializeAndRefresh(MinecraftPath? basePath = null)
     {
         var not = _notify.Create(
@@ -31,10 +34,20 @@ public class Core(ILogger<Core> _logger, INotificationService _notify, BaseSetti
         );
         try
         {
-            GameOptions = settingsService.Get("BaseGameOptions", new Models.Game());
+            GameOptions = settingsService.Get("BaseGameOptions", Models.GameSettings.FromMLaunchOption(new()));
             _logger.LogInformation("Trying to load vanilla minecraft versions from servers");
 
-            Launcher = new MinecraftLauncher(basePath);
+            if(!initialized && basePath == null)
+            {
+                _logger.LogInformation("Minecraft Path must be set on first initialize");
+                throw new InvalidOperationException("Minecraft Path must be set on first initialize");
+            }
+            if (basePath != null)
+            {
+                Launcher = new MinecraftLauncher(basePath);
+                BasePath = basePath;
+            }
+
             var l = await Launcher.GetAllVersionsAsync();
 
             VanillaVersions.Clear();
@@ -58,12 +71,35 @@ public class Core(ILogger<Core> _logger, INotificationService _notify, BaseSetti
         } 
     }
 
-    public async Task AddGame(Versions.Version version)
+    public async Task InstallGame(Versions.Version version, bool showFileprog = false)
     {
-        _notify.Info(
-            "AddedGame",
-            $"{version.DisplayName} based on {version.BasedOn} {version.Type}"
-        );
+        
+        try
+        {
+            _logger.LogInformation("Installing game {version}", version.BasedOn);
+
+            var game =  Games.Where(x => x.Equals(version)).First();
+
+            if(game == null)
+            {
+                _logger.LogWarning("Game {version} not found", version.BasedOn);
+                throw new NullReferenceException($"Game {version.BasedOn} not found");
+            }
+
+            await game.InstallVersion(
+                isOffline: IsOfflineMode,
+                showFileProgress: showFileprog
+            );
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("Failed to install game {version}: {ex}", version.BasedOn, ex.Message);
+            _notify.Error("GameInstallError", ex.Message, ex:ex);
+        }
+    }
+    public void AddGame(Versions.Version version)
+    {
         try
         {
             _logger.LogInformation("Adding game {version}", version.BasedOn);
@@ -73,12 +109,20 @@ public class Core(ILogger<Core> _logger, INotificationService _notify, BaseSetti
 
             var game = new Game(new(path), GameOptions);
             Games.Add(game);
-            _notify.Complete(not.Id, true);
+
+            var not = _notify.Info(
+                "AddedGame",
+                $"{version.DisplayName} based on {version.BasedOn} {version.Type}"
+            );
         }
         catch (Exception ex)
         {
             _logger.LogWarning("Failed to add game {version}: {ex}", version.BasedOn, ex.Message);
-            _notify.Complete(not.Id, false, ex.Message, ex);
+            _notify.Error(
+                "FailedToAddGame",
+                $"Failed to add game {version.DisplayName} based on {version.BasedOn} {version.Type}",
+               ex: ex
+            );
         }
     }
 }

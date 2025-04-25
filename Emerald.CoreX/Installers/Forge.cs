@@ -53,7 +53,7 @@ public class Forge : IModLoaderInstaller
         }
     }
 
-    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null)
+    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null, bool online = true)
     {
         var not = _notify.Create(
             "InstallForge",

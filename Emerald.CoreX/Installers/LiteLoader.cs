@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CmlLib.Core;
+using CmlLib.Core.ModLoaders.FabricMC;
 using CmlLib.Core.ModLoaders.LiteLoader;
 using CmlLib.Core.ModLoaders.QuiltMC;
 using Microsoft.Extensions.Logging;
@@ -58,7 +59,7 @@ public class LiteLoader : IModLoaderInstaller
         }
     }
 
-    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null)
+    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null, bool online = true)
     {
         var not = _notify.Create(
             "InstallLiteLoader",
@@ -70,6 +71,14 @@ public class LiteLoader : IModLoaderInstaller
         {
 
             var LiteLoaderInstaller = new LiteLoaderInstaller(new HttpClient());
+
+
+            if (!online)
+            {
+                this.Log().LogWarning("Fabric Loader installation is not supported offline. sending the version name");
+                _notify.Complete(not.Id, false, "Fabric Loader installation is not supported offline. Passed the version name.");
+                return LiteLoaderInstaller.GetVersionName(mcversion, modversion ?? throw new NullReferenceException("No internet and no mod name found."));
+            }
 
             var launcher = new MinecraftLauncher(path);
 

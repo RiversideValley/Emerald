@@ -75,6 +75,7 @@ public class NotificationService : ObservableObject, INotificationService
             notification.IsIndeterminate = false;
             notification.IsCancellable = false;
             notification.Message = message ?? notification.Message;
+            notification.Exception = ex;
         }
     }
 
@@ -123,7 +124,7 @@ public class NotificationService : ObservableObject, INotificationService
     }
 
     // Show an error notification
-    public string Error(string title, string message, TimeSpan? duration = null)
+    public string Error(string title, string message, TimeSpan? duration = null, Exception? ex = null)
     {
         string id = GenerateUniqueId();
 
@@ -135,7 +136,8 @@ public class NotificationService : ObservableObject, INotificationService
             Type = NotificationType.Error,
             Timestamp = DateTime.Now,
             Duration = duration,
-            IsCancellable = false
+            IsCancellable = false,
+            Exception = ex
         };
 
         _activeNotifications.Add(notification);

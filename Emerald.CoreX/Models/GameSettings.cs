@@ -9,7 +9,7 @@ using CmlLib.Core.ProcessBuilder;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Emerald.CoreX.Models;
-public partial class Game : ObservableObject
+public partial class GameSettings : ObservableObject
 {
     [ObservableProperty]
     private int _maximumRamMb;
@@ -71,5 +71,32 @@ public partial class Game : ObservableObject
         args.AddRange(JVMArgs.Select(x => new MArgument(x)));
         opt.ExtraJvmArguments = args.ToArray();
         return opt;
+    }
+
+    public static GameSettings FromMLaunchOption(MLaunchOption option)
+    {
+        var game = new GameSettings
+        {
+            MaximumRamMb = option.MaximumRamMb,
+            MinimumRamMb = option.MinimumRamMb,
+            DockName = option.DockName,
+            IsDemo = option.IsDemo,
+            ScreenWidth = option.ScreenWidth,
+            ScreenHeight = option.ScreenHeight,
+            FullScreen = option.FullScreen,
+            QuickPlayPath = option.QuickPlayPath,
+            QuickPlaySingleplayer = option.QuickPlaySingleplayer,
+            QuickPlayRealms = option.QuickPlayRealms,
+            ServerIp = option.ServerIp,
+            ServerPort = option.ServerPort
+        };
+
+        game.JVMArgs.Clear();
+        foreach (var arg in option.ExtraJvmArguments)
+        {
+            game.JVMArgs.Add(arg.ToString());
+        }
+
+        return game;
     }
 }

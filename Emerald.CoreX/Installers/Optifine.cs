@@ -15,7 +15,7 @@ public class Optifine : IModLoaderInstaller
         throw new NotImplementedException();
     }
 
-    public Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null)
+    public Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null, bool online = true)
     {
         throw new NotImplementedException();
     }

@@ -15,6 +15,7 @@ public interface IModLoaderInstaller
     public Task<string> InstallAsync(
         MinecraftPath path,
         string mcversion,
-        string? modversion = null
+        string? modversion = null,
+        bool online = true
     );
 }

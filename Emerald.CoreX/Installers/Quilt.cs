@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CmlLib.Core;
+using CmlLib.Core.ModLoaders.FabricMC;
 using CmlLib.Core.ModLoaders.QuiltMC;
 using Microsoft.Extensions.Logging;
 
@@ -51,7 +52,7 @@ public class Quilt : IModLoaderInstaller
         }
     }
 
-    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null)
+    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null, bool online = true)
     {
         var not = _notify.Create(
             "InstallQuilt",
@@ -63,6 +64,14 @@ public class Quilt : IModLoaderInstaller
         {
 
             var QuiltInstaller = new QuiltInstaller(new HttpClient());
+
+            if (!online)
+            {
+                this.Log().LogWarning("Fabric Loader installation is not supported offline. sending the version name");
+                _notify.Complete(not.Id, false, "Fabric Loader installation is not supported offline. Passed the version name.");
+                return QuiltInstaller.GetVersionName(mcversion, modversion ?? (await QuiltInstaller.GetFirstLoader(modversion)).Version);
+            }
+
 
             string? versionName = null;
 

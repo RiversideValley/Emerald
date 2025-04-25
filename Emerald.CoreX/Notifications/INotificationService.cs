@@ -23,7 +23,7 @@ public interface INotificationService
     void Complete(string id, bool success, string message = null, Exception ex = null);
     string Warning(string title, string message, TimeSpan? duration = null);
     string Info(string title, string message, TimeSpan? duration = null);
-    string Error(string title, string message, TimeSpan? duration = null);
+    string Error(string title, string message, TimeSpan? duration = null, Exception? ex = null);
     void RemoveNotification(string id);
     void Cancel(string id);
 }
