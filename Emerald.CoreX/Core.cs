@@ -30,14 +30,15 @@ public class Core(ILogger<Core> _logger, INotificationService _notify, BaseSetti
     {
         var not = _notify.Create(
             "InitializingCore",
-            isIndeterminate: true
+            isIndeterminate: true, 
+            isCancellable: true
         );
         try
         {
             GameOptions = settingsService.Get("BaseGameOptions", Models.GameSettings.FromMLaunchOption(new()));
             _logger.LogInformation("Trying to load vanilla minecraft versions from servers");
 
-            if(!initialized && basePath == null)
+            if (!initialized && basePath == null)
             {
                 _logger.LogInformation("Minecraft Path must be set on first initialize");
                 throw new InvalidOperationException("Minecraft Path must be set on first initialize");
@@ -48,27 +49,26 @@ public class Core(ILogger<Core> _logger, INotificationService _notify, BaseSetti
                 BasePath = basePath;
             }
 
-            var l = await Launcher.GetAllVersionsAsync();
+            initialized = true;
+
+            var l = await Launcher.GetAllVersionsAsync(not.CancellationToken.Value);
 
             VanillaVersions.Clear();
             VanillaVersions.AddRange(l.Select(x => new Versions.Version() { Metadata = x, BasedOn = x.Name, ReleaseType = x.Type }));
             IsOfflineMode = false;
         }
-        catch (System.Net.Sockets.SocketException)
+        catch (HttpRequestException)
         {
             IsOfflineMode = false;
+            _notify.Complete(not.Id, true,"OfflineMode");
         }
         catch (Exception ex)
         {
             _logger.LogCritical(ex, "Failed to load vanilla minecraft versions: {ex}", ex.Message);
-            throw;
+            _notify.Complete(not.Id, false, ex.Message, ex);
+            initialized = false;
         }
-        finally
-        {
-            _logger.LogInformation("Loaded {count} vanilla versions", VanillaVersions.Count);
-            initialized = true;
-            _notify.Complete(not.Id, true);
-        } 
+        _logger.LogInformation("Loaded {count} vanilla versions", VanillaVersions.Count);
     }
 
     public async Task InstallGame(Versions.Version version, bool showFileprog = false)

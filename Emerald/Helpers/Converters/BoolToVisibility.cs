@@ -8,11 +8,14 @@ public class BoolToVisibility : IValueConverter
 
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            return (value is bool b) ? (((Reversed || parameter == "reversed") && parameter != "normal") ? (!b ? Visibility.Visible : Visibility.Collapsed) : (b ? Visibility.Visible : Visibility.Collapsed)) : Visibility.Collapsed;
+        bool isReversed = parameter is string str && str.Equals("reversed", StringComparison.OrdinalIgnoreCase);
+
+        return (value is bool b) ? ((Reversed || isReversed) ? (!b ? Visibility.Visible : Visibility.Collapsed) : (b ? Visibility.Visible : Visibility.Collapsed)) : Visibility.Collapsed;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+    {
             throw new InvalidOperationException();
-        }
+
     }
+}

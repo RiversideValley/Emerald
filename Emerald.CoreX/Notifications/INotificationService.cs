@@ -10,14 +10,15 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Emerald.CoreX.Notifications;
 public interface INotificationService
 {
-    ReadOnlyObservableCollection<Notification> ActiveNotifications { get; }
+    ObservableCollection<Notification> ActiveNotifications { get; }
 
     // Updated to return both ID and cancellation token
-    (string Id, CancellationToken CancellationToken) Create(
+    (string Id, CancellationToken? CancellationToken) Create(
         string title,
         string message = null,
         double progress = 0,
-        bool isIndeterminate = false);
+        bool isIndeterminate = false,
+        bool isCancellable = false);
 
     void Update(string? id = null, string? title = null, string? message = null, double? progress = null, bool? isIndeterminate = null);
     void Complete(string id, bool success, string message = null, Exception ex = null);

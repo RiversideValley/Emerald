@@ -10,7 +10,6 @@ using Windows.Storage;
 namespace Emerald.Services;
 public class SettingsService(BaseSettingsService _baseService, ILogger<SettingsService> _logger)
 {
-    private readonly ILogger<SettingsService> _logger;
 
     public Helpers.Settings.JSON.Settings Settings { get; private set; }
     public Helpers.Settings.JSON.Account[] Accounts { get; set; }
@@ -23,8 +22,8 @@ public class SettingsService(BaseSettingsService _baseService, ILogger<SettingsS
         try
         {
             _logger.LogInformation("Loading settings and accounts.");
-            Settings = _baseService.GetSerializedFromSettings("Settings", Helpers.Settings.JSON.Settings.CreateNew());
-            Accounts = _baseService.GetSerializedFromSettings("Accounts", Array.Empty<Helpers.Settings.JSON.Account>());
+            Settings = _baseService.Get("Settings", Helpers.Settings.JSON.Settings.CreateNew());
+            Accounts = _baseService.Get("Accounts", Array.Empty<Helpers.Settings.JSON.Account>());
 
             if (Settings.APIVersion != DirectResoucres.SettingsAPIVersion)
             {

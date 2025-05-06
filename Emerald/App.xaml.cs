@@ -56,7 +56,11 @@ public partial class App : Application
 
         services.AddTransient<CoreX.Installers.ModLoaderRouter>();
 
+        //Core
+        services.AddSingleton<CoreX.Core>();
 
+        //Notifications
+        services.AddTransient<ViewModels.NotificationListViewModel>();
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -99,7 +103,10 @@ public partial class App : Application
 
         SS = Ioc.Default.GetService<Services.SettingsService>();
         this.Log().LogInformation("New Instance was created. Logs are being saved at: {logPath}",logPath);
-
+        var nf = Ioc.Default.GetService<CoreX.Notifications.INotificationService>(); 
+        nf.Info("test title","test content");
+        nf.Error("test error", "error", new(0, 1, 0), new Exception("test error"));
+        nf.Create("test","testprog", isIndeterminate: true);
         //load settings,
         SS.LoadData();
 

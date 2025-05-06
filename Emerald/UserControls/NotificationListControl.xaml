@@ -1,0 +1,114 @@
+﻿<UserControl
+    x:Class="Emerald.UserControls.NotificationListControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:local="using:Emerald.UserControls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:vm="using:Emerald.ViewModels"
+    xmlns:core="using:Emerald.CoreX.Notifications"
+  xmlns:helpers="using:Emerald.Helpers"
+  xmlns:conv="using:Emerald.Helpers.Converters"
+    xmlns:converters="using:Emerald.Helpers.Converters">
+  <UserControl.Resources>
+    <conv:BoolToVisibility x:Key="BoolToVisibilityConverter" />
+    <!-- Converter for background based on NotificationType -->
+    <converters:NotificationTypeToBrushConverter x:Key="TypeToBrush"
+                                                 SuccessBrush="{StaticResource SystemFillColorSuccessBrush}"
+                                                 ErrorBrush="{StaticResource SystemFillColorCriticalBrush}"
+                                                 WarningBrush="{StaticResource SystemFillColorCautionBrush}"
+                                                 InfoBrush="{StaticResource SystemFillColorSolidNeutralBrush}"
+                                                 ProgressBrush="{StaticResource SystemFillColorAttentionBrush}"/>
+    <!-- DataTemplates -->
+    <DataTemplate x:Key="ProgressTemplate" x:DataType="vm:NotificationViewModel">
+      <Border
+                    CornerRadius="6"
+        BorderThickness="1"
+               BorderBrush="{ThemeResource ControlElevationBorderBrush}"
+               Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+               Margin="0,4">
+        <Border BorderThickness="12,0,0,0"
+                Padding="8"
+                BorderBrush="{Binding Type, Converter={StaticResource TypeToBrush}}">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="4">
+
+                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+
+              <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{Binding Message}" TextWrapping="Wrap" />
+
+              <Grid 
+                  Visibility="{Binding IsCompleted, ConverterParameter=reversed, Converter={StaticResource BoolToVisibilityConverter}}">
+
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ProgressBar Value="{Binding Progress}" Maximum="100" IsIndeterminate="{Binding IsIndeterminate}"/>
+
+                <TextBlock
+                  Grid.Column="1"
+                  Visibility="{Binding IsIndeterminate, ConverterParameter=reversed, Converter={StaticResource BoolToVisibilityConverter}}"
+                  VerticalAlignment="Center"
+                  FontSize="11"
+                  Margin="4,0,0,0"
+                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                  TextWrapping="Wrap">
+                  (<Run Text="{Binding Progress}"/>%)
+                </TextBlock>
+              </Grid>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+
+              <Button Padding="8" CornerRadius="8" Content="{helpers:FontIcon  FontSize=12, Glyph=&#xE71A;}" ToolTipService.ToolTip="{helpers:Localize Name=Stop}" Command="{Binding CancelCommand}" Visibility="{Binding IsCancellable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+              <Button Padding="8" CornerRadius="8" Content="{helpers:FontIcon FontSize=12, Glyph=&#xE8BB;}" ToolTipService.ToolTip="{helpers:Localize Name=Dismiss}" Command="{Binding DismissCommand}" />
+            </StackPanel>
+          </Grid>
+        </Border>
+      </Border>
+    </DataTemplate>
+
+    <DataTemplate x:Key="DefaultTemplate" x:DataType="vm:NotificationViewModel">
+      <Border
+                    CornerRadius="6"
+        BorderThickness="1"
+               BorderBrush="{ThemeResource ControlElevationBorderBrush}"
+               Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+               Margin="0,4">
+        <Border BorderThickness="12,0,0,0"
+                Padding="8"
+                BorderBrush="{Binding Type, Converter={StaticResource TypeToBrush}}">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="4">
+              <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+              <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{Binding Message}" TextWrapping="Wrap" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <Button  Padding="8" CornerRadius="8" Content="{helpers:FontIcon FontSize=12, Glyph=&#xEA1F;}" ToolTipService.ToolTip="{helpers:Localize Name=Info}" Command="{Binding ViewErrorCommand}" Visibility="{Binding IsErrorWithException, Converter={StaticResource BoolToVisibilityConverter}}"/>
+              <Button Padding="8" CornerRadius="8" Content="{helpers:FontIcon FontSize=12, Glyph=&#xE8BB;}" ToolTipService.ToolTip="{helpers:Localize Name=Dismiss}" Command="{Binding DismissCommand}" />
+            </StackPanel>
+          </Grid>
+        </Border>
+      </Border>
+    </DataTemplate>
+
+    <local:NotificationTemplateSelector
+            x:Key="TemplateSelector"
+            ProgressTemplate="{StaticResource ProgressTemplate}"
+            DefaultTemplate="{StaticResource DefaultTemplate}" />
+  </UserControl.Resources>
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <ListView
+      SelectionMode="None"
+      ItemsSource="{Binding Notifications}" 
+                      ItemTemplateSelector="{StaticResource TemplateSelector}"/>
+  </ScrollViewer>
+</UserControl>

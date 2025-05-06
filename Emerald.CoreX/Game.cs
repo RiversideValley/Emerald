@@ -49,7 +49,8 @@ public class Game
             "Initializing Version",
             $"Initializing {Version.Type} version {Version.DisplayName}",
             0,
-            false
+            false,
+            true
         );
 
         _notify.Update(
@@ -105,7 +106,7 @@ public class Game
                         isIndeterminate: false
                     );
                 }),
-                not.CancellationToken);
+                not.CancellationToken.Value);
 
             _logger.LogInformation("Version {VersionType} {VersionDisplayName} installation completed successfully.", Version.Type, Version.DisplayName);
             _notify.Complete(not.Id, true, $"Finished downloading/verifying {Version.Type} version {Version.DisplayName}");

@@ -61,6 +61,8 @@ public sealed partial class GeneralPage : Page
 
         this.Log().LogInformation("New Minecraft path: {path}",path);
         SS.Settings.Minecraft.Path = path;
+
+        await Ioc.Default.GetService<CoreX.Core>().InitializeAndRefresh(new(path));
     }
 
     private void btnRamPlus_Click(object sender, RoutedEventArgs e) =>

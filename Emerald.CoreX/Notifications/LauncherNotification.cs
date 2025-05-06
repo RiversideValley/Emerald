@@ -17,11 +17,12 @@ public partial class Notification : ObservableObject
     [ObservableProperty] private double _progress;
     [ObservableProperty] private bool _isIndeterminate;
     [ObservableProperty] private bool _isCompleted;
-    [ObservableProperty] private bool _isCancellable;
+
     [ObservableProperty] private Exception _exception;
 
 
     public DateTime Timestamp { get; set; }
     public TimeSpan? Duration { get; set; }
-    public CancellationTokenSource CancellationSource { get; set; }
+    public bool IsCancellable => CancellationSource != null && !CancellationSource.IsCancellationRequested;
+    public CancellationTokenSource? CancellationSource { get; set; }
 }

@@ -169,6 +169,9 @@ public sealed partial class MainPage : Page
     {
         switch (itm.Tag)
         {
+            case "Tasks":
+                frame.Content = new Page { Content = new UserControls.NotificationListControl() };
+                break;
             default:
                 NavigateOnce(typeof(SettingsPage));
                 break;
