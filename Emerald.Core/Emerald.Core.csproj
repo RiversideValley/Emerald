@@ -10,7 +10,7 @@
 
 	<ItemGroup>
     	<PackageReference Include="CmlLib.Core" Version="3.3.10" />
-		<PackageReference Include="CmlLib.Core.Auth.Microsoft" Version="3.0.1" />
+		<PackageReference Include="CmlLib.Core.Auth.Microsoft" Version="3.2.2" />
 		<PackageReference Include="ProjBobcat" Version="1.40.0" />
 		<PackageReference Include="System.Text.Json" Version="9.0.0" />
 	</ItemGroup>
