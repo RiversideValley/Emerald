@@ -406,3 +406,5 @@ solution-config.props
 /Emerald.App/Emerald.App/MsalClientID.txt
 /Emerald.Core/MsalClientID.txt
 Emerald.App/MsalClientID.txt
+Emerald/.DS_Store
+.DS_Store

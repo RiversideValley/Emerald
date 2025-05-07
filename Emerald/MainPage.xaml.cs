@@ -145,7 +145,8 @@ public sealed partial class MainPage : Page
 
         InitializeAppearance();
         InitializeNavView();
-}
+        this.Loaded -= MainPage_Loaded;
+    }
 
     private  Thickness GetNavViewHeaderMargin()
     {

@@ -38,7 +38,7 @@ public static class DirectResoucres
 #if WINDOWS
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Emerald");
 #else
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Emerald");
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Emerald");
 #endif
         }
     }
