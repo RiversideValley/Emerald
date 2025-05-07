@@ -26,6 +26,12 @@ public class Core(ILogger<Core> _logger, INotificationService _notify, BaseSetti
     {
 
     }
+
+    /// <summary>
+    /// Initializes the Core with the given Minecraft path and retrieves the list of available vanilla Minecraft versions.
+    /// </summary>
+    /// <param name="basePath">The base path for Minecraft files. If null, initialization will require a previously set path.</param>
+    /// <returns>A task that represents the asynchronous operation of initialization and refreshing Minecraft versions.</returns>
     public async Task InitializeAndRefresh(MinecraftPath? basePath = null)
     {
         var not = _notify.Create(
@@ -71,7 +77,13 @@ public class Core(ILogger<Core> _logger, INotificationService _notify, BaseSetti
         _logger.LogInformation("Loaded {count} vanilla versions", VanillaVersions.Count);
     }
 
-    public async Task InstallGame(Versions.Version version, bool showFileprog = false)
+    /// <summary>
+    /// Installs the specified game version with optional file progress display.
+    /// </summary>
+    /// <param name="version">The version of the game to be installed. Must exist in the collection of games.</param>
+    /// <param name="showFileprog">Specifies whether to display file progress during installation.</param>
+    /// <returns>A task that represents the asynchronous operation of installing the game version.</returns>
+public async Task InstallGame(Versions.Version version, bool showFileprog = false)
     {
         
         try

@@ -22,6 +22,10 @@ public class Game
 
     public Models.GameSettings Options { get; set; }
 
+    /// <summary>
+    /// Represents a Game instance, responsible for managing the installation, configuration,
+    /// and launching of Minecraft versions.
+    /// </summary>
     public Game(MinecraftPath path, Models.GameSettings options)
     {
         _notify = Ioc.Default.GetService<Notifications.INotificationService>();
@@ -32,6 +36,13 @@ public class Game
         _logger.LogInformation("Game instance created with path: {Path} and options: {Options}", path, options);
     }
 
+    /// <summary>
+    /// Installs the specified Minecraft version, including downloading necessary files
+    /// and handling both online and offline modes.
+    /// </summary>
+    /// <param name="isOffline">Indicates whether the installation is performed in offline mode, bypassing online resources.</param>
+    /// <param name="showFileProgress">Determines whether detailed file progress information is displayed during the installation process.</param>
+    /// <returns>A task that represents the asynchronous installation operation.</returns>
     public async Task InstallVersion(bool isOffline = false, bool showFileProgress = false)
     {
         _logger.LogInformation("Starting InstallVersion with isOffline: {IsOffline}, showFileProgress: {ShowFileProgress}", isOffline, showFileProgress);
@@ -117,6 +128,11 @@ public class Game
         }
     }
 
+    /// <summary>
+    /// Builds a process for launching a Minecraft instance using the specified game version.
+    /// </summary>
+    /// <param name="version">The version of the game to be launched.</param>
+    /// <returns>A Task that represents the process used to launch the Minecraft instance.</returns>
     public async Task<Process> BuildProcess(string version)
     {
         _logger.LogInformation("Building process for version: {Version}", version);
