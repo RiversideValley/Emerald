@@ -14,7 +14,7 @@ namespace Emerald.WinUI.Helpers.Settings.JSON;
 public class JSON : Models.Model
 {
     public string Serialize()
-        => JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+        => Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
 }
 
 public class SettingsBackup : JSON
@@ -70,8 +70,8 @@ public partial class Minecraft : JSON
 {
     public Minecraft()
     {
-        JVM.PropertyChanged += (_, _)
-            => InvokePropertyChanged();
+        JVM.PropertyChanged += (_, e)
+            => InvokePropertyChanged(e.PropertyName);
         PropertyChanged += (_, e) =>
         {
             if (e.PropertyName != null)
@@ -166,6 +166,7 @@ public class App : JSON
     public bool AutoClose { get; set; }
     public bool HideOnLaunch { get; set; }
     public bool WindowsHello { get; set; }
+    public bool PrankMode { get; set; }
 }
 public class Updates : JSON
 {

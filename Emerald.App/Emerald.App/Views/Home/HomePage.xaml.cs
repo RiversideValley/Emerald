@@ -98,7 +98,7 @@ namespace Emerald.WinUI.Views.Home
                         {
                             CommitButtonText = "Select".Localize()
                         };
-                        WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
+                        WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current._MainWindow));
                         var f = await fop.PickSingleFolderAsync();
 
                         if (f != null)
@@ -398,12 +398,12 @@ namespace Emerald.WinUI.Views.Home
                 GameProcess.EnableRaisingEvents = true;
                 GameProcess.StartInfo.RedirectStandardOutput = true;
                 GameProcess.StartInfo.RedirectStandardError = true;
-                GameProcess.OutputDataReceived += (s, e) => App.Current.MainWindow.DispatcherQueue.TryEnqueue(() => Logs += "\n" + e.Data);
-                GameProcess.ErrorDataReceived += (s, e) => App.Current.MainWindow.DispatcherQueue.TryEnqueue(() => Logs += "\n" + e.Data);
+                GameProcess.OutputDataReceived += (s, e) => App.Current._MainWindow.DispatcherQueue.TryEnqueue(() => Logs += "\n" + e.Data);
+                GameProcess.ErrorDataReceived += (s, e) => App.Current._MainWindow.DispatcherQueue.TryEnqueue(() => Logs += "\n" + e.Data);
             }
             var t = new Thread(async () =>
             {
-                App.Current.MainWindow.DispatcherQueue.TryEnqueue(() => App.Current.Launcher.GameRuns = true);
+                App.Current._MainWindow.DispatcherQueue.TryEnqueue(() => App.Current.Launcher.GameRuns = true);
                 GameProcess.Start();
                 if (SS.Settings.Minecraft.ReadLogs())
                 {
@@ -411,7 +411,7 @@ namespace Emerald.WinUI.Views.Home
                     GameProcess.BeginOutputReadLine();
                 }
                 await GameProcess.WaitForExitAsync();
-                App.Current.MainWindow.DispatcherQueue.TryEnqueue(() => App.Current.Launcher.GameRuns = false);
+                App.Current._MainWindow.DispatcherQueue.TryEnqueue(() => App.Current.Launcher.GameRuns = false);
             });
             t.Start();
         }
