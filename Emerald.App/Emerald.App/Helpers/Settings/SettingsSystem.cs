@@ -14,25 +14,33 @@ namespace Emerald.WinUI.Helpers.Settings
         public static Account[] Accounts { get; set; }
 
         public static event EventHandler<string>? APINoMatch;
-        public static T GetSerializedFromSettings<T>(string key, T def)
+        public static async Task<T> GetSerializedFromSettings<T>(string key, T def)
         {
             string json;
             try
             {
-                json = ApplicationData.Current.RoamingSettings.Values[key] as string;
+                if(key == "Settings")
+                    json = await FileIO.ReadTextAsync(ApplicationData.Current.LocalFolder.GetFileAsync("settings.json").AsTask().Result);
+                else
+                    json = ApplicationData.Current.RoamingSettings.Values[key] as string;
+
                 return JsonSerializer.Deserialize<T>(json);
             }
             catch
             {
                 json = JsonSerializer.Serialize(def);
-                ApplicationData.Current.RoamingSettings.Values[key] = json;
+
+                if(key != "Settings")
+                    ApplicationData.Current.RoamingSettings.Values[key] = json;
+
                 return def;
             }
         }
-        public static void LoadData()
+        public static async Task LoadData()
         {
-            Settings = GetSerializedFromSettings("Settings", JSON.Settings.CreateNew());
-            Accounts = GetSerializedFromSettings("Accounts", Array.Empty<Account>());
+            
+            Settings = await GetSerializedFromSettings("Settings", JSON.Settings.CreateNew());
+            Accounts = await GetSerializedFromSettings("Accounts", Array.Empty<Account>());
 
             if (Settings.APIVersion != DirectResoucres.SettingsAPIVersion)
             {
@@ -101,10 +109,18 @@ namespace Emerald.WinUI.Helpers.Settings
             return l.AllBackups == null ? new List<SettingsBackup>() : l.AllBackups.ToList();
         }
 
-        public static void SaveData()
+        public static void SaveData(string _settings = null)
         {
             Settings.LastSaved = DateTime.Now;
-            ApplicationData.Current.RoamingSettings.Values["Settings"] = Settings.Serialize();
+            ApplicationData.Current.LocalFolder.CreateFileAsync("settings.json", CreationCollisionOption.OpenIfExists)
+                .AsTask()
+                .Wait();
+
+            FileIO.WriteTextAsync(ApplicationData.Current.LocalFolder.GetFileAsync("settings.json").AsTask().Result,
+                _settings ?? JsonSerializer.Serialize(Settings))
+                .AsTask()
+                .Wait();
+
             ApplicationData.Current.RoamingSettings.Values["Accounts"] = JsonSerializer.Serialize(Accounts);
         }
     }
