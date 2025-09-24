@@ -63,9 +63,9 @@ public class Forge : IModLoaderInstaller
         this.Log().LogInformation("Installing Forge Loader for {mcversion}", mcversion);
         try
         {
-
-
             var forge = new ForgeInstaller(new(path));
+
+            //TODO: check whether ForgeInstaller supports offline installation
 
             string? versionName = null;
 

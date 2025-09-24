@@ -1,8 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Threading.Tasks;
 using Windows.Storage;
 
@@ -11,6 +10,10 @@ namespace Emerald.Services;
 public class BaseSettingsService
 {
     private readonly ILogger<BaseSettingsService> _logger;
+    private readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        WriteIndented = true // Makes file easier to read/debug
+    };
 
     public event EventHandler<string>? APINoMatch;
 
@@ -18,27 +21,43 @@ public class BaseSettingsService
     {
         _logger = logger;
     }
-    public void Set<T>(string key, T value)
+
+    public void Set<T>(string key, T value, bool storeInFile = false)
     {
         try
         {
-            string json = JsonSerializer.Serialize<T>(value);
-            ApplicationData.Current.LocalSettings.Values[key] = json;
+            if (storeInFile)
+            {
+                SaveToFileAsync(key, value).Wait();
+            }
+            else
+            {
+                string json = JsonSerializer.Serialize(value, _jsonOptions);
+                ApplicationData.Current.LocalSettings.Values[key] = json;
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deserializing key '{Key}' from settings", key);
+            _logger.LogError(ex, "Error saving key '{Key}' to settings", key);
         }
     }
 
-    public T Get<T>(string key, T defaultVal)
+    public T Get<T>(string key, T defaultVal, bool loadFromFile = false)
     {
         try
         {
-            string json = ApplicationData.Current.LocalSettings.Values[key] as string;
-            if (!string.IsNullOrWhiteSpace(json))
+            if (loadFromFile)
             {
-                return JsonSerializer.Deserialize<T>(json);
+                return LoadFromFileAsync(key, defaultVal).GetAwaiter().GetResult();
+            }
+            else
+            {
+                if (ApplicationData.Current.LocalSettings.Values.TryGetValue(key, out object? value)
+                    && value is string json
+                    && !string.IsNullOrWhiteSpace(json))
+                {
+                    return JsonSerializer.Deserialize<T>(json) ?? defaultVal;
+                }
             }
         }
         catch (Exception ex)
@@ -47,8 +66,48 @@ public class BaseSettingsService
         }
 
         // Save default value if deserialization fails or key is missing
-        Set(key, defaultVal);
+        Set(key, defaultVal, storeInFile: loadFromFile);
 
         return defaultVal;
+    }
+
+    private async Task SaveToFileAsync<T>(string key, T value)
+    {
+        try
+        {
+            string fileName = $"{key}.json";
+            StorageFile file = await ApplicationData.Current.LocalFolder.CreateFileAsync(
+                fileName, CreationCollisionOption.ReplaceExisting);
+
+            string json = JsonSerializer.Serialize(value, _jsonOptions);
+            await FileIO.WriteTextAsync(file, json);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error writing key '{Key}' to file storage", key);
+            throw;
+        }
+    }
+
+    private async Task<T> LoadFromFileAsync<T>(string key, T defaultVal)
+    {
+        try
+        {
+            string fileName = $"{key}.json";
+            StorageFile file = await ApplicationData.Current.LocalFolder.GetFileAsync(fileName);
+
+            string json = await FileIO.ReadTextAsync(file);
+            return JsonSerializer.Deserialize<T>(json) ?? defaultVal;
+        }
+        catch (FileNotFoundException)
+        {
+            // Return default if file doesn't exist
+            return defaultVal;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reading key '{Key}' from file storage", key);
+            return defaultVal;
+        }
     }
 }

@@ -69,7 +69,7 @@ public class Quilt : IModLoaderInstaller
             {
                 this.Log().LogWarning("Fabric Loader installation is not supported offline. sending the version name");
                 _notify.Complete(not.Id, false, "Fabric Loader installation is not supported offline. Passed the version name.");
-                return QuiltInstaller.GetVersionName(mcversion, modversion ?? (await QuiltInstaller.GetFirstLoader(modversion)).Version);
+                return QuiltInstaller.GetVersionName(mcversion, modversion ?? (await QuiltInstaller.GetFirstLoader(mcversion))?.Version ?? throw new NullReferenceException("No internet and no mod name found."));
             }
 
 
