@@ -1,13 +1,12 @@
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using System;
-using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Storage;
 
 namespace Emerald.Services;
 
-public class BaseSettingsService
+public class BaseSettingsService : IBaseSettingsService
 {
     private readonly ILogger<BaseSettingsService> _logger;
     private readonly JsonSerializerOptions _jsonOptions = new()

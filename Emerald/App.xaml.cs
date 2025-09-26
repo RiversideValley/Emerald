@@ -43,7 +43,7 @@ public partial class App : Application
 
         //Settings
         services.AddSingleton<Services.SettingsService>();
-        services.AddSingleton<Services.BaseSettingsService>();
+        services.AddSingleton<Services.BaseSettingsService, Services.BaseSettingsService>();
         //Notifications
         services.AddSingleton<CoreX.Notifications.INotificationService, CoreX.Notifications.NotificationService>();
 

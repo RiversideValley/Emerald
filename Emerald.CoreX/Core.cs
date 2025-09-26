@@ -15,7 +15,7 @@ public record SavedGame(string Path, Versions.Version Version, Models.GameSettin
 
 public record SavedGameCollection(string BasePath, SavedGame[] Games);
 
-public partial class Core(ILogger<Core> _logger, INotificationService _notify, BaseSettingsService settingsService) : ObservableObject
+public partial class Core(ILogger<Core> _logger, INotificationService _notify, IBaseSettingsService settingsService) : ObservableObject
 {
     public const string GamesFolderName = "EmeraldGames";
     public MinecraftLauncher Launcher { get; set; }
