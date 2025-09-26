@@ -7,6 +7,8 @@ using System.Text.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using Windows.UI;
+using CmlLib.Core.ProcessBuilder;
+using Emerald.CoreX.Models;
 using Emerald.CoreX.Store.Modrinth;
 namespace Emerald.Helpers.Settings.JSON;
 
@@ -31,7 +33,7 @@ public class Backups : JSON
     public string APIVersion { get; private set; } = "1.0";
 }
 
-public class Settings : JSON
+public partial class Settings : JSON
 {
     public static Settings CreateNew() => new()
     {
@@ -62,6 +64,8 @@ public class Settings : JSON
     public DateTime LastSaved { get; set; } = DateTime.Now;
     public Minecraft Minecraft { get; set; } = new();
 
+    [ObservableProperty]
+    private CoreX.Models.GameSettings _GameSettings  = GameSettings.FromMLaunchOption(new MLaunchOption());
     public App App { get; set; } = new();
 }
 
@@ -81,6 +85,7 @@ public partial class Minecraft : JSON
     [JsonIgnore]
     public double RAMinGB => Math.Round((RAM / 1024.00), 2);
 
+    
 
     [ObservableProperty]
     private string _Path;

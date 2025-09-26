@@ -4,16 +4,16 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
-using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Cryptography;
+using Microsoft.Extensions.Logging;
 using System.Text;
 using Windows.System.Diagnostics;
 
-namespace Emerald.Helpers;
+namespace Emerald.CoreX.Helpers;
 
 public static class Extensions
 {
@@ -69,27 +69,6 @@ public static class Extensions
             return (num / 100).ToString("0.#") + "K";
 
         return num.ToString("#,0");
-    }
-
-    public static ContentDialog ToContentDialog(this UIElement content, string title, string closebtnText = null, ContentDialogButton defaultButton = ContentDialogButton.Close, bool addScrollBar = true)
-    {
-        ContentDialog dialog = new()
-        {
-            XamlRoot = App.Current.MainWindow.Content.XamlRoot,
-            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
-            Title = title,
-            CloseButtonText = closebtnText,
-            DefaultButton = defaultButton,
-            Content = addScrollBar ? new ScrollViewer()
-            { 
-                Content = content, 
-                Padding = new(12) 
-            } : content,
-
-            RequestedTheme = (ElementTheme)Ioc.Default.GetService< Services.SettingsService>().Settings.App.Appearance.Theme
-        };
-        App.Current.Log().LogInformation("Created ContentDialog with title: {title}", title);
-        return dialog;
     }
 
     public static int Remove<T>(this ObservableCollection<T> coll, Func<T, bool> condition)

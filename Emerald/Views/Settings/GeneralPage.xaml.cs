@@ -66,18 +66,14 @@ public sealed partial class GeneralPage : Page
     }
 
     private void btnRamPlus_Click(object sender, RoutedEventArgs e) =>
-        SS.Settings.Minecraft.RAM = SS.Settings.Minecraft.RAM + (SS.Settings.Minecraft.RAM >= DirectResoucres.MaxRAM ? 0 : (DirectResoucres.MaxRAM - SS.Settings.Minecraft.RAM >= 50 ? 50 : DirectResoucres.MaxRAM - SS.Settings.Minecraft.RAM));
+        SS.Settings.GameSettings.MaximumRamMb = SS.Settings.Minecraft.RAM + (SS.Settings.Minecraft.RAM >= DirectResoucres.MaxRAM ? 0 : (DirectResoucres.MaxRAM - SS.Settings.GameSettings.MaximumRamMb >= 50 ? 50 : DirectResoucres.MaxRAM - SS.Settings.GameSettings.MaximumRamMb));
 
 
     private void btnRamMinus_Click(object sender, RoutedEventArgs e) =>
-        SS.Settings.Minecraft.RAM = SS.Settings.Minecraft.RAM - (SS.Settings.Minecraft.RAM <= DirectResoucres.MinRAM ? 0 : 50);
+        SS.Settings.Minecraft.RAM = SS.Settings.GameSettings.MaximumRamMb - (SS.Settings.GameSettings.MaximumRamMb <= DirectResoucres.MinRAM ? 0 : 50);
 
 
     private void btnAutoRAM_Click(object sender, RoutedEventArgs e) =>
         SS.Settings.Minecraft.RAM = DirectResoucres.MaxRAM / 2;
 
-    private void ArgumentsListView_OnArgumentsChanged(object sender, IEnumerable<string> e)
-    {
-        SS.Settings.Minecraft.JVM.Arguments = e.ToArray();
-    }
 }

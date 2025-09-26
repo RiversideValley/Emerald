@@ -24,13 +24,10 @@ namespace Emerald.UserControls;
 public sealed partial class ArgumentsListView : UserControl
 {
     private int count = 0;
+    public ObservableCollection<string> Args { get; set; }
     
-    public event EventHandler<IEnumerable<string>>? OnArgumentsChanged;
-
-    private readonly Services.SettingsService SS;
     public ArgumentsListView()
     {
-        SS = Ioc.Default.GetService<Services.SettingsService>();
         InitializeComponent();
         view.ItemsSource = Source;
         UpdateSource();
@@ -48,9 +45,9 @@ public sealed partial class ArgumentsListView : UserControl
     public void UpdateSource()
     {
         Source.Clear();
-        if (SS.Settings.Minecraft.JVM.Arguments != null)
+        if (Args != null)
         {
-            foreach (var item in SS.Settings.Minecraft.JVM.Arguments)
+            foreach (var item in Args)
             {
                 count++;
                 var r = new ArgTemplate { Arg = item, Count = count };
@@ -63,8 +60,12 @@ public sealed partial class ArgumentsListView : UserControl
         }
         btnRemove.IsEnabled = Source.Any();
     }
-    private void UpdateMainSource() => OnArgumentsChanged?.Invoke(this, Source.Select(x => x.Arg));
 
+    private void UpdateMainSource()
+    {
+        Args.Clear();
+        Args.AddRange(Source.Select(x=> x.Arg));
+    }
     private void btnRemove_Click(object sender, RoutedEventArgs e)
     {
         foreach (var item in view.SelectedItems)

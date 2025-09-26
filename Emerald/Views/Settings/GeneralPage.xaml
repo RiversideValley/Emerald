@@ -31,7 +31,7 @@
               x:Name="txtRam"
               VerticalAlignment="Center">
               <Run
-                Text="{Binding Minecraft.RAMinGB, Mode=OneWay}" />
+                Text="{Binding GameSettings.MaxRAMinGB, Mode=OneWay}" />
                                 GB</TextBlock>
             <RepeatButton
               Padding="5"
@@ -53,12 +53,12 @@
             <cn:SettingsCard
               Header="{helpers:Localize Name=AssetsCheck}">
               <ToggleSwitch
-                IsOn="{Binding Minecraft.Downloader.AssetsCheck, Mode=TwoWay}" />
+                IsOn="{Binding GameSettings.AssetsCheck, Mode=TwoWay}" />
             </cn:SettingsCard>
             <cn:SettingsCard
               Header="{helpers:Localize Name=HashCheck}">
               <ToggleSwitch
-                IsOn="{Binding Minecraft.Downloader.HashCheck, Mode=TwoWay}" />
+                IsOn="{Binding GameSettings.HashCheck, Mode=TwoWay}" />
             </cn:SettingsCard>
           </cn:SettingsExpander.Items>
         </cn:SettingsExpander>
@@ -82,7 +82,7 @@
           Description="{helpers:Localize Name=MCasAdminDescription}"
           HeaderIcon="{helpers:FontIcon Glyph=}">
           <ToggleSwitch
-            IsOn="{Binding Minecraft.IsAdmin, Mode=TwoWay}"
+            IsOn="{Binding GameSettings.IsAdmin, Mode=TwoWay}"
             OffContent="{helpers:Localize Name=No}"
             OnContent="{helpers:Localize Name=Yes}" />
         </cn:SettingsCard>
@@ -108,7 +108,7 @@
               Header="{helpers:Localize Name=Width}">
               <NumberBox
                 Minimum="0"
-                Value="{Binding Minecraft.JVM.ScreenWidth, Mode=TwoWay}"
+                Value="{Binding GameSettings.ScreenWidth, Mode=TwoWay}"
                 SpinButtonPlacementMode="Inline"
                 LargeChange="80"
                 SmallChange="10"
@@ -118,7 +118,7 @@
               Header="{helpers:Localize Name=Height}">
               <NumberBox
                 Minimum="0"
-                Value="{Binding Minecraft.JVM.ScreenHeight, Mode=TwoWay}"
+                Value="{Binding GameSettings.ScreenHeight, Mode=TwoWay}"
                 SpinButtonPlacementMode="Inline"
                 LargeChange="80"
                 SmallChange="10"
@@ -127,7 +127,7 @@
             <cn:SettingsCard
               Header="{helpers:Localize Name=FullScreen}">
               <ToggleSwitch
-                IsOn="{Binding Minecraft.JVM.FullScreen, Mode=TwoWay}" />
+                IsOn="{Binding GameSettings.FullScreen, Mode=TwoWay}" />
             </cn:SettingsCard>
           </cn:SettingsExpander.Items>
         </cn:SettingsExpander>
@@ -139,7 +139,7 @@
             <Grid
               Padding="12"
               Background="{StaticResource ExpanderHeaderBackground}">
-              <uc:ArgumentsListView OnArgumentsChanged="ArgumentsListView_OnArgumentsChanged"/>
+              <uc:ArgumentsListView Args="{Binding GameSettings.JVMArgs}"/>
             </Grid>
           </cn:SettingsExpander.ItemsHeader>
         </cn:SettingsExpander>
