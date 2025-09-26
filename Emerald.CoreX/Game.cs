@@ -80,7 +80,6 @@ public class Game
 
             if (ver == null)
             {
-
                 _logger.LogWarning("Version {VersionType} {ModVersion} {BasedOn} not found.", Version.Type, Version.ModVersion, Version.BasedOn);
 
                 _notify.Complete(
@@ -93,7 +92,6 @@ public class Game
             }
             if (isOffline) //checking if verison actually exists
             {
-
                 var vers = await Launcher.GetAllVersionsAsync();
                 var mver = vers.Where(x => x.Name == ver).First();
                 if (mver == null)
