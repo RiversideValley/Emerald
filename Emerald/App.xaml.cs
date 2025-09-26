@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System;
 using Emerald.Helpers;
 using CommunityToolkit.Mvvm.DependencyInjection;
+using Emerald.CoreX.Helpers;
 
 namespace Emerald;
 public partial class App : Application
@@ -43,7 +44,7 @@ public partial class App : Application
 
         //Settings
         services.AddSingleton<Services.SettingsService>();
-        services.AddSingleton<Services.BaseSettingsService, Services.BaseSettingsService>();
+        services.AddSingleton<Services.IBaseSettingsService, Services.BaseSettingsService>();
         //Notifications
         services.AddSingleton<CoreX.Notifications.INotificationService, CoreX.Notifications.NotificationService>();
 

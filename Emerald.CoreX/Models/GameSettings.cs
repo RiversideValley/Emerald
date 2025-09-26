@@ -9,6 +9,7 @@ using CmlLib.Core.FileExtractors;
 using CmlLib.Core.ProcessBuilder;
 using Emerald.CoreX.Helpers;
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Runtime.Serialization;
 
 namespace Emerald.CoreX.Models;
 public partial class GameSettings : ObservableObject
@@ -16,7 +17,8 @@ public partial class GameSettings : ObservableObject
     
     [JsonIgnore]
     public double MaxRAMinGB => Math.Round((MaximumRamMb / 1024.00), 2);
-    
+
+    [NotifyPropertyChangedFor(nameof(MaxRAMinGB))]
     [ObservableProperty]
     private int _maximumRamMb;
 
@@ -29,12 +31,15 @@ public partial class GameSettings : ObservableObject
     [ObservableProperty]
     private bool _isDemo;
 
+    [NotifyPropertyChangedFor(nameof(ScreenSizeStatus))]
     [ObservableProperty]
     private int _screenWidth;
 
+    [NotifyPropertyChangedFor(nameof(ScreenSizeStatus))]
     [ObservableProperty]
     private int _screenHeight;
 
+    [NotifyPropertyChangedFor(nameof(ScreenSizeStatus))]
     [ObservableProperty]
     private bool _fullScreen;
 

@@ -10,6 +10,7 @@ using Windows.UI;
 using CmlLib.Core.ProcessBuilder;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Store.Modrinth;
+using Emerald.CoreX.Helpers;
 namespace Emerald.Helpers.Settings.JSON;
 
 public class JSON : Models.Model

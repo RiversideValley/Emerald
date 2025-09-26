@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml.Markup;
 using CommunityToolkit.Mvvm;
+using Emerald.CoreX.Helpers;
 namespace Emerald.Helpers;
 
 [MarkupExtensionReturnType(ReturnType = typeof(string))]

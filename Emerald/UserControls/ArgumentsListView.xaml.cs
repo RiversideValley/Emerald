@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Emerald.CoreX.Helpers;
+using Emerald.CoreX.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -12,83 +14,42 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-using System.Collections.ObjectModel;
-using Emerald.Models;
-using CommonServiceLocator;
-using CommunityToolkit.Mvvm.DependencyInjection;
-
-
+using Windows.Foundation;
+using Windows.Foundation.Collections;
+using Windows.Storage.Pickers;
 namespace Emerald.UserControls;
-
-//Copied from Emerald.UWP
 public sealed partial class ArgumentsListView : UserControl
 {
-    private int count = 0;
-    public ObservableCollection<string> Args { get; set; }
-    
+    public ObservableCollection<string> Args
+    {
+        get => (ObservableCollection<string>)GetValue(ArgsProperty);
+        set => SetValue(ArgsProperty, value);
+    }
+
+    public static readonly DependencyProperty ArgsProperty =
+        DependencyProperty.Register(
+            nameof(Args),
+            typeof(ObservableCollection<string>),
+            typeof(ArgumentsListView),
+            new PropertyMetadata(new ObservableCollection<string>())
+        );
+
     public ArgumentsListView()
     {
         InitializeComponent();
-        view.ItemsSource = Source;
-        UpdateSource();
+        view.ItemsSource = Args;
     }
 
-    private ObservableCollection<ArgTemplate> Source = new();
     private void btnAdd_Click(object sender, RoutedEventArgs e)
     {
-        count++;
-        var r = new ArgTemplate { Arg = "", Count = count };
-        Source.Add(r);
-        UpdateMainSource();
-        view.SelectedItem = r;
-    }
-    public void UpdateSource()
-    {
-        Source.Clear();
-        if (Args != null)
-        {
-            foreach (var item in Args)
-            {
-                count++;
-                var r = new ArgTemplate { Arg = item, Count = count };
-                r.PropertyChanged += (_, _) =>
-                {
-                    UpdateMainSource();
-                };
-                Source.Add(r);
-            }
-        }
-        btnRemove.IsEnabled = Source.Any();
+        Args.Add(string.Empty);
+        view.SelectedIndex = Args.Count - 1;
     }
 
-    private void UpdateMainSource()
-    {
-        Args.Clear();
-        Args.AddRange(Source.Select(x=> x.Arg));
-    }
     private void btnRemove_Click(object sender, RoutedEventArgs e)
     {
-        foreach (var item in view.SelectedItems)
-        {
-            Source.Remove((ArgTemplate)item);
-        }
-        UpdateMainSource();
-    }
-
-    private void TextBox_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        view.SelectedIndex = Source.IndexOf(Source.FirstOrDefault(x => x.Count == ((sender as FrameworkElement).DataContext as ArgTemplate).Count));
-    }
-
-    private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        view.SelectedIndex = Source.IndexOf(Source.FirstOrDefault(x => x.Count == ((sender as FrameworkElement).DataContext as ArgTemplate).Count));
-        UpdateMainSource();
-    }
-
-    private void TextBox_GotFocus(object sender, RoutedEventArgs e)
-    {
-        view.SelectedIndex = Source.IndexOf(Source.FirstOrDefault(x => x.Count == ((sender as FrameworkElement).DataContext as ArgTemplate).Count));
+        foreach (var selected in view.SelectedItems.Cast<string>().ToList())
+            Args.Remove(selected);
     }
 
     private void view_SelectionChanged(object sender, SelectionChangedEventArgs e)
