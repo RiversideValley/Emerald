@@ -40,7 +40,7 @@
 
               <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{Binding Message}" TextWrapping="Wrap" />
 
-              <Grid 
+              <Grid
                   Visibility="{Binding IsCompleted, ConverterParameter=reversed, Converter={StaticResource BoolToVisibilityConverter}}">
 
                 <Grid.ColumnDefinitions>
@@ -63,8 +63,8 @@
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
 
-              <Button Padding="8" CornerRadius="8" Content="{helpers:FontIcon  FontSize=12, Glyph=&#xE71A;}" ToolTipService.ToolTip="{helpers:Localize Name=Stop}" Command="{Binding CancelCommand}" Visibility="{Binding IsCancellable, Converter={StaticResource BoolToVisibilityConverter}}"/>
-              <Button Padding="8" CornerRadius="8" Content="{helpers:FontIcon FontSize=12, Glyph=&#xE8BB;}" ToolTipService.ToolTip="{helpers:Localize Name=Dismiss}" Command="{Binding DismissCommand}" />
+              <Button Padding="8" CornerRadius="8" Content="{helpers:FontIcon  FontSize=12, Glyph=&#xE71A;}" ToolTipService.ToolTip="{helpers:Localize KeyName=Stop}" Command="{Binding CancelCommand}" Visibility="{Binding IsCancellable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+              <Button Padding="8" CornerRadius="8" Content="{helpers:FontIcon FontSize=12, Glyph=&#xE8BB;}" ToolTipService.ToolTip="{helpers:Localize KeyName=Dismiss}" Command="{Binding DismissCommand}" />
             </StackPanel>
           </Grid>
         </Border>
@@ -91,8 +91,8 @@
               <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{Binding Message}" TextWrapping="Wrap" />
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-              <Button  Padding="8" CornerRadius="8" Content="{helpers:FontIcon FontSize=12, Glyph=&#xEA1F;}" ToolTipService.ToolTip="{helpers:Localize Name=Info}" Command="{Binding ViewErrorCommand}" Visibility="{Binding IsErrorWithException, Converter={StaticResource BoolToVisibilityConverter}}"/>
-              <Button Padding="8" CornerRadius="8" Content="{helpers:FontIcon FontSize=12, Glyph=&#xE8BB;}" ToolTipService.ToolTip="{helpers:Localize Name=Dismiss}" Command="{Binding DismissCommand}" />
+              <Button  Padding="8" CornerRadius="8" Content="{helpers:FontIcon FontSize=12, Glyph=&#xEA1F;}" ToolTipService.ToolTip="{helpers:Localize KeyName=Info}" Command="{Binding ViewErrorCommand}" Visibility="{Binding IsErrorWithException, Converter={StaticResource BoolToVisibilityConverter}}"/>
+              <Button Padding="8" CornerRadius="8" Content="{helpers:FontIcon FontSize=12, Glyph=&#xE8BB;}" ToolTipService.ToolTip="{helpers:Localize KeyName=Dismiss}" Command="{Binding DismissCommand}" />
             </StackPanel>
           </Grid>
         </Border>
@@ -108,7 +108,7 @@
   <ScrollViewer VerticalScrollBarVisibility="Auto">
     <ListView
       SelectionMode="None"
-      ItemsSource="{Binding Notifications}" 
+      ItemsSource="{Binding Notifications}"
                       ItemTemplateSelector="{StaticResource TemplateSelector}"/>
   </ScrollViewer>
 </UserControl>

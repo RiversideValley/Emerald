@@ -7,33 +7,46 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" xmlns:helpers="using:Emerald.Helpers"
    xmlns:cn="using:CommunityToolkit.WinUI.Controls"
+    xmlns:conv="using:Emerald.Helpers.Converters"
     d:DesignHeight="300"
     d:DesignWidth="400">
+
+
+  <UserControl.Resources>
+    <conv:BoolToVisibility x:Key="BoolToVis" />
+  </UserControl.Resources>
 
   <Grid>
     <StackPanel Spacing="16">
       <StackPanel Spacing="4">
-        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize Name=GeneralSettings}" />
+        <TextBlock FontWeight="SemiBold" Text="{helpers:Localize KeyName=GeneralSettings}" />
         <cn:SettingsCard
           x:Name="MCPath"
-          x:Load="{x:Bind ShowMainPathEditor}"
           HeaderIcon="{helpers:FontIcon Glyph=}"
-          Header="{helpers:Localize Name=MinecraftPath}"
-          Description="{helpers:Localize Name=MinecraftPathDescription}">
-          <HyperlinkButton
-            ToolTipService.ToolTip="{x:Bind SS.Settings.Minecraft.Path, Mode=OneWay}"
-            Click="btnChangeMPath_Click">
+          Header="{helpers:Localize KeyName=MinecraftPath}"
+          Description="{helpers:Localize KeyName=MinecraftPathDescription}">
+          <DropDownButton
+            ToolTipService.ToolTip="{x:Bind SS.Settings.Minecraft.Path, Mode=OneWay}">
             <TextBlock
               MaxWidth="250"
               VerticalAlignment="Center"
               Text="{x:Bind SS.Settings.Minecraft.Path, Mode=OneWay}"
               TextTrimming="CharacterEllipsis" />
-          </HyperlinkButton>
+            <DropDownButton.Flyout>
+              <MenuFlyout>
+                <MenuFlyoutItem x:Name="CopyPath" Text="{helpers:Localize KeyName=CopyPath}" Click="CopyPath_OnClick"/>
+                <MenuFlyoutItem
+                  Visibility="{x:Bind ShowMainSettings, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                  Text="{helpers:Localize KeyName=ChangePath}"
+                  Click="ChangePath_OnClick"/>
+              </MenuFlyout>
+            </DropDownButton.Flyout>
+          </DropDownButton>
         </cn:SettingsCard>
         <cn:SettingsCard
           HeaderIcon="{helpers:FontIcon Glyph=}"
-          Header="{helpers:Localize Name=RAM}"
-          Description="{helpers:Localize Name=RAMDescription}">
+          Header="{helpers:Localize KeyName=RAM}"
+          Description="{helpers:Localize KeyName=RAMDescription}">
           <StackPanel
             Orientation="Horizontal"
             Spacing="5">
@@ -56,17 +69,17 @@
           </StackPanel>
         </cn:SettingsCard>
         <cn:SettingsExpander
-          Header="{helpers:Localize Name=DownloadSettings}"
+          Header="{helpers:Localize KeyName=DownloadSettings}"
           HeaderIcon="{helpers:FontIcon Glyph=}"
-          Description="{helpers:Localize Name=DownloadSettingsDescription}">
+          Description="{helpers:Localize KeyName=DownloadSettingsDescription}">
           <cn:SettingsExpander.Items>
             <cn:SettingsCard
-              Header="{helpers:Localize Name=AssetsCheck}">
+              Header="{helpers:Localize KeyName=AssetsCheck}">
               <ToggleSwitch
                 IsOn="{x:Bind GameSettings.AssetsCheck, Mode=TwoWay}" />
             </cn:SettingsCard>
             <cn:SettingsCard
-              Header="{helpers:Localize Name=HashCheck}">
+              Header="{helpers:Localize KeyName=HashCheck}">
               <ToggleSwitch
                 IsOn="{x:Bind GameSettings.HashCheck, Mode=TwoWay}" />
             </cn:SettingsCard>
@@ -74,44 +87,44 @@
         </cn:SettingsExpander>
         <cn:SettingsCard
           x:Name="AL"
-          x:Load="{x:Bind ShowMainPathEditor}"
-          Header="{helpers:Localize Name=AutoLogin}"
-          Description="{helpers:Localize Name=AutoLoginDescription}"
+          Visibility="{x:Bind ShowMainSettings, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+          Header="{helpers:Localize KeyName=AutoLogin}"
+          Description="{helpers:Localize KeyName=AutoLoginDescription}"
           HeaderIcon="{helpers:FontIcon Glyph=}">
           <ToggleSwitch
             IsOn="{x:Bind SS.Settings.App.AutoLogin, Mode=TwoWay}"
-            OffContent="{helpers:Localize Name=No}"
-            OnContent="{helpers:Localize Name=Yes}" />
+            OffContent="{helpers:Localize KeyName=No}"
+            OnContent="{helpers:Localize KeyName=Yes}" />
         </cn:SettingsCard>
       </StackPanel>
       <StackPanel
         Spacing="4">
         <TextBlock
           FontWeight="SemiBold"
-          Text="{helpers:Localize Name=AdvancedMinecraftSettings}" />
+          Text="{helpers:Localize KeyName=AdvancedMinecraftSettings}" />
         <cn:SettingsCard
-          Header="{helpers:Localize Name=MCasAdmin}"
-          Description="{helpers:Localize Name=MCasAdminDescription}"
+          Header="{helpers:Localize KeyName=MCasAdmin}"
+          Description="{helpers:Localize KeyName=MCasAdminDescription}"
           HeaderIcon="{helpers:FontIcon Glyph=}">
           <ToggleSwitch
             IsOn="{x:Bind GameSettings.IsAdmin, Mode=TwoWay}"
-            OffContent="{helpers:Localize Name=No}"
-            OnContent="{helpers:Localize Name=Yes}" />
+            OffContent="{helpers:Localize KeyName=No}"
+            OnContent="{helpers:Localize KeyName=Yes}" />
         </cn:SettingsCard>
         <cn:SettingsCard
           x:Name="GML"
-          Header="{helpers:Localize Name=GameLogs}"
-          x:Load="{x:Bind ShowMainPathEditor}"
-          Description="{helpers:Localize Name=GameLogsDescription}"
+          Header="{helpers:Localize KeyName=GameLogs}"
+          Visibility="{x:Bind ShowMainSettings, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+          Description="{helpers:Localize KeyName=GameLogsDescription}"
           HeaderIcon="{helpers:FontIcon Glyph=}">
           <ToggleSwitch
             IsOn="{x:Bind SS.Settings.Minecraft.JVM.GameLogs, Mode=TwoWay}"
-            OffContent="{helpers:Localize Name=No}"
-            OnContent="{helpers:Localize Name=Yes}" />
+            OffContent="{helpers:Localize KeyName=No}"
+            OnContent="{helpers:Localize KeyName=Yes}" />
         </cn:SettingsCard>
         <cn:SettingsExpander
-          Header="{helpers:Localize Name=MCWindowsSize}"
-          Description="{helpers:Localize Name=MCWindowsSizeDescription}"
+          Header="{helpers:Localize KeyName=MCWindowsSize}"
+          Description="{helpers:Localize KeyName=MCWindowsSizeDescription}"
           HeaderIcon="{helpers:FontIcon Glyph=}">
           <cn:SettingsExpander.Content>
             <TextBlock
@@ -119,35 +132,35 @@
           </cn:SettingsExpander.Content>
           <cn:SettingsExpander.Items>
             <cn:SettingsCard
-              Header="{helpers:Localize Name=Width}">
+              Header="{helpers:Localize KeyName=Width}">
               <NumberBox
                 Minimum="0"
                 Value="{x:Bind GameSettings.ScreenWidth, Mode=TwoWay}"
                 SpinButtonPlacementMode="Inline"
                 LargeChange="80"
                 SmallChange="10"
-                PlaceholderText="{helpers:Localize Name=Default}" />
+                PlaceholderText="{helpers:Localize KeyName=Default}" />
             </cn:SettingsCard>
             <cn:SettingsCard
-              Header="{helpers:Localize Name=Height}">
+              Header="{helpers:Localize KeyName=Height}">
               <NumberBox
                 Minimum="0"
                 Value="{x:Bind GameSettings.ScreenHeight, Mode=TwoWay}"
                 SpinButtonPlacementMode="Inline"
                 LargeChange="80"
                 SmallChange="10"
-                PlaceholderText="{helpers:Localize Name=Default}" />
+                PlaceholderText="{helpers:Localize KeyName=Default}" />
             </cn:SettingsCard>
             <cn:SettingsCard
-              Header="{helpers:Localize Name=FullScreen}">
+              Header="{helpers:Localize KeyName=FullScreen}">
               <ToggleSwitch
                 IsOn="{x:Bind GameSettings.FullScreen, Mode=TwoWay}" />
             </cn:SettingsCard>
           </cn:SettingsExpander.Items>
         </cn:SettingsExpander>
         <cn:SettingsExpander
-          Header="{helpers:Localize Name=JVMArgs}"
-          Description="{helpers:Localize Name=JVMArgsDescription}"
+          Header="{helpers:Localize KeyName=JVMArgs}"
+          Description="{helpers:Localize KeyName=JVMArgsDescription}"
           HeaderIcon="{helpers:FontIcon Glyph=}">
           <cn:SettingsExpander.ItemsHeader>
             <Grid

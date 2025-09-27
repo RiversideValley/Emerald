@@ -1,64 +1,50 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Pickers;
-
-// The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace Emerald.UserControls;
 public sealed partial class MinecraftSettingsUC : UserControl
 {
-    public bool ShowMainPathEditor
+    public bool ShowMainSettings
     {
-        get { return (bool)GetValue(ShowMainPathEditorProperty); }
-        set { SetValue(ShowMainPathEditorProperty, value); }
+        get => (bool)GetValue(ShowMainSettingsProperty);
+        set => SetValue(ShowMainSettingsProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for ShowMainPathEditor.  This enables animation, styling, binding, etc...
-    public static readonly DependencyProperty ShowMainPathEditorProperty =
-        DependencyProperty.Register("ShowMainPathEditor", typeof(bool), typeof(MinecraftSettingsUC), new PropertyMetadata(null));
+    public static readonly DependencyProperty ShowMainSettingsProperty =
+        DependencyProperty.Register(nameof(ShowMainSettings), typeof(bool), typeof(MinecraftSettingsUC), new PropertyMetadata(false));
 
     public GameSettings GameSettings
     {
-        get { return (GameSettings)GetValue(GameSettingsProperty); }
-        set { SetValue(GameSettingsProperty, value); }
+        get => (GameSettings)GetValue(GameSettingsProperty);
+        set => SetValue(GameSettingsProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for GameSettings.  This enables animation, styling, binding, etc...
     public static readonly DependencyProperty GameSettingsProperty =
-        DependencyProperty.Register("GameSettings", typeof(GameSettings), typeof(MinecraftSettingsUC), new PropertyMetadata(null));
+        DependencyProperty.Register(nameof(GameSettings), typeof(GameSettings), typeof(MinecraftSettingsUC), new PropertyMetadata(null));
 
+    // expose SS as a public property if you bind to it from x:Bind in XAML, otherwise x:Bind may not resolve.
+    public Services.SettingsService SS { get; }
 
-    private readonly Services.SettingsService SS;
     public MinecraftSettingsUC()
     {
+        InitializeComponent();
         SS = Ioc.Default.GetService<Services.SettingsService>();
-        this.InitializeComponent();
     }
 
-    private async void btnChangeMPath_Click(object sender, RoutedEventArgs e)
+    // helper method so we can call from multiple handlers
+    private async Task PickMinecraftFolderAsync()
     {
         this.Log().LogInformation("Choosing MC path");
-        string path;
 
-        var fop = new FolderPicker
-        {
-            CommitButtonText = "Select".Localize()
-        };
+        var fop = new FolderPicker { CommitButtonText = "Select".Localize() };
         fop.FileTypeFilter.Add("*");
 
         if (DirectResoucres.Platform == "Windows")
@@ -66,18 +52,43 @@ public sealed partial class MinecraftSettingsUC : UserControl
 
         var f = await fop.PickSingleFolderAsync();
 
-        if (f != null)
-            path = f.Path;
-        else
+        if (f == null)
         {
             this.Log().LogInformation("User did not select a MC path");
             return;
         }
 
+        var path = f.Path;
         this.Log().LogInformation("New Minecraft path: {path}", path);
         SS.Settings.Minecraft.Path = path;
 
         await Ioc.Default.GetService<CoreX.Core>().InitializeAndRefresh(new(path));
+    }
+
+    private async void btnChangeMPath_Click(object sender, RoutedEventArgs e)
+    {
+        await PickMinecraftFolderAsync();
+    }
+
+    private async void ChangePath_OnClick(object sender, RoutedEventArgs e)
+    {
+        // call the same helper instead of calling the handler with nulls
+        await PickMinecraftFolderAsync();
+    }
+
+    private void CopyPath_OnClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var path = ShowMainSettings ? SS.Settings.Minecraft.Path : Path.Combine(SS.Settings.Minecraft.Path, CoreX.Core.GamesFolderName);
+            var dp = new DataPackage();
+            dp.SetText(path);
+            Clipboard.SetContent(dp);
+        }
+        catch (Exception ex)
+        {
+            this.Log().LogError(ex, "Failed to copy path");
+        }
     }
 
     private void AdjustRam(int delta)
@@ -91,11 +102,8 @@ public sealed partial class MinecraftSettingsUC : UserControl
         );
     }
 
-    private void btnRamPlus_Click(object sender, RoutedEventArgs e) =>
-        AdjustRam(64);
-
-    private void btnRamMinus_Click(object sender, RoutedEventArgs e) =>
-        AdjustRam(-64);
+    private void btnRamPlus_Click(object sender, RoutedEventArgs e) => AdjustRam(64);
+    private void btnRamMinus_Click(object sender, RoutedEventArgs e) => AdjustRam(-64);
 
     private void btnAutoRAM_Click(object sender, RoutedEventArgs e)
     {
@@ -103,13 +111,12 @@ public sealed partial class MinecraftSettingsUC : UserControl
 
         int recommended = sysMax switch
         {
-            <= 4096 => DirectResoucres.MinRAM,  // low-memory PCs
-            <= 8192 => sysMax / 3,             // mid-range
-            <= 16384 => sysMax / 2,            // standard gaming rigs
-            _ => (int)(sysMax * 0.65)          // high RAM → ~65%
+            <= 4096 => DirectResoucres.MinRAM,
+            <= 8192 => sysMax / 3,
+            <= 16384 => sysMax / 2,
+            _ => (int)(sysMax * 0.65)
         };
 
         GameSettings.MaximumRamMb = recommended;
     }
-
 }

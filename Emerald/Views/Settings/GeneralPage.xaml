@@ -3,5 +3,5 @@
   mc:Ignorable="d" xmlns:helpers="using:Emerald.Helpers"
    xmlns:cn="using:CommunityToolkit.WinUI.Controls" xmlns:uc="using:Emerald.UserControls">
 
-  <uc:MinecraftSettingsUC ShowMainPathEditor="True" x:Name="MCUC"/>
+  <uc:MinecraftSettingsUC ShowMainSettings="True" x:Name="MCUC"/>
 </Page>
