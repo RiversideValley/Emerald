@@ -1,6 +1,7 @@
 using System.Security.Cryptography.X509Certificates;
 using CommonServiceLocator;
 using CommunityToolkit.Mvvm.DependencyInjection;
+using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Installers;
 using Emerald.Helpers;
 using Emerald.Models;

@@ -28,7 +28,7 @@ public class Version
 
     public CmlLib.Core.VersionMetadata.IVersionMetadata? Metadata { get; set; }
 
-    public string DisplayName;
+    public string DisplayName; //This Should be unique among all versions
 
     public override bool Equals(object? obj)
     {

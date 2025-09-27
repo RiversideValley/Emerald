@@ -143,36 +143,6 @@ public static class Extensions
         return sb.ToString();
     }
 
-    public static string Localize(this string resourceKey)
-    {
-        var _logger = Ioc.Default.GetService<ILogger<ResourceLoader>>();
-        try
-        {
-            _logger.LogDebug("Localizing {resourceKey}", resourceKey);
-
-            if (cachedResources.TryGetValue(resourceKey, out string cached) && !string.IsNullOrEmpty(cached))
-            {
-                _logger.LogDebug("Found cached {resourceKey} in cache", resourceKey);
-                return cached;
-            }
-
-            string s = Windows.ApplicationModel.Resources.ResourceLoader
-                .GetForViewIndependentUse() 
-                .GetString(resourceKey);
-            if (string.IsNullOrEmpty(s))
-                throw new NullReferenceException("ResourceLoader.GetString returned empty/null");
-                
-            cachedResources.AddOrUpdate(resourceKey, s, (_, _) => s);
-            
-            _logger.LogDebug("Localized {resourceKey} to {s}", resourceKey, s);
-            return string.IsNullOrEmpty(s) ? resourceKey : s;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to localize {resourceKey}", resourceKey);
-            return resourceKey;
-        }
-    }
 
     //public static string Localize(this Core.Localized resourceKey) =>
     //     resourceKey.ToString().Localize();

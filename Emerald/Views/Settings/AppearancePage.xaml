@@ -7,22 +7,22 @@
     <StackPanel
       Spacing="4">
       <cn:SettingsCard
-        Header="{helpers:Localize Name=ColorMode}"
-        Description="{helpers:Localize Name=ColorModeDescription}"
+        Header="{helpers:Localize KeyName=ColorMode}"
+        Description="{helpers:Localize KeyName=ColorModeDescription}"
         HeaderIcon="{helpers:FontIcon Glyph=}">
         <ComboBox
           SelectedIndex="{Binding App.Appearance.Theme, Mode=TwoWay}">
           <ComboBoxItem
-            Content="{helpers:Localize Name=SystemDefault}" />
+            Content="{helpers:Localize KeyName=SystemDefault}" />
           <ComboBoxItem
-            Content="{helpers:Localize Name=Light}" />
+            Content="{helpers:Localize KeyName=Light}" />
           <ComboBoxItem
-            Content="{helpers:Localize Name=Dark}" />
+            Content="{helpers:Localize KeyName=Dark}" />
         </ComboBox>
       </cn:SettingsCard>
       <cn:SettingsCard
-        Header="{helpers:Localize Name=MicaType}"
-        Description="{helpers:Localize Name=MicaTypeDescription}"
+        Header="{helpers:Localize KeyName=MicaType}"
+        Description="{helpers:Localize KeyName=MicaTypeDescription}"
         HeaderIcon="{helpers:FontIcon Glyph=}">
         <ComboBox
           SelectedIndex="{Binding App.Appearance.MicaType, Mode=TwoWay}">
@@ -33,31 +33,31 @@
         </ComboBox>
       </cn:SettingsCard>
       <cn:SettingsCard
-        Header="{helpers:Localize Name=NavIconStyle}"
-        Description="{helpers:Localize Name=NavIconStyleDescription}"
+        Header="{helpers:Localize KeyName=NavIconStyle}"
+        Description="{helpers:Localize KeyName=NavIconStyleDescription}"
         HeaderIcon="{helpers:FontIcon Glyph=}">
         <ComboBox
           SelectedIndex="{Binding App.Appearance.NavIconType, Mode=TwoWay}">
           <ComboBoxItem
-            Content="{helpers:Localize Name=Default}" />
+            Content="{helpers:Localize KeyName=Default}" />
           <ComboBoxItem
-            Content="{helpers:Localize Name=Colorful}" />
+            Content="{helpers:Localize KeyName=Colorful}" />
         </ComboBox>
       </cn:SettingsCard>
       <cn:SettingsExpander
         IsExpanded="True"
-        Header="{helpers:Localize Name=WindowTintColor}"
-        Description="{helpers:Localize Name=WindowTintColorDescription}"
+        Header="{helpers:Localize KeyName=WindowTintColor}"
+        Description="{helpers:Localize KeyName=WindowTintColorDescription}"
         HeaderIcon="{helpers:FontIcon Glyph=}">
         <cn:SettingsExpander.Content>
           <ComboBox
             SelectedIndex="{Binding App.Appearance.MicaTintColor, Mode=TwoWay}">
             <ComboBoxItem
-              Content="{helpers:Localize Name=NoColor}" />
+              Content="{helpers:Localize KeyName=NoColor}" />
             <ComboBoxItem
-              Content="{helpers:Localize Name=AccentColor}" />
+              Content="{helpers:Localize KeyName=AccentColor}" />
             <ComboBoxItem
-              Content="{helpers:Localize Name=CustomColor}" />
+              Content="{helpers:Localize KeyName=CustomColor}" />
           </ComboBox>
         </cn:SettingsExpander.Content>
         <cn:SettingsExpander.ItemsHeader>
@@ -96,12 +96,12 @@
           </Grid>
         </cn:SettingsExpander.ItemsHeader>
         <cn:SettingsExpander.Items>
-          <cn:SettingsCard Header="{helpers:Localize Name=CustomColors}">
+          <cn:SettingsCard Header="{helpers:Localize KeyName=CustomColors}">
             <Button
               Click="CustomTintColor_Click"
-              Content="{helpers:Localize Name=Add}" />
+              Content="{helpers:Localize KeyName=Add}" />
           </cn:SettingsCard>
-          <cn:SettingsCard Header="{helpers:Localize Name=TintOpacity}">
+          <cn:SettingsCard Header="{helpers:Localize KeyName=TintOpacity}">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
               <Slider
                 Minimum="0"

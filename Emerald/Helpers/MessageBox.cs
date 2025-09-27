@@ -1,5 +1,6 @@
 using CommonServiceLocator;
 using CommunityToolkit.Mvvm.DependencyInjection;
+using Emerald.CoreX.Helpers;
 using Emerald.Helpers;
 using Emerald.Helpers.Enums;
 using Microsoft.UI;

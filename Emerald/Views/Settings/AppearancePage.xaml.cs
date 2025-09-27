@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using CommonServiceLocator;
 using CommunityToolkit.Mvvm.DependencyInjection;
+using Emerald.CoreX.Helpers;
 using Emerald.Helpers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
