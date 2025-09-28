@@ -293,7 +293,6 @@ namespace Emerald.WinUI
         }
         private async System.Threading.Tasks.Task SetPrankModeAsync()
         {
-
             if (SS.Settings.App.PrankMode)
                 _listenPrank.StartListening();
             else

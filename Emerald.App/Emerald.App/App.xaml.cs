@@ -23,7 +23,6 @@ public partial class App : Application
         InitializeComponent();
         _singleInstanceApp = new SingleInstanceDesktopApp("Riverside.Emerald");
         _singleInstanceApp.Launched += OnSingleInstanceLaunched;
-
     }
 
     /// <summary>

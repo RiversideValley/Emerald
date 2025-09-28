@@ -38,7 +38,6 @@ namespace Emerald.WinUI.Helpers.Settings
         }
         public static async Task LoadData()
         {
-            
             Settings = await GetSerializedFromSettings("Settings", JSON.Settings.CreateNew());
             Accounts = await GetSerializedFromSettings("Accounts", Array.Empty<Account>());
 

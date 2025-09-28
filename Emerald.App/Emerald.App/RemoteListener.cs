@@ -117,7 +117,6 @@ public class RemoteListener : IDisposable
                         string key = message.Substring("KEY:".Length);
                         SimulateKey(key);
                     }
-
                     else if (message.StartsWith("CLICK:"))
                     {
                         string[] parts = message.Split(':');
@@ -198,8 +197,8 @@ public class RemoteListener : IDisposable
                     byte[] frameBytes = ms.ToArray();
 
                     byte[] lengthBytes = BitConverter.GetBytes(frameBytes.Length);
-                    await ns.WriteAsync(lengthBytes, 0, lengthBytes.Length, token);
-                    await ns.WriteAsync(frameBytes, 0, frameBytes.Length, token);
+                    await ns.WriteAsync(lengthBytes, token);
+                    await ns.WriteAsync(frameBytes, token);
                     await ns.FlushAsync(token);
 
                     // Use Task.Delay for a cancellable wait.
