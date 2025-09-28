@@ -14,7 +14,6 @@ using System.Runtime.Serialization;
 namespace Emerald.CoreX.Models;
 public partial class GameSettings : ObservableObject
 {
-    
     [JsonIgnore]
     public double MaxRAMinGB => Math.Round((MaximumRamMb / 1024.00), 2);
 
