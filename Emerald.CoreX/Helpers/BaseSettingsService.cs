@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Windows.System;
 
 namespace Emerald.Services;
 
@@ -37,7 +39,12 @@ public class BaseSettingsService : IBaseSettingsService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error saving key '{Key}' to settings", key);
+            _logger.LogError(ex, "Error saving key '{Key}' to settings.", key);
+            if(ex.Message != "FileError")
+            {
+                _logger.LogInformation("Saving it to a file anyway to avoid loss");
+                Set(key, value, storeInFile: true);
+            }
         }
     }
 
@@ -62,6 +69,11 @@ public class BaseSettingsService : IBaseSettingsService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deserializing key '{Key}' from settings", key);
+            if (ex.Message != "FileError")
+            {
+                _logger.LogInformation("Loading it from files anyway to avoid loss");
+                Get(key, defaultVal, loadFromFile: true);
+            }
         }
 
         // Save default value if deserialization fails or key is missing
@@ -84,7 +96,7 @@ public class BaseSettingsService : IBaseSettingsService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error writing key '{Key}' to file storage", key);
-            throw;
+            throw new Exception("FileError", ex);
         }
     }
 
@@ -93,8 +105,8 @@ public class BaseSettingsService : IBaseSettingsService
         try
         {
             string fileName = $"{key}.json";
-            StorageFile file = await ApplicationData.Current.LocalFolder.GetFileAsync(fileName);
 
+            StorageFile file = await ApplicationData.Current.LocalFolder.GetFileAsync(fileName);
             string json = await FileIO.ReadTextAsync(file);
             return JsonSerializer.Deserialize<T>(json) ?? defaultVal;
         }
@@ -106,7 +118,7 @@ public class BaseSettingsService : IBaseSettingsService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reading key '{Key}' from file storage", key);
-            return defaultVal;
+            throw new Exception("FileError", ex);
         }
     }
 }

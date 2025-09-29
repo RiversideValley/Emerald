@@ -1,4 +1,4 @@
-﻿<Project Sdk="Uno.Sdk">
+<Project Sdk="Uno.Sdk">
   <PropertyGroup>
     <TargetFrameworks>
       net9.0-desktop;
@@ -114,6 +114,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Views\GamesPage.xaml.cs">
+      <DependentUpon>GamesPage.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
     <Page Update="UserControls\NotificationListControl.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -121,6 +127,12 @@
 
   <ItemGroup>
     <Page Update="UserControls\MinecraftSettingsUC.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\GamesPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

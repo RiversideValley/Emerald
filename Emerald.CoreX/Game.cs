@@ -145,10 +145,12 @@ public class Game
     /// </summary>
     /// <param name="version">The version of the game to be launched.</param>
     /// <returns>A Task that represents the process used to launch the Minecraft instance.</returns>
-    public async Task<Process> BuildProcess(string version)
+    public async Task<Process> BuildProcess(string version, CmlLib.Core.Auth.MSession session)
     {
         _logger.LogInformation("Building process for version: {Version}", version);
+        var launchOpt = Options.ToMLaunchOption();
+        launchOpt.Session = session;
         return await Launcher.BuildProcessAsync(
-            version, Options.ToMLaunchOption());
+            version, launchOpt);
     }
 }

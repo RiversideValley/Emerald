@@ -22,9 +22,6 @@ public partial class App : Application
     {
         this.InitializeComponent();
 
-        System.Net.ServicePointManager.DefaultConnectionLimit = 256;
-        // Register exception handlers
-
         this.UnhandledException += App_UnhandledException;
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
@@ -59,9 +56,15 @@ public partial class App : Application
 
         //Core
         services.AddSingleton<CoreX.Core>();
+        //Accounts
+        services.AddSingleton<CoreX.Services.IAccountService, CoreX.Services.AccountService>();
+
 
         //Notifications
         services.AddTransient<ViewModels.NotificationListViewModel>();
+
+        //ViewModels
+        services.AddTransient<ViewModels.GamesPageViewModel>();
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)

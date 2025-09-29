@@ -57,5 +57,6 @@
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="RestSharp" />
     <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="XboxAuthNet.Game.Msal" />
   </ItemGroup>
 </Project>
