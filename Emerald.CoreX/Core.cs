@@ -150,7 +150,14 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             _notify.Complete(not.Id, false, ex.Message, ex);
             Initialized = false;
         }
-        _logger.LogInformation("Loaded {count} vanilla versions", VanillaVersions.Count);
+        finally
+        {
+            foreach (var game in Games)
+            {
+                game.CreateMCLauncher(IsOfflineMode);
+            }
+            _logger.LogInformation("Loaded {count} vanilla versions", VanillaVersions.Count);
+        }
     }
 
     /// <summary>

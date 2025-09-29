@@ -71,7 +71,7 @@ public static class Extensions
         return num.ToString("#,0");
     }
 
-    public static ContentDialog ToContentDialog(this UIElement content, string title, string closebtnText = null, ContentDialogButton defaultButton = ContentDialogButton.Close, bool addScrollBar = true)
+    public static ContentDialog ToContentDialog(this UIElement content, string title, string closebtnText = null, ContentDialogButton defaultButton = ContentDialogButton.Close, bool addScrollBar = true, string PrimaryButtonText = null)
     {
         ContentDialog dialog = new()
         {
@@ -79,6 +79,7 @@ public static class Extensions
             Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
             Title = title,
             CloseButtonText = closebtnText,
+            PrimaryButtonText = PrimaryButtonText,
             DefaultButton = defaultButton,
             Content = addScrollBar ? new ScrollViewer()
             { 

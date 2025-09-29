@@ -98,6 +98,14 @@ public sealed partial class MainPage : Page
             SolidFontIconGlyph = "\xE7BF",
             IsSelected = false
         });
+        NavView.MenuItems.Add(new SquareNavigationViewItem("Accounts".Localize())
+        {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/store.png",
+            Tag = "Accounts",
+            FontIconGlyph = "\xE7BF",
+            SolidFontIconGlyph = "\xE7BF",
+            IsSelected = false
+        });
         NavView.MenuItems.Add(new SquareNavigationViewItem("News".Localize())
         {
             Thumbnail = "ms-appx:///Assets/NavigationViewIcons/news.png",
@@ -177,6 +185,9 @@ public sealed partial class MainPage : Page
                 break;
             case "Home":
                 NavigateOnce(typeof(GamesPage));
+                break;
+            case "Accounts":
+                NavigateOnce(typeof(AccountsPage));
                 break;
             default:
                 NavigateOnce(typeof(SettingsPage));

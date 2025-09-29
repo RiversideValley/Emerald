@@ -40,16 +40,8 @@ public class Game
         _logger.LogInformation("Game instance created with path: {Path} and options: {Options}", path, options);
     }
 
-    /// <summary>
-    /// Installs the specified Minecraft version, including downloading necessary files
-    /// and handling both online and offline modes.
-    /// </summary>
-    /// <param name="isOffline">Indicates whether the installation is performed in offline mode, bypassing online resources.</param>
-    /// <param name="showFileProgress">Determines whether detailed file progress information is displayed during the installation process.</param>
-    /// <returns>A task that represents the asynchronous installation operation.</returns>
-    public async Task InstallVersion(bool isOffline = false, bool showFileProgress = false)
+    public void CreateMCLauncher(bool isOffline)
     {
-        _logger.LogInformation("Starting InstallVersion with isOffline: {IsOffline}, showFileProgress: {ShowFileProgress}", isOffline, showFileProgress);
         var param = MinecraftLauncherParameters.CreateDefault(Path);
 
         if (isOffline)
@@ -60,7 +52,20 @@ public class Game
 
         Launcher = new MinecraftLauncher(param);
 
-        var not = _notify.Create(
+    }
+    /// <summary>
+    /// Installs the specified Minecraft version, including downloading necessary files
+    /// and handling both online and offline modes.
+    /// </summary>
+    /// <param name="isOffline">Indicates whether the installation is performed in offline mode, bypassing online resources.</param>
+    /// <param name="showFileProgress">Determines whether detailed file progress information is displayed during the installation process.</param>
+    /// <returns>A task that represents the asynchronous installation operation.</returns>
+    public async Task InstallVersion(bool isOffline = false, bool showFileProgress = false)
+    {
+        _logger.LogInformation("Starting InstallVersion with isOffline: {IsOffline}, showFileProgress: {ShowFileProgress}", isOffline, showFileProgress);
+        CreateMCLauncher(isOffline);
+
+          var not = _notify.Create(
             "Initializing Version",
             $"Initializing {Version.Type} version {Version.DisplayName}",
             0,
