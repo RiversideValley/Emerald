@@ -137,4 +137,10 @@
     </Page>
   </ItemGroup>
 
+  <ItemGroup>
+    <Page Update="UserControls\AddGameWizardControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
 </Project>

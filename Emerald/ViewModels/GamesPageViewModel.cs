@@ -46,9 +46,7 @@ public partial class GamesPageViewModel : ObservableObject
 
     // For Add Game Dialog Wizard
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsStepOneNextEnabled))]
-    [NotifyPropertyChangedFor(nameof(IsStepTwoNextEnabled))]
-    [NotifyPropertyChangedFor(nameof(IsStepThreeCreateEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsPrimaryButtonEnabled))]
     private int _addGameWizardStep = 0;
 
     [ObservableProperty]
@@ -70,24 +68,34 @@ public partial class GamesPageViewModel : ObservableObject
     private ObservableCollection<LoaderInfo> _availableModLoaders;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsStepOneNextEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsPrimaryButtonEnabled))]
     private CoreX.Versions.Version? _selectedVersion;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsStepTwoNextEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsPrimaryButtonEnabled))]
     private LoaderInfo? _selectedModLoader;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsStepTwoNextEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsPrimaryButtonEnabled))]
     private CoreX.Versions.Type _selectedModLoaderType = CoreX.Versions.Type.Vanilla;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsStepThreeCreateEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsPrimaryButtonEnabled))]
     private string _newGameName = string.Empty;
 
-    public bool IsStepOneNextEnabled => SelectedVersion != null;
-    public bool IsStepTwoNextEnabled => SelectedModLoaderType == CoreX.Versions.Type.Vanilla || SelectedModLoader != null;
-    public bool IsStepThreeCreateEnabled => !string.IsNullOrWhiteSpace(NewGameName);
+    // This single property now controls the primary button's state across all steps
+    public bool IsPrimaryButtonEnabled
+    {
+        get
+        {
+            return AddGameWizardStep switch
+            {
+                0 => SelectedVersion != null,
+                1 => !string.IsNullOrWhiteSpace(NewGameName) && (SelectedModLoaderType == CoreX.Versions.Type.Vanilla || SelectedModLoader != null),
+                _ => false,
+            };
+        }
+    }
 
     public GamesPageViewModel(Core core, ILogger<GamesPageViewModel> logger, INotificationService notificationService, IAccountService accountService, ModLoaderRouter modLoaderRouter, SettingsService settingsService)
     {
@@ -104,6 +112,27 @@ public partial class GamesPageViewModel : ObservableObject
         AvailableModLoaders = new ObservableCollection<LoaderInfo>();
 
         Games.CollectionChanged += (s, e) => UpdateFilteredGames();
+    }
+
+    // New, simplified navigation commands
+    [RelayCommand]
+    private void GoToNextStep() => AddGameWizardStep++;
+
+    [RelayCommand]
+    private void GoToPreviousStep() => AddGameWizardStep--;
+
+    [RelayCommand]
+    private void StartAddGame()
+    {
+        // Reset all wizard properties to their default state
+        AddGameWizardStep = 0;
+        NewGameName = string.Empty;
+        SelectedVersion = null;
+        SelectedModLoader = null;
+        SelectedModLoaderType = CoreX.Versions.Type.Vanilla;
+        VersionSearchQuery = string.Empty;
+        SelectedReleaseTypeFilter = "All";
+        AvailableModLoaders.Clear();
     }
 
     partial void OnSearchQueryChanged(string value) => UpdateFilteredGames();
@@ -214,48 +243,6 @@ public partial class GamesPageViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private void StartAddGame()
-    {
-        // Reset all wizard properties to their default state
-        AddGameWizardStep = 0;
-        NewGameName = string.Empty;
-        SelectedVersion = null;
-        SelectedModLoader = null;
-        SelectedModLoaderType = CoreX.Versions.Type.Vanilla;
-        VersionSearchQuery = string.Empty;
-        SelectedReleaseTypeFilter = "All";
-        AvailableModLoaders.Clear();
-    }
-
-    [RelayCommand]
-    private void GoToNextStep()
-    {
-        if (AddGameWizardStep == 1 && SelectedModLoaderType == CoreX.Versions.Type.Vanilla)
-        {
-            // Skip mod loader version selection if Vanilla is chosen
-            AddGameWizardStep = 2;
-        }
-        else
-        {
-            AddGameWizardStep++;
-        }
-    }
-
-    [RelayCommand]
-    private void GoToPreviousStep()
-    {
-        if (AddGameWizardStep == 2 && SelectedModLoaderType == CoreX.Versions.Type.Vanilla)
-        {
-            // Go back to step 0 from step 2 if vanilla was chosen
-            AddGameWizardStep = 0;
-        }
-        else
-        {
-            AddGameWizardStep--;
-        }
-
-    }
 
     [RelayCommand]
     private async Task LoadModLoadersAsync()
