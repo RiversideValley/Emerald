@@ -1,16 +1,15 @@
 using System;
-using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX;
-using Emerald.CoreX.Helpers;
 using Emerald.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.Storage;
 using Windows.System;
+using Path = System.IO.Path;
+using System.IO;
 
 namespace Emerald.Views;
 
@@ -23,6 +22,16 @@ public sealed partial class GamesPage : Page
         ViewModel = Ioc.Default.GetService<GamesPageViewModel>();
         DataContext = ViewModel;
         this.InitializeComponent();
+        // Subscribe to step changes to update dialog buttons
+        ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+    }
+
+    private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ViewModel.AddGameWizardStep) || e.PropertyName == nameof(ViewModel.IsStepOneNextEnabled) || e.PropertyName == nameof(ViewModel.IsStepTwoNextEnabled) || e.PropertyName == nameof(ViewModel.IsStepThreeCreateEnabled))
+        {
+            UpdateAddGameDialogButtons();
+        }
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)
@@ -36,20 +45,59 @@ public sealed partial class GamesPage : Page
     private async void AddGame_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.StartAddGameCommand.Execute(null);
-        var result = await AddGameDialog.ShowAsync();
+        UpdateAddGameDialogButtons(); // Set initial button state
+        await AddGameDialog.ShowAsync();
+    }
 
-        if (result == ContentDialogResult.Primary)
+    private void UpdateAddGameDialogButtons()
+    {
+        switch (ViewModel.AddGameWizardStep)
         {
-            await ViewModel.CreateGameCommand.ExecuteAsync(null);
+            case 0: // Version Selection
+                AddGameDialog.Title = "Add New Game (Step 1 of 3)";
+                AddGameDialog.PrimaryButtonText = "Next";
+                AddGameDialog.SecondaryButtonText = "Cancel";
+                AddGameDialog.IsPrimaryButtonEnabled = ViewModel.IsStepOneNextEnabled;
+                break;
+            case 1: // Mod Loader Selection
+                AddGameDialog.Title = "Add New Game (Step 2 of 3)";
+                AddGameDialog.PrimaryButtonText = "Next";
+                AddGameDialog.SecondaryButtonText = "Back";
+                AddGameDialog.IsPrimaryButtonEnabled = ViewModel.IsStepTwoNextEnabled;
+                break;
+            case 2: // Final Details
+                AddGameDialog.Title = "Add New Game (Step 3 of 3)";
+                AddGameDialog.PrimaryButtonText = "Create";
+                AddGameDialog.SecondaryButtonText = "Back";
+                AddGameDialog.IsPrimaryButtonEnabled = ViewModel.IsStepThreeCreateEnabled;
+                break;
         }
     }
 
-    private async void VersionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void AddGameDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
-        if (ViewModel.SelectedModLoaderType != CoreX.Versions.Type.Vanilla)
+        // This is the "Next" or "Create" button
+        if (ViewModel.AddGameWizardStep < 2)
         {
-            await ViewModel.LoadModLoadersCommand.ExecuteAsync(null);
+            args.Cancel = true; // Prevent the dialog from closing
+            ViewModel.GoToNextStepCommand.Execute(null);
         }
+        else
+        {
+            // Last step, create the game and let the dialog close
+            ViewModel.CreateGameCommand.Execute(null);
+        }
+    }
+
+    private void AddGameDialog_SecondaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+    {
+        // This is the "Back" or "Cancel" button
+        if (ViewModel.AddGameWizardStep > 0)
+        {
+            args.Cancel = true; // Prevent the dialog from closing
+            ViewModel.GoToPreviousStepCommand.Execute(null);
+        }
+        // On step 0, do nothing (let the dialog close as "Cancel")
     }
 
     private async void ModLoaderType_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -66,10 +114,14 @@ public sealed partial class GamesPage : Page
 
                     bool showModLoaderOptions = type != CoreX.Versions.Type.Vanilla;
                     ModLoaderVersionComboBox.Visibility = showModLoaderOptions ? Visibility.Visible : Visibility.Collapsed;
-                    
+
                     if (showModLoaderOptions && ViewModel.SelectedVersion != null)
                     {
                         await ViewModel.LoadModLoadersCommand.ExecuteAsync(null);
+                    }
+                    else
+                    {
+                        ViewModel.AvailableModLoaders.Clear();
                     }
                 }
             }
@@ -80,6 +132,7 @@ public sealed partial class GamesPage : Page
         }
     }
 
+    // Unchanged methods below...
     private async void ManageSettings_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem item && item.Tag is Game game)
@@ -121,9 +174,9 @@ public sealed partial class GamesPage : Page
 
     private void InstallGame_Click(object sender, RoutedEventArgs e)
     {
-        if(sender is Button btn && btn.Tag is Game game)
+        if (sender is Button btn && btn.Tag is Game game)
         {
-           _= ViewModel.InstallGameCommand.ExecuteAsync(game);
+            _ = ViewModel.InstallGameCommand.ExecuteAsync(game);
         }
     }
 
@@ -131,7 +184,7 @@ public sealed partial class GamesPage : Page
     {
         if (sender is Button btn && btn.Tag is Game game)
         {
-            _= ViewModel.LaunchGameCommand.ExecuteAsync(game);
+            _ = ViewModel.LaunchGameCommand.ExecuteAsync(game);
         }
     }
 }

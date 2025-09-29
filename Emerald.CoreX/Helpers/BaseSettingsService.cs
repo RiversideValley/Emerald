@@ -1,10 +1,9 @@
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
-using System;
 using System.Text.Json;
+using System;
+using System.IO;
 using System.Threading.Tasks;
 using Windows.Storage;
-using Windows.System;
 
 namespace Emerald.Services;
 
@@ -13,7 +12,7 @@ public class BaseSettingsService : IBaseSettingsService
     private readonly ILogger<BaseSettingsService> _logger;
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
-        WriteIndented = true // Makes file easier to read/debug
+        WriteIndented = true
     };
 
     public event EventHandler<string>? APINoMatch;
@@ -39,11 +38,12 @@ public class BaseSettingsService : IBaseSettingsService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error saving key '{Key}' to settings.", key);
-            if(ex.Message != "FileError")
+            _logger.LogError(ex, "Error saving key '{Key}'", key);
+            // fallback: if in-memory save failed, try file once
+            if (!storeInFile)
             {
-                _logger.LogInformation("Saving it to a file anyway to avoid loss");
-                Set(key, value, storeInFile: true);
+                try { SaveToFileAsync(key, value).Wait(); }
+                catch (Exception fileEx) { _logger.LogError(fileEx, "Fallback file save failed for '{Key}'", key); }
             }
         }
     }
@@ -56,48 +56,37 @@ public class BaseSettingsService : IBaseSettingsService
             {
                 return LoadFromFileAsync(key, defaultVal).GetAwaiter().GetResult();
             }
-            else
+            else if (ApplicationData.Current.LocalSettings.Values.TryGetValue(key, out object? value)
+                     && value is string json
+                     && !string.IsNullOrWhiteSpace(json))
             {
-                if (ApplicationData.Current.LocalSettings.Values.TryGetValue(key, out object? value)
-                    && value is string json
-                    && !string.IsNullOrWhiteSpace(json))
-                {
-                    return JsonSerializer.Deserialize<T>(json) ?? defaultVal;
-                }
+                return JsonSerializer.Deserialize<T>(json) ?? defaultVal;
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deserializing key '{Key}' from settings", key);
-            if (ex.Message != "FileError")
+            _logger.LogError(ex, "Error loading key '{Key}'", key);
+            // fallback: if in-memory load failed, try file once
+            if (!loadFromFile)
             {
-                _logger.LogInformation("Loading it from files anyway to avoid loss");
-                Get(key, defaultVal, loadFromFile: true);
+                try { return LoadFromFileAsync(key, defaultVal).GetAwaiter().GetResult(); }
+                catch (Exception fileEx) { _logger.LogError(fileEx, "Fallback file load failed for '{Key}'", key); }
             }
         }
 
-        // Save default value if deserialization fails or key is missing
+        // if all else fails, persist default so next time there's a valid value
         Set(key, defaultVal, storeInFile: loadFromFile);
-
         return defaultVal;
     }
 
     private async Task SaveToFileAsync<T>(string key, T value)
     {
-        try
-        {
-            string fileName = $"{key}.json";
-            StorageFile file = await ApplicationData.Current.LocalFolder.CreateFileAsync(
-                fileName, CreationCollisionOption.ReplaceExisting);
+        string fileName = $"{key}.json";
+        StorageFile file = await ApplicationData.Current.LocalFolder.CreateFileAsync(
+            fileName, CreationCollisionOption.ReplaceExisting);
 
-            string json = JsonSerializer.Serialize(value, _jsonOptions);
-            await FileIO.WriteTextAsync(file, json);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error writing key '{Key}' to file storage", key);
-            throw new Exception("FileError", ex);
-        }
+        string json = JsonSerializer.Serialize(value, _jsonOptions);
+        await FileIO.WriteTextAsync(file, json);
     }
 
     private async Task<T> LoadFromFileAsync<T>(string key, T defaultVal)
@@ -105,20 +94,13 @@ public class BaseSettingsService : IBaseSettingsService
         try
         {
             string fileName = $"{key}.json";
-
             StorageFile file = await ApplicationData.Current.LocalFolder.GetFileAsync(fileName);
             string json = await FileIO.ReadTextAsync(file);
             return JsonSerializer.Deserialize<T>(json) ?? defaultVal;
         }
         catch (FileNotFoundException)
         {
-            // Return default if file doesn't exist
             return defaultVal;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error reading key '{Key}' from file storage", key);
-            throw new Exception("FileError", ex);
         }
     }
 }

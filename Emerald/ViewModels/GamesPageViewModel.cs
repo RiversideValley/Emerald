@@ -44,40 +44,50 @@ public partial class GamesPageViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<Game> _filteredGames;
 
-
-
-    // For Add Game Dialog
-
+    // For Add Game Dialog Wizard
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsStepOneNextEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsStepTwoNextEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsStepThreeCreateEnabled))]
+    private int _addGameWizardStep = 0;
 
     [ObservableProperty]
     private ObservableCollection<CoreX.Versions.Version> _availableVersions;
 
     [ObservableProperty]
+    private ObservableCollection<CoreX.Versions.Version> _filteredAvailableVersions;
+
+    [ObservableProperty]
+    private string _versionSearchQuery = string.Empty;
+
+    [ObservableProperty]
+    private ObservableCollection<string> _releaseTypes = new();
+
+    [ObservableProperty]
+    private string _selectedReleaseTypeFilter = "All";
+
+    [ObservableProperty]
     private ObservableCollection<LoaderInfo> _availableModLoaders;
 
-
-    [NotifyPropertyChangedFor(nameof(IsCreateButtonEnabled))]
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsStepOneNextEnabled))]
     private CoreX.Versions.Version? _selectedVersion;
 
-    [NotifyPropertyChangedFor(nameof(IsCreateButtonEnabled))]
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsStepTwoNextEnabled))]
     private LoaderInfo? _selectedModLoader;
 
-    [NotifyPropertyChangedFor(nameof(IsCreateButtonEnabled))]
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsStepTwoNextEnabled))]
     private CoreX.Versions.Type _selectedModLoaderType = CoreX.Versions.Type.Vanilla;
 
-    [NotifyPropertyChangedFor(nameof(IsCreateButtonEnabled))]
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsStepThreeCreateEnabled))]
     private string _newGameName = string.Empty;
 
-
-
-    public bool IsCreateButtonEnabled =>
-        !string.IsNullOrWhiteSpace(NewGameName) &&
-        SelectedVersion != null &&
-        (SelectedModLoaderType == CoreX.Versions.Type.Vanilla || SelectedModLoader != null);
+    public bool IsStepOneNextEnabled => SelectedVersion != null;
+    public bool IsStepTwoNextEnabled => SelectedModLoaderType == CoreX.Versions.Type.Vanilla || SelectedModLoader != null;
+    public bool IsStepThreeCreateEnabled => !string.IsNullOrWhiteSpace(NewGameName);
 
     public GamesPageViewModel(Core core, ILogger<GamesPageViewModel> logger, INotificationService notificationService, IAccountService accountService, ModLoaderRouter modLoaderRouter, SettingsService settingsService)
     {
@@ -85,21 +95,20 @@ public partial class GamesPageViewModel : ObservableObject
         _logger = logger;
         _notificationService = notificationService;
         _accountService = accountService;
-        _modLoaderRouter =modLoaderRouter;
+        _modLoaderRouter = modLoaderRouter;
         _settingsService = settingsService;
         Games = _core.Games;
         FilteredGames = new ObservableCollection<Game>(Games);
         AvailableVersions = new ObservableCollection<CoreX.Versions.Version>();
+        FilteredAvailableVersions = new ObservableCollection<CoreX.Versions.Version>();
         AvailableModLoaders = new ObservableCollection<LoaderInfo>();
 
-        // Subscribe to collection changes
         Games.CollectionChanged += (s, e) => UpdateFilteredGames();
     }
 
-    partial void OnSearchQueryChanged(string value)
-    {
-        UpdateFilteredGames();
-    }
+    partial void OnSearchQueryChanged(string value) => UpdateFilteredGames();
+    partial void OnVersionSearchQueryChanged(string value) => UpdateFilteredAvailableVersions();
+    partial void OnSelectedReleaseTypeFilterChanged(string value) => UpdateFilteredAvailableVersions();
 
     private void UpdateFilteredGames()
     {
@@ -116,6 +125,27 @@ public partial class GamesPageViewModel : ObservableObject
         }
     }
 
+    private void UpdateFilteredAvailableVersions()
+    {
+        var filtered = AvailableVersions.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(VersionSearchQuery))
+        {
+            filtered = filtered.Where(v => v.BasedOn.Contains(VersionSearchQuery, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (SelectedReleaseTypeFilter != "All")
+        {
+            filtered = filtered.Where(v => v.ReleaseType.Equals(SelectedReleaseTypeFilter, StringComparison.OrdinalIgnoreCase));
+        }
+
+        FilteredAvailableVersions.Clear();
+        foreach (var version in filtered.OrderByDescending(v => v.Metadata?.ReleaseTime ?? DateTime.MinValue))
+        {
+            FilteredAvailableVersions.Add(version);
+        }
+    }
+
     [RelayCommand]
     private async Task InitializeAsync()
     {
@@ -127,7 +157,6 @@ public partial class GamesPageViewModel : ObservableObject
             if (!_core.Initialized)
             {
                 var path = _settingsService.Settings.Minecraft.Path;
-
                 var mcPath = path != null ? new MinecraftPath(path) : new();
                 await _core.InitializeAndRefresh(mcPath);
             }
@@ -138,6 +167,19 @@ public partial class GamesPageViewModel : ObservableObject
                 AvailableVersions.Add(version);
             }
 
+            // Populate release types for filtering
+            ReleaseTypes.Clear();
+            ReleaseTypes.Add("All");
+            var distinctTypes = AvailableVersions.Select(v => v.ReleaseType).Distinct().OrderBy(t => t);
+            foreach (var type in distinctTypes)
+            {
+                if (!string.IsNullOrWhiteSpace(type))
+                {
+                    ReleaseTypes.Add(type);
+                }
+            }
+
+            UpdateFilteredAvailableVersions();
             UpdateFilteredGames();
         }
         catch (Exception ex)
@@ -157,11 +199,8 @@ public partial class GamesPageViewModel : ObservableObject
         try
         {
             IsRefreshing = true;
-            _logger.LogInformation("Refreshing games list");
-
             await _core.InitializeAndRefresh();
             UpdateFilteredGames();
-
             _notificationService.Info("RefreshComplete", "Games list has been refreshed");
         }
         catch (Exception ex)
@@ -178,11 +217,44 @@ public partial class GamesPageViewModel : ObservableObject
     [RelayCommand]
     private void StartAddGame()
     {
+        // Reset all wizard properties to their default state
+        AddGameWizardStep = 0;
         NewGameName = string.Empty;
         SelectedVersion = null;
         SelectedModLoader = null;
         SelectedModLoaderType = CoreX.Versions.Type.Vanilla;
+        VersionSearchQuery = string.Empty;
+        SelectedReleaseTypeFilter = "All";
         AvailableModLoaders.Clear();
+    }
+
+    [RelayCommand]
+    private void GoToNextStep()
+    {
+        if (AddGameWizardStep == 1 && SelectedModLoaderType == CoreX.Versions.Type.Vanilla)
+        {
+            // Skip mod loader version selection if Vanilla is chosen
+            AddGameWizardStep = 2;
+        }
+        else
+        {
+            AddGameWizardStep++;
+        }
+    }
+
+    [RelayCommand]
+    private void GoToPreviousStep()
+    {
+        if (AddGameWizardStep == 2 && SelectedModLoaderType == CoreX.Versions.Type.Vanilla)
+        {
+            // Go back to step 0 from step 2 if vanilla was chosen
+            AddGameWizardStep = 0;
+        }
+        else
+        {
+            AddGameWizardStep--;
+        }
+
     }
 
     [RelayCommand]
@@ -197,31 +269,19 @@ public partial class GamesPageViewModel : ObservableObject
         try
         {
             IsLoading = true;
-            _logger.LogInformation("Loading mod loaders for {Version} - Type: {Type}",
-                SelectedVersion.BasedOn, SelectedModLoaderType);
+            _logger.LogInformation("Loading mod loaders for {Version} - Type: {Type}", SelectedVersion.BasedOn, SelectedModLoaderType);
 
             var installer = GetModLoaderInstaller(SelectedModLoaderType);
             if (installer != null)
             {
                 var loaders = await installer.GetVersionsAsync(SelectedVersion.BasedOn);
-
                 AvailableModLoaders.Clear();
-
-                // Add "Latest" option
-                AvailableModLoaders.Add(new LoaderInfo
-                {
-                    Tag = "Latest",
-                    Version = "Latest Available",
-                    Stable = true
-                     
-                });
-
+                AvailableModLoaders.Add(new LoaderInfo { Tag = "Latest", Version = "Latest Available", Stable = true });
                 foreach (var loader in loaders)
                 {
                     AvailableModLoaders.Add(loader);
                 }
-
-                    SelectedModLoader = null;
+                SelectedModLoader = null;
             }
         }
         catch (Exception ex)
@@ -276,11 +336,11 @@ public partial class GamesPageViewModel : ObservableObject
         }
     }
 
+    // Unchanged methods below...
     [RelayCommand]
     private async Task InstallGameAsync(Game? game)
     {
         if (game == null) return;
-
         try
         {
             _logger.LogInformation("Installing game: {Name}", game.Version.DisplayName);
@@ -297,21 +357,17 @@ public partial class GamesPageViewModel : ObservableObject
     private async Task LaunchGameAsync(Game? game)
     {
         if (game == null) return;
-
         try
         {
             _logger.LogInformation("Launching game: {Name}", game.Version.DisplayName);
-
             var account = _accountService.GetMostRecentlyUsedAccount();
             if (account == null)
             {
                 _notificationService.Warning("NoAccount", "Please sign in to an account first");
                 return;
             }
-
             var session = await _accountService.AuthenticateAccountAsync(account);
             var process = await game.BuildProcess(game.Version.BasedOn, session);
-
             process.Start();
             _notificationService.Info("GameLaunched", $"Launched {game.Version.DisplayName}");
         }
@@ -326,7 +382,6 @@ public partial class GamesPageViewModel : ObservableObject
     private void RemoveGame(Game? game)
     {
         if (game == null) return;
-
         try
         {
             _logger.LogInformation("Removing game: {Name}", game.Version.DisplayName);
@@ -343,12 +398,9 @@ public partial class GamesPageViewModel : ObservableObject
     private async Task RemoveGameWithFilesAsync(Game? game)
     {
         if (game == null) return;
-
         try
         {
             _logger.LogInformation("Removing game with files: {Name}", game.Version.DisplayName);
-
-            // Show confirmation dialog here if needed
             await Task.Run(() => _core.RemoveGame(game, deleteFolder: true));
         }
         catch (Exception ex)
@@ -361,7 +413,6 @@ public partial class GamesPageViewModel : ObservableObject
     private IModLoaderInstaller? GetModLoaderInstaller(CoreX.Versions.Type type)
     {
         var Installers = Ioc.Default.GetServices<IModLoaderInstaller>();
-
-        return Installers.First(x => x.Type == type);
+        return Installers.FirstOrDefault(x => x.Type == type);
     }
 }
