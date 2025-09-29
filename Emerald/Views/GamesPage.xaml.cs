@@ -162,7 +162,7 @@ public sealed partial class GamesPage : Page
     {
         if (sender is Button btn && btn.Tag is Game game)
         {
-            _ = ViewModel.InstallGameCommand.ExecuteAsync(game);
+            Task.Run(() => ViewModel.InstallGameCommand.ExecuteAsync(game));
         }
     }
 

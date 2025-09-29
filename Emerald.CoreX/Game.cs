@@ -95,6 +95,9 @@ public class Game
 
                 return;
             }
+
+            Version.RealVersion = ver;
+            
             if (isOffline) //checking if verison actually exists
             {
                 var vers = await Launcher.GetAllVersionsAsync();

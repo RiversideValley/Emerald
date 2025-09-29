@@ -185,6 +185,8 @@ public async Task InstallGame(Game game, bool showFileprog = false)
                 isOffline: IsOfflineMode,
                 showFileProgress: showFileprog
             );
+            
+            SaveGames();
 
         }
         catch (Exception ex)

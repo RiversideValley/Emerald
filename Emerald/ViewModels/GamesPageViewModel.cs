@@ -353,7 +353,7 @@ public partial class GamesPageViewModel : ObservableObject
                 return;
             }
             var session = await _accountService.AuthenticateAccountAsync(account);
-            var process = await game.BuildProcess(game.Version.BasedOn, session);
+            var process = await game.BuildProcess(game.Version.RealVersion, session);
             process.Start();
             _notificationService.Info("GameLaunched", $"Launched {game.Version.DisplayName}");
         }

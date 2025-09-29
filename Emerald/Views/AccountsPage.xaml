@@ -12,6 +12,7 @@
 
   <Page.Resources>
     <conv:BoolToVisibility x:Key="BoolToVis"/>
+    <conv:BoolToVisibility x:Key="InverseBoolToVis" Reversed="True"/>
     <conv:CountToVisibilityConverter x:Key="CountToVis"/>
 
     <DataTemplate x:Key="AccountItemTemplate" x:DataType="models:EAccount">
@@ -95,7 +96,7 @@
           </ItemsRepeater.Layout>
         </ItemsRepeater>
 
-        <StackPanel 
+        <StackPanel
                     HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,64,0,0" Spacing="12"
                     Visibility="{x:Bind ViewModel.Accounts.Count, Mode=OneWay, Converter={StaticResource CountToVis}, ConverterParameter=0}">
           <FontIcon Glyph="&#xE77B;" FontSize="48" Opacity="0.5"/>

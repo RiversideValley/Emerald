@@ -26,6 +26,7 @@ public class Version
 
     public string? ModVersion { get; set; }
 
+    public string? RealVersion { get; set; }
     public DateTime ReleaseTime { get;set; }
 
     public string DisplayName { get; set; } //This Should be unique among all versions
