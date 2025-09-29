@@ -169,7 +169,7 @@ public partial class GamesPageViewModel : ObservableObject
         }
 
         FilteredAvailableVersions.Clear();
-        foreach (var version in filtered.OrderByDescending(v => v.Metadata?.ReleaseTime ?? DateTime.MinValue))
+        foreach (var version in filtered.OrderByDescending(v => v?.ReleaseTime ?? DateTime.MinValue))
         {
             FilteredAvailableVersions.Add(version);
         }
@@ -304,7 +304,6 @@ public partial class GamesPageViewModel : ObservableObject
                 BasedOn = SelectedVersion.BasedOn,
                 Type = SelectedModLoaderType,
                 ReleaseType = SelectedVersion.ReleaseType,
-                Metadata = SelectedVersion.Metadata,
                 ModVersion = modVer
             };
 

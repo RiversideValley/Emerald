@@ -15,11 +15,16 @@ public class BaseSettingsService : IBaseSettingsService
         WriteIndented = true
     };
 
+    private readonly string _settingsFolder;
+
     public event EventHandler<string>? APINoMatch;
 
     public BaseSettingsService(ILogger<BaseSettingsService> logger)
     {
         _logger = logger;
+
+        // Use the LocalFolder path as the base folder for file-based settings
+        _settingsFolder = ApplicationData.Current.LocalFolder.Path;
     }
 
     public void Set<T>(string key, T value, bool storeInFile = false)
@@ -28,7 +33,7 @@ public class BaseSettingsService : IBaseSettingsService
         {
             if (storeInFile)
             {
-                SaveToFileAsync(key, value).Wait();
+                SaveToFile(key, value);
             }
             else
             {
@@ -39,10 +44,11 @@ public class BaseSettingsService : IBaseSettingsService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error saving key '{Key}'", key);
+
             // fallback: if in-memory save failed, try file once
             if (!storeInFile)
             {
-                try { SaveToFileAsync(key, value).Wait(); }
+                try { SaveToFile(key, value); }
                 catch (Exception fileEx) { _logger.LogError(fileEx, "Fallback file save failed for '{Key}'", key); }
             }
         }
@@ -54,7 +60,7 @@ public class BaseSettingsService : IBaseSettingsService
         {
             if (loadFromFile)
             {
-                return LoadFromFileAsync(key, defaultVal).GetAwaiter().GetResult();
+                return LoadFromFile(key, defaultVal);
             }
             else if (ApplicationData.Current.LocalSettings.Values.TryGetValue(key, out object? value)
                      && value is string json
@@ -66,10 +72,11 @@ public class BaseSettingsService : IBaseSettingsService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading key '{Key}'", key);
+
             // fallback: if in-memory load failed, try file once
             if (!loadFromFile)
             {
-                try { return LoadFromFileAsync(key, defaultVal).GetAwaiter().GetResult(); }
+                try { return LoadFromFile(key, defaultVal); }
                 catch (Exception fileEx) { _logger.LogError(fileEx, "Fallback file load failed for '{Key}'", key); }
             }
         }
@@ -79,27 +86,28 @@ public class BaseSettingsService : IBaseSettingsService
         return defaultVal;
     }
 
-    private async Task SaveToFileAsync<T>(string key, T value)
+    private void SaveToFile<T>(string key, T value)
     {
-        string fileName = $"{key}.json";
-        StorageFile file = await ApplicationData.Current.LocalFolder.CreateFileAsync(
-            fileName, CreationCollisionOption.ReplaceExisting);
-
+        string filePath = Path.Combine(_settingsFolder, $"{key}.json");
         string json = JsonSerializer.Serialize(value, _jsonOptions);
-        await FileIO.WriteTextAsync(file, json);
+        File.WriteAllText(filePath, json);
     }
 
-    private async Task<T> LoadFromFileAsync<T>(string key, T defaultVal)
+    private T LoadFromFile<T>(string key, T defaultVal)
     {
+        string filePath = Path.Combine(_settingsFolder, $"{key}.json");
+
+        if (!File.Exists(filePath))
+            return defaultVal;
+
         try
         {
-            string fileName = $"{key}.json";
-            StorageFile file = await ApplicationData.Current.LocalFolder.GetFileAsync(fileName);
-            string json = await FileIO.ReadTextAsync(file);
+            string json = File.ReadAllText(filePath);
             return JsonSerializer.Deserialize<T>(json) ?? defaultVal;
         }
-        catch (FileNotFoundException)
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Error reading key '{Key}' from file storage", key);
             return defaultVal;
         }
     }

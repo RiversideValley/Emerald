@@ -136,7 +136,7 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             var l = await Launcher.GetAllVersionsAsync(not.CancellationToken.Value);
 
             VanillaVersions.Clear();
-            VanillaVersions.AddRange(l.Select(x => new Versions.Version() { Metadata = x, BasedOn = x.Name, ReleaseType = x.Type }));
+            VanillaVersions.AddRange(l.Select(x => new Versions.Version() { ReleaseTime = x.ReleaseTime.DateTime, BasedOn = x.Name, ReleaseType = x.Type }));
             IsOfflineMode = false;
         }
         catch (HttpRequestException)

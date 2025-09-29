@@ -173,4 +173,23 @@ public sealed partial class GamesPage : Page
             _ = ViewModel.LaunchGameCommand.ExecuteAsync(game);
         }
     }
+
+    private void RemoveGame_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem item && item.Tag is Game game)
+        {
+             ViewModel.RemoveGameCommand.Execute(game);
+        }
+
+        }
+
+    private void RemoveGameWFiles_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem item && item.Tag is Game game)
+        {
+            _ = ViewModel.RemoveGameWithFilesCommand.ExecuteAsync(game);
+        }
+
+
+    }
 }

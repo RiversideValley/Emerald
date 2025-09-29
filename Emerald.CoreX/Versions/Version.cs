@@ -26,9 +26,9 @@ public class Version
 
     public string? ModVersion { get; set; }
 
-    public CmlLib.Core.VersionMetadata.IVersionMetadata? Metadata { get; set; }
+    public DateTime ReleaseTime { get;set; }
 
-    public string DisplayName; //This Should be unique among all versions
+    public string DisplayName { get; set; } //This Should be unique among all versions
 
     public override bool Equals(object? obj)
     {
@@ -39,12 +39,11 @@ public class Version
                BasedOn == other.BasedOn &&
                ReleaseType == other.ReleaseType &&
                ModVersion == other.ModVersion &&
-               Equals(Metadata, other.Metadata) &&
                DisplayName == other.DisplayName;
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Type, BasedOn, ReleaseType, ModVersion, Metadata, DisplayName);
+        return HashCode.Combine(Type, BasedOn, ReleaseType, ModVersion, DisplayName);
     }
 }
