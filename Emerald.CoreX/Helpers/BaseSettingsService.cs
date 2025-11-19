@@ -24,7 +24,7 @@ public class BaseSettingsService : IBaseSettingsService
         _logger = logger;
 
         // Use the LocalFolder path as the base folder for file-based settings
-        _settingsFolder = ApplicationData.Current.LocalFolder.Path;
+        _settingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Emerald");
     }
 
     public void Set<T>(string key, T value, bool storeInFile = false)

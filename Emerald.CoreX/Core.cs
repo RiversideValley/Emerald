@@ -20,6 +20,8 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
     public const string GamesFolderName = "EmeraldGames";
     public MinecraftLauncher Launcher { get; set; }
 
+    public event EventHandler? VersionsRefreshed;
+
     public bool IsRunning { get; set; } = false;
     public MinecraftPath? BasePath { get; private set; } = null;
     public bool IsOfflineMode { get; private set; } = false;
@@ -30,6 +32,9 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
 
     [ObservableProperty]
     private bool _initialized = false;
+
+    [ObservableProperty]
+    private bool _isRefreshing = false;
 
     public Models.GameSettings GameOptions = new();
 
@@ -114,6 +119,7 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             isIndeterminate: true, 
             isCancellable: true
         );
+        IsRefreshing = true;
         try
         {
             GameOptions = settingsService.Get("BaseGameOptions", Models.GameSettings.FromMLaunchOption(new()));
@@ -157,6 +163,8 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
                 game.CreateMCLauncher(IsOfflineMode);
             }
             _logger.LogInformation("Loaded {count} vanilla versions", VanillaVersions.Count);
+            IsRefreshing = false;
+            VersionsRefreshed?.Invoke(this, new());
         }
     }
 

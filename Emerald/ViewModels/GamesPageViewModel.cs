@@ -35,8 +35,7 @@ public partial class GamesPageViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLoading;
 
-    [ObservableProperty]
-    private bool _isRefreshing;
+    private bool IsRefreshing => _core.IsRefreshing;
 
     [ObservableProperty]
     private string _searchQuery = string.Empty;
@@ -111,10 +110,11 @@ public partial class GamesPageViewModel : ObservableObject
         FilteredAvailableVersions = new ObservableCollection<CoreX.Versions.Version>();
         AvailableModLoaders = new ObservableCollection<LoaderInfo>();
 
-        Games.CollectionChanged += (s, e) => UpdateFilteredGames();
+        _core.PropertyChanged += (_, _) => this.OnPropertyChanged();
+        _core.VersionsRefreshed += (_, _) => UpdateAvailableVersions();
+        Games.CollectionChanged += (_, _) => UpdateFilteredGames();
     }
 
-    // New, simplified navigation commands
     [RelayCommand]
     private void GoToNextStep() => AddGameWizardStep++;
 
@@ -124,7 +124,6 @@ public partial class GamesPageViewModel : ObservableObject
     [RelayCommand]
     private void StartAddGame()
     {
-        // Reset all wizard properties to their default state
         AddGameWizardStep = 0;
         NewGameName = string.Empty;
         SelectedVersion = null;
@@ -175,6 +174,29 @@ public partial class GamesPageViewModel : ObservableObject
         }
     }
 
+    private void UpdateAvailableVersions()
+    {
+        AvailableVersions.Clear();
+        foreach (var version in _core.VanillaVersions)
+        {
+            AvailableVersions.Add(version);
+        }
+
+        // Populate release types for filtering
+        ReleaseTypes.Clear();
+        ReleaseTypes.Add("All");
+        var distinctTypes = AvailableVersions.Select(v => v.ReleaseType).Distinct().OrderBy(t => t);
+        foreach (var type in distinctTypes)
+        {
+            if (!string.IsNullOrWhiteSpace(type))
+            {
+                ReleaseTypes.Add(type);
+            }
+        }
+
+        UpdateFilteredAvailableVersions();
+    }
+
     [RelayCommand]
     private async Task InitializeAsync()
     {
@@ -183,32 +205,13 @@ public partial class GamesPageViewModel : ObservableObject
             IsLoading = true;
             _logger.LogInformation("Initializing GamesPage");
 
-            if (!_core.Initialized)
+            if (!_core.Initialized && !_core.IsRefreshing)
             {
                 var path = _settingsService.Settings.Minecraft.Path;
                 var mcPath = path != null ? new MinecraftPath(path) : new();
                 await _core.InitializeAndRefresh(mcPath);
             }
 
-            AvailableVersions.Clear();
-            foreach (var version in _core.VanillaVersions)
-            {
-                AvailableVersions.Add(version);
-            }
-
-            // Populate release types for filtering
-            ReleaseTypes.Clear();
-            ReleaseTypes.Add("All");
-            var distinctTypes = AvailableVersions.Select(v => v.ReleaseType).Distinct().OrderBy(t => t);
-            foreach (var type in distinctTypes)
-            {
-                if (!string.IsNullOrWhiteSpace(type))
-                {
-                    ReleaseTypes.Add(type);
-                }
-            }
-
-            UpdateFilteredAvailableVersions();
             UpdateFilteredGames();
         }
         catch (Exception ex)
@@ -227,19 +230,11 @@ public partial class GamesPageViewModel : ObservableObject
     {
         try
         {
-            IsRefreshing = true;
             await _core.InitializeAndRefresh();
-            UpdateFilteredGames();
-            _notificationService.Info("RefreshComplete", "Games list has been refreshed");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to refresh games");
-            _notificationService.Error("RefreshError", "Failed to refresh games", ex: ex);
-        }
-        finally
-        {
-            IsRefreshing = false;
         }
     }
 
