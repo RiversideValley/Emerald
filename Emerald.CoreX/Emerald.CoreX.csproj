@@ -4,7 +4,7 @@
     <TargetFrameworks>
       net9.0-desktop;
     </TargetFrameworks>
-    <TargetFrameworks Condition=" $([MSBuild]::IsOSPlatform('windows')) ">$(TargetFrameworks);net9.0-windows10.0.22621</TargetFrameworks>
+    <TargetFrameworks Condition=" $([MSBuild]::IsOSPlatform('windows')) ">$(TargetFrameworks);net9.0-windows10.0.26100</TargetFrameworks>
 
     <UnoSingleProject>true</UnoSingleProject>
     <OutputType>Library</OutputType>
