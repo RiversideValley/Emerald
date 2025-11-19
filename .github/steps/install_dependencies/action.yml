@@ -1,74 +1,48 @@
 # .github/steps/install_dependencies/action.yml
 name: Install Dependencies
-description: "Installs .NET SDK, OS-specific SDKs/dependencies, and workloads"
+description: "Installs .NET SDK and OS-specific dependencies"
 
 inputs:
   job-platform:
-    description: 'The target platform for the current job (windows, macos, linux)'
+    description: 'The target platform (windows, macos, linux)'
     required: true
   dotnet-version:
     description: 'Installs and sets the .NET SDK Version'
     required: false
     default: '9.0.x' 
   windows-sdk-version:
-    description: 'The version of the Windows SDK to install (Windows only)'
+    description: 'Windows SDK version (Windows only)'
     required: false
     default: '26100' 
 
 runs:
   using: "composite"
   steps:
-    # Step 1: Install .NET SDK
+    # 1. Install .NET 9 SDK
     - name: Setup .NET ${{ inputs.dotnet-version }}
       uses: actions/setup-dotnet@v4 
       with:
         dotnet-version: '${{ inputs.dotnet-version }}'
 
-    # Step 2: Install Windows SDK (Windows Runner Only)
+    # 2. Install Windows SDK (Windows Only)
     - name: Install Windows SDK ${{ inputs.windows-sdk-version }}
       shell: pwsh
       if: runner.os == 'Windows' && inputs.job-platform == 'windows'
       run: |
-        Write-Host "Attempting to install Windows SDK version: ${{ inputs.windows-sdk-version }}"
+        Write-Host "Installing Windows SDK version: ${{ inputs.windows-sdk-version }}"
         $sdkIsoScript = Join-Path $env:GITHUB_WORKSPACE ".github\Install-WindowsSdkISO.ps1"
         if (Test-Path $sdkIsoScript) {
           & $sdkIsoScript ${{ inputs.windows-sdk-version }} 
         } else {
-          Write-Warning "Windows SDK ISO installation script not found. Skipping."
+          Write-Warning "Script not found at $sdkIsoScript. Skipping."
         }
 
-    # Step 3: Install GTK Dependencies (Linux Runner Only)
-    # Required for the net9.0-desktop (Skia.Gtk) head on Linux
+    # 3. Install GTK Dependencies (Linux Only - Required for Skia.Gtk)
     - name: Install GTK Dependencies
       shell: bash
       if: runner.os == 'Linux' && inputs.job-platform == 'linux'
       run: |
-        echo "Installing GTK dependencies for Skia.Gtk/Desktop..."
+        echo "Installing GTK dependencies..."
         sudo apt-get update
-        sudo apt-get install -y snapd
-        sudo snap install core24
-        sudo snap install multipass
-        sudo snap install lxd
-        sudo snap install snapcraft --classic
-        lxd init --minimal
-        sudo usermod --append --groups lxd $USER 
-
-    # Step 4: Install .NET Workloads
-    # We use native 'dotnet workload' instead of uno-check for stability in CI.
-    - name: Install .NET Workloads
-      shell: pwsh
-      run: |
-        Write-Host "Checking necessary workloads for platform: ${{ inputs.job-platform }}..."
-        
-        if ('${{ inputs.job-platform }}' -eq 'windows') {
-           Write-Host "Installing 'windows' workload for WinUI/Project Reunion..."
-           dotnet workload install windows
-        }
-        elseif ('${{ inputs.job-platform }}' -eq 'macos') {
-           # Since you are targeting net9.0-desktop (Skia), you do NOT need maccatalyst/ios workloads.
-           # The base .NET SDK handles Console/Skia apps natively.
-           Write-Host "Targeting net9.0-desktop (Skia) on macOS. No additional workloads required."
-        }
-        elseif ('${{ inputs.job-platform }}' -eq 'linux') {
-           Write-Host "Targeting net9.0-desktop (Skia) on Linux. No additional workloads required."
-        }
+        sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev
+        # Removed Snap dependencies as we are just building a binary for now

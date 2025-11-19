@@ -1,159 +1,115 @@
 # .github/workflows/CI.yml
 name: CI Build & Artifacts
 
-# Workflow triggers
 on:
   push:
-    branches:
-      - main
-      - release/**
+    branches: [ main, release/** ]
   pull_request:
     types: [opened, synchronize, reopened]
-    branches:
-      - main
-      - release/**
+    branches: [ main, release/** ]
 
-# Concurrency control to cancel older runs on the same branch/PR
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
-    # Job name includes the OS from the matrix
     name: Build (${{ matrix.os }})
-    # Runner OS defined by the matrix
     runs-on: ${{ matrix.os }}
-    # Allow macOS and Linux builds to fail without failing the entire workflow run
     continue-on-error: ${{ matrix.os != 'windows-latest' }}
 
     strategy:
-      # Don't cancel other matrix jobs if one fails
       fail-fast: false 
       matrix:
-        # Define the operating systems to run on
-        os: [windows-latest, macos-latest, ubuntu-latest]
-        # Include specific configurations for each OS
         include:
-          # == WINDOWS CONFIGURATION ==
+          # == WINDOWS (WinUI 3 Unpackaged) ==
           - os: windows-latest
             platform: windows
-            # UPDATED: Use the correct .NET 9 Windows target framework from your project
             target_framework: 'net9.0-windows10.0.26100' 
-            # UPDATED: Adjust publish path for the new framework
-            # IMPORTANT: Verify this path matches your actual build output structure and Runtime Identifier (RID)
-            publish_path: './bin/Release/net9.0-windows10.0.26100/win-x64/publish/' 
-            artifact_name: 'Emerald-Windows'
-            
-            artifact_Path: './Emerald/bin/Release/net9.0-windows10.0.26100/win-x64/publish/'
-            # IMPORTANT: Define the path to your Windows/Shared project file
-            project_path: './Emerald/Emerald.csproj' 
+            project_path: './Emerald/Emerald.csproj'
+            # We will zip this folder later
+            publish_output: 'Emerald_Windows'
+            artifact_name: 'Emerald-Windows-Release'
 
-          # == MACOS CONFIGURATION ==
+          # == MACOS (Skia Desktop) ==
           - os: macos-latest
             platform: macos
-            # UPDATED: Use the correct .NET 9 macOS target framework from your project
             target_framework: 'net9.0-desktop' 
-            # UPDATED: Adjust publish path for the new framework
-            # IMPORTANT: Verify this path matches your actual build output structure and RID
-            publish_path: './Emerald/bin/Release/net9.0-maccatalyst/maccatalyst-x64/publish/'
-            
-            artifact_Path: './Emerald/bin/Release/net9.0-maccatalyst/maccatalyst-x64/publish/'
-            
-            artifact_name: 'Emerald-macOS'
-            # IMPORTANT: Define the path to your macOS/Shared project file
-            project_path: './Emerald/Emerald.csproj' 
+            project_path: './Emerald/Emerald.csproj'
+            publish_output: 'Emerald_macOS'
+            artifact_name: 'Emerald-macOS-Release'
 
-          # == LINUX CONFIGURATION ==
+          # == LINUX (Skia Gtk) ==
           - os: ubuntu-latest
             platform: linux
-            # UPDATED: Use the correct .NET 9 Linux target framework from your project
             target_framework: 'net9.0-desktop' 
-            # UPDATED: Point to the main project since 'net9.0-desktop' is likely defined there
-            project_path: './Emerald/Emerald.csproj' 
-            # UPDATED: Adjust publish path for the new framework and project
-            # IMPORTANT: Verify this path matches your actual build output structure.
-            publish_path: './Emerald/bin/Release/net9.0-desktop/publish/' 
-            
-            artifact_Path: './Emerald/bin/Release/net9.0-desktop/' 
-            
-            artifact_name: 'Emerald-Linux'
+            project_path: './Emerald/Emerald.csproj'
+            publish_output: 'Emerald_Linux'
+            artifact_name: 'Emerald-Linux-Release'
 
-    # Steps to execute for each job in the matrix
     steps:
-      # Step 1: Check out the repository code
       - name: Checkout code
         uses: actions/checkout@v4 
         with:
           fetch-depth: 0 
 
-      # Step 2: Install dependencies using the composite action
-      - name: Install Dependencies for ${{ matrix.platform }}
-        timeout-minutes: 15 
+      - name: Install Dependencies
         uses: ./.github/steps/install_dependencies 
         with:
           job-platform: ${{ matrix.platform }}
-          # Ensure correct .NET 9 SDK is used (default in action.yml)
-          # Ensure correct Windows SDK is used (default in action.yml)
 
-      # Step 2.5: Setup MSBuild (Windows Only) - ADDED BACK
-      - name: Setup MSBuild
+      - name: Setup MSBuild (Windows Only)
         uses: microsoft/setup-msbuild@v1.3.1
-        if: matrix.os == 'windows-latest' # Only run this step on Windows runners
+        if: matrix.os == 'windows-latest'
 
-      # Step 3: Build and publish the application
-      - name: Build and Publish Emerald (${{ matrix.platform }})
-        timeout-minutes: 20 
+      # == BUILD STEP ==
+      - name: Build and Publish (${{ matrix.platform }})
         shell: pwsh 
         run: |
-          Write-Host "Publishing project: ${{ matrix.project_path }} for framework: ${{ matrix.target_framework }}"
-          
-          # UPDATED: Use msbuild /t:publish for Windows based on Uno documentation for unpackaged apps
+          $project = "${{ matrix.project_path }}"
+          $output = Join-Path $env:GITHUB_WORKSPACE "${{ matrix.publish_output }}"
+          Write-Host "Building $project to $output..."
+
           if ('${{ matrix.platform }}' -eq 'windows') {
-            # Navigate to project directory - Made mandatory as requested
-            cd (Split-Path -Path "${{ matrix.project_path }}" -Parent) # Navigate to the directory containing the csproj
-            
-            Write-Host "Using msbuild /t:publish for Windows (x64)..."
-            
-            # Use msbuild with specified parameters. MSBuild should now be in the PATH thanks to the setup-msbuild step.
-            # /r: Restore dependencies
-            # /t:publish: Execute the publish target
-            # /p:TargetFramework: Set the target framework from the matrix
-            # /p:Configuration: Set the build configuration
-            # /p:Platform: Set the target platform (x64 for standard windows-latest runner)
-            # /p:PublishDir: Set the output directory using the path from the matrix
-            # Pass only the project file name since we changed directory
-            
-            msbuild /r /t:publish `
+            # Windows WinUI 3 (Unpackaged & Self-Contained)
+            msbuild $project /r /t:publish `
               /p:TargetFramework=${{ matrix.target_framework }} `
               /p:Configuration=Release `
               /p:Platform=x64 `
-              /p:PublishDir=${{ matrix.publish_path }} `
-              (Split-Path -Path "${{ matrix.project_path }}" -Leaf) # Pass only the project file name
-              
-            # Note: Building for x86/arm64 would require additional msbuild calls with different /p:Platform values
-            # and potentially different PublishDir paths, or separate matrix jobs.
-          } 
-          # Use dotnet publish for macOS and Linux
-          else {
-          
-            Write-Host "Using dotnet publish for ${{ matrix.platform }}..."
-              if ('${{ matrix.platform }}' -eq 'linux') {
-                dotnet publish "${{ matrix.project_path }}" -c Release -f "${{ matrix.target_framework }}" -p:SelfContained=true -p:PackageFormat=snap -p:UnoSnapcraftAdditionalParameters=--destructive-mode
-
-              }
-              else {
-                dotnet publish "${{ matrix.project_path }}" -c Release -f "${{ matrix.target_framework }}" --no-self-contained 
-                }
+              /p:PublishDir="$output" `
+              /p:WindowsPackageType=None `
+              /p:WindowsAppSDKSelfContained=true `
+              /p:SelfContained=true
           }
-                    
-          Write-Host "Publish completed for ${{ matrix.platform }}."
+          elseif ('${{ matrix.platform }}' -eq 'macos') {
+            # macOS (App Bundle)
+            # PackageFormat=app creates a .app bundle structure
+            dotnet publish $project -c Release -f "${{ matrix.target_framework }}" `
+              -r osx-x64 --self-contained true `
+              -p:PackageFormat=app `
+              -o "$output"
+          }
+          else {
+            # Linux (Standard Binary)
+            dotnet publish $project -c Release -f "${{ matrix.target_framework }}" `
+              -r linux-x64 --self-contained true `
+              -o "$output"
+          }
 
-      # Step 4: Upload the build artifact
-      - name: Upload Artifact (${{ matrix.artifact_name }})
-        if: success() && github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))
+      # == ZIP STEP (Makes artifacts downloadable/runnable) ==
+      - name: Zip Release Artifact
+        shell: pwsh
+        run: |
+          $source = Join-Path $env:GITHUB_WORKSPACE "${{ matrix.publish_output }}"
+          $zipName = "${{ matrix.artifact_name }}.zip"
+          $destination = Join-Path $env:GITHUB_WORKSPACE $zipName
+          
+          Write-Host "Zipping $source to $destination"
+          Compress-Archive -Path "$source\*" -DestinationPath $destination
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4 
         with:
           name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.artifact_Path }}
-          retention-days: 7 
+          path: ${{ github.workspace }}/${{ matrix.artifact_name }}.zip
+          retention-days: 5
