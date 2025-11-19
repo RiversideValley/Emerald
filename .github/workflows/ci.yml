@@ -39,13 +39,13 @@ jobs:
           - os: windows-latest
             platform: windows
             # UPDATED: Use the correct .NET 9 Windows target framework from your project
-            target_framework: 'net9.0-windows10.0.22621' 
+            target_framework: 'net9.0-windows10.0.26100' 
             # UPDATED: Adjust publish path for the new framework
             # IMPORTANT: Verify this path matches your actual build output structure and Runtime Identifier (RID)
-            publish_path: './bin/Release/net9.0-windows10.0.22621/win-x64/publish/' 
+            publish_path: './bin/Release/net9.0-windows10.0.26100/win-x64/publish/' 
             artifact_name: 'Emerald-Windows'
             
-            artifact_Path: './Emerald/bin/Release/net9.0-windows10.0.22621/win-x64/publish/'
+            artifact_Path: './Emerald/bin/Release/net9.0-windows10.0.26100/win-x64/publish/'
             # IMPORTANT: Define the path to your Windows/Shared project file
             project_path: './Emerald/Emerald.csproj' 
 
