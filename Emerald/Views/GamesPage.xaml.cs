@@ -129,7 +129,6 @@ public sealed partial class GamesPage : Page
 
                 var core = Ioc.Default.GetService<Core>();
                 core.SaveGames();
-            
         }
     }
 
