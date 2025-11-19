@@ -1,37 +1,50 @@
+using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 using Microsoft.UI;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
-using System;
-using System.Runtime.InteropServices;
 using Windows.ApplicationModel;
 using WinRT;
 using WinRT.Interop;
+using Windows.Win32;
+using Windows.Win32.UI.WindowsAndMessaging;
+using Windows.Win32.Foundation;
 
 namespace Emerald.Helpers;
 
 public static class WindowManager
 {
     /// <summary>
+    /// This will set the Window Icon for the given <see cref="global::Microsoft.UI.Xaml.Window" /> using the provided UnoIcon.
+    /// </summary>
+    public static void SetWindowIcon(this global::Microsoft.UI.Xaml.Window window, string iconpath = "icon.ico")
+    {
+#if WINDOWS && !HAS_UNO
+            var hWnd = global::WinRT.Interop.WindowNative.GetWindowHandle(window);
+
+            // Retrieve the WindowId that corresponds to hWnd.
+            global::Microsoft.UI.WindowId windowId = global::Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hWnd);
+
+            // Lastly, retrieve the AppWindow for the current (XAML) WinUI 3 window.
+            global::Microsoft.UI.Windowing.AppWindow appWindow = global::Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+            appWindow.SetIcon(iconpath);
+
+            // Set the Window Title Only if it has the Default WinUI Desktop value and we are running Unpackaged
+            if (appWindow.Title == "WinUI Desktop")
+            {
+                appWindow.Title = "Emerald";
+            }
+#endif
+    }
+    /// <summary>
     /// Add mica and the icon to the <paramref name="window"/>
     /// </summary>
     public static MicaBackground? IntializeWindow(Window window)
     {
 #if WINDOWS
-
-            var icon = User32.LoadImage(
-                hInst: IntPtr.Zero,
-                name: $@"{Package.Current.InstalledLocation.Path}\Assets\icon.ico".ToCharArray(),
-                type: User32.ImageType.IMAGE_ICON,
-                cx: 0,
-                cy: 0,
-                fuLoad: User32.LoadImageFlags.LR_LOADFROMFILE | User32.LoadImageFlags.LR_DEFAULTSIZE | User32.LoadImageFlags.LR_SHARED
-            );
-
-            var Handle = WindowNative.GetWindowHandle(window);
-            User32.SendMessage(Handle, User32.WindowMessage.WM_SETICON, (IntPtr)1, icon);
-            User32.SendMessage(Handle, User32.WindowMessage.WM_SETICON, (IntPtr)0, icon);
 
         var s = new MicaBackground(window);
             s.TrySetMicaBackdrop();

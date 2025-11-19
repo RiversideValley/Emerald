@@ -99,6 +99,7 @@ public partial class App : Application
 #if DEBUG
         MainWindow.UseStudio();
 #endif
+        MainWindow.SetWindowIcon("Assets/Icon.ico");
 
         Host = builder.Build();
 
