@@ -57,27 +57,40 @@ runs:
 
 
     # Install Uno Check Tool and Run Check for the target platform
-    - name: Install Uno Platform Workloads via uno-check for ${{ inputs.job-platform }}
-      shell: pwsh 
+     - name: Install Uno Platform Workloads via uno-check for ${{ inputs.job-platform }}
+      shell: pwsh
       run: |
-        echo "Installing/Updating uno-check tool..."
-        # Consider using a specific version if needed, otherwise install latest stable
-        dotnet tool update -g uno.check # Use update instead of install to get latest patch within major.minor
+        Write-Host "Installing/Updating uno-check tool..."
+        # Install or update uno-check (non-fatal)
+        dotnet tool update -g uno.check 2>$null || dotnet tool install -g uno.check
 
         $unoTarget = "${{ inputs.job-platform }}"
-        # Map simple platform names to potential uno-check target names if needed
-        # Example: if uno-check needs 'desktop' instead of 'linux'
-        if ($unoTarget -eq 'linux') { $unoTarget = 'desktop' } # Adjust if uno-check uses 'desktop' for linux GTK head
+        if ($unoTarget -eq 'linux') { $unoTarget = 'desktop' }
 
-        echo "Running uno-check for target: $unoTarget"
-        # Run uno-check for the specific platform of this job runner
-        # Adjust skips as needed for your project
-        uno-check --ci --non-interactive --fix --target $unoTarget --skip vswin --skip vsmac --skip xcode --skip vswinworkloads --skip androidemulator --skip dotnetnewunotemplates --skip mauiinstallationcheck
+        Write-Host "Running uno-check for target: $unoTarget"
 
-        # Optional: Check exit code if needed, though continue-on-error is handled at job level
-        if ($LASTEXITCODE -ne 0) {
-            Write-Warning "uno-check completed with errors (Exit Code: $LASTEXITCODE) for target $unoTarget. Build might fail."
+        # Save a log file for diagnostics
+        $timeStamp = (Get-Date).ToString('yyyyMMdd-HHmmss')
+        $logFile = Join-Path $env:RUNNER_TEMP "uno-check-$($unoTarget)-$timeStamp.log"
+
+        # Run uno-check and capture stdout/stderr
+        & uno-check --ci --non-interactive --fix --target $unoTarget --skip vswin --skip vsmac --skip xcode --skip vswinworkloads --skip androidemulator --skip dotnetnewunotemplates --skip mauiinstallationcheck 2>&1 | Tee-Object -FilePath $logFile
+        $unoExit = $LASTEXITCODE
+
+        if ($unoExit -ne 0) {
+            Write-Warning "uno-check completed with errors (Exit Code: $unoExit) for target $unoTarget. Build might fail."
+            Write-Host "uno-check log saved to: $logFile"
+
+            # If the composite action input requests failing on uno-check, propagate the non-zero exit.
+            if ('${{ inputs.fail-on-uno-check }}' -eq 'true') {
+                Write-Error "Failing job because inputs.fail-on-uno-check == true and uno-check returned $unoExit."
+                exit $unoExit
+            } else {
+                Write-Warning "Continuing the workflow despite uno-check failures (inputs.fail-on-uno-check != true)."
+                # Explicitly return success from this step so the composite action doesn't fail here.
+                exit 0
+            }
         } else {
-            echo "uno-check finished successfully for target: $unoTarget"
+            Write-Host "uno-check finished successfully for target: $unoTarget"
         }
 
