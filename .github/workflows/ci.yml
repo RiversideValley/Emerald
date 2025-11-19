@@ -53,7 +53,7 @@ jobs:
           - os: macos-latest
             platform: macos
             # UPDATED: Use the correct .NET 9 macOS target framework from your project
-            target_framework: 'net9.0-maccatalyst' 
+            target_framework: 'net9.0-desktop' 
             # UPDATED: Adjust publish path for the new framework
             # IMPORTANT: Verify this path matches your actual build output structure and RID
             publish_path: './Emerald/bin/Release/net9.0-maccatalyst/maccatalyst-x64/publish/'
@@ -65,7 +65,7 @@ jobs:
             project_path: './Emerald/Emerald.csproj' 
 
           # == LINUX CONFIGURATION ==
-          - os: ubuntu-24.04
+          - os: ubuntu-latest
             platform: linux
             # UPDATED: Use the correct .NET 9 Linux target framework from your project
             target_framework: 'net9.0-desktop' 
@@ -114,6 +114,7 @@ jobs:
             cd (Split-Path -Path "${{ matrix.project_path }}" -Parent) # Navigate to the directory containing the csproj
             
             Write-Host "Using msbuild /t:publish for Windows (x64)..."
+            
             # Use msbuild with specified parameters. MSBuild should now be in the PATH thanks to the setup-msbuild step.
             # /r: Restore dependencies
             # /t:publish: Execute the publish target
@@ -122,6 +123,7 @@ jobs:
             # /p:Platform: Set the target platform (x64 for standard windows-latest runner)
             # /p:PublishDir: Set the output directory using the path from the matrix
             # Pass only the project file name since we changed directory
+            
             msbuild /r /t:publish `
               /p:TargetFramework=${{ matrix.target_framework }} `
               /p:Configuration=Release `
