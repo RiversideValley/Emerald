@@ -14,8 +14,8 @@ inputs:
   windows-sdk-version:
     description: 'The version of the Windows SDK to install (Windows only)'
     required: false
-    # UPDATED: Default to match the project's Windows target framework (22621)
-    default: '22621' 
+    # UPDATED: Default to match the project's Windows target framework (26100)
+    default: '26100' 
 
 runs:
   using: "composite"
