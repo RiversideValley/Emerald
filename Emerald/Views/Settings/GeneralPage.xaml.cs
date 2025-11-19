@@ -36,5 +36,4 @@ public sealed partial class GeneralPage : Page
         this.InitializeComponent();
         MCUC.GameSettings = SS.Settings.GameSettings;
     }
-
 }

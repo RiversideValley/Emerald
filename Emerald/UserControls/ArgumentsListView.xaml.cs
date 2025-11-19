@@ -113,5 +113,4 @@ public sealed partial class ArgumentsListView : UserControl
         if (sender is TextBox tb && tb.DataContext is LaunchArg arg)
             view.SelectedItem = arg;
     }
-
 }

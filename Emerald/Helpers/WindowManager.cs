@@ -19,6 +19,20 @@ public static class WindowManager
     public static MicaBackground? IntializeWindow(Window window)
     {
 #if WINDOWS
+
+            var icon = User32.LoadImage(
+                hInst: IntPtr.Zero,
+                name: $@"{Package.Current.InstalledLocation.Path}\Assets\icon.ico".ToCharArray(),
+                type: User32.ImageType.IMAGE_ICON,
+                cx: 0,
+                cy: 0,
+                fuLoad: User32.LoadImageFlags.LR_LOADFROMFILE | User32.LoadImageFlags.LR_DEFAULTSIZE | User32.LoadImageFlags.LR_SHARED
+            );
+
+            var Handle = WindowNative.GetWindowHandle(window);
+            User32.SendMessage(Handle, User32.WindowMessage.WM_SETICON, (IntPtr)1, icon);
+            User32.SendMessage(Handle, User32.WindowMessage.WM_SETICON, (IntPtr)0, icon);
+
         var s = new MicaBackground(window);
             s.TrySetMicaBackdrop();
             return s;
