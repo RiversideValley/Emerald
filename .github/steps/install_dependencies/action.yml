@@ -44,5 +44,17 @@ runs:
       run: |
         echo "Installing GTK dependencies..."
         sudo apt-get update
-        sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev
-        # Removed Snap dependencies as we are just building a binary for now
+        
+    # Run Uno.Check
+    - name: Install ${{ inputs.target-platform }} Workloads
+      shell: pwsh
+      run: |
+        dotnet tool install -g uno.check
+        ("${{ inputs.target-platform }} ".Split(' ') | ForEach-Object {
+          $target = $_.Replace("_win", "").Replace("_macos", "")
+          if (![string]::IsNullOrEmpty($target)) {
+            echo "target: $target"
+            uno-check -v --ci --non-interactive --fix --target $target --skip vswin --skip vsmac --skip xcode --skip vswinworkloads --skip androidemulator --skip dotnetnewunotemplates
+            echo "uno-check finished for target: $target "
+          }
+        })
