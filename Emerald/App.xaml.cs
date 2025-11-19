@@ -96,7 +96,6 @@ public partial class App : Application
 #if DEBUG
         MainWindow.UseStudio();
 #endif
-        MainWindow.SetWindowIcon();
 
         Host = builder.Build();
 
