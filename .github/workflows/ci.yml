@@ -27,7 +27,6 @@ jobs:
             platform: windows
             target_framework: 'net9.0-windows10.0.26100' 
             project_path: './Emerald/Emerald.csproj'
-            # We will zip this folder later
             publish_output: 'Emerald_Windows'
             artifact_name: 'Emerald-Windows-Release'
 
@@ -72,6 +71,7 @@ jobs:
 
           if ('${{ matrix.platform }}' -eq 'windows') {
             # Windows WinUI 3 (Unpackaged & Self-Contained)
+            # ADDED: /p:ErrorOnDuplicatePublishOutputFiles=false to fix NETSDK1152
             msbuild $project /r /t:publish `
               /p:TargetFramework=${{ matrix.target_framework }} `
               /p:Configuration=Release `
@@ -79,24 +79,22 @@ jobs:
               /p:PublishDir="$output" `
               /p:WindowsPackageType=None `
               /p:WindowsAppSDKSelfContained=true `
-              /p:SelfContained=true
+              /p:SelfContained=true `
+              /p:ErrorOnDuplicatePublishOutputFiles=false
           }
           elseif ('${{ matrix.platform }}' -eq 'macos') {
-            # macOS (App Bundle)
-            # PackageFormat=app creates a .app bundle structure
             dotnet publish $project -c Release -f "${{ matrix.target_framework }}" `
               -r osx-x64 --self-contained true `
               -p:PackageFormat=app `
               -o "$output"
           }
           else {
-            # Linux (Standard Binary)
             dotnet publish $project -c Release -f "${{ matrix.target_framework }}" `
               -r linux-x64 --self-contained true `
               -o "$output"
           }
 
-      # == ZIP STEP (Makes artifacts downloadable/runnable) ==
+      # == ZIP STEP ==
       - name: Zip Release Artifact
         shell: pwsh
         run: |

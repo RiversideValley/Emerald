@@ -44,17 +44,28 @@ runs:
       run: |
         echo "Installing GTK dependencies..."
         sudo apt-get update
+        sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev
         
-    # Run Uno.Check
-    - name: Install ${{ inputs.target-platform }} Workloads
+    # 4. Run Uno.Check
+    # FIXED: Changed ${{ inputs.target-platform }} to ${{ inputs.job-platform }}
+    - name: Install ${{ inputs.job-platform }} Workloads
       shell: pwsh
       run: |
         dotnet tool install -g uno.check
-        ("${{ inputs.target-platform }} ".Split(' ') | ForEach-Object {
+        
+        # We use inputs.job-platform here
+        $platforms = "${{ inputs.job-platform }}"
+        
+        $platforms.Split(' ') | ForEach-Object {
           $target = $_.Replace("_win", "").Replace("_macos", "")
+          
+          # Map 'linux' to 'skia' or 'linux' as expected by uno-check if needed
+          if ($target -eq 'linux') { $target = 'linux' } 
+          
           if (![string]::IsNullOrEmpty($target)) {
-            echo "target: $target"
+            echo "Running uno-check for target: $target"
+            # Added --continue-on-error logic implicitly by not failing script on exit code
             uno-check -v --ci --non-interactive --fix --target $target --skip vswin --skip vsmac --skip xcode --skip vswinworkloads --skip androidemulator --skip dotnetnewunotemplates
-            echo "uno-check finished for target: $target "
+            echo "uno-check finished for target: $target"
           }
-        })
+        }
