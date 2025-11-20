@@ -22,7 +22,7 @@ jobs:
       fail-fast: false 
       matrix:
         include:
-          # == WINDOWS (WinUI 3 Unpackaged) ==
+          # == WINDOWS ==
           - os: windows-latest
             platform: windows
             target_framework: 'net9.0-windows10.0.26100' 
@@ -30,7 +30,7 @@ jobs:
             publish_output: 'Emerald_Windows'
             artifact_name: 'Emerald-Windows-Release'
 
-          # == MACOS (Skia Desktop) ==
+          # == MACOS ==
           - os: macos-latest
             platform: macos
             target_framework: 'net9.0-desktop' 
@@ -38,7 +38,7 @@ jobs:
             publish_output: 'Emerald_macOS'
             artifact_name: 'Emerald-macOS-Release'
 
-          # == LINUX (Skia Gtk) ==
+          # == LINUX ==
           - os: ubuntu-latest
             platform: linux
             target_framework: 'net9.0-desktop' 
@@ -66,12 +66,18 @@ jobs:
         shell: pwsh 
         run: |
           $project = "${{ matrix.project_path }}"
+          # Define absolute path to ensure msbuild/dotnet don't get confused
           $output = Join-Path $env:GITHUB_WORKSPACE "${{ matrix.publish_output }}"
           Write-Host "Building $project to $output..."
 
+          # CRITICAL: Disable Trimming and SingleFile to prevent startup crashes
+          # Docs confirm SingleFile is unsupported on Linux
+          # Trimming breaks reflection-heavy apps like Uno/WinUI
+          $commonArgs = "/p:PublishTrimmed=false /p:PublishSingleFile=false"
+
           if ('${{ matrix.platform }}' -eq 'windows') {
             # Windows WinUI 3 (Unpackaged & Self-Contained)
-            # ADDED: /p:ErrorOnDuplicatePublishOutputFiles=false to fix NETSDK1152
+            # We use msbuild as required by the docs
             msbuild $project /r /t:publish `
               /p:TargetFramework=${{ matrix.target_framework }} `
               /p:Configuration=Release `
@@ -80,18 +86,24 @@ jobs:
               /p:WindowsPackageType=None `
               /p:WindowsAppSDKSelfContained=true `
               /p:SelfContained=true `
-              /p:ErrorOnDuplicatePublishOutputFiles=false
+              /p:ErrorOnDuplicatePublishOutputFiles=false `
+              $commonArgs
           }
           elseif ('${{ matrix.platform }}' -eq 'macos') {
+            # macOS (App Bundle)
+            # PackageFormat=app creates the .app Directory structure
             dotnet publish $project -c Release -f "${{ matrix.target_framework }}" `
               -r osx-x64 --self-contained true `
               -p:PackageFormat=app `
-              -o "$output"
+              -o "$output" `
+              $commonArgs
           }
           else {
+            # Linux (Standard Binary)
             dotnet publish $project -c Release -f "${{ matrix.target_framework }}" `
               -r linux-x64 --self-contained true `
-              -o "$output"
+              -o "$output" `
+              $commonArgs
           }
 
       # == ZIP STEP ==
@@ -103,7 +115,11 @@ jobs:
           $destination = Join-Path $env:GITHUB_WORKSPACE $zipName
           
           Write-Host "Zipping $source to $destination"
-          Compress-Archive -Path "$source\*" -DestinationPath $destination
+          
+          # CRITICAL FIX: Removed "\*" wildcard.
+          # Mac: Now zips the folder containing "Emerald.app".
+          # Windows: Now zips the folder containing "Emerald.exe" + DLLs.
+          Compress-Archive -Path "$source" -DestinationPath $destination
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4 
