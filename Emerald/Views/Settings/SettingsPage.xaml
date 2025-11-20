@@ -40,16 +40,16 @@
       <NavigationView.MenuItems>
         <NavigationViewItem
           Icon="{helpers:FontIcon Glyph=&#xE713;}"
-                    Content="{helpers:Localize Name=General}"
+                    Content="{helpers:Localize KeyName=General}"
                     IsSelected="True"
                     Tag="General" />
         <NavigationViewItem
           Icon="{helpers:FontIcon Glyph=&#xE771;}"
-                    Content="{helpers:Localize Name=Appearance}"
+                    Content="{helpers:Localize KeyName=Appearance}"
                     Tag="Appearance" />
         <NavigationViewItem
           Icon="{helpers:FontIcon Glyph=&#xE946;}"
-                    Content="{helpers:Localize Name=About}"
+                    Content="{helpers:Localize KeyName=About}"
                     Tag="About" />
       </NavigationView.MenuItems>
 

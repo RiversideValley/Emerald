@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Windows.Storage;
 
 namespace Emerald.Services;
-public class SettingsService(BaseSettingsService _baseService, ILogger<SettingsService> _logger)
+public class SettingsService(IBaseSettingsService _baseService, ILogger<SettingsService> _logger)
 {
 
     public Helpers.Settings.JSON.Settings Settings { get; private set; }

@@ -36,7 +36,6 @@ public static class Extensions
 
     public static int? GetMemoryGB()
     {
-
         var _logger = Ioc.Default.GetService<ILogger<SystemMemoryUsageReport>>();
         try
         {
@@ -135,11 +134,15 @@ public static class Extensions
                 return cached;
             }
 
-            string s = Windows.ApplicationModel.Resources.ResourceLoader
+            string? s = Windows.ApplicationModel.Resources.ResourceLoader
                 .GetForViewIndependentUse() 
                 .GetString(resourceKey);
+
             if (string.IsNullOrEmpty(s))
-                throw new NullReferenceException("ResourceLoader.GetString returned empty/null");
+            {
+                _logger.LogWarning("ResourceLoader.GetString returned empty/null, returning defaultkey");
+                return resourceKey;
+            }
                 
             cachedResources.AddOrUpdate(resourceKey, s, (_, _) => s);
             

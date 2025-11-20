@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 namespace Emerald.CoreX.Installers;
 public class LoaderInfo
 {
+    public string? Tag { get; set; }
+
     public string? Version { get; set; }
 
     public bool? Stable { get; set; } = null;

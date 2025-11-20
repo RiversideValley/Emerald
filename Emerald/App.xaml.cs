@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System;
 using Emerald.Helpers;
 using CommunityToolkit.Mvvm.DependencyInjection;
+using Emerald.CoreX.Helpers;
 
 namespace Emerald;
 public partial class App : Application
@@ -20,9 +21,6 @@ public partial class App : Application
     public App()
     {
         this.InitializeComponent();
-
-        System.Net.ServicePointManager.DefaultConnectionLimit = 256;
-        // Register exception handlers
 
         this.UnhandledException += App_UnhandledException;
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -43,7 +41,7 @@ public partial class App : Application
 
         //Settings
         services.AddSingleton<Services.SettingsService>();
-        services.AddSingleton<Services.BaseSettingsService>();
+        services.AddSingleton<Services.IBaseSettingsService, Services.BaseSettingsService>();
         //Notifications
         services.AddSingleton<CoreX.Notifications.INotificationService, CoreX.Notifications.NotificationService>();
 
@@ -58,9 +56,15 @@ public partial class App : Application
 
         //Core
         services.AddSingleton<CoreX.Core>();
+        //Accounts
+        services.AddSingleton<CoreX.Services.IAccountService, CoreX.Services.AccountService>();
+
 
         //Notifications
         services.AddTransient<ViewModels.NotificationListViewModel>();
+
+        //ViewModels
+        services.AddTransient<ViewModels.GamesPageViewModel>();
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -95,7 +99,7 @@ public partial class App : Application
 #if DEBUG
         MainWindow.UseStudio();
 #endif
-        MainWindow.SetWindowIcon();
+        MainWindow.SetWindowIcon("Assets/Icon.ico");
 
         Host = builder.Build();
 

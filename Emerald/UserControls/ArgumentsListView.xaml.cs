@@ -1,98 +1,116 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using System.Collections.ObjectModel;
 using Emerald.Models;
-using CommonServiceLocator;
-using CommunityToolkit.Mvvm.DependencyInjection;
-
 
 namespace Emerald.UserControls;
 
-//Copied from Emerald.UWP
 public sealed partial class ArgumentsListView : UserControl
 {
-    private int count = 0;
-    public ObservableCollection<string> Args { get; set; }
-    
+    // Public API → strings
+    public ObservableCollection<string> Args
+    {
+        get => (ObservableCollection<string>)GetValue(ArgsProperty);
+        set => SetValue(ArgsProperty, value);
+    }
+
+    public static readonly DependencyProperty ArgsProperty =
+        DependencyProperty.Register(
+            nameof(Args),
+            typeof(ObservableCollection<string>),
+            typeof(ArgumentsListView),
+            new PropertyMetadata(new ObservableCollection<string>(), OnArgsChanged)
+        );
+
+    // Internal collection for binding
+    private readonly ObservableCollection<LaunchArg> _internal = new();
+
     public ArgumentsListView()
     {
         InitializeComponent();
-        view.ItemsSource = Source;
-        UpdateSource();
+        view.ItemsSource = _internal;
     }
 
-    private ObservableCollection<ArgTemplate> Source = new();
+    private static void OnArgsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var control = (ArgumentsListView)d;
+
+        if (e.OldValue is ObservableCollection<string> oldCol)
+            oldCol.CollectionChanged -= control.ExternalChanged;
+
+        if (e.NewValue is ObservableCollection<string> newCol)
+        {
+            newCol.CollectionChanged += control.ExternalChanged;
+            control.SyncFromExternal();
+        }
+    }
+
+    // Sync external → internal
+    private void SyncFromExternal()
+    {
+        _internal.Clear();
+
+        if (Args == null) return;
+
+        foreach (var s in Args)
+        {
+            var arg = new LaunchArg { Value = s };
+            arg.PropertyChanged += InternalArgChanged;
+            _internal.Add(arg);
+        }
+    }
+
+    // Sync internal → external
+    private void SyncToExternal()
+    {
+        if (Args == null) return;
+
+        Args.CollectionChanged -= ExternalChanged;
+        Args.Clear();
+        foreach (var arg in _internal)
+            Args.Add(arg.Value);
+        Args.CollectionChanged += ExternalChanged;
+    }
+
+    private void InternalArgChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(LaunchArg.Value))
+            SyncToExternal();
+    }
+
+    private void ExternalChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
+        SyncFromExternal();
+
     private void btnAdd_Click(object sender, RoutedEventArgs e)
     {
-        count++;
-        var r = new ArgTemplate { Arg = "", Count = count };
-        Source.Add(r);
-        UpdateMainSource();
-        view.SelectedItem = r;
-    }
-    public void UpdateSource()
-    {
-        Source.Clear();
-        if (Args != null)
-        {
-            foreach (var item in Args)
-            {
-                count++;
-                var r = new ArgTemplate { Arg = item, Count = count };
-                r.PropertyChanged += (_, _) =>
-                {
-                    UpdateMainSource();
-                };
-                Source.Add(r);
-            }
-        }
-        btnRemove.IsEnabled = Source.Any();
+        var newArg = new LaunchArg { Value = string.Empty };
+        newArg.PropertyChanged += InternalArgChanged;
+        _internal.Add(newArg);
+        view.SelectedIndex = _internal.Count - 1;
+        SyncToExternal();
     }
 
-    private void UpdateMainSource()
-    {
-        Args.Clear();
-        Args.AddRange(Source.Select(x=> x.Arg));
-    }
     private void btnRemove_Click(object sender, RoutedEventArgs e)
     {
-        foreach (var item in view.SelectedItems)
+        foreach (var selected in view.SelectedItems.Cast<LaunchArg>().ToList())
         {
-            Source.Remove((ArgTemplate)item);
+            selected.PropertyChanged -= InternalArgChanged;
+            _internal.Remove(selected);
         }
-        UpdateMainSource();
-    }
 
-    private void TextBox_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        view.SelectedIndex = Source.IndexOf(Source.FirstOrDefault(x => x.Count == ((sender as FrameworkElement).DataContext as ArgTemplate).Count));
-    }
-
-    private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        view.SelectedIndex = Source.IndexOf(Source.FirstOrDefault(x => x.Count == ((sender as FrameworkElement).DataContext as ArgTemplate).Count));
-        UpdateMainSource();
-    }
-
-    private void TextBox_GotFocus(object sender, RoutedEventArgs e)
-    {
-        view.SelectedIndex = Source.IndexOf(Source.FirstOrDefault(x => x.Count == ((sender as FrameworkElement).DataContext as ArgTemplate).Count));
+        SyncToExternal();
     }
 
     private void view_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         btnRemove.IsEnabled = view.SelectedItems.Any();
+    }
+    private void TextBox_GotFocus(object sender, RoutedEventArgs e)
+    {
+        if (sender is TextBox tb && tb.DataContext is LaunchArg arg)
+            view.SelectedItem = arg;
     }
 }

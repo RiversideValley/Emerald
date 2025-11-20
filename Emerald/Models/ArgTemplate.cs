@@ -1,13 +1,8 @@
-using CommunityToolkit.Mvvm.ComponentModel;
-
 namespace Emerald.Models;
 
-//Copied from Emerald.UWP
 [ObservableObject]
-public partial class ArgTemplate
+public partial class LaunchArg
 {
     [ObservableProperty]
-    private string arg;
-
-    public int Count { get; set; }
+    public string value = string.Empty;
 }
