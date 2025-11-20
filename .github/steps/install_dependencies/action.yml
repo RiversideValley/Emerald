@@ -49,6 +49,7 @@ runs:
     # FIXED: Changed ${{ inputs.target-platform }} to ${{ inputs.job-platform }}
     - name: Install ${{ inputs.job-platform }} Workloads
       shell: pwsh
+      if: runner.os != 'Windows' && inputs.job-platform != 'windows'
       run: |
         dotnet tool install -g uno.check
         
