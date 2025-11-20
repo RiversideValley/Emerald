@@ -210,7 +210,6 @@ public async Task InstallGame(Game game, bool showFileprog = false)
 
             var game = new Game(new(path), GameOptions, version);
 
-            var game = new Game(new(path), GameOptions, version);
 
             Games.Add(game);
             SaveGames();
