@@ -19,7 +19,7 @@ namespace Emerald.WinUI.Helpers
         public static void ShowAt(this TeachingTip tip, FrameworkElement element, TeachingTipPlacementMode placement = TeachingTipPlacementMode.Auto, bool closeWhenClick = true, bool addToMainGrid = true)
         {
             if (addToMainGrid)
-                (App.Current.MainWindow.Content as Grid).Children.Add(tip);
+                (App.Current._MainWindow.Content as Grid).Children.Add(tip);
 
             tip.Target = element;
             tip.PreferredPlacement = placement;
@@ -60,7 +60,7 @@ namespace Emerald.WinUI.Helpers
         {
             ContentDialog dialog = new()
             {
-                XamlRoot = App.Current.MainWindow.Content.XamlRoot,
+                XamlRoot = App.Current._MainWindow.Content.XamlRoot,
                 Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
                 Title = title,
                 CloseButtonText = closebtnText,

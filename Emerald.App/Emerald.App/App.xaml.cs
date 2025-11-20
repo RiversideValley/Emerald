@@ -1,11 +1,14 @@
+using Emerald.WinUI.Helpers;
 using Emerald.WinUI.Helpers.AppInstancing;
 using Emerald.WinUI.Helpers.Updater;
 using Microsoft.UI.Xaml;
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Windows.Management.Deployment;
 using Windows.Storage;
+using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 
 namespace Emerald.WinUI;
 
@@ -14,7 +17,7 @@ public partial class App : Application
     private readonly SingleInstanceDesktopApp _singleInstanceApp;
     public Core.Emerald Launcher { get; private set; } = new();
     public Updater Updater { get; private set; } = new();
-    public ElementTheme ActualTheme => (MainWindow.Content as FrameworkElement).ActualTheme;
+    public ElementTheme ActualTheme => (_MainWindow.Content as FrameworkElement).ActualTheme;
     public App()
     {
         InitializeComponent();
@@ -28,8 +31,8 @@ public partial class App : Application
     public void LoadFromBackupSettings(string settings)
     {
         saveData = false;
-        ApplicationData.Current.RoamingSettings.Values["Settings"] = settings;
-        MainWindow.Close();
+        SS.SaveData(settings);
+        _MainWindow.Close();
         var p = new Process()
         {
             StartInfo = new()
@@ -54,11 +57,20 @@ public partial class App : Application
         _singleInstanceApp.Launch(args.Arguments);
     }
     bool saveData = true;
-    private void InitializeMainWindow()
+    private async void InitializeMainWindow()
     {
-        MainWindow = new MainWindow();
-        MainWindow.Activate();
-        MainWindow.Closed += (_, _) => { if (saveData) Helpers.Settings.SettingsSystem.SaveData(); };
+        await SS.LoadData();
+        _MainWindow = new MainWindow();
+        _MainWindow.Activate();
+        _MainWindow.Closed += (_, _) => 
+        {
+            if (saveData) 
+                Helpers.Settings.SettingsSystem.SaveData();
+            var proc = MainWindow.HomePage.GameProcess;
+            if (proc == null || proc.HasExited)
+                return;
+            proc.Kill();
+        };
     }
     private void OnSingleInstanceLaunched(object? sender, SingleInstanceLaunchEventArgs e)
     {
@@ -67,6 +79,16 @@ public partial class App : Application
             System.Net.ServicePointManager.DefaultConnectionLimit = 256;
             _ = Updater.Initialize();
             InitializeMainWindow();
+            Task.Delay(500).ContinueWith(_ =>
+            {
+                if (!string.IsNullOrEmpty(e.Arguments))
+                {
+                    _MainWindow.DispatcherQueue.TryEnqueue(() =>
+                    {
+                        MessageBox.Show($"Application started with arguments: {e.Arguments}");
+                    });
+                }
+            });
         }
         else
         {
@@ -74,5 +96,6 @@ public partial class App : Application
         }
     }
 
-    public Window MainWindow { get; private set; }
+
+    public Window _MainWindow { get; private set; }
 }
