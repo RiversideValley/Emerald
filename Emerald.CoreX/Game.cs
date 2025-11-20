@@ -95,6 +95,16 @@ public class Game
 
                 return;
             }
+            if (isOffline) //checking if verison actually exists
+            {
+                var vers = await Launcher.GetAllVersionsAsync();
+                var mver = vers.Where(x => x.Name == ver).First();
+                if (mver == null)
+                {
+                    _logger.LogWarning("Version {Version} not found in offline mode. Can't proceed installation.", ver);
+                    throw new NullReferenceException($"Version {ver} not found in offline mode. Can't proceed installation.");
+                }
+            }
 
             Version.RealVersion = ver;
             

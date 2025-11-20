@@ -100,7 +100,7 @@ public partial class App : Application
 #if DEBUG
         MainWindow.UseStudio();
 #endif
-        MainWindow.SetWindowIcon();
+        MainWindow.SetWindowIcon("Assets/Icon.ico");
 
         Host = builder.Build();
 

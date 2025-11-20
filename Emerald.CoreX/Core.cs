@@ -211,6 +211,7 @@ public async Task InstallGame(Game game, bool showFileprog = false)
 
             var path = Path.Combine( BasePath.BasePath, GamesFolderName, version.DisplayName);
 
+            var game = new Game(new(path), GameOptions, version);
 
             var game = new Game(new(path), GameOptions, version);
 

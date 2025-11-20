@@ -36,7 +36,6 @@ public static class Extensions
 
     public static int? GetMemoryGB()
     {
-
         var _logger = Ioc.Default.GetService<ILogger<SystemMemoryUsageReport>>();
         try
         {

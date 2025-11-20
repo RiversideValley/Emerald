@@ -43,6 +43,4 @@ public partial class EAccount
         UniqueId = uniqueId ?? Guid.NewGuid().ToString();
         LastUsed = DateTime.UtcNow;
     }
-
-
 }
