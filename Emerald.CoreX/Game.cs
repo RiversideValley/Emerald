@@ -51,7 +51,6 @@ public class Game
         }
 
         Launcher = new MinecraftLauncher(param);
-
     }
     /// <summary>
     /// Installs the specified Minecraft version, including downloading necessary files

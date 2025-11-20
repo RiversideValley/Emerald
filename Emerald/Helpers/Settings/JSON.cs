@@ -86,8 +86,6 @@ public partial class Minecraft : JSON
     [JsonIgnore]
     public double RAMinGB => Math.Round((RAM / 1024.00), 2);
 
-    
-
     [ObservableProperty]
     private string _Path;
 
@@ -358,7 +356,6 @@ public partial class Appearance : JSON
 
     [ObservableProperty]
     private Color? _CustomMicaTintColor;
-
 
     [ObservableProperty]
     private int _TintOpacity = 10;

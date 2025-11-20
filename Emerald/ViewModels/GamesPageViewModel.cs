@@ -238,7 +238,6 @@ public partial class GamesPageViewModel : ObservableObject
         }
     }
 
-
     [RelayCommand]
     private async Task LoadModLoadersAsync()
     {

@@ -57,7 +57,6 @@ public partial class GameSettings : ObservableObject
     [ObservableProperty]
     private int _serverPort = 25565;
 
-    
     [ObservableProperty]
     private bool _HashCheck;
 
@@ -69,11 +68,9 @@ public partial class GameSettings : ObservableObject
     
     public ObservableCollection<string> JVMArgs { get; set; } = new();
 
-    
     [JsonIgnore]
     public string ScreenSizeStatus =>
         FullScreen ? "FullScreen".Localize() : ((ScreenWidth > 0 && ScreenHeight > 0) ? $"{ScreenWidth} × {ScreenHeight}" : "Default".Localize());
-
 
     public MLaunchOption ToMLaunchOption()
     {

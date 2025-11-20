@@ -36,7 +36,6 @@ public static class Extensions
 
     public static int? GetMemoryGB()
     {
-
         var _logger = Ioc.Default.GetService<ILogger<SystemMemoryUsageReport>>();
         try
         {
@@ -143,7 +142,6 @@ public static class Extensions
 
         return sb.ToString();
     }
-
 
     //public static string Localize(this Core.Localized resourceKey) =>
     //     resourceKey.ToString().Localize();

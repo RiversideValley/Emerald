@@ -87,7 +87,6 @@ public class AccountService : IAccountService
 
             _accounts.AddRange(storedAccounts.Where(acc => acc.Type == AccountType.Offline));
 
-
             // Add any new online accounts that aren't in storage
             foreach (var onlineAccount in onlineAccounts)
             {

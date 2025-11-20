@@ -10,12 +10,10 @@ using Windows.Storage;
 namespace Emerald.Services;
 public class SettingsService(IBaseSettingsService _baseService, ILogger<SettingsService> _logger)
 {
-
     public Helpers.Settings.JSON.Settings Settings { get; private set; }
     public Helpers.Settings.JSON.Account[] Accounts { get; set; }
 
     public event EventHandler<string>? APINoMatch;
-
 
     public void LoadData()
     {

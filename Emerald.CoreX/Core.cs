@@ -106,7 +106,6 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
         }
     }
 
-
     /// <summary>
     /// Initializes the Core with the given Minecraft path and retrieves the list of available vanilla Minecraft versions.
     /// </summary>
@@ -180,7 +179,6 @@ public async Task InstallGame(Game game, bool showFileprog = false)
 
         try
         {
-
             _logger.LogInformation("Installing game {version}", version.BasedOn);
 
             if(game == null)
@@ -195,7 +193,6 @@ public async Task InstallGame(Game game, bool showFileprog = false)
             );
             
             SaveGames();
-
         }
         catch (Exception ex)
         {

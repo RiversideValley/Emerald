@@ -129,10 +129,8 @@ public sealed partial class GamesPage : Page
 
                 var core = Ioc.Default.GetService<Core>();
                 core.SaveGames();
-            
         }
     }
-
 
     private async void OpenFolder_Click(object sender, RoutedEventArgs e)
     {
@@ -180,7 +178,6 @@ public sealed partial class GamesPage : Page
         {
              ViewModel.RemoveGameCommand.Execute(game);
         }
-
         }
 
     private void RemoveGameWFiles_Click(object sender, RoutedEventArgs e)
@@ -189,7 +186,5 @@ public sealed partial class GamesPage : Page
         {
             _ = ViewModel.RemoveGameWithFilesCommand.ExecuteAsync(game);
         }
-
-
     }
 }

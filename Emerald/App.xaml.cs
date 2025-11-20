@@ -27,7 +27,6 @@ public partial class App : Application
         TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
     }
 
-
     public Window? MainWindow { get; private set; }
     protected IHost? Host { get; private set; }
     private void ConfigureServices(IServiceCollection services)
@@ -58,7 +57,6 @@ public partial class App : Application
         services.AddSingleton<CoreX.Core>();
         //Accounts
         services.AddSingleton<CoreX.Services.IAccountService, CoreX.Services.AccountService>();
-
 
         //Notifications
         services.AddTransient<ViewModels.NotificationListViewModel>();
@@ -210,7 +208,6 @@ public partial class App : Application
         {
             await MessageBox.Show("AppCrash".Localize(), message, Helpers.Enums.MessageBoxButtons.Ok);
             Application.Current.Exit();
-
         }
         catch (Exception ex)
         {
