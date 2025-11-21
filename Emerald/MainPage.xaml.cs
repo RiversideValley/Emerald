@@ -81,7 +81,6 @@ public sealed partial class MainPage : Page
     }
     void InitializeNavView()
     {
-
         NavView.MenuItems.Add(new SquareNavigationViewItem("Home".Localize())
         {
             Thumbnail = "ms-appx:///Assets/NavigationViewIcons/home.png",
@@ -94,6 +93,14 @@ public sealed partial class MainPage : Page
         {
             Thumbnail = "ms-appx:///Assets/NavigationViewIcons/store.png",
             Tag = "Store",
+            FontIconGlyph = "\xE7BF",
+            SolidFontIconGlyph = "\xE7BF",
+            IsSelected = false
+        });
+        NavView.MenuItems.Add(new SquareNavigationViewItem("Accounts".Localize())
+        {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/store.png",
+            Tag = "Accounts",
             FontIconGlyph = "\xE7BF",
             SolidFontIconGlyph = "\xE7BF",
             IsSelected = false
@@ -137,8 +144,6 @@ public sealed partial class MainPage : Page
         NavView.Header = new NavViewHeader() { HeaderText = "Home".Localize(), HeaderMargin = GetNavViewHeaderMargin() };
         NavView.DisplayModeChanged += (_, _) => (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
         Navigate(NavView.SelectedItem as SquareNavigationViewItem);
-
-
     }
     private void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
@@ -178,18 +183,19 @@ public sealed partial class MainPage : Page
             case "Home":
                 NavigateOnce(typeof(GamesPage));
                 break;
+            case "Accounts":
+                NavigateOnce(typeof(AccountsPage));
+                break;
             default:
                 NavigateOnce(typeof(SettingsPage));
                 break;
         }
         (NavView.Header as NavViewHeader).HeaderText = itm.Tag == "Tasks" ? (NavView.Header as NavViewHeader).HeaderText : itm.Name;
         (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
-
     }
 
     private void NavigateOnce(Type type)
     {
-
         if (frame.Content == null || frame.Content.GetType() != type)
         {
             frame.Navigate(type, null, new EntranceNavigationTransitionInfo());

@@ -1,0 +1,107 @@
+﻿<Page
+    x:Class="Emerald.Views.AccountsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:cn="using:CommunityToolkit.WinUI.Controls"
+    xmlns:conv="using:Emerald.Helpers.Converters"
+    xmlns:models="using:Emerald.CoreX.Models"
+    xmlns:helpers="using:Emerald.Helpers"
+    mc:Ignorable="d">
+
+  <Page.Resources>
+    <conv:BoolToVisibility x:Key="BoolToVis"/>
+    <conv:BoolToVisibility x:Key="InverseBoolToVis" Reversed="True"/>
+    <conv:CountToVisibilityConverter x:Key="CountToVis"/>
+
+    <DataTemplate x:Key="AccountItemTemplate" x:DataType="models:EAccount">
+      <cn:SettingsCard Margin="0,4" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+    
+
+        <cn:SettingsCard.Header>
+        <StackPanel>
+            <TextBlock Text="{x:Bind Name}" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+          <TextBlock Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}">
+                        <Run Text="{x:Bind Type}"/>
+                        <Run Text="·"/>
+                        <Run Text="Last used:"/>
+                        <Run Text="{x:Bind LastUsed}"/>
+          </TextBlock>
+        </StackPanel>
+        </cn:SettingsCard.Header>
+        <Button
+                    ToolTipService.ToolTip="Remove Account"
+                    Click="RemoveAccount_Click"
+                    Tag="{x:Bind}">
+          <FontIcon Glyph="&#xE74D;" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+        </Button>
+      </cn:SettingsCard>
+    </DataTemplate>
+  </Page.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <Grid Grid.Row="0" Padding="24,24,24,12">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+
+      <StackPanel Grid.Column="0">
+        <TextBlock Text="Accounts" Style="{StaticResource TitleTextBlockStyle}"/>
+        <TextBlock Text="Manage your signed-in accounts" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7"/>
+      </StackPanel>
+
+      <CommandBar Grid.Column="1" Background="Transparent" DefaultLabelPosition="Right">
+        <AppBarButton Icon="Add" Label="Add Account">
+          <AppBarButton.Flyout>
+            <MenuFlyout>
+              <MenuFlyoutItem Text="Microsoft Account" Command="{x:Bind ViewModel.AddMicrosoftAccountCommand}">
+                <MenuFlyoutItem.Icon>
+                  <FontIcon Glyph="&#xE7BE;"/>
+                </MenuFlyoutItem.Icon>
+              </MenuFlyoutItem>
+              <MenuFlyoutItem Text="Offline Account" Click="AddOfflineAccount_Click">
+                <MenuFlyoutItem.Icon>
+                  <FontIcon Glyph="&#xE77B;"/>
+                </MenuFlyoutItem.Icon>
+              </MenuFlyoutItem>
+            </MenuFlyout>
+          </AppBarButton.Flyout>
+        </AppBarButton>
+      </CommandBar>
+    </Grid>
+
+    <ScrollViewer Grid.Row="1" Padding="20,0,20,24" VerticalScrollBarVisibility="Auto">
+      <StackPanel>
+        <StackPanel Spacing="12" HorizontalAlignment="Center" Margin="0,48,0,0" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+          <ProgressRing IsActive="True"/>
+          <TextBlock Text="Loading accounts..."/>
+        </StackPanel>
+
+        <ItemsRepeater
+                    ItemsSource="{x:Bind ViewModel.Accounts, Mode=OneWay}"
+                    ItemTemplate="{StaticResource AccountItemTemplate}"
+                    Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+          <ItemsRepeater.Layout>
+            <StackLayout Spacing="4"/>
+          </ItemsRepeater.Layout>
+        </ItemsRepeater>
+
+        <StackPanel
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,64,0,0" Spacing="12"
+                    Visibility="{x:Bind ViewModel.Accounts.Count, Mode=OneWay, Converter={StaticResource CountToVis}, ConverterParameter=0}">
+          <FontIcon Glyph="&#xE77B;" FontSize="48" Opacity="0.5"/>
+          <TextBlock Text="No accounts found" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Center"/>
+          <TextBlock Text="Click 'Add Account' to get started" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" HorizontalAlignment="Center"/>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+
+  </Grid>
+</Page>

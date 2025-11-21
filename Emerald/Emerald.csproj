@@ -141,4 +141,16 @@
     </Page>
   </ItemGroup>
 
+  <ItemGroup>
+    <Page Update="Views\Store\AccountsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\AccountsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
 </Project>

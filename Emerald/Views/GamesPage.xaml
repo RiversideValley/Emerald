@@ -69,13 +69,13 @@
                                     Text="Open Folder" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
-                                    Command="{Binding ElementName=RootPage, Path=ViewModel.RemoveGameCommand}"
-                                    CommandParameter="{x:Bind}"
+                  Click="RemoveGame_Click"
+                                    Tag="{x:Bind}"
                                     Icon="{helpers:FontIcon Glyph=&#xE74D;}"
                                     Text="Remove" />
                 <MenuFlyoutItem
-                                    Command="{Binding ElementName=RootPage, Path=ViewModel.RemoveGameWithFilesCommand}"
-                                    CommandParameter="{x:Bind}"
+                                    Tag="{x:Bind}"
+                  Click="RemoveGameWFiles_Click"
                                     Foreground="{ThemeResource SystemFillColorCriticalBrush}"
                                     Icon="{helpers:FontIcon Glyph=&#xE74D;}"
                                     Text="Remove with Files" />

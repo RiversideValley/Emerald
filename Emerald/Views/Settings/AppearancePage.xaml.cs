@@ -24,7 +24,6 @@ namespace Emerald.Views.Settings;
 
 public sealed partial class AppearancePage : Page
 {
-
     public ObservableCollection<Color> TintColorsList { get; } = new()
     {
         Color.FromArgb(255, 255, 185, 0),
@@ -77,7 +76,6 @@ public sealed partial class AppearancePage : Page
         Color.FromArgb(255, 126, 115, 95)
     };
 
-
     private readonly Services.SettingsService SS;
     public AppearancePage()
     {
@@ -116,12 +114,10 @@ public sealed partial class AppearancePage : Page
         SS.Settings.App.Appearance.CustomMicaTintColor = c;
 
         this.Log().Info($"Selected tint color changed to: {c}");
-
     }
 
     private void CustomTintColor_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-
         var c = SS.Settings.App.Appearance.CustomMicaTintColor;
         var cp = new ColorPicker()
         {
@@ -154,7 +150,6 @@ public sealed partial class AppearancePage : Page
                 GVColorList.SelectedIndex = TintColorsList.Count - 1;
                 this.Log().Info($"Added new color: {cl}. Updated selected index: {GVColorList.SelectedIndex}");
             }
-
         };
 
         _ = d.ShowAsync();

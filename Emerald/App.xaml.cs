@@ -27,7 +27,6 @@ public partial class App : Application
         TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
     }
 
-
     public Window? MainWindow { get; private set; }
     protected IHost? Host { get; private set; }
     private void ConfigureServices(IServiceCollection services)
@@ -59,12 +58,12 @@ public partial class App : Application
         //Accounts
         services.AddSingleton<CoreX.Services.IAccountService, CoreX.Services.AccountService>();
 
-
         //Notifications
         services.AddTransient<ViewModels.NotificationListViewModel>();
 
         //ViewModels
         services.AddTransient<ViewModels.GamesPageViewModel>();
+        services.AddTransient<ViewModels.AccountsPageViewModel>();
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -106,13 +105,13 @@ public partial class App : Application
         Ioc.Default.ConfigureServices(Host.Services);
 
         SS = Ioc.Default.GetService<Services.SettingsService>();
-        this.Log().LogInformation("New Instance was created. Logs are being saved at: {logPath}",logPath);
-        var nf = Ioc.Default.GetService<CoreX.Notifications.INotificationService>(); 
-        nf.Info("test title","test content");
-        nf.Error("test error", "error", new(0, 1, 0), new Exception("test error"));
-        nf.Create("test","testprog", isIndeterminate: true);
+
         //load settings,
         SS.LoadData();
+
+        var ac = Ioc.Default.GetService<CoreX.Services.IAccountService>();
+
+        ac.InitializeAsync("dfeccda7-604a-4895-b409-9d35f1679b5d"); // Public client ID
 
         // Do not repeat app initialization when the Window already has content,
         // just ensure that the window is active
@@ -209,7 +208,6 @@ public partial class App : Application
         {
             await MessageBox.Show("AppCrash".Localize(), message, Helpers.Enums.MessageBoxButtons.Ok);
             Application.Current.Exit();
-
         }
         catch (Exception ex)
         {

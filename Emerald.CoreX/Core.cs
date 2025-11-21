@@ -20,6 +20,8 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
     public const string GamesFolderName = "EmeraldGames";
     public MinecraftLauncher Launcher { get; set; }
 
+    public event EventHandler? VersionsRefreshed;
+
     public bool IsRunning { get; set; } = false;
     public MinecraftPath? BasePath { get; private set; } = null;
     public bool IsOfflineMode { get; private set; } = false;
@@ -30,6 +32,9 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
 
     [ObservableProperty]
     private bool _initialized = false;
+
+    [ObservableProperty]
+    private bool _isRefreshing = false;
 
     public Models.GameSettings GameOptions = new();
 
@@ -50,7 +55,7 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             Directory.CreateDirectory(gamesFolder);
         }
 
-        SavedgamesWithPaths = settingsService.Get<SavedGameCollection[]>(SettingsKeys.SavedGames, [], true);
+        SavedgamesWithPaths = settingsService.Get<SavedGameCollection[]>(SettingsKeys.SavedGames, []);
 
         var collection = SavedgamesWithPaths.FirstOrDefault(x => x.BasePath == BasePath.BasePath);
         if (collection == null)
@@ -90,7 +95,7 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             list.Add(new SavedGameCollection(BasePath.BasePath, toSave));
 
             SavedgamesWithPaths = list.ToArray();
-            settingsService.Set(SettingsKeys.SavedGames, SavedgamesWithPaths, true);
+            settingsService.Set(SettingsKeys.SavedGames, SavedgamesWithPaths);
 
             _logger.LogInformation("Saved {count} games", toSave.Length);
         }
@@ -100,7 +105,6 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             throw;
         }
     }
-
 
     /// <summary>
     /// Initializes the Core with the given Minecraft path and retrieves the list of available vanilla Minecraft versions.
@@ -114,6 +118,7 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             isIndeterminate: true, 
             isCancellable: true
         );
+        IsRefreshing = true;
         try
         {
             GameOptions = settingsService.Get("BaseGameOptions", Models.GameSettings.FromMLaunchOption(new()));
@@ -136,8 +141,9 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             var l = await Launcher.GetAllVersionsAsync(not.CancellationToken.Value);
 
             VanillaVersions.Clear();
-            VanillaVersions.AddRange(l.Select(x => new Versions.Version() { Metadata = x, BasedOn = x.Name, ReleaseType = x.Type }));
+            VanillaVersions.AddRange(l.Select(x => new Versions.Version() { ReleaseTime = x.ReleaseTime.DateTime, BasedOn = x.Name, ReleaseType = x.Type }));
             IsOfflineMode = false;
+            _notify.Complete(not.Id, true);
         }
         catch (HttpRequestException)
         {
@@ -150,7 +156,16 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             _notify.Complete(not.Id, false, ex.Message, ex);
             Initialized = false;
         }
-        _logger.LogInformation("Loaded {count} vanilla versions", VanillaVersions.Count);
+        finally
+        {
+            foreach (var game in Games)
+            {
+                game.CreateMCLauncher(IsOfflineMode);
+            }
+            _logger.LogInformation("Loaded {count} vanilla versions", VanillaVersions.Count);
+            IsRefreshing = false;
+            VersionsRefreshed?.Invoke(this, new());
+        }
     }
 
     /// <summary>
@@ -165,7 +180,6 @@ public async Task InstallGame(Game game, bool showFileprog = false)
 
         try
         {
-
             _logger.LogInformation("Installing game {version}", version.BasedOn);
 
             if(game == null)
@@ -178,7 +192,8 @@ public async Task InstallGame(Game game, bool showFileprog = false)
                 isOffline: IsOfflineMode,
                 showFileProgress: showFileprog
             );
-
+            
+            SaveGames();
         }
         catch (Exception ex)
         {
@@ -194,8 +209,8 @@ public async Task InstallGame(Game game, bool showFileprog = false)
 
             var path = Path.Combine( BasePath.BasePath, GamesFolderName, version.DisplayName);
 
-
             var game = new Game(new(path), GameOptions, version);
+
 
             Games.Add(game);
             SaveGames();

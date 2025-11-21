@@ -132,7 +132,6 @@ public sealed partial class GamesPage : Page
         }
     }
 
-
     private async void OpenFolder_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem item && item.Tag is Game game)
@@ -161,7 +160,7 @@ public sealed partial class GamesPage : Page
     {
         if (sender is Button btn && btn.Tag is Game game)
         {
-            _ = ViewModel.InstallGameCommand.ExecuteAsync(game);
+            Task.Run(() => ViewModel.InstallGameCommand.ExecuteAsync(game));
         }
     }
 
@@ -170,6 +169,22 @@ public sealed partial class GamesPage : Page
         if (sender is Button btn && btn.Tag is Game game)
         {
             _ = ViewModel.LaunchGameCommand.ExecuteAsync(game);
+        }
+    }
+
+    private void RemoveGame_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem item && item.Tag is Game game)
+        {
+             ViewModel.RemoveGameCommand.Execute(game);
+        }
+        }
+
+    private void RemoveGameWFiles_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem item && item.Tag is Game game)
+        {
+            _ = ViewModel.RemoveGameWithFilesCommand.ExecuteAsync(game);
         }
     }
 }

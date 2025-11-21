@@ -40,6 +40,18 @@ public class Game
         _logger.LogInformation("Game instance created with path: {Path} and options: {Options}", path, options);
     }
 
+    public void CreateMCLauncher(bool isOffline)
+    {
+        var param = MinecraftLauncherParameters.CreateDefault(Path);
+
+        if (isOffline)
+        {
+            param.VersionLoader = new LocalJsonVersionLoader(Path);
+            _logger.LogInformation("Offline mode enabled. Using LocalJsonVersionLoader.");
+        }
+
+        Launcher = new MinecraftLauncher(param);
+    }
     /// <summary>
     /// Installs the specified Minecraft version, including downloading necessary files
     /// and handling both online and offline modes.
@@ -50,17 +62,9 @@ public class Game
     public async Task InstallVersion(bool isOffline = false, bool showFileProgress = false)
     {
         _logger.LogInformation("Starting InstallVersion with isOffline: {IsOffline}, showFileProgress: {ShowFileProgress}", isOffline, showFileProgress);
-        var param = MinecraftLauncherParameters.CreateDefault(Path);
+        CreateMCLauncher(isOffline);
 
-        if (isOffline)
-        {
-            param.VersionLoader = new LocalJsonVersionLoader(Path);
-            _logger.LogInformation("Offline mode enabled. Using LocalJsonVersionLoader.");
-        }
-
-        Launcher = new MinecraftLauncher(param);
-
-        var not = _notify.Create(
+          var not = _notify.Create(
             "Initializing Version",
             $"Initializing {Version.Type} version {Version.DisplayName}",
             0,
@@ -90,6 +94,19 @@ public class Game
 
                 return;
             }
+            if (isOffline) //checking if verison actually exists
+            {
+                var vers = await Launcher.GetAllVersionsAsync();
+                var mver = vers.Where(x => x.Name == ver).First();
+                if (mver == null)
+                {
+                    _logger.LogWarning("Version {Version} not found in offline mode. Can't proceed installation.", ver);
+                    throw new NullReferenceException($"Version {ver} not found in offline mode. Can't proceed installation.");
+                }
+            }
+
+            Version.RealVersion = ver;
+            
             if (isOffline) //checking if verison actually exists
             {
                 var vers = await Launcher.GetAllVersionsAsync();
