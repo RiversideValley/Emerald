@@ -211,7 +211,7 @@ public partial class GamesPageViewModel : ObservableObject
                 var mcPath = path != null ? new MinecraftPath(path) : new();
                 await _core.InitializeAndRefresh(mcPath);
             }
-
+            UpdateAvailableVersions();
             UpdateFilteredGames();
         }
         catch (Exception ex)

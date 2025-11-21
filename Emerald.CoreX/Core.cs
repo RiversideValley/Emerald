@@ -55,7 +55,7 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             Directory.CreateDirectory(gamesFolder);
         }
 
-        SavedgamesWithPaths = settingsService.Get<SavedGameCollection[]>(SettingsKeys.SavedGames, [], true);
+        SavedgamesWithPaths = settingsService.Get<SavedGameCollection[]>(SettingsKeys.SavedGames, []);
 
         var collection = SavedgamesWithPaths.FirstOrDefault(x => x.BasePath == BasePath.BasePath);
         if (collection == null)
@@ -95,7 +95,7 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             list.Add(new SavedGameCollection(BasePath.BasePath, toSave));
 
             SavedgamesWithPaths = list.ToArray();
-            settingsService.Set(SettingsKeys.SavedGames, SavedgamesWithPaths, true);
+            settingsService.Set(SettingsKeys.SavedGames, SavedgamesWithPaths);
 
             _logger.LogInformation("Saved {count} games", toSave.Length);
         }
@@ -143,6 +143,7 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             VanillaVersions.Clear();
             VanillaVersions.AddRange(l.Select(x => new Versions.Version() { ReleaseTime = x.ReleaseTime.DateTime, BasedOn = x.Name, ReleaseType = x.Type }));
             IsOfflineMode = false;
+            _notify.Complete(not.Id, true);
         }
         catch (HttpRequestException)
         {

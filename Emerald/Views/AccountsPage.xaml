@@ -17,23 +17,20 @@
 
     <DataTemplate x:Key="AccountItemTemplate" x:DataType="models:EAccount">
       <cn:SettingsCard Margin="0,4" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
-        <cn:SettingsCard.HeaderIcon>
-          <FontIcon Glyph="{x:Bind Type, Converter={StaticResource AccountTypeToGlyphConverter}}"/>
-        </cn:SettingsCard.HeaderIcon>
+    
 
         <cn:SettingsCard.Header>
         <StackPanel>
-          <TextBlock Text="{x:Bind Name}" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+            <TextBlock Text="{x:Bind Name}" Style="{StaticResource BodyStrongTextBlockStyle}"/>
           <TextBlock Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}">
                         <Run Text="{x:Bind Type}"/>
                         <Run Text="·"/>
                         <Run Text="Last used:"/>
-                        <Run Text="{x:Bind LastUsed, Converter={StaticResource DateTimeToFriendlyStringConverter}}"/>
+                        <Run Text="{x:Bind LastUsed}"/>
           </TextBlock>
         </StackPanel>
         </cn:SettingsCard.Header>
         <Button
-                    Style="{ThemeResource SubtleButtonStyle}"
                     ToolTipService.ToolTip="Remove Account"
                     Click="RemoveAccount_Click"
                     Tag="{x:Bind}">
@@ -100,7 +97,7 @@
                     HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,64,0,0" Spacing="12"
                     Visibility="{x:Bind ViewModel.Accounts.Count, Mode=OneWay, Converter={StaticResource CountToVis}, ConverterParameter=0}">
           <FontIcon Glyph="&#xE77B;" FontSize="48" Opacity="0.5"/>
-          <TextBlock Text="No accounts found" Style="{StaticResource SubtitleTextBlockStyle}" HorizontalAlignment="Center"/>
+          <TextBlock Text="No accounts found" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Center"/>
           <TextBlock Text="Click 'Add Account' to get started" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" HorizontalAlignment="Center"/>
         </StackPanel>
       </StackPanel>

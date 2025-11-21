@@ -7,7 +7,7 @@ public interface IBaseSettingsService
 {
     event EventHandler<string>? APINoMatch;
 
-    void Set<T>(string key, T value, bool storeInFile = false);
+    void Set<T>(string key, T value);
 
-    T Get<T>(string key, T defaultVal, bool loadFromFile = false);
+    T Get<T>(string key, T defaultVal);
 }

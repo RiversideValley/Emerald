@@ -2,8 +2,6 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System;
 using System.IO;
-using System.Threading.Tasks;
-using Windows.Storage;
 
 namespace Emerald.Services;
 
@@ -24,66 +22,49 @@ public class BaseSettingsService : IBaseSettingsService
         _logger = logger;
 
         // Use the LocalFolder path as the base folder for file-based settings
-        _settingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Emerald");
-    }
+        _settingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Emerald", "Settings");
 
-    public void Set<T>(string key, T value, bool storeInFile = false)
-    {
-        try
+        // Ensure the directory exists immediately
+        if (!Directory.Exists(_settingsFolder))
         {
-            if (storeInFile)
-            {
-                SaveToFile(key, value);
-            }
-            else
-            {
-                string json = JsonSerializer.Serialize(value, _jsonOptions);
-                ApplicationData.Current.LocalSettings.Values[key] = json;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error saving key '{Key}'", key);
-
-            // fallback: if in-memory save failed, try file once
-            if (!storeInFile)
-            {
-                try { SaveToFile(key, value); }
-                catch (Exception fileEx) { _logger.LogError(fileEx, "Fallback file save failed for '{Key}'", key); }
-            }
+            Directory.CreateDirectory(_settingsFolder);
         }
     }
 
-    public T Get<T>(string key, T defaultVal, bool loadFromFile = false)
+    public void Set<T>(string key, T value)
     {
         try
         {
-            if (loadFromFile)
-            {
-                return LoadFromFile(key, defaultVal);
-            }
-            else if (ApplicationData.Current.LocalSettings.Values.TryGetValue(key, out object? value)
-                     && value is string json
-                     && !string.IsNullOrWhiteSpace(json))
-            {
-                return JsonSerializer.Deserialize<T>(json) ?? defaultVal;
-            }
+            SaveToFile(key, value);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading key '{Key}'", key);
-
-            // fallback: if in-memory load failed, try file once
-            if (!loadFromFile)
-            {
-                try { return LoadFromFile(key, defaultVal); }
-                catch (Exception fileEx) { _logger.LogError(fileEx, "Fallback file load failed for '{Key}'", key); }
-            }
+            _logger.LogError(ex, "Error saving key '{Key}' to file.", key);
         }
+    }
 
-        // if all else fails, persist default so next time there's a valid value
-        Set(key, defaultVal, storeInFile: loadFromFile);
-        return defaultVal;
+    public T Get<T>(string key, T defaultVal)
+    {
+        try
+        {
+            return LoadFromFile(key, defaultVal);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading key '{Key}' from file.", key);
+
+            // If load fails, try to persist the default so the file is corrected for next time
+            try
+            {
+                Set(key, defaultVal);
+            }
+            catch (Exception writeEx)
+            {
+                _logger.LogError(writeEx, "Could not write default value for '{Key}' after load failure.", key);
+            }
+
+            return defaultVal;
+        }
     }
 
     private void SaveToFile<T>(string key, T value)
@@ -98,16 +79,20 @@ public class BaseSettingsService : IBaseSettingsService
         string filePath = Path.Combine(_settingsFolder, $"{key}.json");
 
         if (!File.Exists(filePath))
+        {
+            // If the file doesn't exist, create it with the default value immediately
+            Set(key, defaultVal);
             return defaultVal;
+        }
 
         try
         {
             string json = File.ReadAllText(filePath);
             return JsonSerializer.Deserialize<T>(json) ?? defaultVal;
         }
-        catch (Exception ex)
+        catch (JsonException jsonEx)
         {
-            _logger.LogError(ex, "Error reading key '{Key}' from file storage", key);
+            _logger.LogError(jsonEx, "Corrupted JSON for key '{Key}'. Returning default.", key);
             return defaultVal;
         }
     }
