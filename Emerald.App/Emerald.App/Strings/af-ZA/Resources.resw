@@ -271,7 +271,7 @@
     <value>Load Mod</value>
   </data>
   <data name="LoadSettingsFailed" xml:space="preserve">
-    <value>Failed to load the app settings accounts. The version of the setting system is different. You may have recently updated the app. Contact a developer of this app to recover the settings</value>
+    <value>Failed to load the app settings and accounts. The version of the setting system is different. You may have recently updated the app. Contact a developer of this app to recover the settings</value>
   </data>
   <data name="Login" xml:space="preserve">
     <value>Login</value>
@@ -639,5 +639,119 @@
   </data>
   <data name="GeneralSettings" xml:space="preserve">
     <value>General Settings</value>
+  </data>
+  <data name="ModsNoInternet" xml:space="preserve">
+    <value>Cannot find mods with follwing name or you may got disconnected from the internet.</value>
+  </data>
+  <data name="NewsNoInternet" xml:space="preserve">
+    <value>Cannot find news with follwing title or you may got disconnected from the internet.</value>
+  </data>
+  <data name="SettingsLoadWarn" xml:space="preserve">
+    <value>This will overwrite the current settings and restart the application. If the application failed to load the settings, the previous settings will be lost. Do you want to create a backup of this settings before load?</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="Whoops" xml:space="preserve">
+    <value>Whoops!</value>
+  </data>
+  <data name="MCPathFailed" xml:space="preserve">
+    <value>Failed to initialize Minecraft path at `{Path}`. Do you want to try again?</value>
+  </data>
+  <data name="SetDifMCPath" xml:space="preserve">
+    <value>Change Path</value>
+  </data>
+  <data name="FullScreen" xml:space="preserve">
+    <value>Full Screen</value>
+  </data>
+  <data name="Height" xml:space="preserve">
+    <value>Screen Height</value>
+  </data>
+  <data name="MCWindowsSize" xml:space="preserve">
+    <value>Minecraft Windows Size</value>
+  </data>
+  <data name="MCWindowsSizeDescription" xml:space="preserve">
+    <value>Change width, height or full screen</value>
+  </data>
+  <data name="Width" xml:space="preserve">
+    <value>Screen Width</value>
+  </data>
+  <data name="TaskIntro" xml:space="preserve">
+    <value>If you clear a running task, it won't get stopped. It'll run in the background without showing a progress.</value>
+  </data>
+  <data name="alpha" xml:space="preserve">
+    <value>Alpha</value>
+  </data>
+  <data name="beta" xml:space="preserve">
+    <value>Beta</value>
+  </data>
+  <data name="release" xml:space="preserve">
+    <value>Release</value>
+  </data>
+  <data name="DownloaderBusy" xml:space="preserve">
+    <value>The mod downloader is busy</value>
+  </data>
+  <data name="DownloadMod" xml:space="preserve">
+    <value>Download Mod</value>
+  </data>
+  <data name="Install" xml:space="preserve">
+    <value>Install</value>
+  </data>
+  <data name="CheckingUpdates" xml:space="preserve">
+    <value>Checking for updates</value>
+  </data>
+  <data name="ConnectingGithub" xml:space="preserve">
+    <value>Connecting to github</value>
+  </data>
+  <data name="Downgrade" xml:space="preserve">
+    <value>Downgrade</value>
+  </data>
+  <data name="DowngradeAvailable" xml:space="preserve">
+    <value>Downgrade Available</value>
+  </data>
+  <data name="DowngradeDescription" xml:space="preserve">
+    <value>The current version is higher than the latest version in the servers. You must be using a private beta. Please wait until a higher stable version be available</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Download Update</value>
+  </data>
+  <data name="InstallUpdate" xml:space="preserve">
+    <value>Install Update</value>
+  </data>
+  <data name="NoMsixUpdate" xml:space="preserve">
+    <value>Failed to find the installer package in the release for this architecture</value>
+  </data>
+  <data name="NoUpdates" xml:space="preserve">
+    <value>You are on the latest version</value>
+  </data>
+  <data name="NoUpdatesAvailable" xml:space="preserve">
+    <value>No Updates Available</value>
+  </data>
+  <data name="ReleaseNotes" xml:space="preserve">
+    <value>Release notes</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>Update Available</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Update now</value>
+  </data>
+  <data name="AutoDownloadUpdates" xml:space="preserve">
+    <value>Automatically download updates if available</value>
+  </data>
+  <data name="CheckForUpdatesAtStartup" xml:space="preserve">
+    <value>Check for updates when app starts</value>
+  </data>
+  <data name="CheckNow" xml:space="preserve">
+    <value>Check Now</value>
+  </data>
+  <data name="IncludePreReleases" xml:space="preserve">
+    <value>Include pre-releases</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="UpdatesDescription" xml:space="preserve">
+    <value>Auto update, include prerelease etc..</value>
   </data>
 </root>
