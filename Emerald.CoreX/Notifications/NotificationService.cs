@@ -53,7 +53,7 @@ public class NotificationService : ObservableObject, INotificationService
             notification.Progress = progress ?? notification.Progress;
             notification.IsIndeterminate = isIndeterminate ?? notification.IsIndeterminate;
 
-            _logger.LogInformation("Updated notification with ID: {Id}", id);
+            _logger.LogDebug("Updated notification with ID: {Id}", id);
         }
         else
         {
