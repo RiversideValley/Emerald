@@ -25,7 +25,7 @@ jobs:
           # == WINDOWS (WinUI 3 Unpackaged) ==
           - os: windows-latest
             platform: windows
-            target_framework: 'net9.0-windows10.0.26100' 
+            target_framework: 'net10.0-windows10.0.26100' 
             project_path: './Emerald/Emerald.csproj'
             publish_output: 'Emerald_Windows'
             artifact_name: 'Emerald-Windows-Release'
@@ -33,7 +33,7 @@ jobs:
           # == MACOS (Skia Desktop) ==
           - os: macos-latest
             platform: macos
-            target_framework: 'net9.0-desktop' 
+            target_framework: 'net10.0-desktop' 
             project_path: './Emerald/Emerald.csproj'
             publish_output: 'Emerald_macOS'
             artifact_name: 'Emerald-macOS-Release'
@@ -41,7 +41,7 @@ jobs:
           # == LINUX (Skia Gtk) ==
           - os: ubuntu-latest
             platform: linux
-            target_framework: 'net9.0-desktop' 
+            target_framework: 'net10.0-desktop' 
             project_path: './Emerald/Emerald.csproj'
             publish_output: 'Emerald_Linux'
             artifact_name: 'Emerald-Linux-Release'
