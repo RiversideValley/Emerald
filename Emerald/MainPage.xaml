@@ -21,7 +21,8 @@
         ItemInvoked="navView_ItemInvoked"
                 x:Name="NavView"
                 Margin="0,48,0,0"
-                AlwaysShowHeader="True"
+                AlwaysShowHeader="False"
+        
                 IsBackButtonVisible="Collapsed"
                 IsPaneToggleButtonVisible="False"
                 IsSettingsVisible="False"

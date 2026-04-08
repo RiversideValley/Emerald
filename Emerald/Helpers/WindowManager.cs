@@ -12,7 +12,6 @@ using WinRT.Interop;
 using Windows.Win32;
 using Windows.Win32.UI.WindowsAndMessaging;
 using Windows.Win32.Foundation;
-using Uno.UI.Xaml;
 
 namespace Emerald.Helpers;
 
