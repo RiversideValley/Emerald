@@ -1,4 +1,5 @@
 using System.Security.Cryptography.X509Certificates;
+using Windows.ApplicationModel.Core;
 using CommonServiceLocator;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Helpers;
@@ -11,6 +12,7 @@ using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 using Windows.UI;
+using Emerald.CoreX.Versions;
 
 namespace Emerald;
 
@@ -147,8 +149,7 @@ public sealed partial class MainPage : Page
     }
     private void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
-        if (OperatingSystem.IsWindows())
-            Emerald.Helpers.WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
+        Emerald.Helpers.WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
 
         InitializeAppearance();
         InitializeNavView();
@@ -194,7 +195,7 @@ public sealed partial class MainPage : Page
         (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
     }
 
-    private void NavigateOnce(Type type)
+    private void NavigateOnce(System.Type type)
     {
         if (frame.Content == null || frame.Content.GetType() != type)
         {

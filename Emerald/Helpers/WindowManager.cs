@@ -59,41 +59,12 @@ public static class WindowManager
     /// <exception cref="NullReferenceException"/>
     public static void SetTitleBar(Window window, UIElement AppTitleBar)
     {
-        FrameworkElement RootUI = (FrameworkElement)window.Content;
-        if (AppWindowTitleBar.IsCustomizationSupported())
-        {
-            var titlebar = window.AppWindow.TitleBar;
-            titlebar.ExtendsContentIntoTitleBar = true;
+            var titleBar = window.AppWindow.TitleBar;
+            titleBar.ExtendsContentIntoTitleBar = true;
+            titleBar.ButtonBackgroundColor = Colors.Transparent;
+            titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
 
-            void SetColor(ElementTheme acualTheme)
-            {
-                titlebar.ButtonBackgroundColor = titlebar.ButtonInactiveBackgroundColor = titlebar.ButtonPressedBackgroundColor = Colors.Transparent;
-                switch (acualTheme)
-                {
-                    case ElementTheme.Dark:
-                        titlebar.ButtonHoverBackgroundColor = Colors.Black;
-                        titlebar.ButtonForegroundColor = Colors.White;
-                        titlebar.ButtonHoverForegroundColor = Colors.White;
-                        titlebar.ButtonPressedForegroundColor = Colors.Silver;
-                        break;
-                    case ElementTheme.Light:
-                        titlebar.ButtonHoverBackgroundColor = Colors.White;
-                        titlebar.ButtonForegroundColor = Colors.Black;
-                        titlebar.ButtonHoverForegroundColor = Colors.Black;
-                        titlebar.ButtonPressedForegroundColor = Colors.DarkGray;
-                        break;
-                }
-            }
-
-            RootUI.ActualThemeChanged += (s, _) => SetColor(s.ActualTheme);
-            window.SetTitleBar(AppTitleBar);
-            SetColor(RootUI.ActualTheme);
-        }
-        else
-        {
-            window.ExtendsContentIntoTitleBar = true;
-            window.SetTitleBar(AppTitleBar);
-        }
+        
     }
 }
 

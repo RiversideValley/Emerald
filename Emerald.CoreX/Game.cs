@@ -120,33 +120,34 @@ public class Game
 
             (string Files, string bytes, double prog) prog = (string.Empty, string.Empty, 0);
 
+            void UpdateProg()
+            {
+                string msg = prog.Files;
+                if (!string.IsNullOrWhiteSpace(prog.bytes))
+                    msg += " | " + prog.bytes;
+                _notify.Update(
+                    not.Id,
+                    message: msg,
+                    progress: prog.prog,
+                    isIndeterminate: false
+                );
+            }
             await Launcher.InstallAsync(
                 ver,
                 showFileProgress ?
                 new Progress<InstallerProgressChangedEventArgs>(e =>
                 {
-                    prog.Files = $"({e.ProgressedTasks}/{e.TotalTasks}) {e.Name}. \n";
+                    prog.Files = $"{e.Name} \n({e.ProgressedTasks}/{e.TotalTasks})";
                     
-                    prog.prog = Math.Round((double)e.ProgressedTasks / e.TotalTasks * 100, 2);
-
-                    _notify.Update(
-                        not.Id,
-                        message: prog.Files + prog.bytes,
-                        progress: prog.prog,
-                        isIndeterminate: false
-                    );
+                    prog.prog = Math.Round((double)e.ProgressedTasks / e.TotalTasks * 100, 2); 
+                    UpdateProg();
                 }) : null,
                 new Progress<ByteProgress>(e =>
                 {
                     prog.bytes = $"{Math.Round((e.ProgressedBytes * Math.Pow(10, -6)), 0)} MB/{Math.Round((e.TotalBytes * Math.Pow(10, -6)), 0)} MB";
-                    
-                    _notify.Update(
-                        not.Id,
-                        message: prog.Files + prog.bytes,
-                        progress: prog.prog,
-                        isIndeterminate: false
-                    );
+                    UpdateProg();
                 }),
+                
                 not.CancellationToken.Value);
 
             _logger.LogInformation("Version {VersionType} {VersionDisplayName} installation completed successfully.", Version.Type, Version.DisplayName);

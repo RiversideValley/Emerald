@@ -10,7 +10,6 @@ using CmlLib.Core.ProcessBuilder;
 using Emerald.CoreX.Helpers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Runtime.Serialization;
-
 namespace Emerald.CoreX.Models;
 public partial class GameSettings : ObservableObject
 {
@@ -89,7 +88,8 @@ public partial class GameSettings : ObservableObject
             ServerIp = _serverIp,
             ServerPort = _serverPort
         };
-        var args = JVMArgs.Select(x => new MArgument(x));
+        var args = MLaunchOption.DefaultExtraJvmArguments.ToList();
+         args.AddRange(JVMArgs.Select(x => new MArgument(x)));
         opt.ExtraJvmArguments = args.ToArray();
         return opt;
     }
@@ -115,7 +115,10 @@ public partial class GameSettings : ObservableObject
         game.JVMArgs.Clear();
         foreach (var arg in option.ExtraJvmArguments)
         {
-            game.JVMArgs.Add(arg.Values.FirstOrDefault());
+            if(MLaunchOption.DefaultExtraJvmArguments.Contains(arg))
+                continue;
+            
+            game.JVMArgs.AddRange(arg.Values.ToArray());
         }
 
         return game;
