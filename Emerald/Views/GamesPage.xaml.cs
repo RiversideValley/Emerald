@@ -12,6 +12,7 @@ using Path = System.IO.Path;
 using System.IO;
 using Emerald.UserControls;
 using Emerald.Helpers;
+using Microsoft.UI.Xaml.Media.Animation;
 
 namespace Emerald.Views;
 
@@ -170,6 +171,38 @@ public sealed partial class GamesPage : Page
         {
             _ = ViewModel.LaunchGameCommand.ExecuteAsync(game);
         }
+    }
+
+    private void StopGame_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is Game game)
+        {
+            _ = ViewModel.StopGameCommand.ExecuteAsync(game);
+        }
+    }
+
+    private void ForceStopGame_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem item && item.Tag is Game game)
+        {
+            _ = ViewModel.ForceStopGameCommand.ExecuteAsync(game);
+        }
+    }
+
+    private void ViewLogs_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not Game game)
+        {
+            return;
+        }
+
+        if (App.Current.MainWindow.Content is Frame rootFrame && rootFrame.Content is MainPage mainPage)
+        {
+            mainPage.NavigateToTag("Logs", game.Path.BasePath);
+            return;
+        }
+
+        Frame?.Navigate(typeof(LogsPage), game.Path.BasePath, new EntranceNavigationTransitionInfo());
     }
 
     private void RemoveGame_Click(object sender, RoutedEventArgs e)

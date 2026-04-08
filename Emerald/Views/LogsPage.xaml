@@ -1,0 +1,274 @@
+<Page
+    x:Class="Emerald.Views.LogsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:conv="using:Emerald.Helpers.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:runtime="using:Emerald.CoreX.Runtime"
+    xmlns:helpers="using:Emerald.Helpers"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+  <Page.Resources>
+    <conv:BoolToVisibility x:Key="BoolToVis" />
+    <conv:BoolToVisibility x:Key="InverseBoolToVis" Reversed="True" />
+    <conv:GameLogLevelToBrushConverter
+      x:Key="GameLogLevelToBrushConverter"
+      DebugBrush="{StaticResource SystemFillColorAttentionBrush}"
+      ErrorBrush="{StaticResource SystemFillColorCriticalBrush}"
+      FatalBrush="{StaticResource SystemFillColorCriticalBrush}"
+      InfoBrush="{StaticResource SystemFillColorSolidNeutralBrush}"
+      TraceBrush="{StaticResource SystemFillColorBaseMediumBrush}"
+      UnknownBrush="{StaticResource SystemFillColorBaseMediumBrush}"
+      WarningBrush="{StaticResource SystemFillColorCautionBrush}" />
+
+    <DataTemplate x:Key="SessionItemTemplate" x:DataType="runtime:GameSession">
+      <Border
+        Margin="0,0,0,8"
+        Padding="12"
+        CornerRadius="10"
+        BorderThickness="1"
+        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+        <StackPanel Spacing="4">
+          <TextBlock
+            Style="{StaticResource BodyStrongTextBlockStyle}"
+            Text="{x:Bind DisplayName}" />
+          <TextBlock
+            Opacity="0.7"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            Text="{x:Bind VersionText}" />
+          <TextBlock
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            Text="{x:Bind StatusText}" />
+          <TextBlock
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            MaxLines="2"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            Text="{x:Bind LastMessagePreview}" />
+        </StackPanel>
+      </Border>
+    </DataTemplate>
+
+    <DataTemplate x:Key="LogEntryTemplate" x:DataType="runtime:GameLogEntry">
+      <Border
+        Margin="0,0,0,4"
+        Padding="8,6"
+        CornerRadius="8"
+        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+        BorderThickness="1">
+        <Grid ColumnSpacing="12">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="72" />
+            <ColumnDefinition Width="60" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+
+          <TextBlock
+            Grid.Column="0"
+            FontFamily="Cascadia Mono"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            Text="{x:Bind TimestampText}"
+            Visibility="{x:Bind IsContinuation, Converter={StaticResource InverseBoolToVis}}" />
+
+          <TextBlock
+            Grid.Column="1"
+            FontFamily="Cascadia Mono"
+            FontWeight="SemiBold"
+            Foreground="{x:Bind Level, Converter={StaticResource GameLogLevelToBrushConverter}}"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            Text="{x:Bind LevelText}"
+            Visibility="{x:Bind IsContinuation, Converter={StaticResource InverseBoolToVis}}" />
+
+          <TextBlock
+            Grid.Column="1"
+            FontFamily="Cascadia Mono"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            Text="..."
+            Visibility="{x:Bind IsContinuation, Converter={StaticResource BoolToVis}}" />
+
+          <StackPanel Grid.Column="2" Spacing="2">
+            <TextBlock
+              FontFamily="Cascadia Mono"
+              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+              Style="{StaticResource CaptionTextBlockStyle}"
+              Text="{x:Bind MetadataText}" />
+            <TextBlock
+              FontFamily="Cascadia Mono"
+              Text="{x:Bind Message}"
+              TextWrapping="WrapWholeWords" />
+          </StackPanel>
+        </Grid>
+      </Border>
+    </DataTemplate>
+  </Page.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <Grid Grid.Row="0" Padding="24,24,24,12">
+      <StackPanel>
+        <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Logs" />
+        <TextBlock
+          Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+          Style="{StaticResource CaptionTextBlockStyle}"
+          Text="Live runtime state and Minecraft logs for launched game sessions." />
+      </StackPanel>
+    </Grid>
+
+    <Grid Grid.Row="1" Margin="24,0,24,24">
+      <Grid
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Visibility="{x:Bind ViewModel.HasSessions, Converter={StaticResource InverseBoolToVis}}">
+        <StackPanel HorizontalAlignment="Center" Spacing="12">
+          <FontIcon FontSize="48" Glyph="&#xE756;" Opacity="0.5" />
+          <TextBlock
+            HorizontalAlignment="Center"
+            Style="{StaticResource SubtitleTextBlockStyle}"
+            Text="No sessions yet" />
+          <TextBlock
+            HorizontalAlignment="Center"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            Text="Launch a game from the Games page to stream its logs here." />
+        </StackPanel>
+      </Grid>
+
+      <Grid Visibility="{x:Bind ViewModel.HasSessions, Converter={StaticResource BoolToVis}}">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="320" />
+          <ColumnDefinition Width="16" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border
+          Grid.Column="0"
+          Padding="12"
+          CornerRadius="12"
+          Background="{ThemeResource LayerFillColorDefaultBrush}"
+          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+          BorderThickness="1">
+          <ListView
+            x:Name="SessionListView"
+            ItemTemplate="{StaticResource SessionItemTemplate}"
+            ItemsSource="{x:Bind ViewModel.Sessions, Mode=OneWay}"
+            SelectedItem="{x:Bind ViewModel.SelectedSession, Mode=TwoWay}"
+            SelectionMode="Single" />
+        </Border>
+
+        <Border
+          Grid.Column="2"
+          Padding="16"
+          CornerRadius="12"
+          Background="{ThemeResource LayerFillColorDefaultBrush}"
+          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+          BorderThickness="1">
+          <Grid RowSpacing="12">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Spacing="4">
+              <TextBlock
+                Style="{StaticResource SubtitleTextBlockStyle}"
+                Text="{x:Bind ViewModel.SelectedSessionTitle, Mode=OneWay}" />
+              <TextBlock
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Text="{x:Bind ViewModel.SelectedSessionStatusText, Mode=OneWay}" />
+              <TextBlock
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Text="{x:Bind ViewModel.SelectedCaptureModeText, Mode=OneWay}" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Spacing="12">
+              <Border
+                Padding="12"
+                CornerRadius="10"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                Visibility="{x:Bind ViewModel.HasSelectedSession, Converter={StaticResource BoolToVis}}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button
+                    Command="{x:Bind ViewModel.StopSelectedSessionCommand}"
+                    Content="Stop"
+                    IsEnabled="{x:Bind ViewModel.CanStopSelectedSession}" />
+                  <Button
+                    Command="{x:Bind ViewModel.ForceStopSelectedSessionCommand}"
+                    Content="Force Stop"
+                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                    IsEnabled="{x:Bind ViewModel.CanForceStopSelectedSession}" />
+                  <Button
+                    Click="CopyLogs_Click"
+                    Content="Copy Logs"
+                    IsEnabled="{x:Bind ViewModel.HasSelectedSession}" />
+                  <Button
+                    Click="OpenLogsFolder_Click"
+                    Content="Open Log Folder"
+                    IsEnabled="{x:Bind ViewModel.HasSelectedSession}" />
+                  <ToggleSwitch
+                    Header="Auto-scroll"
+                    IsOn="{x:Bind ViewModel.AutoScroll, Mode=TwoWay}"
+                    OffContent="Off"
+                    OnContent="On" />
+                </StackPanel>
+              </Border>
+
+              <Border
+                Padding="12"
+                CornerRadius="10"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                Visibility="{x:Bind ViewModel.HasLogCaptureNotice, Converter={StaticResource BoolToVis}}">
+                <TextBlock
+                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                  Text="{x:Bind ViewModel.LogCaptureNotice, Mode=OneWay}"
+                  TextWrapping="WrapWholeWords" />
+              </Border>
+            </StackPanel>
+
+            <Grid Grid.Row="2">
+              <Grid
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Visibility="{x:Bind ViewModel.HasSelectedEntries, Converter={StaticResource InverseBoolToVis}}">
+                <StackPanel HorizontalAlignment="Center" Spacing="12">
+                  <FontIcon FontSize="40" Glyph="&#xE756;" Opacity="0.5" />
+                  <TextBlock
+                    HorizontalAlignment="Center"
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Text="No log lines yet" />
+                  <TextBlock
+                    HorizontalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="Logs will appear here as the game writes to stdout or latest.log." />
+                </StackPanel>
+              </Grid>
+
+              <ListView
+                x:Name="LogEntriesListView"
+                ItemTemplate="{StaticResource LogEntryTemplate}"
+                ItemsSource="{x:Bind ViewModel.SelectedEntries, Mode=OneWay}"
+                SelectionMode="None"
+                Visibility="{x:Bind ViewModel.HasSelectedEntries, Converter={StaticResource BoolToVis}}" />
+            </Grid>
+          </Grid>
+        </Border>
+      </Grid>
+    </Grid>
+  </Grid>
+</Page>

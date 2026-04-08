@@ -7,9 +7,11 @@ using CmlLib.Core.VersionLoader;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using CmlLib.Core.ProcessBuilder;
 using System.Diagnostics;
+using CommunityToolkit.Mvvm.ComponentModel;
+using Emerald.CoreX.Runtime;
 namespace Emerald.CoreX;
 
-public class Game
+public partial class Game : ObservableObject
 {
     public static Game FromTuple((string Path, Versions.Version version, Models.GameSettings Options) t)
         => new(new MinecraftPath(t.Path), t.Options, t.version);
@@ -24,6 +26,52 @@ public class Game
     public MinecraftPath Path { get; set; }
 
     public Models.GameSettings Options { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanLaunch))]
+    [NotifyPropertyChangedFor(nameof(CanStop))]
+    [NotifyPropertyChangedFor(nameof(CanModify))]
+    [NotifyPropertyChangedFor(nameof(RuntimeStatusText))]
+    private GameRunState _runState = GameRunState.Idle;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanLaunch))]
+    [NotifyPropertyChangedFor(nameof(CanStop))]
+    [NotifyPropertyChangedFor(nameof(CanModify))]
+    [NotifyPropertyChangedFor(nameof(RuntimeStatusText))]
+    private bool _hasActiveSession;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RuntimeStatusText))]
+    private int? _activeProcessId;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RuntimeStatusText))]
+    private int? _lastExitCode;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RuntimeStatusText))]
+    private DateTimeOffset? _lastRunEndedAt;
+
+    public bool CanLaunch => !HasActiveSession;
+
+    public bool CanStop => HasActiveSession;
+
+    public bool CanModify => !HasActiveSession;
+
+    public string RuntimeStatusText => RunState switch
+    {
+        GameRunState.Launching => "Launching",
+        GameRunState.Running => ActiveProcessId is int pid ? $"Running • PID {pid}" : "Running",
+        GameRunState.Stopping => "Stopping",
+        GameRunState.Failed => LastExitCode is int failedCode ? $"Last run failed • exit {failedCode}" : "Last run failed",
+        GameRunState.Exited => LastExitCode is int exitCode
+            ? $"Last exit • code {exitCode}"
+            : LastRunEndedAt is DateTimeOffset endedAt
+                ? $"Last run ended • {endedAt.ToLocalTime():g}"
+                : "Last run ended",
+        _ => "Ready"
+    };
 
     /// <summary>
     /// Represents a Game instance, responsible for managing the installation, configuration,

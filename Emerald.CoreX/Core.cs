@@ -7,6 +7,7 @@ using CmlLib.Core.VersionMetadata;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Notifications;
+using Emerald.CoreX.Runtime;
 using Emerald.Services;
 using Microsoft.Extensions.Logging;
 namespace Emerald.CoreX;
@@ -15,7 +16,7 @@ public record SavedGame(string Path, Versions.Version Version, Models.GameSettin
 
 public record SavedGameCollection(string BasePath, SavedGame[] Games);
 
-public partial class Core(ILogger<Core> _logger, INotificationService _notify, IBaseSettingsService settingsService) : ObservableObject
+public partial class Core(ILogger<Core> _logger, INotificationService _notify, IBaseSettingsService settingsService, IGameRuntimeService runtimeService) : ObservableObject
 {
     public const string GamesFolderName = "EmeraldGames";
     public MinecraftLauncher Launcher { get; set; }
@@ -241,6 +242,14 @@ public async Task InstallGame(Game game, bool showFileprog = false)
                 _logger.LogWarning("Game {version} not found in collection", game.Version.BasedOn);
                 throw new NullReferenceException($"Game {game.Version.BasedOn} not found in collection");
             }
+
+            if (runtimeService.TryGetActiveSession(game) != null)
+            {
+                _logger.LogWarning("Refusing to remove running game {version}", game.Version.BasedOn);
+                _notify.Warning("GameStillRunning", $"{game.Version.DisplayName} is still running. Stop it before removing the game.");
+                return;
+            }
+
             Games.Remove(game);
             SaveGames();
 

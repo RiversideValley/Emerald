@@ -174,32 +174,56 @@ public sealed partial class MainPage : Page
         Navigate(NavView.SelectedItem as SquareNavigationViewItem);
     }
 
-    private void Navigate(SquareNavigationViewItem itm)
+    public void NavigateToTag(string tag, object? parameter = null)
     {
+        var items = NavView.MenuItems.Cast<object>().Concat(NavView.FooterMenuItems.Cast<object>());
+        var target = items
+            .OfType<SquareNavigationViewItem>()
+            .FirstOrDefault(item => string.Equals(item.Tag as string, tag, StringComparison.OrdinalIgnoreCase));
+
+        if (target == null)
+        {
+            return;
+        }
+
+        NavView.SelectedItem = target;
+        Navigate(target, parameter);
+    }
+
+    private void Navigate(SquareNavigationViewItem itm, object? parameter = null)
+    {
+        if (itm == null)
+        {
+            return;
+        }
+
         switch (itm.Tag)
         {
             case "Tasks":
                 frame.Content = new Page { Content = new UserControls.NotificationListControl() };
                 break;
             case "Home":
-                NavigateOnce(typeof(GamesPage));
+                NavigateOnce(typeof(GamesPage), parameter);
                 break;
             case "Accounts":
-                NavigateOnce(typeof(AccountsPage));
+                NavigateOnce(typeof(AccountsPage), parameter);
+                break;
+            case "Logs":
+                NavigateOnce(typeof(LogsPage), parameter, forceNavigate: parameter != null);
                 break;
             default:
-                NavigateOnce(typeof(SettingsPage));
+                NavigateOnce(typeof(SettingsPage), parameter);
                 break;
         }
         (NavView.Header as NavViewHeader).HeaderText = itm.Tag == "Tasks" ? (NavView.Header as NavViewHeader).HeaderText : itm.Name;
         (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
     }
 
-    private void NavigateOnce(System.Type type)
+    private void NavigateOnce(System.Type type, object? parameter = null, bool forceNavigate = false)
     {
-        if (frame.Content == null || frame.Content.GetType() != type)
+        if (forceNavigate || frame.Content == null || frame.Content.GetType() != type)
         {
-            frame.Navigate(type, null, new EntranceNavigationTransitionInfo());
+            frame.Navigate(type, parameter, new EntranceNavigationTransitionInfo());
         }
     }
 }

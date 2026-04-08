@@ -39,6 +39,10 @@
                             <Run Text="{x:Bind Version.BasedOn}" />
                             <Run Text="{x:Bind Version.ModVersion}" />
             </TextBlock>
+            <TextBlock
+              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+              Style="{StaticResource CaptionTextBlockStyle}"
+              Text="{x:Bind RuntimeStatusText}" />
           </StackPanel>
         </cn:SettingsCard.Header>
         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -46,16 +50,37 @@
                         x:Name="LaunchGame"
                         Click="LaunchGame_Click"
                         Content="{helpers:FontIcon Glyph=&#xE768;}"
+                        IsEnabled="{x:Bind CanLaunch}"
                         Tag="{x:Bind}"
                         ToolTipService.ToolTip="Launch" />
           <Button
+                        Click="StopGame_Click"
+                        Content="{helpers:FontIcon Glyph=&#xE71A;}"
+                        Tag="{x:Bind}"
+                        ToolTipService.ToolTip="Stop"
+                        Visibility="{x:Bind CanStop, Converter={StaticResource BoolToVis}}" />
+          <Button
                         Click="InstallGame_Click"
                         Content="{helpers:FontIcon Glyph=&#xE896;}"
+                        IsEnabled="{x:Bind CanModify}"
                         Tag="{x:Bind}"
                         ToolTipService.ToolTip="Install/Update" />
           <DropDownButton Content="{helpers:FontIcon Glyph=&#xE712;}" ToolTipService.ToolTip="More Options">
             <DropDownButton.Flyout>
               <MenuFlyout Placement="Bottom">
+                <MenuFlyoutItem
+                                    Click="ViewLogs_Click"
+                                    Icon="{helpers:FontIcon Glyph=&#xE756;}"
+                                    Tag="{x:Bind}"
+                                    Text="View Logs" />
+                <MenuFlyoutItem
+                                    Click="ForceStopGame_Click"
+                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                    Icon="{helpers:FontIcon Glyph=&#xE711;}"
+                                    Tag="{x:Bind}"
+                                    Text="Force Stop"
+                                    Visibility="{x:Bind HasActiveSession, Converter={StaticResource BoolToVis}}" />
+                <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                                     Click="ManageSettings_Click"
                                     Icon="{helpers:FontIcon Glyph=&#xE713;}"
@@ -71,11 +96,13 @@
                 <MenuFlyoutItem
                   Click="RemoveGame_Click"
                                     Tag="{x:Bind}"
+                                    IsEnabled="{x:Bind CanModify}"
                                     Icon="{helpers:FontIcon Glyph=&#xE74D;}"
                                     Text="Remove" />
                 <MenuFlyoutItem
                                     Tag="{x:Bind}"
                   Click="RemoveGameWFiles_Click"
+                                    IsEnabled="{x:Bind CanModify}"
                                     Foreground="{ThemeResource SystemFillColorCriticalBrush}"
                                     Icon="{helpers:FontIcon Glyph=&#xE74D;}"
                                     Text="Remove with Files" />

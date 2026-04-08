@@ -4,11 +4,13 @@ using CommonServiceLocator;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Notifications;
+using Emerald.CoreX.Runtime;
 using Emerald.CoreX.Store.Modrinth;
 using Emerald.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Sinks.File;
+using Microsoft.UI.Dispatching;
 using Uno.Resizetizer;
 
 namespace Emerald;
@@ -56,6 +58,7 @@ public partial class App : Application
         //Settings
         services.AddSingleton<Services.SettingsService>();
         services.AddSingleton<Services.IBaseSettingsService, Services.BaseSettingsService>();
+        services.AddSingleton<CoreX.Runtime.IGameRuntimeSettings, Services.GameRuntimeSettingsAdapter>();
 
         //Notifications
         services.AddSingleton<CoreX.Notifications.INotificationService>(provider =>
@@ -75,6 +78,19 @@ public partial class App : Application
 
         services.AddTransient<CoreX.Installers.ModLoaderRouter>();
 
+        services.AddSingleton<CoreX.Runtime.IGameRuntimeService>(provider =>
+        {
+            var logger = provider.GetRequiredService<ILogger<GameRuntimeService>>();
+            var notificationService = provider.GetRequiredService<CoreX.Notifications.INotificationService>();
+            var accountService = provider.GetRequiredService<CoreX.Services.IAccountService>();
+            var runtimeSettings = provider.GetRequiredService<CoreX.Runtime.IGameRuntimeSettings>();
+            var dispatcherQueue = MainWindow?.DispatcherQueue
+                ?? DispatcherQueue.GetForCurrentThread()
+                ?? throw new InvalidOperationException("A DispatcherQueue is required for the game runtime service.");
+
+            return new GameRuntimeService(logger, notificationService, accountService, runtimeSettings, dispatcherQueue);
+        });
+
         //Core
         services.AddSingleton<CoreX.Core>();
         //Accounts
@@ -83,6 +99,7 @@ public partial class App : Application
         //ViewModels
         services.AddTransient<ViewModels.GamesPageViewModel>();
         services.AddTransient<ViewModels.AccountsPageViewModel>();
+        services.AddTransient<ViewModels.LogsPageViewModel>();
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)

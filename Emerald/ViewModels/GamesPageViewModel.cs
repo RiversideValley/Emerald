@@ -10,7 +10,7 @@ using Emerald.CoreX;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Installers;
 using Emerald.CoreX.Notifications;
-using Emerald.CoreX.Services;
+using Emerald.CoreX.Runtime;
 using Emerald.CoreX.Versions;
 using Emerald.Services;
 using Microsoft.Extensions.Logging;
@@ -22,9 +22,9 @@ public partial class GamesPageViewModel : ObservableObject
     private readonly Core _core;
     private readonly ILogger<GamesPageViewModel> _logger;
     private readonly INotificationService _notificationService;
-    private readonly IAccountService _accountService;
     private readonly SettingsService _settingsService;
     private readonly ModLoaderRouter _modLoaderRouter;
+    private readonly IGameRuntimeService _gameRuntimeService;
 
     [ObservableProperty]
     private ObservableCollection<Game> _games;
@@ -96,14 +96,20 @@ public partial class GamesPageViewModel : ObservableObject
         }
     }
 
-    public GamesPageViewModel(Core core, ILogger<GamesPageViewModel> logger, INotificationService notificationService, IAccountService accountService, ModLoaderRouter modLoaderRouter, SettingsService settingsService)
+    public GamesPageViewModel(
+        Core core,
+        ILogger<GamesPageViewModel> logger,
+        INotificationService notificationService,
+        ModLoaderRouter modLoaderRouter,
+        SettingsService settingsService,
+        IGameRuntimeService gameRuntimeService)
     {
         _core = core;
         _logger = logger;
         _notificationService = notificationService;
-        _accountService = accountService;
         _modLoaderRouter = modLoaderRouter;
         _settingsService = settingsService;
+        _gameRuntimeService = gameRuntimeService;
         Games = _core.Games;
         FilteredGames = new ObservableCollection<Game>(Games);
         AvailableVersions = new ObservableCollection<CoreX.Versions.Version>();
@@ -340,21 +346,46 @@ public partial class GamesPageViewModel : ObservableObject
         try
         {
             _logger.LogInformation("Launching game: {Name}", game.Version.DisplayName);
-            var account = _accountService.GetMostRecentlyUsedAccount();
-            if (account == null)
-            {
-                _notificationService.Warning("NoAccount", "Please sign in to an account first");
-                return;
-            }
-            var session = await _accountService.AuthenticateAccountAsync(account);
-            var process = await game.BuildProcess(game.Version.RealVersion, session);
-            process.Start();
-            _notificationService.Info("GameLaunched", $"Launched {game.Version.DisplayName}");
+            await _gameRuntimeService.LaunchAsync(game);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to launch game");
             _notificationService.Error("LaunchError", $"Failed to launch {game.Version.DisplayName}", ex: ex);
+        }
+    }
+
+    [RelayCommand]
+    private async Task StopGameAsync(Game? game)
+    {
+        if (game == null) return;
+
+        try
+        {
+            _logger.LogInformation("Stopping game: {Name}", game.Version.DisplayName);
+            await _gameRuntimeService.StopAsync(game, GameStopMode.Gentle);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to stop game");
+            _notificationService.Error("StopError", $"Failed to stop {game.Version.DisplayName}", ex: ex);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ForceStopGameAsync(Game? game)
+    {
+        if (game == null) return;
+
+        try
+        {
+            _logger.LogInformation("Force stopping game: {Name}", game.Version.DisplayName);
+            await _gameRuntimeService.StopAsync(game, GameStopMode.Force);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to force stop game");
+            _notificationService.Error("StopError", $"Failed to stop {game.Version.DisplayName}", ex: ex);
         }
     }
 
