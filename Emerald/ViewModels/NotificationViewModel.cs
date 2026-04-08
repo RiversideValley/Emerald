@@ -35,9 +35,13 @@ public class NotificationViewModel : ObservableObject, IDisposable
         DismissCommand = new RelayCommand(OnDismiss);
         ViewErrorCommand = new RelayCommand(OnViewError, () => Type == NotificationType.Error && Exception != null);
 
-        _model.PropertyChanged += (_, __) => OnModelChanged();
+        _model.PropertyChanged += (_, __) => PropChanged();
     }
-
+    private void PropChanged()
+    {
+        OnPropertyChanged(); 
+        OnModelChanged();
+    }
     private void OnCancel()
     {
         _service.Cancel(_model.Id);
@@ -61,6 +65,6 @@ public class NotificationViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
-        _model.PropertyChanged -= (_, __) => OnModelChanged();
+        _model.PropertyChanged -= (_, __) => PropChanged();
     }
 }

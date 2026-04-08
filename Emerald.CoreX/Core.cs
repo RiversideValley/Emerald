@@ -63,7 +63,7 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             _logger.LogInformation("Saved games paths does not contain any games");
             return;
         }
-
+        Games.Clear();
         foreach (var sg in collection.Games)
         {
             try

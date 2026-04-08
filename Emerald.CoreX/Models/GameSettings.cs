@@ -89,8 +89,7 @@ public partial class GameSettings : ObservableObject
             ServerIp = _serverIp,
             ServerPort = _serverPort
         };
-        var args = opt.ExtraJvmArguments.ToList();
-        args.AddRange(JVMArgs.Select(x => new MArgument(x)));
+        var args = JVMArgs.Select(x => new MArgument(x));
         opt.ExtraJvmArguments = args.ToArray();
         return opt;
     }
@@ -116,7 +115,7 @@ public partial class GameSettings : ObservableObject
         game.JVMArgs.Clear();
         foreach (var arg in option.ExtraJvmArguments)
         {
-            game.JVMArgs.Add(arg.ToString());
+            game.JVMArgs.Add(arg.Values.FirstOrDefault());
         }
 
         return game;

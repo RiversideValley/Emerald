@@ -60,7 +60,7 @@ public class BaseSettingsService : IBaseSettingsService
             }
             catch (Exception writeEx)
             {
-                _logger.LogError(writeEx, "Could not write default value for '{Key}' after load failure.", key);
+                _logger.LogCritical(writeEx, "Could not write default value for '{Key}' after load failure.", key);
             }
 
             return defaultVal;

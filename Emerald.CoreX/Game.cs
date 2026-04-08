@@ -125,7 +125,8 @@ public class Game
                 showFileProgress ?
                 new Progress<InstallerProgressChangedEventArgs>(e =>
                 {
-                    prog.Files = $"{e.Name} ({e.ProgressedTasks}/{e.TotalTasks}). ";
+                    prog.Files = $"({e.ProgressedTasks}/{e.TotalTasks}) {e.Name}. \n ";
+                prog.prog = e.ProgressedTasks/e.TotalTasks * 100;
 
                     _notify.Update(
                         not.Id,
@@ -136,8 +137,8 @@ public class Game
                 }) : null,
                 new Progress<ByteProgress>(e =>
                 {
-                    prog.bytes = $"{e.ProgressedBytes * Math.Pow(10, -6)} MB/{e.TotalBytes * Math.Pow(10, -6)} MB";
-
+                    prog.bytes = $"{Math.Round((e.ProgressedBytes * Math.Pow(10, -6)), 0)} MB/{Math.Round((e.TotalBytes * Math.Pow(10, -6)), 0)} MB";
+                    
                     _notify.Update(
                         not.Id,
                         message: prog.Files + prog.bytes,

@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Helpers;
 
 namespace Emerald;
+
 public partial class App : Application
 {
     private Services.SettingsService SS;
@@ -22,6 +23,18 @@ public partial class App : Application
     {
         this.InitializeComponent();
 
+        // Fires BEFORE any catch block — catches swallowed exceptions
+        AppDomain.CurrentDomain.FirstChanceException += (s, e) =>
+        {
+            // Only log exceptions from your own assemblies to avoid noise
+            var ns = e.Exception.TargetSite?.DeclaringType?.Namespace ?? "";
+            if (ns.StartsWith("Emerald") || ns.StartsWith("CmlLib"))
+            {
+                Debug.WriteLine($"[FIRST CHANCE] {e.Exception.GetType().Name}: {e.Exception.Message}");
+                Debug.WriteLine($"[FIRST CHANCE STACK] {e.Exception.StackTrace}");
+            }
+        };
+
         this.UnhandledException += App_UnhandledException;
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
@@ -29,6 +42,7 @@ public partial class App : Application
 
     public Window? MainWindow { get; private set; }
     protected IHost? Host { get; private set; }
+
     private void ConfigureServices(IServiceCollection services)
     {
         //Stores
@@ -68,30 +82,20 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        var logPath = Path.Combine(
-            DirectResoucres.LocalDataPath,
-            "logs",
-            "app_.log");
+        var logPath = Path.Combine(DirectResoucres.LocalDataPath, "logs", "app_.log");
 
         var builder = this.CreateBuilder(args)
             .Configure(host => host
 #if DEBUG
-                // Switch to Development environment when running in DEBUG
                 .UseEnvironment(Environments.Development)
 #endif
-
-                //Enable Logging
-                .UseSerilog(true, configureLogger: x=> x
-                            .MinimumLevel.Debug()
-                            .WriteTo.File(logPath,
-                                            rollingInterval: RollingInterval.Day,
-                                            retainedFileCountLimit: 7,
-                                            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] ({SourceContext}) {Message}{NewLine}{Exception}"))
-
-                .ConfigureServices((context, services) =>
-                {
-                    ConfigureServices(services);
-                })
+                .UseSerilog(true, configureLogger: x => x
+                    .MinimumLevel.Debug()
+                    .WriteTo.File(logPath,
+                        rollingInterval: RollingInterval.Day,
+                        retainedFileCountLimit: 7,
+                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] ({SourceContext}) {Message}{NewLine}{Exception}"))
+                .ConfigureServices((context, services) => ConfigureServices(services))
             );
 
         MainWindow = builder.Window;
@@ -101,7 +105,6 @@ public partial class App : Application
         MainWindow.SetWindowIcon("Assets/Icon.ico");
 
         Host = builder.Build();
-
         Ioc.Default.ConfigureServices(Host.Services);
 
         SS = Ioc.Default.GetService<Services.SettingsService>();
@@ -110,9 +113,7 @@ public partial class App : Application
         SS.LoadData();
 
         var ac = Ioc.Default.GetService<CoreX.Services.IAccountService>();
-
-        ac.InitializeAsync("dfeccda7-604a-4895-b409-9d35f1679b5d"); // Public client ID
-
+        ac.InitializeAsync("dfeccda7-604a-4895-b409-9d35f1679b5d");
         // Do not repeat app initialization when the Window already has content,
         // just ensure that the window is active
         if (MainWindow.Content is not Frame rootFrame)
@@ -124,96 +125,135 @@ public partial class App : Application
             MainWindow.Content = rootFrame;
         }
 
+        // When the navigation stack isn't restored navigate to the first page,
+        // configuring the new page by passing required information as a navigation
+        // parameter
         if (rootFrame.Content == null)
-        {
-            // When the navigation stack isn't restored navigate to the first page,
-            // configuring the new page by passing required information as a navigation
-            // parameter
             rootFrame.Navigate(typeof(MainPage), args.Arguments);
-        }
-        // Ensure the current window is active
-        MainWindow.Activate();
 
+        MainWindow.Activate();
         MainWindow.Closed += MainWindow_Closed;
     }
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
-        //save settings,
         SS.SaveData();
     }
 
-    /// <summary>
-    /// Gets the current <see cref="App"/> instance in use
-    /// </summary>
     public new static App Current => (App)Application.Current;
 
     #region UnhandledExceptions
+
     private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
     {
         e.Handled = true;
-        LogUnhandledException(e.Exception, "UI UnhandledException");
-        ShowPlatformErrorDialog($"An unexpected error occurred. The application needs to be closed.\nSee crash details at {DirectResoucres.LocalDataPath} for more details");
+        HandleCrash(e.Exception, "UI UnhandledException");
     }
 
     private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
     {
-        LogUnhandledException((Exception)e.ExceptionObject, "AppDomain UnhandledException");
-        ShowPlatformErrorDialog($"A critical error occurred. The application needs to be closed.\nSee crash details at {DirectResoucres.LocalDataPath} for more details");
+        HandleCrash((Exception)e.ExceptionObject, "AppDomain UnhandledException");
     }
 
     private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
     {
         e.SetObserved();
-        LogUnhandledException(e.Exception, "Task UnobservedException");
-        ShowPlatformErrorDialog($"A unobserved error occurred. The application needs to be closed.\nSee crash details at {DirectResoucres.LocalDataPath} for more details");
+        HandleCrash(e.Exception, "Task UnobservedException");
     }
 
-    private void LogUnhandledException(Exception exception, string source)
+    /// <summary>
+    /// Single entry point for all crashes. Writes file FIRST, then shows dialog.
+    /// </summary>
+    private void HandleCrash(Exception exception, string source)
     {
+        // 1. Write crash file immediately — before anything else that could fail
+        var crashPath = WriteCrashFile(exception, source);
+
+        // 2. Flush Serilog so buffered logs are persisted
+        try { Log.CloseAndFlush(); } catch { }
+
+        // 3. Show dialog (best effort — crash is already saved)
+        ShowPlatformErrorDialog(
+            $"An unexpected error occurred ({source}).\nCrash report saved to:\n{crashPath}",
+            exception
+        );
+    }
+
+    private string WriteCrashFile(Exception exception, string source)
+    {
+        var crashPath = "unknown";
         try
         {
-            this.Log().LogCritical(exception,
-                "Unhandled exception ({Source}). Platform: {Platform}",
-                source,
-                DirectResoucres.Platform
-            );
-
-            // Save to crash file (platform-specific path)
-            var crashPath = Path.Combine(
+            crashPath = Path.Combine(
                 DirectResoucres.LocalDataPath,
                 "crashes",
                 $"crash_{DateTime.Now:yyyyMMdd_HHmmss}.txt"
             );
+            Directory.CreateDirectory(Path.GetDirectoryName(crashPath)!);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(crashPath));
-            File.WriteAllText(crashPath, $"""
-                Exception Details:
-                Time: {DateTime.Now}
-                Platform: {DirectResoucres.Platform}
-                Type: {exception.GetType().FullName}
-                Message: {exception.Message}
-                Stack Trace: {exception.StackTrace}
-                """);
+            File.WriteAllText(crashPath, BuildCrashReport(exception, source));
+
+            // Also log to Serilog
+            this.Log().LogCritical(exception,
+                "Unhandled exception ({Source}). Platform: {Platform}",
+                source, DirectResoucres.Platform);
         }
-        catch (Exception ex)
+        catch (Exception writeEx)
         {
-            Debug.WriteLine($"Failed to log unhandled exception: {ex.Message}");
+            // Absolute last resort
+            Debug.WriteLine($"[CRASH WRITE FAILED] {writeEx}");
+            Debug.WriteLine($"[ORIGINAL CRASH] {exception}");
         }
+        return crashPath;
     }
 
-    private async void ShowPlatformErrorDialog(string message)
+    private static string BuildCrashReport(Exception ex, string source)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("=== CRASH REPORT ===");
+        sb.AppendLine($"Time:     {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        sb.AppendLine($"Platform: {DirectResoucres.Platform}");
+        sb.AppendLine($"Source:   {source}");
+        sb.AppendLine();
+        AppendException(sb, ex, 0);
+        return sb.ToString();
+    }
+
+    private static void AppendException(System.Text.StringBuilder sb, Exception? ex, int depth)
+    {
+        if (ex is null) return;
+        var indent = new string(' ', depth * 2);
+        sb.AppendLine($"{indent}--- {(depth == 0 ? "Exception" : "Inner Exception")} ---");
+        sb.AppendLine($"{indent}Type:    {ex.GetType().FullName}");
+        sb.AppendLine($"{indent}Message: {ex.Message}");
+        sb.AppendLine($"{indent}Stack:   {ex.StackTrace}");
+
+        // Recursively unwrap inner exceptions
+        if (ex is AggregateException agg)
+            foreach (var inner in agg.InnerExceptions)
+                AppendException(sb, inner, depth + 1);
+        else
+            AppendException(sb, ex.InnerException, depth + 1);
+    }
+
+    private async void ShowPlatformErrorDialog(string message, Exception ex)
     {
         try
         {
             await MessageBox.Show("AppCrash".Localize(), message, Helpers.Enums.MessageBoxButtons.Ok);
-            Application.Current.Exit();
         }
-        catch (Exception ex)
+        catch (Exception dialogEx)
         {
-            Debug.WriteLine($"Error: {message}");
+            // Dialog itself failed — log both errors properly
+            Debug.WriteLine($"[DIALOG FAILED] {dialogEx}");
+            Debug.WriteLine($"[ORIGINAL ERROR] {ex}");
         }
-        Process.GetCurrentProcess().Kill();
+        finally
+        {
+            // Always kill — crash file is already saved at this point
+            Process.GetCurrentProcess().Kill();
+        }
     }
+
     #endregion
 }
