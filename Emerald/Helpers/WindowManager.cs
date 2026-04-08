@@ -12,6 +12,7 @@ using WinRT.Interop;
 using Windows.Win32;
 using Windows.Win32.UI.WindowsAndMessaging;
 using Windows.Win32.Foundation;
+using Uno.UI.Xaml;
 
 namespace Emerald.Helpers;
 
@@ -59,6 +60,7 @@ public static class WindowManager
     /// <exception cref="NullReferenceException"/>
     public static void SetTitleBar(Window window, UIElement AppTitleBar)
     {
+        
             var titleBar = window.AppWindow.TitleBar;
             titleBar.ExtendsContentIntoTitleBar = true;
             titleBar.ButtonBackgroundColor = Colors.Transparent;

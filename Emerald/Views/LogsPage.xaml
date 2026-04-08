@@ -18,8 +18,6 @@
       ErrorBrush="{StaticResource SystemFillColorCriticalBrush}"
       FatalBrush="{StaticResource SystemFillColorCriticalBrush}"
       InfoBrush="{StaticResource SystemFillColorSolidNeutralBrush}"
-      TraceBrush="{StaticResource SystemFillColorBaseMediumBrush}"
-      UnknownBrush="{StaticResource SystemFillColorBaseMediumBrush}"
       WarningBrush="{StaticResource SystemFillColorCautionBrush}" />
 
     <DataTemplate x:Key="SessionItemTemplate" x:DataType="runtime:GameSession">
@@ -78,7 +76,7 @@
             Grid.Column="1"
             FontFamily="Cascadia Mono"
             FontWeight="SemiBold"
-            Foreground="{x:Bind Level, Converter={StaticResource GameLogLevelToBrushConverter}}"
+            Foreground="{Binding Level, Converter={StaticResource GameLogLevelToBrushConverter}}"
             Style="{StaticResource CaptionTextBlockStyle}"
             Text="{x:Bind LevelText}"
             Visibility="{x:Bind IsContinuation, Converter={StaticResource InverseBoolToVis}}" />
