@@ -1,14 +1,15 @@
+using System;
+using System.Diagnostics;
 using CommonServiceLocator;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Emerald.CoreX.Helpers;
+using Emerald.CoreX.Notifications;
+using Emerald.CoreX.Store.Modrinth;
+using Emerald.Helpers;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Sinks.File;
 using Uno.Resizetizer;
-using Microsoft.Extensions.DependencyInjection;
-using Emerald.CoreX.Store.Modrinth;
-using System.Diagnostics;
-using System;
-using Emerald.Helpers;
-using CommunityToolkit.Mvvm.DependencyInjection;
-using Emerald.CoreX.Helpers;
 
 namespace Emerald;
 
@@ -55,8 +56,15 @@ public partial class App : Application
         //Settings
         services.AddSingleton<Services.SettingsService>();
         services.AddSingleton<Services.IBaseSettingsService, Services.BaseSettingsService>();
+
         //Notifications
-        services.AddSingleton<CoreX.Notifications.INotificationService, CoreX.Notifications.NotificationService>();
+        services.AddSingleton<CoreX.Notifications.INotificationService>(provider =>
+        {
+            var logger = provider.GetRequiredService<ILogger<CoreX.Notifications.NotificationService>>();
+            var inner = new CoreX.Notifications.NotificationService(logger);
+            return new DispatchedNotificationService(inner, MainWindow.DispatcherQueue);
+        });
+        services.AddTransient<ViewModels.NotificationListViewModel>();
 
         //Mod Loaders
         services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Fabric>();
@@ -71,9 +79,6 @@ public partial class App : Application
         services.AddSingleton<CoreX.Core>();
         //Accounts
         services.AddSingleton<CoreX.Services.IAccountService, CoreX.Services.AccountService>();
-
-        //Notifications
-        services.AddTransient<ViewModels.NotificationListViewModel>();
 
         //ViewModels
         services.AddTransient<ViewModels.GamesPageViewModel>();

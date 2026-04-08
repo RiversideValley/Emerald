@@ -125,8 +125,9 @@ public class Game
                 showFileProgress ?
                 new Progress<InstallerProgressChangedEventArgs>(e =>
                 {
-                    prog.Files = $"({e.ProgressedTasks}/{e.TotalTasks}) {e.Name}. \n ";
-                prog.prog = e.ProgressedTasks/e.TotalTasks * 100;
+                    prog.Files = $"({e.ProgressedTasks}/{e.TotalTasks}) {e.Name}. \n";
+                    
+                    prog.prog = Math.Round((double)e.ProgressedTasks / e.TotalTasks * 100, 2);
 
                     _notify.Update(
                         not.Id,
