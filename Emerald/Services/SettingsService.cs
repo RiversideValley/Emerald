@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 using Windows.Storage;
 
 namespace Emerald.Services;
+//TODO: Mostly obsolete, needs rework.
 public class SettingsService(IBaseSettingsService _baseService, ILogger<SettingsService> _logger)
 {
     public Helpers.Settings.JSON.Settings Settings { get; private set; }
+  
     public Helpers.Settings.JSON.Account[] Accounts { get; set; }
 
     public event EventHandler<string>? APINoMatch;
@@ -21,7 +23,6 @@ public class SettingsService(IBaseSettingsService _baseService, ILogger<Settings
         {
             _logger.LogInformation("Loading settings and accounts.");
             Settings = _baseService.Get("Settings", Helpers.Settings.JSON.Settings.CreateNew());
-            Accounts = _baseService.Get("Accounts", Array.Empty<Helpers.Settings.JSON.Account>());
 
             if (Settings.APIVersion != DirectResoucres.SettingsAPIVersion)
             {
@@ -42,7 +43,7 @@ public class SettingsService(IBaseSettingsService _baseService, ILogger<Settings
         {
             Settings.LastSaved = DateTime.Now;
             ApplicationData.Current.LocalSettings.Values["Settings"] = JsonSerializer.Serialize(Settings);
-            ApplicationData.Current.LocalSettings.Values["Accounts"] = JsonSerializer.Serialize(Accounts);
+           // ApplicationData.Current.LocalSettings.Values["Accounts"] = JsonSerializer.Serialize(Accounts);
 
             _logger.LogInformation("Settings and accounts saved successfully.");
         }
