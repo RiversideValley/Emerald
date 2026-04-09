@@ -4,6 +4,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Emerald.CoreX.Runtime;
 
+/// <summary>
+/// Captures the live and historical runtime state for a launched game instance.
+/// </summary>
 public partial class GameSession(Game game, DateTimeOffset startedAt) : ObservableObject
 {
     public Game Game { get; } = game;
@@ -134,6 +137,9 @@ public partial class GameSession(Game game, DateTimeOffset startedAt) : Observab
         }
     }
 
+    /// <summary>
+    /// Formats the session header and all captured entries for clipboard export.
+    /// </summary>
     public string ToClipboardText()
     {
         var builder = new StringBuilder();

@@ -2,6 +2,9 @@ using System.Text;
 
 namespace Emerald.CoreX.Runtime;
 
+/// <summary>
+/// Represents a single parsed or synthetic log entry associated with a tracked session.
+/// </summary>
 public sealed class GameLogEntry
 {
     public required DateTimeOffset Timestamp { get; init; }
@@ -58,6 +61,9 @@ public sealed class GameLogEntry
         }
     }
 
+    /// <summary>
+    /// Formats the entry for clipboard export together with its optional details payload.
+    /// </summary>
     public string ToClipboardText()
     {
         var builder = new StringBuilder();

@@ -15,9 +15,13 @@ using Uno.Resizetizer;
 
 namespace Emerald;
 
+/// <summary>
+/// Hosts the Uno application composition root, startup flow, and crash handling.
+/// </summary>
 public partial class App : Application
 {
     private Services.SettingsService SS;
+
     /// <summary>
     /// Initializes the singleton application object. This is the first line of authored code
     /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -46,6 +50,9 @@ public partial class App : Application
     public Window? MainWindow { get; private set; }
     protected IHost? Host { get; private set; }
 
+    /// <summary>
+    /// Registers the maintained services and viewmodels used by the active Uno shell.
+    /// </summary>
     private void ConfigureServices(IServiceCollection services)
     {
         //Stores
@@ -102,6 +109,9 @@ public partial class App : Application
         services.AddTransient<ViewModels.LogsPageViewModel>();
     }
 
+    /// <summary>
+    /// Builds the app host, loads persisted state, and activates the main shell window.
+    /// </summary>
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         var logPath = Path.Combine(DirectResoucres.LocalDataPath, "logs", "app_.log");
@@ -128,14 +138,18 @@ public partial class App : Application
 
         Host = builder.Build();
         Ioc.Default.ConfigureServices(Host.Services);
+        this.Log().LogInformation("Application host built successfully. LogPath: {LogPath}.", logPath);
 
         SS = Ioc.Default.GetService<Services.SettingsService>();
 
         //load settings,
         SS.LoadData();
+        this.Log().LogInformation("Application settings loaded.");
 
         var ac = Ioc.Default.GetService<CoreX.Services.IAccountService>();
         ac.InitializeAsync("dfeccda7-604a-4895-b409-9d35f1679b5d");
+        this.Log().LogInformation("Account service initialization requested.");
+
         // Do not repeat app initialization when the Window already has content,
         // just ensure that the window is active
         if (MainWindow.Content is not Frame rootFrame)
@@ -145,20 +159,29 @@ public partial class App : Application
 
             // Place the frame in the current Window
             MainWindow.Content = rootFrame;
+            this.Log().LogDebug("Created a new root navigation frame for the main window.");
         }
 
         // When the navigation stack isn't restored navigate to the first page,
         // configuring the new page by passing required information as a navigation
         // parameter
         if (rootFrame.Content == null)
+        {
             rootFrame.Navigate(typeof(MainPage), args.Arguments);
+            this.Log().LogInformation("Navigated to the main page.");
+        }
 
         MainWindow.Activate();
         MainWindow.Closed += MainWindow_Closed;
+        this.Log().LogInformation("Main window activated.");
     }
 
+    /// <summary>
+    /// Persists settings when the main window closes.
+    /// </summary>
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
+        this.Log().LogInformation("Main window is closing. Persisting settings.");
         SS.SaveData();
     }
 
@@ -188,6 +211,8 @@ public partial class App : Application
     /// </summary>
     private void HandleCrash(Exception exception, string source)
     {
+        Debug.WriteLine($"[CRASH] Handling crash from {source}: {exception.Message}");
+
         // 1. Write crash file immediately — before anything else that could fail
         var crashPath = WriteCrashFile(exception, source);
 
@@ -201,6 +226,9 @@ public partial class App : Application
         );
     }
 
+    /// <summary>
+    /// Writes the crash report to disk and records the fatal exception through the configured logger.
+    /// </summary>
     private string WriteCrashFile(Exception exception, string source)
     {
         var crashPath = "unknown";
@@ -229,6 +257,9 @@ public partial class App : Application
         return crashPath;
     }
 
+    /// <summary>
+    /// Builds the plain-text crash report that is written alongside fatal errors.
+    /// </summary>
     private static string BuildCrashReport(Exception ex, string source)
     {
         var sb = new System.Text.StringBuilder();
@@ -241,6 +272,9 @@ public partial class App : Application
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Appends an exception and its inner exceptions to the crash report text.
+    /// </summary>
     private static void AppendException(System.Text.StringBuilder sb, Exception? ex, int depth)
     {
         if (ex is null) return;

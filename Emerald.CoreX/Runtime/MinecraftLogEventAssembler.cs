@@ -1,7 +1,13 @@
 using System.Text;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Emerald.CoreX.Runtime;
 
+/// <summary>
+/// Reassembles Minecraft log events from standard output and error line streams.
+/// </summary>
 internal sealed class MinecraftLogEventAssembler(GameLogSource source, int maxXmlPayloadLength = 64 * 1024)
 {
     private sealed class PendingTextEvent(string headerLine, bool isStructured, DateTimeOffset updatedAt)
@@ -26,10 +32,29 @@ internal sealed class MinecraftLogEventAssembler(GameLogSource source, int maxXm
     private bool _isInsideXmlEvent;
     private long _pendingTextVersion;
 
+    private static ILogger Logger
+    {
+        get
+        {
+            try
+            {
+                return Ioc.Default.GetService<ILoggerFactory>()?.CreateLogger(typeof(MinecraftLogEventAssembler).FullName!)
+                    ?? NullLogger.Instance;
+            }
+            catch (InvalidOperationException)
+            {
+                return NullLogger.Instance;
+            }
+        }
+    }
+
     public bool HasPendingText => _pendingTextEvent != null;
 
     public long PendingTextVersion => _pendingTextVersion;
 
+    /// <summary>
+    /// Adds a raw line to the assembler and returns any entries that became complete.
+    /// </summary>
     public IReadOnlyList<GameLogEntry> AppendLine(string rawLine, DateTimeOffset now)
     {
         var finalizedEntries = new List<GameLogEntry>();
@@ -81,6 +106,9 @@ internal sealed class MinecraftLogEventAssembler(GameLogSource source, int maxXm
         return finalizedEntries;
     }
 
+    /// <summary>
+    /// Flushes the current pending text event only if the expected version still matches.
+    /// </summary>
     public bool TryFlushPendingText(long expectedVersion, DateTimeOffset now, out GameLogEntry? entry)
     {
         entry = null;
@@ -93,6 +121,9 @@ internal sealed class MinecraftLogEventAssembler(GameLogSource source, int maxXm
         return entry != null;
     }
 
+    /// <summary>
+    /// Flushes any pending text event and optionally falls back incomplete XML payloads to raw text.
+    /// </summary>
     public IReadOnlyList<GameLogEntry> FlushPending(DateTimeOffset now, bool includeXmlFallback)
     {
         var finalizedEntries = new List<GameLogEntry>();
@@ -100,6 +131,10 @@ internal sealed class MinecraftLogEventAssembler(GameLogSource source, int maxXm
 
         if (includeXmlFallback && _isInsideXmlEvent && _xmlBuffer.Length > 0)
         {
+            Logger.LogWarning(
+                "Falling back to raw payload parsing for an incomplete XML log event from {Source}. BufferedLength: {BufferedLength}.",
+                source,
+                _xmlBuffer.Length);
             finalizedEntries.Add(MinecraftLogParser.ParseRawPayload(_xmlBuffer.ToString(), source, now));
             ResetXmlBuffer();
         }
@@ -165,6 +200,10 @@ internal sealed class MinecraftLogEventAssembler(GameLogSource source, int maxXm
 
         if (_xmlBuffer.Length > maxXmlPayloadLength)
         {
+            Logger.LogWarning(
+                "XML log payload from {Source} exceeded the maximum buffered length of {MaxXmlPayloadLength} characters. Falling back to raw payload parsing.",
+                source,
+                maxXmlPayloadLength);
             var overflowEntry = MinecraftLogParser.ParseRawPayload(_xmlBuffer.ToString(), source, now);
             ResetXmlBuffer();
             return overflowEntry;

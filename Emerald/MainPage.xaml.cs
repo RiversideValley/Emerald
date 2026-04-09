@@ -16,30 +16,42 @@ using Emerald.CoreX.Versions;
 
 namespace Emerald;
 
+/// <summary>
+/// Hosts the main shell navigation, appearance initialization, and top-level page routing.
+/// </summary>
 public sealed partial class MainPage : Page
 {
     private readonly Services.SettingsService SS;
+
     public MainPage()
     {
         SS = Ioc.Default.GetService<Services.SettingsService>();
         this.InitializeComponent();
         this.Loaded += MainPage_Loaded;
         NavView.ItemInvoked += MainNavigationView_ItemInvoked;
+        this.Log().LogInformation("Main page initialized.");
     }
+
     private void MainNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
     {
         if (!args.IsSettingsInvoked && NavView.SelectedItem is SquareNavigationViewItem itm)
         {
+            this.Log().LogDebug("Navigation view item invoked: {Tag}.", itm.Tag);
             itm.InvokePropertyChanged();
         }
     }
 
+    /// <summary>
+    /// Applies theme and window appearance settings to the active shell.
+    /// </summary>
     void InitializeAppearance()
     {
+        this.Log().LogInformation("Initializing shell appearance.");
         SS.Settings.App.Appearance.PropertyChanged += (s, e) =>
         {
             if (e.PropertyName != null)
             {
+                this.Log().LogDebug("Applying appearance change for property {PropertyName}.", e.PropertyName);
                 TintColor();
                 this.GetThemeService().SetThemeAsync((AppTheme)SS.Settings.App.Appearance.Theme);
             }
@@ -50,12 +62,14 @@ public sealed partial class MainPage : Page
             {
                 case Helpers.Settings.Enums.MicaTintColor.NoColor:
                     MainGrid.Background = null;
+                    this.Log().LogDebug("Cleared custom Mica tint background.");
                     break;
                 case Helpers.Settings.Enums.MicaTintColor.AccentColor:
                     MainGrid.Background = new SolidColorBrush((Color)Application.Current.Resources["SystemAccentColor"])
                     {
                         Opacity = (double)SS.Settings.App.Appearance.TintOpacity / 100
                     };
+                    this.Log().LogDebug("Applied accent Mica tint background. Opacity: {Opacity}.", SS.Settings.App.Appearance.TintOpacity);
                     break;
                 case Helpers.Settings.Enums.MicaTintColor.CustomColor:
                     var c = SS.Settings.App.Appearance.CustomMicaTintColor;
@@ -64,6 +78,7 @@ public sealed partial class MainPage : Page
                         Color = c ?? Color.FromArgb(255, 234, 0, 94),
                         Opacity = (double)SS.Settings.App.Appearance.TintOpacity / 100
                     };
+                    this.Log().LogDebug("Applied custom Mica tint background. HasCustomColor: {HasCustomColor}.", c != null);
                     break;
             }
         }
@@ -75,14 +90,24 @@ public sealed partial class MainPage : Page
 #if WINDOWS
         if (mica != null)
         {
+            this.Log().LogInformation("Mica backdrop initialized for the main window.");
             mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
             SS.Settings.App.Appearance.PropertyChanged += (s, e)
                 => mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
         }
+        else
+        {
+            this.Log().LogDebug("Mica backdrop was not initialized for the main window.");
+        }
 #endif
     }
+
+    /// <summary>
+    /// Populates the main navigation view and selects the default route.
+    /// </summary>
     void InitializeNavView()
     {
+        this.Log().LogInformation("Initializing main navigation view.");
         NavView.MenuItems.Add(new SquareNavigationViewItem("Home".Localize())
         {
             Thumbnail = "ms-appx:///Assets/NavigationViewIcons/home.png",
@@ -147,8 +172,10 @@ public sealed partial class MainPage : Page
         NavView.DisplayModeChanged += (_, _) => (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
         Navigate(NavView.SelectedItem as SquareNavigationViewItem);
     }
+
     private void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
+        this.Log().LogInformation("Main page loaded.");
         Emerald.Helpers.WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
 
         InitializeAppearance();
@@ -156,7 +183,10 @@ public sealed partial class MainPage : Page
         this.Loaded -= MainPage_Loaded;
     }
 
-    private  Thickness GetNavViewHeaderMargin()
+    /// <summary>
+    /// Returns the header margin that matches the current navigation view display mode.
+    /// </summary>
+    private Thickness GetNavViewHeaderMargin()
     {
         if (NavView.DisplayMode == NavigationViewDisplayMode.Minimal)
         {
@@ -174,6 +204,9 @@ public sealed partial class MainPage : Page
         Navigate(NavView.SelectedItem as SquareNavigationViewItem);
     }
 
+    /// <summary>
+    /// Navigates to the item whose tag matches the supplied value.
+    /// </summary>
     public void NavigateToTag(string tag, object? parameter = null)
     {
         var items = NavView.MenuItems.Cast<object>().Concat(NavView.FooterMenuItems.Cast<object>());
@@ -183,19 +216,27 @@ public sealed partial class MainPage : Page
 
         if (target == null)
         {
+            this.Log().LogWarning("Could not navigate because no navigation item matched tag {Tag}.", tag);
             return;
         }
 
+        this.Log().LogInformation("Navigating to tag {Tag}.", tag);
         NavView.SelectedItem = target;
         Navigate(target, parameter);
     }
 
+    /// <summary>
+    /// Navigates to the page represented by the supplied navigation item.
+    /// </summary>
     private void Navigate(SquareNavigationViewItem itm, object? parameter = null)
     {
         if (itm == null)
         {
+            this.Log().LogWarning("Skipping navigation because the navigation item was null.");
             return;
         }
+
+        this.Log().LogInformation("Navigating shell to {Tag}.", itm.Tag);
 
         switch (itm.Tag)
         {
@@ -219,10 +260,14 @@ public sealed partial class MainPage : Page
         (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
     }
 
+    /// <summary>
+    /// Navigates the shared frame only when the target page is different or navigation is forced.
+    /// </summary>
     private void NavigateOnce(System.Type type, object? parameter = null, bool forceNavigate = false)
     {
         if (forceNavigate || frame.Content == null || frame.Content.GetType() != type)
         {
+            this.Log().LogDebug("Navigating frame to {PageType}. ForceNavigate: {ForceNavigate}.", type.Name, forceNavigate);
             frame.Navigate(type, parameter, new EntranceNavigationTransitionInfo());
         }
     }

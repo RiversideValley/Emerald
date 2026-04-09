@@ -1,7 +1,14 @@
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace Emerald.CoreX.Runtime;
 
 internal readonly record struct GameLogDeduplicationResult(bool ShouldAppend, GameLogEntry? EntryToRemove = null);
 
+/// <summary>
+/// Suppresses duplicate runtime log entries that arrive from multiple capture channels.
+/// </summary>
 internal sealed class GameLogDeduplicator(TimeSpan? dedupeWindow = null)
 {
     private sealed class RecentEntryRecord
@@ -13,6 +20,25 @@ internal sealed class GameLogDeduplicator(TimeSpan? dedupeWindow = null)
     private readonly TimeSpan _dedupeWindow = dedupeWindow ?? TimeSpan.FromSeconds(2);
     private readonly Dictionary<string, List<RecentEntryRecord>> _recentEntries = new(StringComparer.Ordinal);
 
+    private static ILogger Logger
+    {
+        get
+        {
+            try
+            {
+                return Ioc.Default.GetService<ILoggerFactory>()?.CreateLogger(typeof(GameLogDeduplicator).FullName!)
+                    ?? NullLogger.Instance;
+            }
+            catch (InvalidOperationException)
+            {
+                return NullLogger.Instance;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Registers the supplied entry and decides whether it should be appended or merged.
+    /// </summary>
     public GameLogDeduplicationResult Register(GameLogEntry entry, DateTimeOffset seenAt)
     {
         if (entry.Source is GameLogSource.Lifecycle or GameLogSource.CrashReport)
@@ -38,9 +64,19 @@ internal sealed class GameLogDeduplicator(TimeSpan? dedupeWindow = null)
                 {
                     var replacedEntry = existing.Entry;
                     existing.Entry = entry;
+                    Logger.LogDebug(
+                        "Replacing duplicate runtime log entry. Existing source: {ExistingSource}. Incoming source: {IncomingSource}. Level: {Level}.",
+                        replacedEntry.Source,
+                        entry.Source,
+                        entry.Level);
                     return new GameLogDeduplicationResult(true, replacedEntry);
                 }
 
+                Logger.LogDebug(
+                    "Suppressing duplicate runtime log entry from {IncomingSource} because an existing {ExistingSource} entry remains preferred. Level: {Level}.",
+                    entry.Source,
+                    existing.Entry.Source,
+                    entry.Level);
                 return new GameLogDeduplicationResult(false);
             }
         }
@@ -60,14 +96,20 @@ internal sealed class GameLogDeduplicator(TimeSpan? dedupeWindow = null)
         return new GameLogDeduplicationResult(true);
     }
 
+    /// <summary>
+    /// Drops fingerprints that are outside the active deduplication window.
+    /// </summary>
     private void PruneStaleEntries(DateTimeOffset now)
     {
         var cutoff = now - TimeSpan.FromSeconds(10);
         var staleKeys = new List<string>();
+        var removedEntryCount = 0;
 
         foreach (var recentEntry in _recentEntries)
         {
+            var beforeCount = recentEntry.Value.Count;
             recentEntry.Value.RemoveAll(x => x.SeenAt < cutoff);
+            removedEntryCount += beforeCount - recentEntry.Value.Count;
             if (recentEntry.Value.Count == 0)
             {
                 staleKeys.Add(recentEntry.Key);
@@ -77,6 +119,14 @@ internal sealed class GameLogDeduplicator(TimeSpan? dedupeWindow = null)
         foreach (var staleKey in staleKeys)
         {
             _recentEntries.Remove(staleKey);
+        }
+
+        if (removedEntryCount > 0)
+        {
+            Logger.LogDebug(
+                "Pruned {RemovedEntryCount} stale runtime log fingerprint entries across {RemovedKeyCount} keys.",
+                removedEntryCount,
+                staleKeys.Count);
         }
     }
 

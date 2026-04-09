@@ -8,6 +8,9 @@ using Microsoft.UI.Dispatching;
 
 namespace Emerald.CoreX.Runtime;
 
+/// <summary>
+/// Launches games, tracks live sessions, and publishes normalized runtime logs to the UI.
+/// </summary>
 public sealed class GameRuntimeService : IGameRuntimeService
 {
     private static readonly TimeSpan TextEventSettleDelay = TimeSpan.FromMilliseconds(100);
@@ -43,6 +46,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
     public ObservableCollection<GameSession> Sessions { get; } = new();
 
+    /// <summary>
+    /// Initializes a new runtime service instance with the dependencies needed to track sessions.
+    /// </summary>
     public GameRuntimeService(
         ILogger<GameRuntimeService> logger,
         INotificationService notificationService,
@@ -55,35 +61,75 @@ public sealed class GameRuntimeService : IGameRuntimeService
         _accountService = accountService;
         _settings = settings;
         _dispatcher = dispatcher;
+        _logger.LogInformation("Game runtime service initialized.");
     }
 
+    /// <summary>
+    /// Returns the active runtime session for the supplied game, if one exists.
+    /// </summary>
     public GameSession? TryGetActiveSession(Game game)
     {
         if (game == null)
         {
+            _logger.LogDebug("Skipping active session lookup because no game was provided.");
             return null;
         }
 
         lock (_syncRoot)
         {
-            return _activeSessions.TryGetValue(GetPathKey(game.Path.BasePath), out var runtime)
+            var session = _activeSessions.TryGetValue(GetPathKey(game.Path.BasePath), out var runtime)
                 ? runtime.Session
                 : null;
+
+            _logger.LogDebug(
+                "Active session lookup completed for {GameName}. FoundSession: {FoundSession}.",
+                game.Version.DisplayName,
+                session != null);
+
+            return session;
         }
     }
 
+    /// <summary>
+    /// Finds the newest known session for the supplied game path.
+    /// </summary>
     public GameSession? FindLatestSession(string gamePath)
-        => RunOnUI(() => Sessions.FirstOrDefault(x => string.Equals(GetPathKey(x.GamePath), GetPathKey(gamePath), StringComparison.OrdinalIgnoreCase)));
+    {
+        if (string.IsNullOrWhiteSpace(gamePath))
+        {
+            _logger.LogDebug("Skipping latest session lookup because the game path was empty.");
+            return null;
+        }
 
+        var session = RunOnUI(() => Sessions.FirstOrDefault(x => string.Equals(GetPathKey(x.GamePath), GetPathKey(gamePath), StringComparison.OrdinalIgnoreCase)));
+        _logger.LogDebug(
+            "Latest session lookup completed for path {GamePath}. FoundSession: {FoundSession}.",
+            gamePath,
+            session != null);
+        return session;
+    }
+
+    /// <summary>
+    /// Launches the supplied game and starts tracking its runtime session.
+    /// </summary>
     public async Task<GameSession?> LaunchAsync(Game game)
     {
         if (game == null)
         {
+            _logger.LogWarning("Skipping launch because no game was provided.");
             return null;
         }
 
+        _logger.LogInformation(
+            "Launching game runtime for {GameName}. Path: {GamePath}.",
+            game.Version.DisplayName,
+            game.Path.BasePath);
+
         if (string.IsNullOrWhiteSpace(game.Version.RealVersion))
         {
+            _logger.LogWarning(
+                "Skipping launch for {GameName} because no installed runtime version is available.",
+                game.Version.DisplayName);
             _notificationService.Warning("InstallRequired", $"Install or update {game.Version.DisplayName} before launching.");
             return null;
         }
@@ -91,6 +137,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         var account = _accountService.GetMostRecentlyUsedAccount();
         if (account == null)
         {
+            _logger.LogWarning(
+                "Skipping launch for {GameName} because no account is available.",
+                game.Version.DisplayName);
             _notificationService.Warning("NoAccount", "Please sign in to an account first");
             return null;
         }
@@ -101,6 +150,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
             var pathKey = GetPathKey(game.Path.BasePath);
             if (_activeSessions.TryGetValue(pathKey, out var existingRuntime))
             {
+                _logger.LogInformation(
+                    "Launch request ignored because {GameName} is already running.",
+                    game.Version.DisplayName);
                 _notificationService.Warning("GameAlreadyRunning", $"{game.Version.DisplayName} is already running.");
                 return existingRuntime.Session;
             }
@@ -129,6 +181,12 @@ public sealed class GameRuntimeService : IGameRuntimeService
             _activeSessions[pathKey] = runtime;
         }
 
+        _logger.LogDebug(
+            "Created runtime session for {GameName}. LogCaptureEnabled: {LogCaptureEnabled}. KnownCrashReports: {CrashReportCount}.",
+            game.Version.DisplayName,
+            runtime.LogCaptureEnabled,
+            runtime.ExistingCrashReports.Count);
+
         RunOnUI(() =>
         {
             Sessions.Insert(0, runtime.Session);
@@ -144,11 +202,18 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
         try
         {
+            _logger.LogDebug("Authenticating launch account for {GameName}.", game.Version.DisplayName);
             var mcSession = await _accountService.AuthenticateAccountAsync(account);
             ThrowIfLaunchCancelled(runtime);
 
             var process = await game.BuildProcess(game.Version.RealVersion, mcSession);
             runtime.Process = process;
+
+            _logger.LogDebug(
+                "Process created for {GameName}. Verb: {Verb}. UseShellExecute: {UseShellExecute}.",
+                game.Version.DisplayName,
+                process.StartInfo.Verb,
+                process.StartInfo.UseShellExecute);
 
             ConfigureProcess(process, runtime);
             AttachProcessHandlers(runtime);
@@ -179,6 +244,12 @@ public sealed class GameRuntimeService : IGameRuntimeService
                 ApplyActiveState(game, runtime.Session, runtime.Session.ProcessId);
             });
 
+            _logger.LogInformation(
+                "Game process started for {GameName}. PID: {ProcessId}. CaptureMode: {CaptureMode}.",
+                game.Version.DisplayName,
+                runtime.Session.ProcessId,
+                runtime.Session.CaptureMode);
+
             if (runtime.LogCaptureEnabled && !runtime.CanReadStandardStreams)
             {
                 AppendLifecycle(runtime, GameLogLevel.Warn, "Standard output capture is unavailable for this session. Only lifecycle events will be shown.");
@@ -190,6 +261,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
         }
         catch (OperationCanceledException)
         {
+            _logger.LogWarning("Launch cancelled for {GameName}.", game.Version.DisplayName);
             AppendLifecycle(runtime, GameLogLevel.Warn, $"Launch cancelled for {game.Version.DisplayName}.");
             CompleteFailedLaunch(runtime, GameRunState.Exited);
             return runtime.Session;
@@ -204,10 +276,14 @@ public sealed class GameRuntimeService : IGameRuntimeService
         }
     }
 
+    /// <summary>
+    /// Stops the supplied game if it currently has an active runtime session.
+    /// </summary>
     public async Task StopAsync(Game game, GameStopMode mode)
     {
         if (game == null)
         {
+            _logger.LogDebug("Skipping stop request because no game was provided.");
             return;
         }
 
@@ -219,8 +295,16 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
         if (runtime == null)
         {
+            _logger.LogDebug(
+                "Ignoring stop request for {GameName} because no active session exists.",
+                game.Version.DisplayName);
             return;
         }
+
+        _logger.LogInformation(
+            "Stop requested for {GameName}. Mode: {Mode}.",
+            runtime.Session.DisplayName,
+            mode);
 
         runtime.RequestedStopMode = mode;
 
@@ -232,6 +316,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
         if (!runtime.ProcessStarted || runtime.Process == null)
         {
+            _logger.LogWarning(
+                "Stop requested for {GameName} while the launch was still starting.",
+                runtime.Session.DisplayName);
             AppendLifecycle(runtime, GameLogLevel.Warn, "Stop requested while the launch is still starting.");
             runtime.Cancellation.Cancel();
             return;
@@ -239,11 +326,15 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
         if (runtime.Process.HasExited)
         {
+            _logger.LogInformation(
+                "Ignoring stop request for {GameName} because the process has already exited.",
+                runtime.Session.DisplayName);
             return;
         }
 
         if (mode == GameStopMode.Gentle)
         {
+            _logger.LogInformation("Requesting graceful shutdown for {GameName}.", runtime.Session.DisplayName);
             AppendLifecycle(runtime, GameLogLevel.Info, "Requesting graceful shutdown.");
 
             bool closeRequested;
@@ -259,6 +350,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
             if (!closeRequested)
             {
+                _logger.LogWarning(
+                    "Graceful shutdown is unavailable for {GameName}; the main window could not be closed.",
+                    runtime.Session.DisplayName);
                 AppendLifecycle(runtime, GameLogLevel.Warn, "Graceful shutdown is unavailable for this process. Force Stop is still available.");
                 RestoreRunningState(runtime);
                 return;
@@ -266,6 +360,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
             if (!await WaitForExitAsync(runtime.Process, TimeSpan.FromSeconds(5)))
             {
+                _logger.LogWarning(
+                    "Graceful shutdown timed out for {GameName}.",
+                    runtime.Session.DisplayName);
                 AppendLifecycle(runtime, GameLogLevel.Warn, "The game did not exit in time. Force Stop is still available.");
                 RestoreRunningState(runtime);
             }
@@ -273,6 +370,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
             return;
         }
 
+        _logger.LogInformation("Force stopping {GameName}.", runtime.Session.DisplayName);
         AppendLifecycle(runtime, GameLogLevel.Warn, "Force stopping the game process.");
 
         try
@@ -288,6 +386,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         await WaitForExitAsync(runtime.Process, TimeSpan.FromSeconds(5));
     }
 
+    /// <summary>
+    /// Configures standard output capture on the supplied process when the session supports it.
+    /// </summary>
     private void ConfigureProcess(Process process, ActiveSessionRuntime runtime)
     {
         process.EnableRaisingEvents = true;
@@ -295,6 +396,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         if (!runtime.LogCaptureEnabled)
         {
             runtime.CanReadStandardStreams = false;
+            _logger.LogDebug(
+                "Standard stream capture disabled for {GameName} because runtime log capture is off.",
+                runtime.Session.DisplayName);
             return;
         }
 
@@ -302,6 +406,10 @@ public sealed class GameRuntimeService : IGameRuntimeService
         if (!canRedirect)
         {
             runtime.CanReadStandardStreams = false;
+            _logger.LogWarning(
+                "Standard stream capture is unavailable for {GameName} because the process verb requires shell execution. Verb: {Verb}.",
+                runtime.Session.DisplayName,
+                process.StartInfo.Verb);
             return;
         }
 
@@ -311,12 +419,19 @@ public sealed class GameRuntimeService : IGameRuntimeService
         process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
         process.StartInfo.StandardErrorEncoding = Encoding.UTF8;
         runtime.CanReadStandardStreams = true;
+        _logger.LogDebug("Enabled standard stream capture for {GameName}.", runtime.Session.DisplayName);
     }
 
+    /// <summary>
+    /// Attaches the process event handlers used for log capture and exit tracking.
+    /// </summary>
     private void AttachProcessHandlers(ActiveSessionRuntime runtime)
     {
         if (runtime.Process == null)
         {
+            _logger.LogDebug(
+                "Skipping process handler attachment for {GameName} because no process is available.",
+                runtime.Session.DisplayName);
             return;
         }
 
@@ -346,12 +461,19 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
         runtime.Process.OutputDataReceived += runtime.OutputHandler;
         runtime.Process.ErrorDataReceived += runtime.ErrorHandler;
+        _logger.LogDebug("Attached process handlers for {GameName}.", runtime.Session.DisplayName);
     }
 
+    /// <summary>
+    /// Finalizes session state when the tracked process exits.
+    /// </summary>
     private async Task HandleProcessExitAsync(ActiveSessionRuntime runtime)
     {
         if (runtime.Process == null)
         {
+            _logger.LogDebug(
+                "Skipping process exit handling for {GameName} because no process is available.",
+                runtime.Session.DisplayName);
             return;
         }
 
@@ -367,12 +489,21 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
         try
         {
+            _logger.LogDebug("Handling process exit for {GameName}.", runtime.Session.DisplayName);
             await runtime.Process.WaitForExitAsync();
             runtime.Cancellation.Cancel();
 
             FlushPendingAssemblers(runtime);
 
             var crashReports = FindNewCrashReports(runtime);
+            if (crashReports.Count > 0)
+            {
+                _logger.LogWarning(
+                    "Detected {CrashReportCount} new crash report(s) for {GameName}.",
+                    crashReports.Count,
+                    runtime.Session.DisplayName);
+            }
+
             foreach (var crashReportPath in crashReports)
             {
                 AppendSyntheticEntry(runtime, GameLogLevel.Fatal, $"Crash report generated: {crashReportPath}", GameLogSource.CrashReport);
@@ -396,6 +527,13 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
                 ApplyInactiveState(runtime.Session.Game, runtime.Session);
             });
+
+            _logger.LogInformation(
+                "Process exit finalized for {GameName}. ExitCode: {ExitCode}. FinalState: {FinalState}. CrashReports: {CrashReportCount}.",
+                runtime.Session.DisplayName,
+                exitCode,
+                finalState,
+                crashReports.Count);
         }
         catch (Exception ex)
         {
@@ -419,6 +557,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         }
     }
 
+    /// <summary>
+    /// Detaches any process handlers previously attached for a session runtime.
+    /// </summary>
     private void DetachProcessHandlers(ActiveSessionRuntime runtime)
     {
         if (runtime.Process == null)
@@ -442,6 +583,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         }
     }
 
+    /// <summary>
+    /// Publishes a raw captured line into the assembler pipeline for a specific source.
+    /// </summary>
     private void AppendCapturedLine(ActiveSessionRuntime runtime, string rawLine, GameLogSource source)
     {
         List<GameLogEntry> finalizedEntries;
@@ -472,6 +616,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         }
     }
 
+    /// <summary>
+    /// Flushes a pending text event after a short settle delay if no newer lines arrive.
+    /// </summary>
     private async Task FlushPendingTextAfterDelayAsync(ActiveSessionRuntime runtime, GameLogSource source, long expectedVersion)
     {
         try
@@ -498,6 +645,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         }
     }
 
+    /// <summary>
+    /// Flushes any pending assembler state before a session finishes.
+    /// </summary>
     private void FlushPendingAssemblers(ActiveSessionRuntime runtime)
     {
         List<GameLogEntry> pendingEntries;
@@ -508,12 +658,23 @@ public sealed class GameRuntimeService : IGameRuntimeService
                 .ToList();
         }
 
+        if (pendingEntries.Count > 0)
+        {
+            _logger.LogDebug(
+                "Flushing {PendingEntryCount} pending log entries for {GameName} before session completion.",
+                pendingEntries.Count,
+                runtime.Session.DisplayName);
+        }
+
         foreach (var entry in pendingEntries)
         {
             PublishEntry(runtime, entry);
         }
     }
 
+    /// <summary>
+    /// Applies deduplication and appends the entry to the session if it remains visible.
+    /// </summary>
     private void PublishEntry(ActiveSessionRuntime runtime, GameLogEntry entry)
     {
         GameLogEntry? replacedEntry = null;
@@ -542,6 +703,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
     private void AppendLifecycle(ActiveSessionRuntime runtime, GameLogLevel level, string message)
         => AppendSyntheticEntry(runtime, level, message, GameLogSource.Lifecycle);
 
+    /// <summary>
+    /// Publishes a synthetic runtime entry for lifecycle or crash-report notifications.
+    /// </summary>
     private void AppendSyntheticEntry(ActiveSessionRuntime runtime, GameLogLevel level, string message, GameLogSource source)
     {
         var entry = new GameLogEntry
@@ -557,6 +721,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         PublishEntry(runtime, entry);
     }
 
+    /// <summary>
+    /// Appends an entry to the UI-bound session collection.
+    /// </summary>
     private void AppendEntry(ActiveSessionRuntime runtime, GameLogEntry entry)
     {
         RunOnUI(() =>
@@ -566,6 +733,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         });
     }
 
+    /// <summary>
+    /// Removes a replaced entry from the UI-bound session collection.
+    /// </summary>
     private void RemoveEntry(ActiveSessionRuntime runtime, GameLogEntry entry)
     {
         RunOnUI(() =>
@@ -577,14 +747,35 @@ public sealed class GameRuntimeService : IGameRuntimeService
         });
     }
 
+    /// <summary>
+    /// Updates the session summary fields shown in the logs and games pages.
+    /// </summary>
     private static void UpdateSessionLogSummary(GameSession session)
     {
         session.EntryCount = session.Entries.Count;
         session.LastMessagePreview = session.Entries.LastOrDefault()?.Message.Trim();
     }
 
+    /// <summary>
+    /// Cleans up a launch attempt that ended before a stable running state was reached.
+    /// </summary>
     private void CompleteFailedLaunch(ActiveSessionRuntime runtime, GameRunState state, Exception? ex = null)
     {
+        if (state == GameRunState.Failed)
+        {
+            _logger.LogWarning(
+                "Completing failed launch for {GameName}. HasException: {HasException}.",
+                runtime.Session.DisplayName,
+                ex != null);
+        }
+        else
+        {
+            _logger.LogInformation(
+                "Completing interrupted launch for {GameName}. FinalState: {FinalState}.",
+                runtime.Session.DisplayName,
+                state);
+        }
+
         lock (_syncRoot)
         {
             _activeSessions.Remove(runtime.PathKey);
@@ -606,6 +797,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         });
     }
 
+    /// <summary>
+    /// Restores a session to the running state when a stop attempt could not complete.
+    /// </summary>
     private void RestoreRunningState(ActiveSessionRuntime runtime)
     {
         if (runtime.Process == null || runtime.Process.HasExited)
@@ -614,6 +808,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
         }
 
         runtime.RequestedStopMode = null;
+        _logger.LogInformation("Restoring running state for {GameName}.", runtime.Session.DisplayName);
 
         RunOnUI(() =>
         {
@@ -622,6 +817,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         });
     }
 
+    /// <summary>
+    /// Copies active runtime state back onto the corresponding game model.
+    /// </summary>
     private void ApplyActiveState(Game game, GameSession session, int? processId)
     {
         game.HasActiveSession = true;
@@ -631,6 +829,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         game.LastRunEndedAt = null;
     }
 
+    /// <summary>
+    /// Copies inactive runtime state back onto the corresponding game model.
+    /// </summary>
     private void ApplyInactiveState(Game game, GameSession session)
     {
         game.HasActiveSession = false;
@@ -640,6 +841,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         game.LastRunEndedAt = session.EndedAt;
     }
 
+    /// <summary>
+    /// Throws when launch cancellation has been requested for the current session.
+    /// </summary>
     private void ThrowIfLaunchCancelled(ActiveSessionRuntime runtime)
     {
         if (runtime.Cancellation.IsCancellationRequested)
@@ -672,6 +876,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         }
     }
 
+    /// <summary>
+    /// Waits for the supplied process to exit up to the requested timeout.
+    /// </summary>
     private static async Task<bool> WaitForExitAsync(Process process, TimeSpan timeout)
     {
         try
@@ -686,6 +893,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         }
     }
 
+    /// <summary>
+    /// Captures the existing crash reports before a new session starts.
+    /// </summary>
     private HashSet<string> SnapshotCrashReports(string gamePath)
     {
         var crashDirectory = Path.Combine(gamePath, "crash-reports");
@@ -694,9 +904,17 @@ public sealed class GameRuntimeService : IGameRuntimeService
             return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
 
-        return Directory.EnumerateFiles(crashDirectory).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var crashReports = Directory.EnumerateFiles(crashDirectory).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        _logger.LogDebug(
+            "Captured {CrashReportCount} existing crash report(s) for game path {GamePath}.",
+            crashReports.Count,
+            gamePath);
+        return crashReports;
     }
 
+    /// <summary>
+    /// Finds crash reports created after the current session began.
+    /// </summary>
     private List<string> FindNewCrashReports(ActiveSessionRuntime runtime)
     {
         var crashDirectory = Path.Combine(runtime.Session.GamePath, "crash-reports");
@@ -711,6 +929,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
             .ToList();
     }
 
+    /// <summary>
+    /// Determines the final session state from the exit code, stop mode, and crash-report outcome.
+    /// </summary>
     private GameRunState DetermineFinalState(ActiveSessionRuntime runtime, int exitCode, bool hasCrashReport)
     {
         if (hasCrashReport)
@@ -726,6 +947,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         return exitCode == 0 ? GameRunState.Exited : GameRunState.Failed;
     }
 
+    /// <summary>
+    /// Executes the supplied delegate on the UI dispatcher and returns its result.
+    /// </summary>
     private T RunOnUI<T>(Func<T> action)
     {
         if (_dispatcher.HasThreadAccess)
@@ -748,6 +972,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         return tcs.Task.GetAwaiter().GetResult();
     }
 
+    /// <summary>
+    /// Executes the supplied delegate on the UI dispatcher without a return value.
+    /// </summary>
     private void RunOnUI(Action action)
         => RunOnUI(() =>
         {

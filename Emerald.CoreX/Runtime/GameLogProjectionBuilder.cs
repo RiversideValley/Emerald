@@ -1,5 +1,12 @@
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace Emerald.CoreX.Runtime;
 
+/// <summary>
+/// Identifies why the visible log projection needs to be recalculated.
+/// </summary>
 internal enum GameLogProjectionRefreshReason
 {
     SessionChanged,
@@ -9,6 +16,9 @@ internal enum GameLogProjectionRefreshReason
     EntriesChanged
 }
 
+/// <summary>
+/// Holds the filtered and paged log entries that should be shown in the UI.
+/// </summary>
 internal sealed class GameLogProjectionResult
 {
     public required IReadOnlyList<GameLogEntry> VisibleEntries { get; init; }
@@ -20,8 +30,30 @@ internal sealed class GameLogProjectionResult
     public required int CurrentPageNumber { get; init; }
 }
 
+/// <summary>
+/// Builds the filtered and paged log projection used by the logs page.
+/// </summary>
 internal static class GameLogProjectionBuilder
 {
+    private static ILogger Logger
+    {
+        get
+        {
+            try
+            {
+                return Ioc.Default.GetService<ILoggerFactory>()?.CreateLogger(typeof(GameLogProjectionBuilder).FullName!)
+                    ?? NullLogger.Instance;
+            }
+            catch (InvalidOperationException)
+            {
+                return NullLogger.Instance;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Produces the visible page of log entries based on the current filters and navigation state.
+    /// </summary>
     public static GameLogProjectionResult Build(
         IEnumerable<GameLogEntry> entries,
         string? searchQuery,
@@ -41,6 +73,18 @@ internal static class GameLogProjectionBuilder
             .Take(safePageSize)
             .ToList();
 
+        Logger.LogDebug(
+            "Built log projection. Reason: {Reason}. HasQuery: {HasQuery}. LevelFilter: {SelectedLevelFilter}. PageSize: {PageSize}. RequestedPage: {RequestedPage}. TargetPage: {TargetPage}. FilteredEntries: {FilteredEntryCount}. TotalPages: {TotalPages}. AutoScroll: {AutoScroll}",
+            reason,
+            !string.IsNullOrWhiteSpace(searchQuery),
+            selectedLevelFilter ?? "All",
+            safePageSize,
+            currentPageNumber,
+            targetPage,
+            filteredEntries.Count,
+            totalPages,
+            autoScroll);
+
         return new GameLogProjectionResult
         {
             VisibleEntries = pageEntries,
@@ -50,10 +94,16 @@ internal static class GameLogProjectionBuilder
         };
     }
 
+    /// <summary>
+    /// Determines whether the supplied entry matches the active filter state.
+    /// </summary>
     internal static bool MatchesEntry(GameLogEntry entry, string? searchQuery, string? selectedLevelFilter)
         => MatchesLevelFilter(entry, selectedLevelFilter)
             && MatchesSearch(entry, searchQuery);
 
+    /// <summary>
+    /// Chooses which page should be shown after a refresh.
+    /// </summary>
     private static int DetermineTargetPage(
         GameLogProjectionRefreshReason reason,
         int filteredCount,

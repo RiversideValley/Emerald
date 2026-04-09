@@ -88,14 +88,22 @@ public partial class Game : ObservableObject
         _logger.LogInformation("Game instance created with path: {Path} and options: {Options}", path, options);
     }
 
+    /// <summary>
+    /// Creates a launcher instance configured for online or offline use for the current game path.
+    /// </summary>
     public void CreateMCLauncher(bool isOffline)
     {
+        _logger.LogDebug("Creating Minecraft launcher. OfflineMode: {IsOffline}.", isOffline);
         var param = MinecraftLauncherParameters.CreateDefault(Path);
 
         if (isOffline)
         {
             param.VersionLoader = new LocalJsonVersionLoader(Path);
             _logger.LogInformation("Offline mode enabled. Using LocalJsonVersionLoader.");
+        }
+        else
+        {
+            _logger.LogInformation("Online mode enabled. Using the default version loader.");
         }
 
         Launcher = new MinecraftLauncher(param);
@@ -144,6 +152,7 @@ public partial class Game : ObservableObject
             }
             if (isOffline) //checking if verison actually exists
             {
+                _logger.LogDebug("Validating version {Version} against the local offline manifest cache.", ver);
                 var vers = await Launcher.GetAllVersionsAsync();
                 var mver = vers.Where(x => x.Name == ver).First();
                 if (mver == null)
@@ -157,6 +166,7 @@ public partial class Game : ObservableObject
             
             if (isOffline) //checking if verison actually exists
             {
+                _logger.LogDebug("Rechecking offline version {Version} before install.", ver);
                 var vers = await Launcher.GetAllVersionsAsync();
                 var mver = vers.Where(x => x.Name == ver).First();
                 if (mver == null)
@@ -218,6 +228,7 @@ public partial class Game : ObservableObject
         _logger.LogInformation("Building process for version: {Version}", version);
         var launchOpt = Options.ToMLaunchOption();
         launchOpt.Session = session;
+        _logger.LogDebug("Preparing launch options for {Version}. FullScreen: {FullScreen}. DockName: {DockName}.", version, Options.FullScreen, Options.DockName);
         return await Launcher.BuildProcessAsync(
             version, launchOpt);
     }

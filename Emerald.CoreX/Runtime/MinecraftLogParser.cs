@@ -1,18 +1,45 @@
 using System.Globalization;
 using System.Text;
-using System.Xml.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Emerald.CoreX.Runtime;
 
+/// <summary>
+/// Parses raw Minecraft process output into normalized runtime log entries.
+/// </summary>
 internal static partial class MinecraftLogParser
 {
     private static readonly Regex StructuredLineRegex = StructuredLine();
     private const string Log4jEventsNamespace = "http://logging.apache.org/log4j/2.0/events";
+    private static ILogger Logger
+    {
+        get
+        {
+            try
+            {
+                return Ioc.Default.GetService<ILoggerFactory>()?.CreateLogger(typeof(MinecraftLogParser).FullName!)
+                    ?? NullLogger.Instance;
+            }
+            catch (InvalidOperationException)
+            {
+                return NullLogger.Instance;
+            }
+        }
+    }
 
+    /// <summary>
+    /// Determines whether a raw line starts a structured text log event.
+    /// </summary>
     public static bool IsStructuredTextStart(string rawLine)
         => !string.IsNullOrEmpty(rawLine) && StructuredLineRegex.IsMatch(rawLine);
 
+    /// <summary>
+    /// Determines whether a raw line starts a log4j XML event payload.
+    /// </summary>
     public static bool IsXmlEventStart(string rawLine)
     {
         if (string.IsNullOrWhiteSpace(rawLine))
@@ -25,6 +52,9 @@ internal static partial class MinecraftLogParser
             || trimmed.StartsWith("<Event", StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// Determines whether the supplied payload contains the closing tag for an XML event.
+    /// </summary>
     public static bool IsXmlEventEnd(string rawPayload)
     {
         if (string.IsNullOrWhiteSpace(rawPayload))
@@ -36,11 +66,17 @@ internal static partial class MinecraftLogParser
             || rawPayload.Contains("</Event>", StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// Parses a structured text event and falls back to raw payload parsing when needed.
+    /// </summary>
     public static GameLogEntry ParseTextEvent(string headerLine, IReadOnlyList<string> detailLines, GameLogSource source, DateTimeOffset finalizedAt)
     {
         var structuredMatch = StructuredLineRegex.Match(headerLine);
         if (!structuredMatch.Success)
         {
+            Logger.LogDebug(
+                "Structured text log header did not match the expected Minecraft format for {Source}. Falling back to raw payload parsing.",
+                source);
             return ParseRawPayload(CombinePayload(headerLine, detailLines), source, finalizedAt);
         }
 
@@ -58,6 +94,9 @@ internal static partial class MinecraftLogParser
         };
     }
 
+    /// <summary>
+    /// Parses an unstructured payload into a basic runtime log entry.
+    /// </summary>
     public static GameLogEntry ParseRawPayload(string rawPayload, GameLogSource source, DateTimeOffset finalizedAt)
     {
         var lines = rawPayload.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n');
@@ -75,6 +114,9 @@ internal static partial class MinecraftLogParser
         };
     }
 
+    /// <summary>
+    /// Parses a log4j XML payload and falls back to raw parsing when the payload is incomplete or malformed.
+    /// </summary>
     public static GameLogEntry ParseXmlPayload(string rawPayload, GameLogSource source, DateTimeOffset fallbackTimestamp)
     {
         try
@@ -86,6 +128,9 @@ internal static partial class MinecraftLogParser
             var eventElement = document.Root?.Elements().FirstOrDefault(x => string.Equals(x.Name.LocalName, "Event", StringComparison.Ordinal));
             if (eventElement == null)
             {
+                Logger.LogDebug(
+                    "XML log payload from {Source} did not contain a log event element. Falling back to raw payload parsing.",
+                    source);
                 return ParseRawPayload(rawPayload, source, fallbackTimestamp);
             }
 
@@ -105,8 +150,13 @@ internal static partial class MinecraftLogParser
                 RawPayload = rawPayload
             };
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogWarning(
+                ex,
+                "Failed to parse XML log payload from {Source}. PayloadLength: {PayloadLength}. Falling back to raw payload parsing.",
+                source,
+                rawPayload.Length);
             return ParseRawPayload(rawPayload, source, fallbackTimestamp);
         }
     }
@@ -177,6 +227,9 @@ internal static partial class MinecraftLogParser
     private static string? TrimOuterLineBreaks(string? value)
         => string.IsNullOrEmpty(value) ? value : value.Trim('\r', '\n');
 
+    /// <summary>
+    /// Normalizes a raw level token into the runtime log level enum.
+    /// </summary>
     internal static GameLogLevel ParseLevel(string? value) => value?.ToUpperInvariant() switch
     {
         "TRACE" => GameLogLevel.Trace,

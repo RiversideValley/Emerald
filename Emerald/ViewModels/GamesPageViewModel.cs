@@ -17,6 +17,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Emerald.ViewModels;
 
+/// <summary>
+/// Manages the games page workflow for listing, creating, launching, and stopping game instances.
+/// </summary>
 public partial class GamesPageViewModel : ObservableObject
 {
     private readonly Core _core;
@@ -130,6 +133,7 @@ public partial class GamesPageViewModel : ObservableObject
     [RelayCommand]
     private void StartAddGame()
     {
+        _logger.LogDebug("Resetting add-game wizard state.");
         AddGameWizardStep = 0;
         NewGameName = string.Empty;
         SelectedVersion = null;
@@ -157,6 +161,12 @@ public partial class GamesPageViewModel : ObservableObject
         {
             FilteredGames.Add(game);
         }
+
+        _logger.LogDebug(
+            "Updated filtered games. SearchQueryEmpty: {SearchQueryEmpty}. VisibleGames: {VisibleGames}. TotalGames: {TotalGames}.",
+            string.IsNullOrWhiteSpace(SearchQuery),
+            FilteredGames.Count,
+            Games.Count);
     }
 
     private void UpdateFilteredAvailableVersions()
@@ -178,6 +188,12 @@ public partial class GamesPageViewModel : ObservableObject
         {
             FilteredAvailableVersions.Add(version);
         }
+
+        _logger.LogDebug(
+            "Updated filtered versions. SearchQueryEmpty: {SearchQueryEmpty}. ReleaseTypeFilter: {ReleaseTypeFilter}. VisibleVersions: {VisibleVersions}.",
+            string.IsNullOrWhiteSpace(VersionSearchQuery),
+            SelectedReleaseTypeFilter,
+            FilteredAvailableVersions.Count);
     }
 
     private void UpdateAvailableVersions()
@@ -201,6 +217,7 @@ public partial class GamesPageViewModel : ObservableObject
         }
 
         UpdateFilteredAvailableVersions();
+        _logger.LogDebug("Updated available versions list. VersionCount: {VersionCount}.", AvailableVersions.Count);
     }
 
     [RelayCommand]
@@ -236,6 +253,7 @@ public partial class GamesPageViewModel : ObservableObject
     {
         try
         {
+            _logger.LogInformation("Refreshing games list.");
             await _core.InitializeAndRefresh();
         }
         catch (Exception ex)
@@ -249,6 +267,10 @@ public partial class GamesPageViewModel : ObservableObject
     {
         if (SelectedVersion == null || SelectedModLoaderType == CoreX.Versions.Type.Vanilla)
         {
+            _logger.LogDebug(
+                "Skipping mod loader load. HasSelectedVersion: {HasSelectedVersion}. SelectedType: {SelectedType}.",
+                SelectedVersion != null,
+                SelectedModLoaderType);
             AvailableModLoaders.Clear();
             return;
         }
@@ -269,6 +291,15 @@ public partial class GamesPageViewModel : ObservableObject
                     AvailableModLoaders.Add(loader);
                 }
                 SelectedModLoader = null;
+                _logger.LogInformation(
+                    "Loaded {LoaderCount} mod loader option(s) for {Version} using {LoaderType}.",
+                    AvailableModLoaders.Count,
+                    SelectedVersion.BasedOn,
+                    SelectedModLoaderType);
+            }
+            else
+            {
+                _logger.LogWarning("No mod loader installer was found for {LoaderType}.", SelectedModLoaderType);
             }
         }
         catch (Exception ex)
@@ -287,6 +318,10 @@ public partial class GamesPageViewModel : ObservableObject
     {
         if (SelectedVersion == null || string.IsNullOrWhiteSpace(NewGameName))
         {
+            _logger.LogWarning(
+                "Cannot create game because the selected version or new game name is missing. HasVersion: {HasVersion}. HasName: {HasName}.",
+                SelectedVersion != null,
+                !string.IsNullOrWhiteSpace(NewGameName));
             _notificationService.Warning("InvalidInput", "Please select a version and enter a name");
             return;
         }
@@ -326,7 +361,11 @@ public partial class GamesPageViewModel : ObservableObject
     [RelayCommand]
     private async Task InstallGameAsync(Game? game)
     {
-        if (game == null) return;
+        if (game == null)
+        {
+            _logger.LogDebug("Ignoring install request because no game was provided.");
+            return;
+        }
         try
         {
             _logger.LogInformation("Installing game: {Name}", game.Version.DisplayName);
@@ -342,7 +381,11 @@ public partial class GamesPageViewModel : ObservableObject
     [RelayCommand]
     private async Task LaunchGameAsync(Game? game)
     {
-        if (game == null) return;
+        if (game == null)
+        {
+            _logger.LogDebug("Ignoring launch request because no game was provided.");
+            return;
+        }
         try
         {
             _logger.LogInformation("Launching game: {Name}", game.Version.DisplayName);
@@ -358,7 +401,11 @@ public partial class GamesPageViewModel : ObservableObject
     [RelayCommand]
     private async Task StopGameAsync(Game? game)
     {
-        if (game == null) return;
+        if (game == null)
+        {
+            _logger.LogDebug("Ignoring stop request because no game was provided.");
+            return;
+        }
 
         try
         {
@@ -375,7 +422,11 @@ public partial class GamesPageViewModel : ObservableObject
     [RelayCommand]
     private async Task ForceStopGameAsync(Game? game)
     {
-        if (game == null) return;
+        if (game == null)
+        {
+            _logger.LogDebug("Ignoring force-stop request because no game was provided.");
+            return;
+        }
 
         try
         {
@@ -392,7 +443,11 @@ public partial class GamesPageViewModel : ObservableObject
     [RelayCommand]
     private void RemoveGame(Game? game)
     {
-        if (game == null) return;
+        if (game == null)
+        {
+            _logger.LogDebug("Ignoring remove request because no game was provided.");
+            return;
+        }
         try
         {
             _logger.LogInformation("Removing game: {Name}", game.Version.DisplayName);
@@ -408,7 +463,11 @@ public partial class GamesPageViewModel : ObservableObject
     [RelayCommand]
     private async Task RemoveGameWithFilesAsync(Game? game)
     {
-        if (game == null) return;
+        if (game == null)
+        {
+            _logger.LogDebug("Ignoring remove-with-files request because no game was provided.");
+            return;
+        }
         try
         {
             _logger.LogInformation("Removing game with files: {Name}", game.Version.DisplayName);
@@ -423,7 +482,9 @@ public partial class GamesPageViewModel : ObservableObject
 
     private IModLoaderInstaller? GetModLoaderInstaller(CoreX.Versions.Type type)
     {
-        var Installers = Ioc.Default.GetServices<IModLoaderInstaller>();
-        return Installers.FirstOrDefault(x => x.Type == type);
+        var installers = Ioc.Default.GetServices<IModLoaderInstaller>();
+        var installer = installers.FirstOrDefault(x => x.Type == type);
+        _logger.LogDebug("Resolved mod loader installer for {LoaderType}. FoundInstaller: {FoundInstaller}.", type, installer != null);
+        return installer;
     }
 }
