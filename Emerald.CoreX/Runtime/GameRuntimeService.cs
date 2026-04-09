@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
+using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Services;
 using Microsoft.Extensions.Logging;
@@ -112,7 +113,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
     /// <summary>
     /// Launches the supplied game and starts tracking its runtime session.
     /// </summary>
-    public async Task<GameSession?> LaunchAsync(Game game)
+    public async Task<GameSession?> LaunchAsync(Game game, EAccount? account = null)
     {
         if (game == null)
         {
@@ -134,7 +135,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
             return null;
         }
 
-        var account = _accountService.GetMostRecentlyUsedAccount();
+        account ??= _accountService.GetSelectedAccount();
         if (account == null)
         {
             _logger.LogWarning(

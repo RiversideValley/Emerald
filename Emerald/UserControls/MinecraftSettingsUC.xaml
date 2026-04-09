@@ -18,6 +18,26 @@
 
   <Grid>
     <StackPanel Spacing="16">
+      <cn:SettingsCard
+        x:Name="GameOverrideCard"
+        Visibility="Collapsed"
+        Header="{helpers:Localize KeyName=OverrideMainSettingsForGame}"
+        Description="{helpers:Localize KeyName=OverrideMainSettingsForGameDescription}"
+        HeaderIcon="{helpers:FontIcon Glyph=}">
+        <ToggleSwitch
+          x:Name="GameOverrideToggle"
+          Toggled="GameOverrideToggle_Toggled"
+          OffContent="{helpers:Localize KeyName=UseMainSettings}"
+          OnContent="{helpers:Localize KeyName=UseCustomSettings}" />
+      </cn:SettingsCard>
+
+      <TextBlock
+        x:Name="UsingMainSettingsHint"
+        Visibility="Collapsed"
+        Style="{StaticResource CaptionTextBlockStyle}"
+        Opacity="0.7"
+        Text="{helpers:Localize KeyName=UsesMainSettingsHint}" />
+
       <StackPanel Spacing="4">
         <TextBlock FontWeight="SemiBold" Text="{helpers:Localize KeyName=GeneralSettings}" />
         <cn:SettingsCard
@@ -41,8 +61,14 @@
                   Click="ChangePath_OnClick"/>
               </MenuFlyout>
             </DropDownButton.Flyout>
-          </DropDownButton>
+            </DropDownButton>
         </cn:SettingsCard>
+      </StackPanel>
+
+      <StackPanel
+        x:Name="PerGameEditablePanel"
+        Spacing="16">
+        <StackPanel Spacing="4">
         <cn:SettingsCard
           HeaderIcon="{helpers:FontIcon Glyph=}"
           Header="{helpers:Localize KeyName=RAM}"
@@ -85,20 +111,9 @@
             </cn:SettingsCard>
           </cn:SettingsExpander.Items>
         </cn:SettingsExpander>
-        <cn:SettingsCard
-          x:Name="AL"
-          Visibility="{x:Bind ShowMainSettings, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-          Header="{helpers:Localize KeyName=AutoLogin}"
-          Description="{helpers:Localize KeyName=AutoLoginDescription}"
-          HeaderIcon="{helpers:FontIcon Glyph=}">
-          <ToggleSwitch
-            IsOn="{x:Bind SS.Settings.App.AutoLogin, Mode=TwoWay}"
-            OffContent="{helpers:Localize KeyName=No}"
-            OnContent="{helpers:Localize KeyName=Yes}" />
-        </cn:SettingsCard>
-      </StackPanel>
-      <StackPanel
-        Spacing="4">
+        </StackPanel>
+        <StackPanel
+          Spacing="4">
         <TextBlock
           FontWeight="SemiBold"
           Text="{helpers:Localize KeyName=AdvancedMinecraftSettings}" />
@@ -170,6 +185,7 @@
             </Grid>
           </cn:SettingsExpander.ItemsHeader>
         </cn:SettingsExpander>
+      </StackPanel>
       </StackPanel>
     </StackPanel>
   </Grid>

@@ -18,5 +18,7 @@ public interface IAccountService
     Task RemoveAccountAsync(EAccount account);
     Task<MSession> AuthenticateAccountAsync(EAccount account);
     EAccount? GetMostRecentlyUsedAccount();
+    EAccount? GetSelectedAccount();
+    void SetSelectedAccount(EAccount? account);
     Task InitializeAsync(string clientId);
 }

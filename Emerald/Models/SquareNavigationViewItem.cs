@@ -14,7 +14,7 @@ public partial class SquareNavigationViewItem : Model
         PropertyChanged += (_, e) =>
         {
             //idk why I did this
-            if (e.PropertyName == nameof(IsSelected) || e.PropertyName == nameof(ShowFontIcons))
+            if (e.PropertyName == nameof(IsSelected) || e.PropertyName == nameof(ShowFontIcons) || e.PropertyName == nameof(Thumbnail))
             {
                 InvokePropertyChanged(null);
             }
@@ -54,11 +54,12 @@ public partial class SquareNavigationViewItem : Model
 
 
     private bool ShowFontIcons => SS.Settings.App.Appearance.ShowFontIcons;
+    private bool UseFontIcons => ShowFontIcons || string.IsNullOrWhiteSpace(Thumbnail);
 
     //Using Converters is a pain in uno.
-    public Visibility FontIconVisibility => ShowFontIcons && !IsSelected ? Visibility.Visible : Visibility.Collapsed;
-    public Visibility SolidFontIconVisibility => ShowFontIcons && IsSelected ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility FontIconVisibility => UseFontIcons && !IsSelected ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility SolidFontIconVisibility => UseFontIcons && IsSelected ? Visibility.Visible : Visibility.Collapsed;
     public Visibility SelectionVisibility => IsSelected ? Visibility.Collapsed : Visibility.Visible;
-    public Visibility ImageVisibility => ShowFontIcons ? Visibility.Collapsed : Visibility.Visible;
+    public Visibility ImageVisibility => UseFontIcons ? Visibility.Collapsed : Visibility.Visible;
     
 }

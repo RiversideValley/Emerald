@@ -64,9 +64,6 @@ public partial class Settings : JSON
     public string APIVersion { get; set; } = DirectResoucres.SettingsAPIVersion;
     public DateTime LastSaved { get; set; } = DateTime.Now;
     public Minecraft Minecraft { get; set; } = new();
-
-    [ObservableProperty]
-    private CoreX.Models.GameSettings _GameSettings  = GameSettings.FromMLaunchOption(new MLaunchOption());
     public App App { get; set; } = new();
 }
 
@@ -158,23 +155,33 @@ public partial class JVM : JSON
     public bool SetSize => !(ScreenSizeStatus == "FullScreen".Localize() || ScreenSizeStatus == "Default".Localize());
 }
 
-public class App : JSON
+public partial class App : JSON
 {
     public Appearance Appearance { get; set; } = new();
-    public bool AutoLogin { get; set; }
     public Discord Discord { get; set; } = new();
     public NewsFilter NewsFilter { get; set; } = new();
     public Store Store { get; set; } = new();
     public Updates Updates { get; set; } = new();
-    public bool AutoClose { get; set; }
-    public bool HideOnLaunch { get; set; }
-    public bool WindowsHello { get; set; }
+
+    [ObservableProperty]
+    private bool _autoClose;
+
+    [ObservableProperty]
+    private bool _hideOnLaunch;
+
+    [ObservableProperty]
+    private bool _windowsHello;
 }
-public class Updates : JSON
+public partial class Updates : JSON
 {
-    public bool CheckAtStartup { get; set; } = true;
-    public bool AutoDownload { get; set; }
-    public bool IncludePreReleases { get; set; }
+    [ObservableProperty]
+    private bool _checkAtStartup = true;
+
+    [ObservableProperty]
+    private bool _autoDownload;
+
+    [ObservableProperty]
+    private bool _includePreReleases;
 }
 public partial class StoreFilter : JSON
 {

@@ -132,6 +132,9 @@
   <data name="AccountDetails" xml:space="preserve">
     <value>Account Details</value>
   </data>
+  <data name="Account" xml:space="preserve">
+    <value>Account</value>
+  </data>
   <data name="Accounts" xml:space="preserve">
     <value>Accounts</value>
   </data>
@@ -162,11 +165,20 @@
   <data name="AutoDownloadUpdates" xml:space="preserve">
     <value>Automatically download updates if available</value>
   </data>
-  <data name="AutoLogin" xml:space="preserve">
-    <value>Auto login</value>
+  <data name="OverrideMainSettingsForGame" xml:space="preserve">
+    <value>Override main settings for this game</value>
   </data>
-  <data name="AutoLoginDescription" xml:space="preserve">
-    <value>Automatically tries to login with the most recent account at startup</value>
+  <data name="OverrideMainSettingsForGameDescription" xml:space="preserve">
+    <value>Turn this on to give this game its own settings. Leave it off to follow the main settings live.</value>
+  </data>
+  <data name="UseMainSettings" xml:space="preserve">
+    <value>Use main settings</value>
+  </data>
+  <data name="UseCustomSettings" xml:space="preserve">
+    <value>Use custom settings</value>
+  </data>
+  <data name="UsesMainSettingsHint" xml:space="preserve">
+    <value>This game is currently following the main settings. Enable overrides to edit custom values here.</value>
   </data>
   <data name="BegLogIn" xml:space="preserve">
     <value>Please Login</value>
@@ -516,6 +528,9 @@
   <data name="MinecraftSettings" xml:space="preserve">
     <value>Minecraft Settings</value>
   </data>
+  <data name="ManageSignedInAccounts" xml:space="preserve">
+    <value>Manage your signed-in accounts</value>
+  </data>
   <data name="ModsNoInternet" xml:space="preserve">
     <value>Cannot find mods with follwing name or you may got disconnected from the internet.</value>
   </data>
@@ -616,8 +631,14 @@
   <data name="SearchStore" xml:space="preserve">
     <value>Search Store</value>
   </data>
+  <data name="Selected" xml:space="preserve">
+    <value>Selected</value>
+  </data>
   <data name="Select" xml:space="preserve">
     <value>Select</value>
+  </data>
+  <data name="SelectAccountForLaunches" xml:space="preserve">
+    <value>Select which account Emerald should use for launches.</value>
   </data>
   <data name="SelectAll" xml:space="preserve">
     <value>Select All</value>
@@ -630,6 +651,9 @@
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Settings</value>
+  </data>
+  <data name="SettingsSubtitle" xml:space="preserve">
+    <value>Customize Emerald and Minecraft behavior.</value>
   </data>
   <data name="SettingsBackups" xml:space="preserve">
     <value>Settings Backups</value>

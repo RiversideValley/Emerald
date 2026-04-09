@@ -15,8 +15,6 @@ public class BaseSettingsService : IBaseSettingsService
 
     private readonly string _settingsFolder;
 
-    public event EventHandler<string>? APINoMatch;
-
     public BaseSettingsService(ILogger<BaseSettingsService> logger)
     {
         _logger = logger;

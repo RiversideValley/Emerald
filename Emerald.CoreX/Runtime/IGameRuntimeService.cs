@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Emerald.CoreX.Models;
 
 namespace Emerald.CoreX.Runtime;
 
@@ -15,7 +16,7 @@ public interface IGameRuntimeService
     /// <summary>
     /// Launches the supplied game and begins tracking its runtime session.
     /// </summary>
-    Task<GameSession?> LaunchAsync(Game game);
+    Task<GameSession?> LaunchAsync(Game game, EAccount? account = null);
 
     /// <summary>
     /// Requests that the supplied game stop using the specified mode.

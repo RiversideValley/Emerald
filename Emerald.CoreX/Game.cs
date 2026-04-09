@@ -1,31 +1,33 @@
-using Microsoft.Extensions.Logging;
-using CmlLib.Core;
-using CmlLib.Core.VersionMetadata;
-using CmlLib.Core.Installers;
-using Windows.System;
-using CmlLib.Core.VersionLoader;
-using CommunityToolkit.Mvvm.DependencyInjection;
-using CmlLib.Core.ProcessBuilder;
 using System.Diagnostics;
+using CmlLib.Core;
+using CmlLib.Core.Installers;
+using CmlLib.Core.ProcessBuilder;
+using CmlLib.Core.VersionLoader;
+using CmlLib.Core.VersionMetadata;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Runtime;
+using Emerald.CoreX.Services;
+using Microsoft.Extensions.Logging;
+
 namespace Emerald.CoreX;
 
 public partial class Game : ObservableObject
 {
-    public static Game FromTuple((string Path, Versions.Version version, Models.GameSettings Options) t)
-        => new(new MinecraftPath(t.Path), t.Options, t.version);
-
     private readonly ILogger _logger;
-
     private readonly Notifications.INotificationService _notify;
+    private readonly IGlobalGameSettingsService _globalGameSettingsService;
 
     private MinecraftLauncher Launcher { get; set; }
 
     public Versions.Version Version { get; set; } = new();
     public MinecraftPath Path { get; set; }
 
-    public Models.GameSettings Options { get; set; }
+    [ObservableProperty]
+    private bool _usesCustomGameSettings;
+
+    [ObservableProperty]
+    private Models.GameSettings? _customGameSettings;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanLaunch))]
@@ -59,6 +61,11 @@ public partial class Game : ObservableObject
 
     public bool CanModify => !HasActiveSession;
 
+    public Models.GameSettings EffectiveSettings
+        => Models.GameSettings.Resolve(_globalGameSettingsService.Settings, UsesCustomGameSettings, CustomGameSettings);
+
+    public Models.GameSettings Options => EffectiveSettings;
+
     public string RuntimeStatusText => RunState switch
     {
         GameRunState.Launching => "Launching",
@@ -73,24 +80,54 @@ public partial class Game : ObservableObject
         _ => "Ready"
     };
 
-    /// <summary>
-    /// Represents a Game instance, responsible for managing the installation, configuration,
-    /// and launching of Minecraft versions.
-    /// </summary>
-    public Game(MinecraftPath path, Models.GameSettings options, Versions.Version version)
+    public Game(
+        MinecraftPath path,
+        Versions.Version version,
+        bool usesCustomGameSettings = false,
+        Models.GameSettings? customGameSettings = null,
+        IGlobalGameSettingsService? globalGameSettingsService = null)
     {
         _notify = Ioc.Default.GetService<Notifications.INotificationService>();
         _logger = this.Log();
+        _globalGameSettingsService = globalGameSettingsService
+            ?? Ioc.Default.GetService<IGlobalGameSettingsService>()
+            ?? throw new InvalidOperationException("Global game settings service is required before creating games.");
+
         Launcher = new MinecraftLauncher();
         Path = path;
-        Options = options;
         Version = version;
-        _logger.LogInformation("Game instance created with path: {Path} and options: {Options}", path, options);
+        UsesCustomGameSettings = usesCustomGameSettings;
+        CustomGameSettings = usesCustomGameSettings
+            ? customGameSettings?.Clone() ?? _globalGameSettingsService.CloneCurrent()
+            : null;
+
+        _globalGameSettingsService.Settings.PropertyChanged += (_, _) =>
+        {
+            if (!UsesCustomGameSettings)
+            {
+                NotifyEffectiveSettingsChanged();
+            }
+        };
+
+        _logger.LogInformation("Game instance created with path: {Path}. UsesCustomGameSettings: {UsesCustomGameSettings}", path, usesCustomGameSettings);
     }
 
-    /// <summary>
-    /// Creates a launcher instance configured for online or offline use for the current game path.
-    /// </summary>
+    public Models.GameSettings GetEditableSettings()
+        => UsesCustomGameSettings
+            ? CustomGameSettings ??= _globalGameSettingsService.CloneCurrent()
+            : _globalGameSettingsService.Settings;
+
+    public void ResetCustomGameSettings()
+    {
+        if (!UsesCustomGameSettings)
+        {
+            return;
+        }
+
+        CustomGameSettings = _globalGameSettingsService.CloneCurrent();
+        NotifyEffectiveSettingsChanged();
+    }
+
     public void CreateMCLauncher(bool isOffline)
     {
         _logger.LogDebug("Creating Minecraft launcher. OfflineMode: {IsOffline}.", isOffline);
@@ -108,19 +145,13 @@ public partial class Game : ObservableObject
 
         Launcher = new MinecraftLauncher(param);
     }
-    /// <summary>
-    /// Installs the specified Minecraft version, including downloading necessary files
-    /// and handling both online and offline modes.
-    /// </summary>
-    /// <param name="isOffline">Indicates whether the installation is performed in offline mode, bypassing online resources.</param>
-    /// <param name="showFileProgress">Determines whether detailed file progress information is displayed during the installation process.</param>
-    /// <returns>A task that represents the asynchronous installation operation.</returns>
+
     public async Task InstallVersion(bool isOffline = false, bool showFileProgress = false)
     {
         _logger.LogInformation("Starting InstallVersion with isOffline: {IsOffline}, showFileProgress: {ShowFileProgress}", isOffline, showFileProgress);
         CreateMCLauncher(isOffline);
 
-          var not = _notify.Create(
+        var not = _notify.Create(
             "Initializing Version",
             $"Initializing {Version.Type} version {Version.DisplayName}",
             0,
@@ -150,7 +181,7 @@ public partial class Game : ObservableObject
 
                 return;
             }
-            if (isOffline) //checking if verison actually exists
+            if (isOffline)
             {
                 _logger.LogDebug("Validating version {Version} against the local offline manifest cache.", ver);
                 var vers = await Launcher.GetAllVersionsAsync();
@@ -163,8 +194,8 @@ public partial class Game : ObservableObject
             }
 
             Version.RealVersion = ver;
-            
-            if (isOffline) //checking if verison actually exists
+
+            if (isOffline)
             {
                 _logger.LogDebug("Rechecking offline version {Version} before install.", ver);
                 var vers = await Launcher.GetAllVersionsAsync();
@@ -182,7 +213,10 @@ public partial class Game : ObservableObject
             {
                 string msg = prog.Files;
                 if (!string.IsNullOrWhiteSpace(prog.bytes))
+                {
                     msg += " | " + prog.bytes;
+                }
+
                 _notify.Update(
                     not.Id,
                     message: msg,
@@ -190,22 +224,22 @@ public partial class Game : ObservableObject
                     isIndeterminate: false
                 );
             }
+
             await Launcher.InstallAsync(
                 ver,
-                showFileProgress ?
-                new Progress<InstallerProgressChangedEventArgs>(e =>
-                {
-                    prog.Files = $"{e.Name} \n({e.ProgressedTasks}/{e.TotalTasks})";
-                    
-                    prog.prog = Math.Round((double)e.ProgressedTasks / e.TotalTasks * 100, 2); 
-                    UpdateProg();
-                }) : null,
+                showFileProgress
+                    ? new Progress<InstallerProgressChangedEventArgs>(e =>
+                    {
+                        prog.Files = $"{e.Name} \n({e.ProgressedTasks}/{e.TotalTasks})";
+                        prog.prog = Math.Round((double)e.ProgressedTasks / e.TotalTasks * 100, 2);
+                        UpdateProg();
+                    })
+                    : null,
                 new Progress<ByteProgress>(e =>
                 {
                     prog.bytes = $"{Math.Round((e.ProgressedBytes * Math.Pow(10, -6)), 0)} MB/{Math.Round((e.TotalBytes * Math.Pow(10, -6)), 0)} MB";
                     UpdateProg();
                 }),
-                
                 not.CancellationToken.Value);
 
             _logger.LogInformation("Version {VersionType} {VersionDisplayName} installation completed successfully.", Version.Type, Version.DisplayName);
@@ -218,18 +252,35 @@ public partial class Game : ObservableObject
         }
     }
 
-    /// <summary>
-    /// Builds a process for launching a Minecraft instance using the specified game version.
-    /// </summary>
-    /// <param name="version">The version of the game to be launched.</param>
-    /// <returns>A Task that represents the process used to launch the Minecraft instance.</returns>
     public async Task<Process> BuildProcess(string version, CmlLib.Core.Auth.MSession session)
     {
         _logger.LogInformation("Building process for version: {Version}", version);
-        var launchOpt = Options.ToMLaunchOption();
+        var launchOpt = EffectiveSettings.ToMLaunchOption();
         launchOpt.Session = session;
-        _logger.LogDebug("Preparing launch options for {Version}. FullScreen: {FullScreen}. DockName: {DockName}.", version, Options.FullScreen, Options.DockName);
-        return await Launcher.BuildProcessAsync(
-            version, launchOpt);
+        _logger.LogDebug("Preparing launch options for {Version}. FullScreen: {FullScreen}. DockName: {DockName}.", version, EffectiveSettings.FullScreen, EffectiveSettings.DockName);
+        return await Launcher.BuildProcessAsync(version, launchOpt);
+    }
+
+    partial void OnUsesCustomGameSettingsChanged(bool value)
+    {
+        if (value)
+        {
+            CustomGameSettings ??= _globalGameSettingsService.CloneCurrent();
+        }
+        else
+        {
+            CustomGameSettings = null;
+        }
+
+        NotifyEffectiveSettingsChanged();
+    }
+
+    partial void OnCustomGameSettingsChanged(Models.GameSettings? value)
+        => NotifyEffectiveSettingsChanged();
+
+    private void NotifyEffectiveSettingsChanged()
+    {
+        OnPropertyChanged(nameof(EffectiveSettings));
+        OnPropertyChanged(nameof(Options));
     }
 }

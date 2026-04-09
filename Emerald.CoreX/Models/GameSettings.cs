@@ -10,9 +10,15 @@ using CmlLib.Core.ProcessBuilder;
 using Emerald.CoreX.Helpers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Runtime.Serialization;
+using System.Collections.Specialized;
 namespace Emerald.CoreX.Models;
 public partial class GameSettings : ObservableObject
 {
+    public GameSettings()
+    {
+        JVMArgs.CollectionChanged += OnJvmArgsChanged;
+    }
+
     [JsonIgnore]
     public double MaxRAMinGB => Math.Round((MaximumRamMb / 1024.00), 2);
 
@@ -123,4 +129,41 @@ public partial class GameSettings : ObservableObject
 
         return game;
     }
+
+    public GameSettings Clone()
+    {
+        var clone = new GameSettings
+        {
+            MaximumRamMb = MaximumRamMb,
+            MinimumRamMb = MinimumRamMb,
+            DockName = DockName,
+            IsDemo = IsDemo,
+            ScreenWidth = ScreenWidth,
+            ScreenHeight = ScreenHeight,
+            FullScreen = FullScreen,
+            QuickPlayPath = QuickPlayPath,
+            QuickPlaySingleplayer = QuickPlaySingleplayer,
+            QuickPlayRealms = QuickPlayRealms,
+            ServerIp = ServerIp,
+            ServerPort = ServerPort,
+            HashCheck = HashCheck,
+            AssetsCheck = AssetsCheck,
+            IsAdmin = IsAdmin
+        };
+
+        foreach (var arg in JVMArgs)
+        {
+            clone.JVMArgs.Add(arg);
+        }
+
+        return clone;
+    }
+
+    public static GameSettings Resolve(GameSettings globalSettings, bool usesCustomGameSettings, GameSettings? customGameSettings)
+        => usesCustomGameSettings && customGameSettings != null
+            ? customGameSettings
+            : globalSettings;
+
+    private void OnJvmArgsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        => OnPropertyChanged(nameof(JVMArgs));
 }

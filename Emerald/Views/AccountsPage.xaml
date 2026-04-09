@@ -14,28 +14,43 @@
     <conv:BoolToVisibility x:Key="BoolToVis"/>
     <conv:BoolToVisibility x:Key="InverseBoolToVis" Reversed="True"/>
     <conv:CountToVisibilityConverter x:Key="CountToVis"/>
+    <conv:InverseBoolConverter x:Key="InverseBoolConverter"/>
 
-    <DataTemplate x:Key="AccountItemTemplate" x:DataType="models:EAccount">
-      <cn:SettingsCard Margin="0,4" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
-    
-
+    <DataTemplate x:Key="AccountItemTemplate" x:DataType="models:EAccount" x:DefaultBindMode="OneWay">
+      <cn:SettingsCard
+        Margin="0,4"
+        ActionIconToolTip="{helpers:Localize KeyName=Select}"
+        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+        Click="AccountCard_Click"
+        IsClickEnabled="{x:Bind IsSelected, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"
+        Tag="{x:Bind}">
         <cn:SettingsCard.Header>
-        <StackPanel>
+          <StackPanel Spacing="4">
             <TextBlock Text="{x:Bind Name}" Style="{StaticResource BodyStrongTextBlockStyle}"/>
-          <TextBlock Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}">
-                        <Run Text="{x:Bind Type}"/>
-                        <Run Text="·"/>
-                        <Run Text="Last used:"/>
-                        <Run Text="{x:Bind LastUsed}"/>
-          </TextBlock>
-        </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind Type}"/>
+            </StackPanel>
+            <TextBlock Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}">
+              <Run Text="Last used:"/>
+              <Run Text="{x:Bind LastUsed}"/>
+            </TextBlock>
+          </StackPanel>
         </cn:SettingsCard.Header>
-        <Button
-                    ToolTipService.ToolTip="Remove Account"
-                    Click="RemoveAccount_Click"
-                    Tag="{x:Bind}">
-          <FontIcon Glyph="&#xE74D;" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
-        </Button>
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock
+            VerticalAlignment="Center"
+            FontSize="14"
+            FontWeight="SemiBold"
+            Foreground="{ThemeResource SystemAccentColor}"
+            Text="{helpers:Localize KeyName=Selected}"
+            Visibility="{x:Bind IsSelected, Converter={StaticResource BoolToVis}, Mode=OneWay}" />
+          <Button
+            ToolTipService.ToolTip="Remove Account"
+            Click="RemoveAccount_Click"
+            Tag="{x:Bind}">
+            <FontIcon Glyph="&#xE74D;" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+          </Button>
+        </StackPanel>
       </cn:SettingsCard>
     </DataTemplate>
   </Page.Resources>
@@ -53,32 +68,36 @@
       </Grid.ColumnDefinitions>
 
       <StackPanel Grid.Column="0">
-        <TextBlock Text="Accounts" Style="{StaticResource TitleTextBlockStyle}"/>
-        <TextBlock Text="Manage your signed-in accounts" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7"/>
+        <TextBlock Text="{helpers:Localize KeyName=Accounts}" Style="{StaticResource TitleTextBlockStyle}"/>
+        <TextBlock Text="{helpers:Localize KeyName=ManageSignedInAccounts}" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7"/>
       </StackPanel>
 
-      <CommandBar Grid.Column="1" Background="Transparent" DefaultLabelPosition="Right">
-        <AppBarButton Icon="Add" Label="Add Account">
-          <AppBarButton.Flyout>
-            <MenuFlyout>
-              <MenuFlyoutItem Text="Microsoft Account" Command="{x:Bind ViewModel.AddMicrosoftAccountCommand}">
-                <MenuFlyoutItem.Icon>
-                  <FontIcon Glyph="&#xE7BE;"/>
-                </MenuFlyoutItem.Icon>
-              </MenuFlyoutItem>
-              <MenuFlyoutItem Text="Offline Account" Click="AddOfflineAccount_Click">
-                <MenuFlyoutItem.Icon>
-                  <FontIcon Glyph="&#xE77B;"/>
-                </MenuFlyoutItem.Icon>
-              </MenuFlyoutItem>
-            </MenuFlyout>
-          </AppBarButton.Flyout>
-        </AppBarButton>
-      </CommandBar>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+        <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+        <CommandBar Background="Transparent" DefaultLabelPosition="Right">
+          <AppBarButton Command="{x:Bind ViewModel.AddMicrosoftAccountCommand}" Icon="Contact" Label="{helpers:Localize KeyName=SignInWithMS}"/>
+          <AppBarButton Click="AddOfflineAccount_Click" Icon="AddFriend" Label="{helpers:Localize KeyName=OfflineAccount}"/>
+        </CommandBar>
+      </StackPanel>
     </Grid>
 
     <ScrollViewer Grid.Row="1" Padding="20,0,20,24" VerticalScrollBarVisibility="Auto">
-      <StackPanel>
+      <StackPanel Spacing="16">
+        <TextBlock
+          Opacity="0.7"
+          Style="{StaticResource CaptionTextBlockStyle}"
+          Text="{helpers:Localize KeyName=SelectAccountForLaunches}" />
+
+        <Border
+          Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+          BorderThickness="1"
+          CornerRadius="8"
+          Padding="12"
+          Visibility="{x:Bind ViewModel.HasLoadError, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+          <TextBlock Text="{x:Bind ViewModel.LoadErrorMessage, Mode=OneWay}" TextWrapping="WrapWholeWords"/>
+        </Border>
+
         <StackPanel Spacing="12" HorizontalAlignment="Center" Margin="0,48,0,0" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
           <ProgressRing IsActive="True"/>
           <TextBlock Text="Loading accounts..."/>
@@ -98,7 +117,7 @@
                     Visibility="{x:Bind ViewModel.Accounts.Count, Mode=OneWay, Converter={StaticResource CountToVis}, ConverterParameter=0}">
           <FontIcon Glyph="&#xE77B;" FontSize="48" Opacity="0.5"/>
           <TextBlock Text="No accounts found" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Center"/>
-          <TextBlock Text="Click 'Add Account' to get started" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" HorizontalAlignment="Center"/>
+          <TextBlock Text="Use the toolbar above to add an account" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" HorizontalAlignment="Center"/>
         </StackPanel>
       </StackPanel>
     </ScrollViewer>

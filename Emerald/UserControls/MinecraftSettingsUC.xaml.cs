@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.DependencyInjection;
+using Emerald.CoreX;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Models;
 using Microsoft.UI.Xaml;
@@ -12,6 +13,8 @@ using Windows.Storage.Pickers;
 namespace Emerald.UserControls;
 public sealed partial class MinecraftSettingsUC : UserControl
 {
+    private bool _isUpdatingOverrideControls;
+
     public bool ShowMainSettings
     {
         get => (bool)GetValue(ShowMainSettingsProperty);
@@ -19,7 +22,16 @@ public sealed partial class MinecraftSettingsUC : UserControl
     }
 
     public static readonly DependencyProperty ShowMainSettingsProperty =
-        DependencyProperty.Register(nameof(ShowMainSettings), typeof(bool), typeof(MinecraftSettingsUC), new PropertyMetadata(false));
+        DependencyProperty.Register(nameof(ShowMainSettings), typeof(bool), typeof(MinecraftSettingsUC), new PropertyMetadata(false, OnShowMainSettingsChanged));
+
+    public Game? Game
+    {
+        get => (Game?)GetValue(GameProperty);
+        set => SetValue(GameProperty, value);
+    }
+
+    public static readonly DependencyProperty GameProperty =
+        DependencyProperty.Register(nameof(Game), typeof(Game), typeof(MinecraftSettingsUC), new PropertyMetadata(null, OnGameChanged));
 
     public GameSettings GameSettings
     {
@@ -28,7 +40,7 @@ public sealed partial class MinecraftSettingsUC : UserControl
     }
 
     public static readonly DependencyProperty GameSettingsProperty =
-        DependencyProperty.Register(nameof(GameSettings), typeof(GameSettings), typeof(MinecraftSettingsUC), new PropertyMetadata(null));
+        DependencyProperty.Register(nameof(GameSettings), typeof(GameSettings), typeof(MinecraftSettingsUC), new PropertyMetadata(null, OnGameSettingsChanged));
 
     // expose SS as a public property if you bind to it from x:Bind in XAML, otherwise x:Bind may not resolve.
     public Services.SettingsService SS { get; }
@@ -37,6 +49,7 @@ public sealed partial class MinecraftSettingsUC : UserControl
     {
         InitializeComponent();
         SS = Ioc.Default.GetService<Services.SettingsService>();
+        UpdateOverrideState();
     }
 
     // helper method so we can call from multiple handlers
@@ -118,5 +131,63 @@ public sealed partial class MinecraftSettingsUC : UserControl
         };
 
         GameSettings.MaximumRamMb = recommended;
+    }
+
+    private void GameOverrideToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (_isUpdatingOverrideControls || Game == null)
+        {
+            return;
+        }
+
+        Game.UsesCustomGameSettings = GameOverrideToggle.IsOn;
+        GameSettings = Game.GetEditableSettings();
+        UpdateOverrideState();
+    }
+
+    private static void OnShowMainSettingsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        => ((MinecraftSettingsUC)d).UpdateOverrideState();
+
+    private static void OnGameChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var control = (MinecraftSettingsUC)d;
+        if (e.NewValue is Game game)
+        {
+            control.GameSettings = game.GetEditableSettings();
+        }
+
+        control.UpdateOverrideState();
+    }
+
+    private static void OnGameSettingsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        => ((MinecraftSettingsUC)d).Bindings.Update();
+
+    private void UpdateOverrideState()
+    {
+        if (GameOverrideCard == null || GameOverrideToggle == null || PerGameEditablePanel == null || UsingMainSettingsHint == null)
+        {
+            return;
+        }
+
+        var supportsPerGameOverride = !ShowMainSettings && Game != null;
+        var isUsingCustomSettings = !supportsPerGameOverride || Game!.UsesCustomGameSettings;
+
+        _isUpdatingOverrideControls = true;
+        GameOverrideCard.Visibility = supportsPerGameOverride ? Visibility.Visible : Visibility.Collapsed;
+        GameOverrideToggle.IsOn = isUsingCustomSettings;
+        PerGameEditablePanel.Visibility = isUsingCustomSettings
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        UsingMainSettingsHint.Visibility = supportsPerGameOverride && !isUsingCustomSettings
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        _isUpdatingOverrideControls = false;
+
+        if (Game != null)
+        {
+            GameSettings = Game.GetEditableSettings();
+        }
+
+        Bindings.Update();
     }
 }

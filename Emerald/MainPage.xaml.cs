@@ -1,9 +1,13 @@
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Security.Cryptography.X509Certificates;
 using Windows.ApplicationModel.Core;
 using CommonServiceLocator;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Installers;
+using Emerald.CoreX.Models;
+using Emerald.CoreX.Services;
 using Emerald.Helpers;
 using Emerald.Models;
 using Emerald.Views;
@@ -22,13 +26,19 @@ namespace Emerald;
 public sealed partial class MainPage : Page
 {
     private readonly Services.SettingsService SS;
+    private readonly IAccountService _accountService;
+    private readonly HashSet<EAccount> _trackedAccounts = new();
+    private SquareNavigationViewItem? _accountsNavigationItem;
 
     public MainPage()
     {
         SS = Ioc.Default.GetService<Services.SettingsService>();
+        _accountService = Ioc.Default.GetService<IAccountService>();
         this.InitializeComponent();
         this.Loaded += MainPage_Loaded;
         NavView.ItemInvoked += MainNavigationView_ItemInvoked;
+        _accountService.Accounts.CollectionChanged += Accounts_CollectionChanged;
+        SyncTrackedAccountHandlers();
         this.Log().LogInformation("Main page initialized.");
     }
 
@@ -124,14 +134,6 @@ public sealed partial class MainPage : Page
             SolidFontIconGlyph = "\xE7BF",
             IsSelected = false
         });
-        NavView.MenuItems.Add(new SquareNavigationViewItem("Accounts".Localize())
-        {
-            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/store.png",
-            Tag = "Accounts",
-            FontIconGlyph = "\xE7BF",
-            SolidFontIconGlyph = "\xE7BF",
-            IsSelected = false
-        });
         NavView.MenuItems.Add(new SquareNavigationViewItem("News".Localize())
         {
             Thumbnail = "ms-appx:///Assets/NavigationViewIcons/news.png",
@@ -157,6 +159,14 @@ public sealed partial class MainPage : Page
             SolidFontIconGlyph = "\xE756",
             IsSelected = false
         });
+        _accountsNavigationItem = new SquareNavigationViewItem(GetAccountsNavigationItemName())
+        {
+            Tag = "Accounts",
+            FontIconGlyph = "\xE77B",
+            SolidFontIconGlyph = "\xE77B",
+            IsSelected = false
+        };
+        NavView.FooterMenuItems.Add(_accountsNavigationItem);
         NavView.FooterMenuItems.Add(new SquareNavigationViewItem("Settings".Localize())
         {
             Thumbnail = "ms-appx:///Assets/NavigationViewIcons/settings.png",
@@ -168,18 +178,19 @@ public sealed partial class MainPage : Page
 
         NavView.SelectedItem = NavView.MenuItems[0];
 
-        NavView.Header = new NavViewHeader() { HeaderText = "Home".Localize(), HeaderMargin = GetNavViewHeaderMargin() };
+        NavView.Header = new NavViewHeader() { HeaderText = GetNavigationHeaderText(NavView.SelectedItem as SquareNavigationViewItem), HeaderMargin = GetNavViewHeaderMargin() };
         NavView.DisplayModeChanged += (_, _) => (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
         Navigate(NavView.SelectedItem as SquareNavigationViewItem);
     }
 
-    private void MainPage_Loaded(object sender, RoutedEventArgs e)
+    private async void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
         this.Log().LogInformation("Main page loaded.");
         Emerald.Helpers.WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
 
         InitializeAppearance();
         InitializeNavView();
+        await LoadAccountsAsync();
         this.Loaded -= MainPage_Loaded;
     }
 
@@ -256,7 +267,7 @@ public sealed partial class MainPage : Page
                 NavigateOnce(typeof(SettingsPage), parameter);
                 break;
         }
-        (NavView.Header as NavViewHeader).HeaderText = itm.Tag == "Tasks" ? (NavView.Header as NavViewHeader).HeaderText : itm.Name;
+        (NavView.Header as NavViewHeader).HeaderText = GetNavigationHeaderText(itm);
         (NavView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();
     }
 
@@ -270,5 +281,88 @@ public sealed partial class MainPage : Page
             this.Log().LogDebug("Navigating frame to {PageType}. ForceNavigate: {ForceNavigate}.", type.Name, forceNavigate);
             frame.Navigate(type, parameter, new EntranceNavigationTransitionInfo());
         }
+    }
+
+    private async Task LoadAccountsAsync()
+    {
+        try
+        {
+            await _accountService.LoadAllAccountsAsync();
+            UpdateAccountsNavigationItem();
+        }
+        catch (Exception ex)
+        {
+            this.Log().LogWarning(ex, "Failed to preload accounts for shell navigation.");
+        }
+    }
+
+    private void Accounts_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        SyncTrackedAccountHandlers();
+        UpdateAccountsNavigationItem();
+    }
+
+    private void Account_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(EAccount.IsSelected) or nameof(EAccount.Name))
+        {
+            UpdateAccountsNavigationItem();
+        }
+    }
+
+    private void SyncTrackedAccountHandlers()
+    {
+        var currentAccounts = _accountService.Accounts.ToHashSet();
+
+        foreach (var trackedAccount in _trackedAccounts.Where(account => !currentAccounts.Contains(account)).ToList())
+        {
+            trackedAccount.PropertyChanged -= Account_PropertyChanged;
+            _trackedAccounts.Remove(trackedAccount);
+        }
+
+        foreach (var account in currentAccounts.Where(account => !_trackedAccounts.Contains(account)))
+        {
+            account.PropertyChanged += Account_PropertyChanged;
+            _trackedAccounts.Add(account);
+        }
+    }
+
+    private void UpdateAccountsNavigationItem()
+    {
+        if (_accountsNavigationItem == null)
+        {
+            return;
+        }
+
+        _accountsNavigationItem.Name = GetAccountsNavigationItemName();
+
+        if (ReferenceEquals(NavView.SelectedItem, _accountsNavigationItem) && NavView.Header is NavViewHeader header)
+        {
+            header.HeaderText = GetNavigationHeaderText(_accountsNavigationItem);
+            header.HeaderMargin = GetNavViewHeaderMargin();
+        }
+    }
+
+    private string GetAccountsNavigationItemName()
+    {
+        var selectedAccount = _accountService.GetSelectedAccount();
+        return string.IsNullOrWhiteSpace(selectedAccount?.Name)
+            ? "Account".Localize()
+            : selectedAccount.Name;
+    }
+
+    private string GetNavigationHeaderText(SquareNavigationViewItem? item)
+    {
+        if (item == null)
+        {
+            return string.Empty;
+        }
+
+        return item.Tag switch
+        {
+            "Accounts" => "Accounts".Localize(),
+            "Tasks" => (NavView.Header as NavViewHeader)?.HeaderText ?? item.Name,
+            _ => item.Name
+        };
     }
 }

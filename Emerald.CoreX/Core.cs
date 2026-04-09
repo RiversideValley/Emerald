@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using CmlLib.Core;
 using CmlLib.Core.Utils;
@@ -8,15 +9,57 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
+using Emerald.CoreX.Services;
 using Emerald.Services;
 using Microsoft.Extensions.Logging;
 namespace Emerald.CoreX;
 
-public record SavedGame(string Path, Versions.Version Version, Models.GameSettings GameOptions);
+public sealed class SavedGame
+{
+    public string Path { get; set; } = string.Empty;
 
-public record SavedGameCollection(string BasePath, SavedGame[] Games);
+    public Versions.Version Version { get; set; } = new();
 
-public partial class Core(ILogger<Core> _logger, INotificationService _notify, IBaseSettingsService settingsService, IGameRuntimeService runtimeService) : ObservableObject
+    public bool UsesCustomGameSettings { get; set; }
+
+    public Models.GameSettings? CustomGameSettings { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Models.GameSettings? GameOptions { get; set; }
+
+    public Game ToGame(IGlobalGameSettingsService globalGameSettingsService)
+        => new(
+            new MinecraftPath(Path),
+            Version,
+            UsesCustomGameSettings || GameOptions != null,
+            CustomGameSettings ?? GameOptions,
+            globalGameSettingsService);
+
+    public static SavedGame FromGame(Game game)
+        => new()
+        {
+            Path = game.Path.BasePath,
+            Version = game.Version,
+            UsesCustomGameSettings = game.UsesCustomGameSettings,
+            CustomGameSettings = game.UsesCustomGameSettings
+                ? game.CustomGameSettings?.Clone()
+                : null
+        };
+}
+
+public sealed class SavedGameCollection
+{
+    public string BasePath { get; set; } = string.Empty;
+
+    public SavedGame[] Games { get; set; } = [];
+}
+
+public partial class Core(
+    ILogger<Core> _logger,
+    INotificationService _notify,
+    IBaseSettingsService settingsService,
+    IGameRuntimeService runtimeService,
+    IGlobalGameSettingsService globalGameSettingsService) : ObservableObject
 {
     public const string GamesFolderName = "EmeraldGames";
     public MinecraftLauncher Launcher { get; set; }
@@ -37,7 +80,7 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
     [ObservableProperty]
     private bool _isRefreshing = false;
 
-    public Models.GameSettings GameOptions = new();
+    public Models.GameSettings GameOptions => globalGameSettingsService.Settings;
 
     private SavedGameCollection[] SavedgamesWithPaths = [];
 
@@ -69,8 +112,7 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
         {
             try
             {
-                var game = Game.FromTuple((sg.Path, sg.Version, sg.GameOptions));
-                Games.Add(game);
+                Games.Add(sg.ToGame(globalGameSettingsService));
             }
             catch (Exception ex)
             {
@@ -86,14 +128,18 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
         _logger.LogInformation("Saving {count} games", Games.Count);
 
         var toSave = Games.Select(x =>
-            new SavedGame(x.Path.BasePath, x.Version, x.Options)
+            SavedGame.FromGame(x)
         ).ToArray();
 
         try
         {
             var list = SavedgamesWithPaths.ToList();
             list.RemoveAll(x => x.BasePath == BasePath.BasePath);
-            list.Add(new SavedGameCollection(BasePath.BasePath, toSave));
+            list.Add(new SavedGameCollection
+            {
+                BasePath = BasePath.BasePath,
+                Games = toSave
+            });
 
             SavedgamesWithPaths = list.ToArray();
             settingsService.Set(SettingsKeys.SavedGames, SavedgamesWithPaths);
@@ -122,7 +168,6 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
         IsRefreshing = true;
         try
         {
-            GameOptions = settingsService.Get("BaseGameOptions", Models.GameSettings.FromMLaunchOption(new()));
             _logger.LogInformation("Trying to load vanilla minecraft versions from servers");
 
             if (!Initialized && basePath == null)
@@ -210,7 +255,7 @@ public async Task InstallGame(Game game, bool showFileprog = false)
 
             var path = Path.Combine( BasePath.BasePath, GamesFolderName, version.DisplayName);
 
-            var game = new Game(new(path), GameOptions, version);
+            var game = new Game(new(path), version, globalGameSettingsService: globalGameSettingsService);
 
 
             Games.Add(game);

@@ -70,4 +70,14 @@ public sealed partial class AccountsPage : Page
             await ViewModel.RemoveAccountCommand.ExecuteAsync(account);
         }
     }
+
+    private async void AccountCard_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not EAccount account)
+        {
+            return;
+        }
+
+        await ViewModel.ActivateAccountCommand.ExecuteAsync(account);
+    }
 }

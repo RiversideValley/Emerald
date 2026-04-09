@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using Emerald.CoreX;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Installers;
+using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
 using Emerald.CoreX.Versions;
@@ -378,8 +379,7 @@ public partial class GamesPageViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private async Task LaunchGameAsync(Game? game)
+    public async Task LaunchGameAsync(Game? game, EAccount? account = null)
     {
         if (game == null)
         {
@@ -389,7 +389,7 @@ public partial class GamesPageViewModel : ObservableObject
         try
         {
             _logger.LogInformation("Launching game: {Name}", game.Version.DisplayName);
-            await _gameRuntimeService.LaunchAsync(game);
+            await _gameRuntimeService.LaunchAsync(game, account);
         }
         catch (Exception ex)
         {

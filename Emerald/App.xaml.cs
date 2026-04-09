@@ -65,6 +65,7 @@ public partial class App : Application
         //Settings
         services.AddSingleton<Services.SettingsService>();
         services.AddSingleton<Services.IBaseSettingsService, Services.BaseSettingsService>();
+        services.AddSingleton<CoreX.Services.IGlobalGameSettingsService, CoreX.Services.GlobalGameSettingsService>();
         services.AddSingleton<CoreX.Runtime.IGameRuntimeSettings, Services.GameRuntimeSettingsAdapter>();
 
         //Notifications
@@ -147,7 +148,7 @@ public partial class App : Application
         this.Log().LogInformation("Application settings loaded.");
 
         var ac = Ioc.Default.GetService<CoreX.Services.IAccountService>();
-        ac.InitializeAsync("dfeccda7-604a-4895-b409-9d35f1679b5d");
+        _ = ac.InitializeAsync("dfeccda7-604a-4895-b409-9d35f1679b5d");
         this.Log().LogInformation("Account service initialization requested.");
 
         // Do not repeat app initialization when the Window already has content,

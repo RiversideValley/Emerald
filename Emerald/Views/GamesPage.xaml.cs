@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX;
+using Emerald.CoreX.Helpers;
 using Emerald.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -10,6 +11,9 @@ using Windows.Storage;
 using Windows.System;
 using Path = System.IO.Path;
 using System.IO;
+using System.Linq;
+using Emerald.CoreX.Models;
+using Emerald.CoreX.Services;
 using Emerald.UserControls;
 using Emerald.Helpers;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -121,9 +125,10 @@ public sealed partial class GamesPage : Page
         {
             var GameSettingsControl = new MinecraftSettingsUC()
             {
-                ShowMainSettings = false
+                ShowMainSettings = false,
+                Game = game
             };
-            GameSettingsControl.GameSettings = game.Options;
+            GameSettingsControl.GameSettings = game.GetEditableSettings();
             var SettingsDialog = GameSettingsControl.ToContentDialog("Game Settings - " + game.Version.DisplayName, "Close");
 
             var result = await SettingsDialog.ShowAsync();
@@ -165,11 +170,36 @@ public sealed partial class GamesPage : Page
         }
     }
 
-    private void LaunchGame_Click(object sender, RoutedEventArgs e)
+    private async void LaunchGame_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is Game game)
         {
-            _ = ViewModel.LaunchGameCommand.ExecuteAsync(game);
+            var accountService = Ioc.Default.GetService<IAccountService>();
+            var notificationService = Ioc.Default.GetService<CoreX.Notifications.INotificationService>();
+
+            try
+            {
+                if (accountService.Accounts.Count == 0 || accountService.GetSelectedAccount() == null)
+                {
+                    await accountService.LoadAllAccountsAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                this.Log().LogError(ex, "Failed to load accounts for launch.");
+                notificationService.Error("AccountLoadError", "Could not load accounts for launch.", ex: ex);
+                return;
+            }
+
+            var selectedAccount = accountService.GetSelectedAccount();
+            if (selectedAccount == null)
+            {
+                notificationService.Warning("NoSelectedAccount", "Select an account before launching a game.");
+                NavigateToAccounts();
+                return;
+            }
+
+            await ViewModel.LaunchGameAsync(game, selectedAccount);
         }
     }
 
@@ -219,5 +249,16 @@ public sealed partial class GamesPage : Page
         {
             _ = ViewModel.RemoveGameWithFilesCommand.ExecuteAsync(game);
         }
+    }
+
+    private void NavigateToAccounts()
+    {
+        if (App.Current.MainWindow.Content is Frame rootFrame && rootFrame.Content is MainPage mainPage)
+        {
+            mainPage.NavigateToTag("Accounts");
+            return;
+        }
+
+        Frame?.Navigate(typeof(AccountsPage), null, new EntranceNavigationTransitionInfo());
     }
 }

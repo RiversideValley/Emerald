@@ -34,6 +34,6 @@ public sealed partial class GeneralPage : Page
     {
         SS = Ioc.Default.GetService<Services.SettingsService>();
         this.InitializeComponent();
-        MCUC.GameSettings = SS.Settings.GameSettings;
+        MCUC.GameSettings = SS.GlobalGameSettings;
     }
 }

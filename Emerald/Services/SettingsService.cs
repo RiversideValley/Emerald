@@ -1,55 +1,147 @@
+using System.ComponentModel;
+using Emerald.CoreX.Helpers;
+using Emerald.CoreX.Models;
+using Emerald.CoreX.Services;
 using Emerald.Helpers.Settings;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Windows.Storage;
 
 namespace Emerald.Services;
-//TODO: Mostly obsolete, needs rework.
-public class SettingsService(IBaseSettingsService _baseService, ILogger<SettingsService> _logger)
-{
-    public Helpers.Settings.JSON.Settings Settings { get; private set; }
-  
-    public Helpers.Settings.JSON.Account[] Accounts { get; set; }
 
-    public event EventHandler<string>? APINoMatch;
+public class SettingsService(
+    IBaseSettingsService baseService,
+    IGlobalGameSettingsService globalGameSettingsService,
+    ILogger<SettingsService> logger)
+{
+    private static readonly TimeSpan SaveDebounce = TimeSpan.FromMilliseconds(250);
+
+    private readonly object _saveGate = new();
+    private readonly List<INotifyPropertyChanged> _trackedObjects = [];
+
+    private CancellationTokenSource? _pendingSaveCts;
+    private bool _suppressTracking;
+
+    public Helpers.Settings.JSON.Settings Settings { get; private set; } = Helpers.Settings.JSON.Settings.CreateNew();
+
+    public GameSettings GlobalGameSettings => globalGameSettingsService.Settings;
 
     public void LoadData()
     {
         try
         {
-            _logger.LogInformation("Loading settings and accounts.");
-            Settings = _baseService.Get("Settings", Helpers.Settings.JSON.Settings.CreateNew());
+            logger.LogInformation("Loading settings from the file-backed settings store.");
 
-            if (Settings.APIVersion != DirectResoucres.SettingsAPIVersion)
+            DetachTracking();
+
+            var loadedSettings = baseService.Get(SettingsKeys.Settings, Helpers.Settings.JSON.Settings.CreateNew());
+            if (loadedSettings.APIVersion != DirectResoucres.SettingsAPIVersion)
             {
-                _logger.LogWarning("API version mismatch. Triggering APINoMatch event.");
-                APINoMatch?.Invoke(this, ApplicationData.Current.LocalSettings.Values["Settings"] as string);
-                ApplicationData.Current.LocalSettings.Values["Settings"] = Helpers.Settings.JSON.Settings.CreateNew().Serialize();
-                Settings = JsonSerializer.Deserialize<Helpers.Settings.JSON.Settings>(ApplicationData.Current.LocalSettings.Values["Settings"] as string);
+                logger.LogWarning(
+                    "Settings API version mismatch. Expected {ExpectedVersion}, found {FoundVersion}. Resetting settings.",
+                    DirectResoucres.SettingsAPIVersion,
+                    loadedSettings.APIVersion);
+
+                loadedSettings = Helpers.Settings.JSON.Settings.CreateNew();
+                baseService.Set(SettingsKeys.Settings, loadedSettings);
             }
+
+            Settings = loadedSettings;
+            AttachTracking();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading settings data.");
+            logger.LogError(ex, "Error loading settings data.");
+            throw;
         }
     }
+
     public void SaveData()
     {
         try
         {
+            _suppressTracking = true;
             Settings.LastSaved = DateTime.Now;
-            ApplicationData.Current.LocalSettings.Values["Settings"] = JsonSerializer.Serialize(Settings);
-           // ApplicationData.Current.LocalSettings.Values["Accounts"] = JsonSerializer.Serialize(Accounts);
-
-            _logger.LogInformation("Settings and accounts saved successfully.");
+            baseService.Set(SettingsKeys.Settings, Settings);
+            globalGameSettingsService.Save();
+            logger.LogInformation("Settings saved successfully.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error saving data.");
+            logger.LogError(ex, "Error saving settings data.");
+            throw;
         }
+        finally
+        {
+            _suppressTracking = false;
+        }
+    }
+
+    private void AttachTracking()
+    {
+        Track(Settings);
+        Track(Settings.Minecraft);
+        Track(Settings.Minecraft.Downloader);
+        Track(Settings.Minecraft.MCVerionsConfiguration);
+        Track(Settings.Minecraft.JVM);
+        Track(Settings.App);
+        Track(Settings.App.Appearance);
+        Track(Settings.App.NewsFilter);
+        Track(Settings.App.Store.Filter);
+        Track(Settings.App.Store.SortOptions);
+        Track(Settings.App.Updates);
+    }
+
+    private void DetachTracking()
+    {
+        foreach (var trackedObject in _trackedObjects)
+        {
+            trackedObject.PropertyChanged -= OnTrackedPropertyChanged;
+        }
+
+        _trackedObjects.Clear();
+    }
+
+    private void Track(INotifyPropertyChanged trackedObject)
+    {
+        trackedObject.PropertyChanged += OnTrackedPropertyChanged;
+        _trackedObjects.Add(trackedObject);
+    }
+
+    private void OnTrackedPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (_suppressTracking)
+        {
+            return;
+        }
+
+        QueueSave();
+    }
+
+    private void QueueSave()
+    {
+        CancellationTokenSource cts;
+
+        lock (_saveGate)
+        {
+            _pendingSaveCts?.Cancel();
+            _pendingSaveCts?.Dispose();
+            _pendingSaveCts = new CancellationTokenSource();
+            cts = _pendingSaveCts;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(SaveDebounce, cts.Token);
+                SaveData();
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Queued settings save failed.");
+            }
+        });
     }
 }

@@ -25,12 +25,24 @@
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
       <RowDefinition Height="*" />
     </Grid.RowDefinitions>
 
+    <Grid Grid.Row="0" Padding="24,24,24,12">
+      <StackPanel>
+        <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="{helpers:Localize KeyName=Settings}" />
+        <TextBlock
+          Opacity="0.7"
+          Style="{StaticResource CaptionTextBlockStyle}"
+          Text="{helpers:Localize KeyName=SettingsSubtitle}" />
+      </StackPanel>
+    </Grid>
+
     <NavigationView
+            Grid.Row="1"
             x:Name="navView"
-            Margin="8,-8,8,0"
+            Margin="8,0,8,0"
             Background="Transparent"
             IsBackButtonVisible="Collapsed"
             IsSettingsVisible="False"
@@ -56,7 +68,7 @@
     </NavigationView>
 
     <Grid
-            Grid.Row="1"
+            Grid.Row="2"
             Background="{ThemeResource LayerFillColorDefaultBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0,1,0,0">
