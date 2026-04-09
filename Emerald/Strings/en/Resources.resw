@@ -579,6 +579,9 @@
   <data name="OfflineAccount" xml:space="preserve">
     <value>Offline account</value>
   </data>
+  <data name="OfflineAccountNeedsMicrosoftDescription" xml:space="preserve">
+    <value>Offline account creation is unavailable until at least one Microsoft account is added.</value>
+  </data>
   <data name="OfflineMode" xml:space="preserve">
     <value>Offline Mode</value>
   </data>

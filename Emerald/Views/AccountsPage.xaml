@@ -72,12 +72,22 @@
         <TextBlock Text="{helpers:Localize KeyName=ManageSignedInAccounts}" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7"/>
       </StackPanel>
 
-      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-        <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
-        <CommandBar Background="Transparent" DefaultLabelPosition="Right">
-          <AppBarButton Command="{x:Bind ViewModel.AddMicrosoftAccountCommand}" Icon="Contact" Label="{helpers:Localize KeyName=SignInWithMS}"/>
-          <AppBarButton Click="AddOfflineAccount_Click" Icon="AddFriend" Label="{helpers:Localize KeyName=OfflineAccount}"/>
-        </CommandBar>
+      <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+          <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+          <CommandBar Background="Transparent" DefaultLabelPosition="Right">
+            <AppBarButton Command="{x:Bind ViewModel.AddMicrosoftAccountCommand}" Icon="Contact" Label="{helpers:Localize KeyName=SignInWithMS}"/>
+            <AppBarButton Click="AddOfflineAccount_Click" Icon="AddFriend" Label="{helpers:Localize KeyName=OfflineAccount}" IsEnabled="{x:Bind ViewModel.CanCreateOfflineAccount, Mode=OneWay}"/>
+          </CommandBar>
+        </StackPanel>
+        <TextBlock
+          HorizontalAlignment="Right"
+          MaxWidth="420"
+          Opacity="0.85"
+          Style="{StaticResource CaptionTextBlockStyle}"
+          Text="{helpers:Localize KeyName=OfflineAccountNeedsMicrosoftDescription}"
+          TextWrapping="WrapWholeWords"
+          Visibility="{x:Bind ViewModel.ShowOfflineAccountRestriction, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
       </StackPanel>
     </Grid>
 

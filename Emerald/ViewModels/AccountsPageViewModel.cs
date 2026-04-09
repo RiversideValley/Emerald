@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -29,6 +30,11 @@ public partial class AccountsPageViewModel : ObservableObject
     public ObservableCollection<EAccount> Accounts => _accountService.Accounts;
     public bool HasLoadError => !string.IsNullOrWhiteSpace(LoadErrorMessage);
     public EAccount? SelectedAccount => _accountService.GetSelectedAccount();
+    public bool CanCreateOfflineAccount
+        => !_accountService.RequireMicrosoftAccountForOfflineAccounts
+           || Accounts.Any(account => account.Type == AccountType.Microsoft);
+    public bool ShowOfflineAccountRestriction
+        => _accountService.RequireMicrosoftAccountForOfflineAccounts && !CanCreateOfflineAccount;
 
     public AccountsPageViewModel(IAccountService accountService, INotificationService notificationService, ILogger<AccountsPageViewModel> logger)
     {
@@ -47,7 +53,7 @@ public partial class AccountsPageViewModel : ObservableObject
         try
         {
             await _accountService.LoadAllAccountsAsync();
-            OnPropertyChanged(nameof(SelectedAccount));
+            NotifyAccountStateChanged();
         }
         catch (Exception ex)
         {
@@ -70,7 +76,7 @@ public partial class AccountsPageViewModel : ObservableObject
         {
             await _accountService.SignInMicrosoftAccountAsync();
             _notificationService.Info("AccountAdded", "Microsoft account added successfully!");
-            OnPropertyChanged(nameof(SelectedAccount));
+            NotifyAccountStateChanged();
         }
         catch (Exception ex)
         {
@@ -99,7 +105,7 @@ public partial class AccountsPageViewModel : ObservableObject
             LoadErrorMessage = null;
             _notificationService.Info("AccountAdded", $"Offline account '{OfflineUsername}' created.");
             OfflineUsername = string.Empty; // Clear for next use
-            OnPropertyChanged(nameof(SelectedAccount));
+            NotifyAccountStateChanged();
         }
         catch (Exception ex)
         {
@@ -117,7 +123,7 @@ public partial class AccountsPageViewModel : ObservableObject
         {
             await _accountService.RemoveAccountAsync(account);
             _notificationService.Info("AccountRemoved", $"Account '{account.Name}' has been removed.");
-            OnPropertyChanged(nameof(SelectedAccount));
+            NotifyAccountStateChanged();
         }
         catch (Exception ex)
         {
@@ -147,7 +153,7 @@ public partial class AccountsPageViewModel : ObservableObject
             await _accountService.AuthenticateAccountAsync(account);
             _accountService.SetSelectedAccount(account);
             _notificationService.Info("AccountSelected", $"'{account.Name}' is now selected for launches.");
-            OnPropertyChanged(nameof(SelectedAccount));
+            NotifyAccountStateChanged();
         }
         catch (Exception ex)
         {
@@ -159,5 +165,12 @@ public partial class AccountsPageViewModel : ObservableObject
         {
             IsLoading = false;
         }
+    }
+
+    private void NotifyAccountStateChanged()
+    {
+        OnPropertyChanged(nameof(SelectedAccount));
+        OnPropertyChanged(nameof(CanCreateOfflineAccount));
+        OnPropertyChanged(nameof(ShowOfflineAccountRestriction));
     }
 }

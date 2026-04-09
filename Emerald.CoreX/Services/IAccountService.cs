@@ -12,6 +12,7 @@ namespace Emerald.CoreX.Services;
 public interface IAccountService
 {
     ObservableCollection<EAccount> Accounts { get; }
+    bool RequireMicrosoftAccountForOfflineAccounts { get; }
     Task LoadAllAccountsAsync();
     void CreateOfflineAccount(string username);
     Task SignInMicrosoftAccountAsync();

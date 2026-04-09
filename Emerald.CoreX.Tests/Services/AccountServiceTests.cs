@@ -12,14 +12,58 @@ namespace Emerald.CoreX.Tests.Services;
 public sealed class AccountServiceTests
 {
     [Fact]
+    public void RequireMicrosoftAccountForOfflineAccounts_IsEnabled()
+    {
+        var service = CreateService(new InMemoryBaseSettingsService());
+
+        Assert.True(service.RequireMicrosoftAccountForOfflineAccounts);
+    }
+
+    [Fact]
+    public void CreateOfflineAccount_WithoutMicrosoftAccount_Throws()
+    {
+        var service = CreateService(new InMemoryBaseSettingsService());
+
+        var exception = Assert.Throws<InvalidOperationException>(() => service.CreateOfflineAccount("Alpha"));
+
+        Assert.Equal("Creating offline accounts requires at least one Microsoft account.", exception.Message);
+    }
+
+    [Fact]
+    public void SetSelectedAccount_OfflineWithoutMicrosoftAccount_Throws()
+    {
+        var service = CreateService(new InMemoryBaseSettingsService());
+        var offline = new EAccount("Alpha", AccountType.Offline);
+        service.Accounts.Add(offline);
+
+        var exception = Assert.Throws<InvalidOperationException>(() => service.SetSelectedAccount(offline));
+
+        Assert.Equal("Selecting offline accounts requires at least one Microsoft account.", exception.Message);
+        Assert.Null(service.GetSelectedAccount());
+    }
+
+    [Fact]
+    public async Task AuthenticateAccountAsync_OfflineWithoutMicrosoftAccount_Throws()
+    {
+        var service = CreateService(new InMemoryBaseSettingsService());
+        var offline = new EAccount("Alpha", AccountType.Offline);
+        service.Accounts.Add(offline);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => service.AuthenticateAccountAsync(offline));
+
+        Assert.Equal("Offline accounts require at least one Microsoft account.", exception.Message);
+    }
+
+    [Fact]
     public void CreateOfflineAccount_FirstAccountBecomesSelected()
     {
         var baseSettingsService = new InMemoryBaseSettingsService();
         var service = CreateService(baseSettingsService);
+        AddMicrosoftAccount(service);
 
         service.CreateOfflineAccount("Alpha");
 
-        var account = Assert.Single(service.Accounts);
+        var account = Assert.Single(service.Accounts, account => account.Type == AccountType.Offline);
         Assert.Same(account, service.GetSelectedAccount());
         Assert.Equal(account.UniqueId, baseSettingsService.Peek<string>(SettingsKeys.SelectedMinecraftAccount));
     }
@@ -29,6 +73,7 @@ public sealed class AccountServiceTests
     {
         var baseSettingsService = new InMemoryBaseSettingsService();
         var service = CreateService(baseSettingsService);
+        AddMicrosoftAccount(service);
 
         service.CreateOfflineAccount("Alpha");
         service.CreateOfflineAccount("Beta");
@@ -50,11 +95,13 @@ public sealed class AccountServiceTests
     {
         var baseSettingsService = new InMemoryBaseSettingsService();
         var service = CreateService(baseSettingsService);
+        AddMicrosoftAccount(service);
 
         service.CreateOfflineAccount("Alpha");
-        var selectedAccount = Assert.Single(service.Accounts);
+        var selectedAccount = service.GetSelectedAccount();
+        Assert.NotNull(selectedAccount);
 
-        await service.RemoveAccountAsync(selectedAccount);
+        await service.RemoveAccountAsync(selectedAccount!);
 
         Assert.Null(service.GetSelectedAccount());
         Assert.Null(baseSettingsService.Peek<string>(SettingsKeys.SelectedMinecraftAccount));
@@ -65,6 +112,7 @@ public sealed class AccountServiceTests
     {
         var baseSettingsService = new InMemoryBaseSettingsService();
         var service = CreateService(baseSettingsService);
+        AddMicrosoftAccount(service);
 
         service.CreateOfflineAccount("Alpha");
         service.CreateOfflineAccount("Beta");
@@ -87,4 +135,10 @@ public sealed class AccountServiceTests
 
     private static AccountService CreateService(InMemoryBaseSettingsService baseSettingsService)
         => new(NullLogger<AccountService>.Instance, baseSettingsService);
+
+    private static void AddMicrosoftAccount(AccountService service, string name = "Microsoft")
+    {
+        var account = new EAccount(name, AccountType.Microsoft, $"{name}-uuid", $"{name}-id");
+        service.Accounts.Add(account);
+    }
 }

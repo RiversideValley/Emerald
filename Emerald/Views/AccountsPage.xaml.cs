@@ -33,6 +33,11 @@ public sealed partial class AccountsPage : Page
 
     private async void AddOfflineAccount_Click(object sender, RoutedEventArgs e)
     {
+        if (!ViewModel.CanCreateOfflineAccount)
+        {
+            return;
+        }
+
         // Clear previous username before showing
         OfflineUserNameTextBox.Text = string.Empty;
         var dia = OfflineUserNameTextBox.ToContentDialog("AddOfflineAccount".Localize(),PrimaryButtonText: "Add".Localize(), closebtnText: "Cancel".Localize(),defaultButton: ContentDialogButton.Primary);

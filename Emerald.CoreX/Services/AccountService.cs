@@ -16,6 +16,11 @@ namespace Emerald.CoreX.Services;
 
 public class AccountService : IAccountService
 {
+    // Legal policy switch:
+    // true  = require at least one Microsoft account before allowing offline account usage.
+    // false = allow offline accounts without a Microsoft account.
+    public bool RequireMicrosoftAccountForOfflineAccounts => true;
+
     private readonly ILogger<AccountService> _logger;
     private readonly IBaseSettingsService _settingsService;
     private readonly ObservableCollection<EAccount> _accounts;
@@ -93,6 +98,7 @@ public class AccountService : IAccountService
 
             EnsureUniqueIds();
             RestoreSelectedAccount();
+            EnforceOfflineSelectionPolicy(persistSelection: false);
             SaveAccounts();
 
             _logger.LogInformation("Loaded {Count} total accounts.", _accounts.Count);
@@ -118,6 +124,8 @@ public class AccountService : IAccountService
             {
                 throw new ArgumentException("Username cannot be empty.", nameof(username));
             }
+
+            EnsureOfflineAccountPolicySatisfied("Creating offline accounts requires at least one Microsoft account.");
 
             if (_accounts.Any(acc => acc.Name.Equals(username, StringComparison.OrdinalIgnoreCase)))
             {
@@ -206,6 +214,7 @@ public class AccountService : IAccountService
                 ApplySelectedAccount(null, persistSelection: false);
             }
 
+            EnforceOfflineSelectionPolicy(persistSelection: false);
             SaveAccounts();
         }
         catch (Exception ex)
@@ -217,8 +226,6 @@ public class AccountService : IAccountService
 
     public async Task<MSession> AuthenticateAccountAsync(EAccount account)
     {
-        await EnsureInitializedAsync();
-
         try
         {
             _logger.LogInformation("Authenticating account: {Name} ({Type})", account.Name, account.Type);
@@ -227,10 +234,13 @@ public class AccountService : IAccountService
 
             if (account.Type == AccountType.Offline)
             {
+                EnsureOfflineAccountPolicySatisfied("Offline accounts require at least one Microsoft account.");
                 session = MSession.CreateOfflineSession(account.Name);
             }
             else if (account.Type == AccountType.Microsoft)
             {
+                await EnsureInitializedAsync();
+
                 if (_loginHandler == null)
                 {
                     throw new InvalidOperationException("LoginHandler not initialized. Call InitializeAsync first.");
@@ -304,6 +314,11 @@ public class AccountService : IAccountService
                 acc.Type == account.Type &&
                 string.Equals(acc.UUID, account.UUID, StringComparison.OrdinalIgnoreCase) &&
                 string.Equals(acc.Name, account.Name, StringComparison.OrdinalIgnoreCase));
+
+        if (matchingAccount?.Type == AccountType.Offline)
+        {
+            EnsureOfflineAccountPolicySatisfied("Selecting offline accounts requires at least one Microsoft account.");
+        }
 
         ApplySelectedAccount(matchingAccount?.UniqueId);
 
@@ -384,6 +399,40 @@ public class AccountService : IAccountService
         }
 
         return hadLegacyIds;
+    }
+
+    private bool HasMicrosoftAccount()
+        => _accounts.Any(account => account.Type == AccountType.Microsoft);
+
+    private bool IsOfflineAccountAllowed()
+        => !RequireMicrosoftAccountForOfflineAccounts || HasMicrosoftAccount();
+
+    private void EnsureOfflineAccountPolicySatisfied(string message)
+    {
+        if (IsOfflineAccountAllowed())
+        {
+            return;
+        }
+
+        throw new InvalidOperationException(message);
+    }
+
+    private void EnforceOfflineSelectionPolicy(bool persistSelection)
+    {
+        if (IsOfflineAccountAllowed())
+        {
+            return;
+        }
+
+        var selectedAccount = GetSelectedAccount();
+        if (selectedAccount?.Type != AccountType.Offline)
+        {
+            return;
+        }
+
+        _logger.LogInformation(
+            "Clearing selected offline account because the policy requires at least one Microsoft account.");
+        ApplySelectedAccount(null, persistSelection);
     }
 
     private void ApplySelectedAccount(string? uniqueId, bool persistSelection = true)
