@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
+using Emerald.CoreX.Store;
 using Emerald.CoreX.Store.Modrinth;
 using Emerald.Helpers;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,11 +57,17 @@ public partial class App : Application
     private void ConfigureServices(IServiceCollection services)
     {
         //Stores
-        services.AddTransient(provider => new ModStore(typeof(ModStore).Log()));
-        services.AddTransient(provider => new PluginStore(typeof(PluginStore).Log()));
-        services.AddTransient(provider => new ResourcePackStore(typeof(ResourcePackStore).Log()));
-        services.AddTransient(provider => new ResourcePackStore(typeof(ShaderStore).Log()));
-        services.AddTransient(provider => new ModpackStore(typeof(ModpackStore).Log()));
+        services.AddTransient<ModStore>();
+        services.AddTransient<PluginStore>();
+        services.AddTransient<ResourcePackStore>();
+        services.AddTransient<ShaderStore>();
+        services.AddTransient<DataPackStore>();
+        services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ModStore>());
+        services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<PluginStore>());
+        services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ResourcePackStore>());
+        services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ShaderStore>());
+        services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<DataPackStore>());
+        services.AddTransient<IGameStoreContentService, GameStoreContentService>();
 
         //Settings
         services.AddSingleton<Services.SettingsService>();
@@ -108,6 +115,7 @@ public partial class App : Application
         services.AddTransient<ViewModels.GamesPageViewModel>();
         services.AddTransient<ViewModels.AccountsPageViewModel>();
         services.AddTransient<ViewModels.LogsPageViewModel>();
+        services.AddTransient<ViewModels.ModrinthStorePageViewModel>();
     }
 
     /// <summary>

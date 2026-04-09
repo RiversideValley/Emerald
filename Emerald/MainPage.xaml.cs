@@ -11,6 +11,7 @@ using Emerald.CoreX.Services;
 using Emerald.Helpers;
 using Emerald.Models;
 using Emerald.Views;
+using Emerald.Views.Store;
 using Emerald.Views.Settings;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml.Controls;
@@ -263,6 +264,9 @@ public sealed partial class MainPage : Page
                 break;
             case "Logs":
                 NavigateOnce(typeof(LogsPage), parameter, forceNavigate: parameter != null);
+                break;
+            case "Store":
+                NavigateOnce(typeof(ModrinthStorePage), parameter, forceNavigate: parameter != null);
                 break;
             default:
                 NavigateOnce(typeof(SettingsPage), parameter);

@@ -92,6 +92,11 @@
                                     Icon="{helpers:FontIcon Glyph=&#xE8B7;}"
                                     Tag="{x:Bind}"
                                     Text="Open Folder" />
+                <MenuFlyoutItem
+                                    Click="OpenStore_Click"
+                                    Icon="{helpers:FontIcon Glyph=&#xE719;}"
+                                    Tag="{x:Bind}"
+                                    Text="Open Store" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                   Click="RemoveGame_Click"

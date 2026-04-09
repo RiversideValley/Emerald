@@ -15,6 +15,7 @@ using Emerald.CoreX.Models;
 using Emerald.CoreX.Services;
 using Emerald.Helpers;
 using Emerald.UserControls;
+using Emerald.Views.Store;
 using Microsoft.UI.Xaml.Media.Animation;
 
 namespace Emerald.Views;
@@ -172,6 +173,22 @@ public sealed partial class GamesPage : Page
         }
 
         Frame?.Navigate(typeof(LogsPage), game.Path.BasePath, new EntranceNavigationTransitionInfo());
+    }
+
+    private void OpenStore_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not Game game)
+        {
+            return;
+        }
+
+        if (App.Current.MainWindow.Content is Frame rootFrame && rootFrame.Content is MainPage mainPage)
+        {
+            mainPage.NavigateToTag("Store", game.Path.BasePath);
+            return;
+        }
+
+        Frame?.Navigate(typeof(ModrinthStorePage), game.Path.BasePath, new EntranceNavigationTransitionInfo());
     }
 
     private void RemoveGame_Click(object sender, RoutedEventArgs e)
