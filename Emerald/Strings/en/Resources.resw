@@ -802,4 +802,133 @@
   <data name="GettingLiteLoaders" xml:space="preserve">
     <value>Getting LiteLoaders</value>
   </data>
+  <data name="AddNewGame" xml:space="preserve">
+    <value>Add New Game</value>
+  </data>
+  <data name="AddNewGameDescription" xml:space="preserve">
+    <value>Choose a Minecraft version, then shape the instance name, folder, and mod loader setup.</value>
+  </data>
+  <data name="VersionSelectionStepTitle" xml:space="preserve">
+    <value>1. Pick a version</value>
+  </data>
+  <data name="VersionSelectionStepDescription" xml:space="preserve">
+    <value>Filter the available Minecraft versions and choose the base you want to start from.</value>
+  </data>
+  <data name="GameConfigurationStepTitle" xml:space="preserve">
+    <value>2. Configure the instance</value>
+  </data>
+  <data name="GameConfigurationStepDescription" xml:space="preserve">
+    <value>Name the instance, choose its folder, and optionally add a mod loader.</value>
+  </data>
+  <data name="SearchMinecraftVersionsPlaceholder" xml:space="preserve">
+    <value>Search Minecraft versions...</value>
+  </data>
+  <data name="NoMinecraftVersionsFound" xml:space="preserve">
+    <value>No versions found</value>
+  </data>
+  <data name="NoMinecraftVersionsFoundDescription" xml:space="preserve">
+    <value>Try a different search or release filter.</value>
+  </data>
+  <data name="GameIdentitySectionTitle" xml:space="preserve">
+    <value>Game identity</value>
+  </data>
+  <data name="InstanceName" xml:space="preserve">
+    <value>Instance name</value>
+  </data>
+  <data name="InstanceNamePlaceholder" xml:space="preserve">
+    <value>Enter a display name for this game</value>
+  </data>
+  <data name="InstanceNameDescription" xml:space="preserve">
+    <value>This is the name shown in Emerald.</value>
+  </data>
+  <data name="GameFolderSectionTitle" xml:space="preserve">
+    <value>Game folder</value>
+  </data>
+  <data name="CustomizeGameFolderName" xml:space="preserve">
+    <value>Customize game folder name</value>
+  </data>
+  <data name="UseGameNameDefault" xml:space="preserve">
+    <value>Use instance name</value>
+  </data>
+  <data name="OverrideFolderName" xml:space="preserve">
+    <value>Use custom folder</value>
+  </data>
+  <data name="GameFolderName" xml:space="preserve">
+    <value>Game folder name</value>
+  </data>
+  <data name="GameFolderNamePlaceholder" xml:space="preserve">
+    <value>Enter a folder name</value>
+  </data>
+  <data name="GameFolderNameDescription" xml:space="preserve">
+    <value>This creates or reuses a subfolder inside EmeraldGames.</value>
+  </data>
+  <data name="GameFolderNameRequired" xml:space="preserve">
+    <value>Enter a folder name before creating the game.</value>
+  </data>
+  <data name="GameFolderNameInvalidSegment" xml:space="preserve">
+    <value>Folder name cannot be '.' or '..'.</value>
+  </data>
+  <data name="GameFolderNameInvalidCharacters" xml:space="preserve">
+    <value>Folder name contains invalid characters.</value>
+  </data>
+  <data name="GameFolderNameSingleSegmentOnly" xml:space="preserve">
+    <value>Folder name must be a single folder name without slashes.</value>
+  </data>
+  <data name="GameFolderExistingDirectoryWarning" xml:space="preserve">
+    <value>This folder already exists. Reusing it can cause mod and config conflicts.</value>
+  </data>
+  <data name="GameFolderUsedByExistingGameMessage" xml:space="preserve">
+    <value>This folder is already used by '{0}'. Reusing it can cause mod and config conflicts.</value>
+  </data>
+  <data name="InvalidGameFolderNameMessage" xml:space="preserve">
+    <value>Enter a valid game folder name.</value>
+  </data>
+  <data name="ModLoaderSectionTitle" xml:space="preserve">
+    <value>Mod loader</value>
+  </data>
+  <data name="Vanilla" xml:space="preserve">
+    <value>Vanilla</value>
+  </data>
+  <data name="VanillaLoaderDescription" xml:space="preserve">
+    <value>No loader. Create a clean Minecraft instance.</value>
+  </data>
+  <data name="FabricLoaderDescription" xml:space="preserve">
+    <value>Lightweight, fast-loading mod support.</value>
+  </data>
+  <data name="ForgeLoaderDescription" xml:space="preserve">
+    <value>Broad compatibility with established modpacks.</value>
+  </data>
+  <data name="QuiltLoaderDescription" xml:space="preserve">
+    <value>Modern Fabric-adjacent loader with its own ecosystem.</value>
+  </data>
+  <data name="OptiFineLoaderDescription" xml:space="preserve">
+    <value>Availability depends on the selected version.</value>
+  </data>
+  <data name="LiteLoaderDescription" xml:space="preserve">
+    <value>Legacy lightweight loader for older setups.</value>
+  </data>
+  <data name="LatestLoaderLabel" xml:space="preserve">
+    <value>Latest Available</value>
+  </data>
+  <data name="ModLoaderVersionDescription" xml:space="preserve">
+    <value>Choose a specific version, or use the latest available option.</value>
+  </data>
+  <data name="NoModLoaderVersionsAvailableTitle" xml:space="preserve">
+    <value>No mod loader versions available</value>
+  </data>
+  <data name="NoModLoaderVersionsAvailableDescription" xml:space="preserve">
+    <value>No versions were found for this Minecraft version and loader type.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
 </root>

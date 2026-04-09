@@ -247,13 +247,21 @@ public async Task InstallGame(Game game, bool showFileprog = false)
             _notify.Error("GameInstallError", ex.Message, ex:ex);
         }
     }
-    public void AddGame(Versions.Version version)
+    public void AddGame(Versions.Version version, string? folderName = null)
     {
         try
         {
             _logger.LogInformation("Adding game {version}", version.BasedOn);
 
-            var path = Path.Combine( BasePath.BasePath, GamesFolderName, version.DisplayName);
+            if (BasePath == null)
+            {
+                throw new InvalidOperationException("Cannot add a game before the base path is initialized.");
+            }
+
+            var resolvedFolderName = string.IsNullOrWhiteSpace(folderName)
+                ? version.DisplayName
+                : folderName.Trim();
+            var path = Path.Combine(BasePath.BasePath, GamesFolderName, resolvedFolderName);
 
             var game = new Game(new(path), version, globalGameSettingsService: globalGameSettingsService);
 

@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX;
 using Emerald.CoreX.Helpers;
@@ -14,8 +13,8 @@ using System.IO;
 using System.Linq;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Services;
-using Emerald.UserControls;
 using Emerald.Helpers;
+using Emerald.UserControls;
 using Microsoft.UI.Xaml.Media.Animation;
 
 namespace Emerald.Views;
@@ -42,80 +41,20 @@ public sealed partial class GamesPage : Page
     {
         ViewModel.StartAddGameCommand.Execute(null);
 
-        var wizardControl = new AddGameWizardControl();
-        // The DataContext is inherited from the Page, so the wizard will use our ViewModel
-        wizardControl.DataContext = ViewModel;
-
-        _addGameDialog = wizardControl.ToContentDialog(null,defaultButton: ContentDialogButton.Primary);
-
-        // We manage the dialog state manually here
-        ViewModel.PropertyChanged += OnViewModelPropertyChanged;
-        _addGameDialog.PrimaryButtonClick += OnDialogPrimaryButtonClick;
-        _addGameDialog.SecondaryButtonClick += OnDialogSecondaryButtonClick;
-
-        UpdateAddGameDialogButtons(); // Set initial button state
-        await _addGameDialog.ShowAsync();
-
-        // Clean up handlers to prevent memory leaks
-        ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
-        _addGameDialog.PrimaryButtonClick -= OnDialogPrimaryButtonClick;
-        _addGameDialog.SecondaryButtonClick -= OnDialogSecondaryButtonClick;
-        _addGameDialog = null;
-    }
-
-    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        // When a property that affects the button's state changes, we update it
-        if (e.PropertyName is nameof(ViewModel.AddGameWizardStep) or nameof(ViewModel.IsPrimaryButtonEnabled))
+        _addGameDialog = new AddGameDialog(ViewModel)
         {
-            UpdateAddGameDialogButtons();
-        }
-    }
+            XamlRoot = XamlRoot
+        };
+        _addGameDialog.Resources["ContentDialogMaxWidth"] = 1400;
 
-    private void UpdateAddGameDialogButtons()
-    {
-        if (_addGameDialog is null) return;
-
-        switch (ViewModel.AddGameWizardStep)
+        try
         {
-            case 0: // Version Selection
-                _addGameDialog.Title = "Add New Game (Step 1 of 2)";
-                _addGameDialog.PrimaryButtonText = "Next";
-                _addGameDialog.SecondaryButtonText = "Cancel";
-                break;
-            case 1: // Customize & Name
-                _addGameDialog.Title = "Add New Game (Step 2 of 2)";
-                _addGameDialog.PrimaryButtonText = "Create";
-                _addGameDialog.SecondaryButtonText = "Back";
-                break;
+            await _addGameDialog.ShowAsync();
         }
-        _addGameDialog.IsPrimaryButtonEnabled = ViewModel.IsPrimaryButtonEnabled;
-    }
-
-    private void OnDialogPrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
-    {
-        // "Next" or "Create"
-        if (ViewModel.AddGameWizardStep < 1) // If not on the last step
+        finally
         {
-            args.Cancel = true; // Keep dialog open
-            ViewModel.GoToNextStepCommand.Execute(null);
+            _addGameDialog = null;
         }
-        else
-        {
-            // Last step, create game and let dialog close
-            ViewModel.CreateGameCommand.Execute(null);
-        }
-    }
-
-    private void OnDialogSecondaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
-    {
-        // "Back" or "Cancel"
-        if (ViewModel.AddGameWizardStep > 0)
-        {
-            args.Cancel = true; // Keep dialog open
-            ViewModel.GoToPreviousStepCommand.Execute(null);
-        }
-        // On step 0, do nothing, which lets the dialog close as "Cancel"
     }
 
     // Unchanged methods below...

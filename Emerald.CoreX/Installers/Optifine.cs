@@ -10,10 +10,9 @@ namespace Emerald.CoreX.Installers;
 public class Optifine : IModLoaderInstaller
 {
     public Versions.Type Type => Versions.Type.OptiFine;
+
     public Task<List<LoaderInfo>> GetVersionsAsync(string mcVersion)
-    {
-        throw new NotImplementedException();
-    }
+        => Task.FromResult(new List<LoaderInfo>());
 
     public Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null, bool online = true)
     {
