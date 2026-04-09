@@ -10,15 +10,29 @@ namespace Emerald.ViewModels;
 public partial class LogsPageViewModel : ObservableObject
 {
     private readonly IGameRuntimeService _gameRuntimeService;
-    private readonly ObservableCollection<GameLogEntry> _emptyEntries = new();
     private GameSession? _observedSession;
+    private bool _isRefreshingProjection;
 
     public ObservableCollection<GameSession> Sessions => _gameRuntimeService.Sessions;
 
+    public ObservableCollection<GameLogEntry> VisibleEntries { get; } = [];
+
+    public ObservableCollection<string> AvailableLevelFilters { get; } =
+    [
+        "All",
+        "Trace",
+        "Debug",
+        "Info",
+        "Warn",
+        "Error",
+        "Fatal",
+        "Unknown"
+    ];
+
+    public ObservableCollection<int> AvailablePageSizes { get; } = [100, 250, 500];
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedSession))]
-    [NotifyPropertyChangedFor(nameof(SelectedEntries))]
-    [NotifyPropertyChangedFor(nameof(HasSelectedEntries))]
     [NotifyPropertyChangedFor(nameof(CanStopSelectedSession))]
     [NotifyPropertyChangedFor(nameof(CanForceStopSelectedSession))]
     [NotifyPropertyChangedFor(nameof(SelectedSessionTitle))]
@@ -26,6 +40,9 @@ public partial class LogsPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(SelectedCaptureModeText))]
     [NotifyPropertyChangedFor(nameof(LogCaptureNotice))]
     [NotifyPropertyChangedFor(nameof(HasLogCaptureNotice))]
+    [NotifyPropertyChangedFor(nameof(HasSelectedSessionEntries))]
+    [NotifyPropertyChangedFor(nameof(EmptyStateTitle))]
+    [NotifyPropertyChangedFor(nameof(EmptyStateMessage))]
     private GameSession? _selectedSession;
 
     [ObservableProperty]
@@ -34,15 +51,37 @@ public partial class LogsPageViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasSessions;
 
+    [ObservableProperty]
+    private string _searchQuery = string.Empty;
+
+    [ObservableProperty]
+    private string _selectedLevelFilter = "All";
+
+    [ObservableProperty]
+    private int _pageSize = 100;
+
+    [ObservableProperty]
+    private int _currentPageNumber = 1;
+
+    [ObservableProperty]
+    private int _totalPages = 1;
+
+    [ObservableProperty]
+    private int _filteredEntryCount;
+
     public bool HasSelectedSession => SelectedSession != null;
 
-    public ObservableCollection<GameLogEntry> SelectedEntries => SelectedSession?.Entries ?? _emptyEntries;
+    public bool HasSelectedSessionEntries => SelectedSession?.Entries.Count > 0;
 
-    public bool HasSelectedEntries => SelectedEntries.Count > 0;
+    public bool HasVisibleEntries => VisibleEntries.Count > 0;
 
     public bool CanStopSelectedSession => SelectedSession?.CanStop ?? false;
 
     public bool CanForceStopSelectedSession => SelectedSession?.CanForceStop ?? false;
+
+    public bool CanGoPreviousPage => CurrentPageNumber > 1;
+
+    public bool CanGoNextPage => CurrentPageNumber < TotalPages;
 
     public string SelectedSessionTitle => SelectedSession?.DisplayName ?? "Logs";
 
@@ -53,6 +92,16 @@ public partial class LogsPageViewModel : ObservableObject
     public string? LogCaptureNotice => SelectedSession?.LogCaptureNotice;
 
     public bool HasLogCaptureNotice => !string.IsNullOrWhiteSpace(LogCaptureNotice);
+
+    public string PageStatusText => FilteredEntryCount == 0
+        ? "0 results"
+        : $"{FilteredEntryCount:N0} results • Page {CurrentPageNumber:N0} of {TotalPages:N0}";
+
+    public string EmptyStateTitle => HasSelectedSessionEntries ? "No matching logs" : "No log lines yet";
+
+    public string EmptyStateMessage => HasSelectedSessionEntries
+        ? "Try adjusting your search or log type filter."
+        : "Logs will appear here as full Minecraft events from stdout or latest.log.";
 
     public LogsPageViewModel(IGameRuntimeService gameRuntimeService)
     {
@@ -90,6 +139,24 @@ public partial class LogsPageViewModel : ObservableObject
         await _gameRuntimeService.StopAsync(SelectedSession.Game, GameStopMode.Force);
     }
 
+    [RelayCommand(CanExecute = nameof(CanGoPreviousPage))]
+    private void GoToPreviousPage()
+    {
+        if (CanGoPreviousPage)
+        {
+            CurrentPageNumber--;
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanGoNextPage))]
+    private void GoToNextPage()
+    {
+        if (CanGoNextPage)
+        {
+            CurrentPageNumber++;
+        }
+    }
+
     public void SelectSession(string? gamePath)
     {
         GameSession? preferred = null;
@@ -115,6 +182,31 @@ public partial class LogsPageViewModel : ObservableObject
     public string? GetSelectedSessionClipboardText()
         => SelectedSession?.ToClipboardText();
 
+    partial void OnSearchQueryChanged(string value)
+        => RefreshVisibleEntries(GameLogProjectionRefreshReason.FilterChanged);
+
+    partial void OnSelectedLevelFilterChanged(string value)
+        => RefreshVisibleEntries(GameLogProjectionRefreshReason.FilterChanged);
+
+    partial void OnPageSizeChanged(int value)
+        => RefreshVisibleEntries(GameLogProjectionRefreshReason.FilterChanged);
+
+    partial void OnAutoScrollChanged(bool value)
+    {
+        if (value)
+        {
+            RefreshVisibleEntries(GameLogProjectionRefreshReason.FilterChanged);
+        }
+    }
+
+    partial void OnCurrentPageNumberChanged(int value)
+    {
+        if (!_isRefreshingProjection)
+        {
+            RefreshVisibleEntries(GameLogProjectionRefreshReason.PageChanged);
+        }
+    }
+
     partial void OnSelectedSessionChanged(GameSession? value)
     {
         if (_observedSession != null)
@@ -131,8 +223,6 @@ public partial class LogsPageViewModel : ObservableObject
             _observedSession.Entries.CollectionChanged += SelectedEntries_CollectionChanged;
         }
 
-        OnPropertyChanged(nameof(SelectedEntries));
-        OnPropertyChanged(nameof(HasSelectedEntries));
         OnPropertyChanged(nameof(CanStopSelectedSession));
         OnPropertyChanged(nameof(CanForceStopSelectedSession));
         OnPropertyChanged(nameof(SelectedSessionTitle));
@@ -140,6 +230,8 @@ public partial class LogsPageViewModel : ObservableObject
         OnPropertyChanged(nameof(SelectedCaptureModeText));
         OnPropertyChanged(nameof(LogCaptureNotice));
         OnPropertyChanged(nameof(HasLogCaptureNotice));
+        OnPropertyChanged(nameof(HasSelectedSessionEntries));
+        RefreshVisibleEntries(GameLogProjectionRefreshReason.SessionChanged);
         StopSelectedSessionCommand.NotifyCanExecuteChanged();
         ForceStopSelectedSessionCommand.NotifyCanExecuteChanged();
     }
@@ -151,6 +243,10 @@ public partial class LogsPageViewModel : ObservableObject
         if (SelectedSession == null || !Sessions.Contains(SelectedSession))
         {
             SelectedSession = Sessions.FirstOrDefault();
+        }
+        else
+        {
+            RefreshVisibleEntries(GameLogProjectionRefreshReason.EntriesChanged);
         }
     }
 
@@ -168,6 +264,62 @@ public partial class LogsPageViewModel : ObservableObject
 
     private void SelectedEntries_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        OnPropertyChanged(nameof(HasSelectedEntries));
+        OnPropertyChanged(nameof(HasSelectedSessionEntries));
+
+        var reason = e.Action == NotifyCollectionChangedAction.Add && e.NewItems?.Count > 0
+            ? GameLogProjectionRefreshReason.LiveEntriesChanged
+            : GameLogProjectionRefreshReason.EntriesChanged;
+
+        RefreshVisibleEntries(reason);
+    }
+
+    private void RefreshVisibleEntries(GameLogProjectionRefreshReason reason)
+    {
+        var projection = GameLogProjectionBuilder.Build(
+            SelectedSession?.Entries ?? [],
+            SearchQuery,
+            SelectedLevelFilter,
+            PageSize,
+            CurrentPageNumber,
+            AutoScroll,
+            reason,
+            FilteredEntryCount);
+
+        _isRefreshingProjection = true;
+        try
+        {
+            TotalPages = projection.TotalPages;
+            CurrentPageNumber = projection.CurrentPageNumber;
+            FilteredEntryCount = projection.FilteredEntryCount;
+        }
+        finally
+        {
+            _isRefreshingProjection = false;
+        }
+
+        ReplaceVisibleEntries(projection.VisibleEntries);
+        NotifyProjectionStateChanged();
+    }
+
+    private void ReplaceVisibleEntries(IEnumerable<GameLogEntry> entries)
+    {
+        VisibleEntries.Clear();
+        foreach (var entry in entries)
+        {
+            VisibleEntries.Add(entry);
+        }
+    }
+
+    private void NotifyProjectionStateChanged()
+    {
+        OnPropertyChanged(nameof(HasVisibleEntries));
+        OnPropertyChanged(nameof(HasSelectedSessionEntries));
+        OnPropertyChanged(nameof(CanGoPreviousPage));
+        OnPropertyChanged(nameof(CanGoNextPage));
+        OnPropertyChanged(nameof(PageStatusText));
+        OnPropertyChanged(nameof(EmptyStateTitle));
+        OnPropertyChanged(nameof(EmptyStateMessage));
+        GoToPreviousPageCommand.NotifyCanExecuteChanged();
+        GoToNextPageCommand.NotifyCanExecuteChanged();
     }
 }

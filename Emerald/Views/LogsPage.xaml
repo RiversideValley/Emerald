@@ -197,29 +197,89 @@
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 Visibility="{x:Bind ViewModel.HasSelectedSession, Converter={StaticResource BoolToVis}}">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                  <Button
-                    Command="{x:Bind ViewModel.StopSelectedSessionCommand}"
-                    Content="Stop"
-                    IsEnabled="{x:Bind ViewModel.CanStopSelectedSession}" />
-                  <Button
-                    Command="{x:Bind ViewModel.ForceStopSelectedSessionCommand}"
-                    Content="Force Stop"
-                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                    IsEnabled="{x:Bind ViewModel.CanForceStopSelectedSession}" />
-                  <Button
-                    Click="CopyLogs_Click"
-                    Content="Copy Logs"
-                    IsEnabled="{x:Bind ViewModel.HasSelectedSession}" />
-                  <Button
-                    Click="OpenLogsFolder_Click"
-                    Content="Open Log Folder"
-                    IsEnabled="{x:Bind ViewModel.HasSelectedSession}" />
-                  <ToggleSwitch
-                    Header="Auto-scroll"
-                    IsOn="{x:Bind ViewModel.AutoScroll, Mode=TwoWay}"
-                    OffContent="Off"
-                    OnContent="On" />
+                <StackPanel Spacing="12">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button
+                      Command="{x:Bind ViewModel.StopSelectedSessionCommand}"
+                      Content="Stop"
+                      IsEnabled="{x:Bind ViewModel.CanStopSelectedSession}" />
+                    <Button
+                      Command="{x:Bind ViewModel.ForceStopSelectedSessionCommand}"
+                      Content="Force Stop"
+                      Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                      IsEnabled="{x:Bind ViewModel.CanForceStopSelectedSession}" />
+                    <Button
+                      Click="CopyLogs_Click"
+                      Content="Copy Logs"
+                      IsEnabled="{x:Bind ViewModel.HasSelectedSession}" />
+                    <Button
+                      Click="OpenLogsFolder_Click"
+                      Content="Open Log Folder"
+                      IsEnabled="{x:Bind ViewModel.HasSelectedSession}" />
+                    <ToggleSwitch
+                      Header="Auto-scroll"
+                      IsOn="{x:Bind ViewModel.AutoScroll, Mode=TwoWay}"
+                      OffContent="Off"
+                      OnContent="On" />
+                  </StackPanel>
+
+                  <Grid ColumnSpacing="12" RowSpacing="8">
+                    <Grid.RowDefinitions>
+                      <RowDefinition Height="Auto" />
+                      <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*" />
+                      <ColumnDefinition Width="160" />
+                      <ColumnDefinition Width="120" />
+                    </Grid.ColumnDefinitions>
+
+                    <AutoSuggestBox
+                      Grid.Row="0"
+                      Grid.Column="0"
+                      PlaceholderText="Search logs..."
+                      QueryIcon="Find"
+                      Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <ComboBox
+                      Grid.Row="0"
+                      Grid.Column="1"
+                      Header="Log Type"
+                      ItemsSource="{x:Bind ViewModel.AvailableLevelFilters, Mode=OneWay}"
+                      SelectedItem="{x:Bind ViewModel.SelectedLevelFilter, Mode=TwoWay}" />
+
+                    <ComboBox
+                      Grid.Row="0"
+                      Grid.Column="2"
+                      Header="Page Size"
+                      ItemsSource="{x:Bind ViewModel.AvailablePageSizes, Mode=OneWay}"
+                      SelectedItem="{x:Bind ViewModel.PageSize, Mode=TwoWay}" />
+
+                    <TextBlock
+                      Grid.Row="1"
+                      Grid.Column="0"
+                      VerticalAlignment="Center"
+                      Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                      Style="{StaticResource CaptionTextBlockStyle}"
+                      Text="{x:Bind ViewModel.PageStatusText, Mode=OneWay}" />
+
+                    <StackPanel
+                      Grid.Row="1"
+                      Grid.Column="1"
+                      Grid.ColumnSpan="2"
+                      HorizontalAlignment="Right"
+                      Orientation="Horizontal"
+                      Spacing="8">
+                      <Button
+                        Command="{x:Bind ViewModel.GoToPreviousPageCommand}"
+                        Content="Previous"
+                        IsEnabled="{x:Bind ViewModel.CanGoPreviousPage}" />
+                      <Button
+                        Command="{x:Bind ViewModel.GoToNextPageCommand}"
+                        Content="Next"
+                        IsEnabled="{x:Bind ViewModel.CanGoNextPage}" />
+                    </StackPanel>
+                  </Grid>
                 </StackPanel>
               </Border>
 
@@ -241,27 +301,27 @@
               <Grid
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Visibility="{x:Bind ViewModel.HasSelectedEntries, Converter={StaticResource InverseBoolToVis}}">
+                Visibility="{x:Bind ViewModel.HasVisibleEntries, Converter={StaticResource InverseBoolToVis}}">
                 <StackPanel HorizontalAlignment="Center" Spacing="12">
                   <FontIcon FontSize="40" Glyph="&#xE756;" Opacity="0.5" />
                   <TextBlock
                     HorizontalAlignment="Center"
                     Style="{StaticResource SubtitleTextBlockStyle}"
-                    Text="No log lines yet" />
+                    Text="{x:Bind ViewModel.EmptyStateTitle, Mode=OneWay}" />
                   <TextBlock
                     HorizontalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="Logs will appear here as full Minecraft events from stdout or latest.log." />
+                    Text="{x:Bind ViewModel.EmptyStateMessage, Mode=OneWay}" />
                 </StackPanel>
               </Grid>
 
               <ListView
                 x:Name="LogEntriesListView"
                 ItemTemplate="{StaticResource LogEntryTemplate}"
-                ItemsSource="{x:Bind ViewModel.SelectedEntries, Mode=OneWay}"
+                ItemsSource="{x:Bind ViewModel.VisibleEntries, Mode=OneWay}"
                 SelectionMode="None"
-                Visibility="{x:Bind ViewModel.HasSelectedEntries, Converter={StaticResource BoolToVis}}" />
+                Visibility="{x:Bind ViewModel.HasVisibleEntries, Converter={StaticResource BoolToVis}}" />
             </Grid>
           </Grid>
         </Border>

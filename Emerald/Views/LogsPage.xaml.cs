@@ -16,7 +16,6 @@ namespace Emerald.Views;
 public sealed partial class LogsPage : Page
 {
     public LogsPageViewModel ViewModel { get; }
-    private Emerald.CoreX.Runtime.GameSession? _observedSession;
 
     public LogsPage()
     {
@@ -24,19 +23,18 @@ public sealed partial class LogsPage : Page
         DataContext = ViewModel;
         InitializeComponent();
         ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+        ViewModel.VisibleEntries.CollectionChanged += VisibleEntries_CollectionChanged;
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
         await ViewModel.InitializeCommand.ExecuteAsync(e.Parameter);
-        HookSelectedSession();
         ScrollToLatestEntry();
     }
 
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
-        UnhookSelectedSession();
         base.OnNavigatedFrom(e);
     }
 
@@ -44,36 +42,11 @@ public sealed partial class LogsPage : Page
     {
         if (e.PropertyName == nameof(ViewModel.SelectedSession))
         {
-            HookSelectedSession();
             ScrollToLatestEntry();
         }
     }
 
-    private void HookSelectedSession()
-    {
-        UnhookSelectedSession();
-
-        if (ViewModel.SelectedSession == null)
-        {
-            return;
-        }
-
-        _observedSession = ViewModel.SelectedSession;
-        _observedSession.Entries.CollectionChanged += SelectedEntries_CollectionChanged;
-    }
-
-    private void UnhookSelectedSession()
-    {
-        if (_observedSession == null)
-        {
-            return;
-        }
-
-        _observedSession.Entries.CollectionChanged -= SelectedEntries_CollectionChanged;
-        _observedSession = null;
-    }
-
-    private void SelectedEntries_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    private void VisibleEntries_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
         if (e.NewItems == null || e.NewItems.Count == 0 || !ViewModel.AutoScroll)
         {
@@ -85,14 +58,14 @@ public sealed partial class LogsPage : Page
 
     private void ScrollToLatestEntry()
     {
-        if (!ViewModel.AutoScroll || ViewModel.SelectedEntries.Count == 0)
+        if (!ViewModel.AutoScroll || ViewModel.VisibleEntries.Count == 0)
         {
             return;
         }
 
         DispatcherQueue.TryEnqueue(() =>
         {
-            var latest = ViewModel.SelectedEntries.LastOrDefault();
+            var latest = ViewModel.VisibleEntries.LastOrDefault();
             if (latest != null)
             {
                 LogEntriesListView.ScrollIntoView(latest);
