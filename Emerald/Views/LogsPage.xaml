@@ -83,15 +83,18 @@
 
           <StackPanel VerticalAlignment="Center" Grid.Column="2" Spacing="2">
             <TextBlock
+               VerticalAlignment="Center"
               FontFamily="Cascadia Mono"
               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
               Style="{StaticResource CaptionTextBlockStyle}"
               Text="{x:Bind MetadataText}" />
             <TextBlock
+               VerticalAlignment="Center"
               FontFamily="Cascadia Mono"
               Text="{x:Bind Message}"
               TextWrapping="WrapWholeWords" />
             <TextBlock
+               VerticalAlignment="Center"
               FontFamily="Cascadia Mono"
               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
               Margin="0,2,0,0"
