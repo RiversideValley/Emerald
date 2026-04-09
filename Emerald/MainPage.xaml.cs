@@ -161,6 +161,7 @@ public sealed partial class MainPage : Page
         });
         _accountsNavigationItem = new SquareNavigationViewItem(GetAccountsNavigationItemName())
         {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/store.png",
             Tag = "Accounts",
             FontIconGlyph = "\xE77B",
             SolidFontIconGlyph = "\xE77B",
