@@ -42,7 +42,7 @@
             <TextBlock
               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
               Style="{StaticResource CaptionTextBlockStyle}"
-              Text="{x:Bind RuntimeStatusText}" />
+              Text="{x:Bind RuntimeStatusText, Mode=OneWay}" />
           </StackPanel>
         </cn:SettingsCard.Header>
         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -50,7 +50,7 @@
                         x:Name="LaunchGame"
                         Click="LaunchGame_Click"
                         Content="{helpers:FontIcon Glyph=&#xE768;}"
-                        IsEnabled="{x:Bind CanLaunch}"
+                        IsEnabled="{x:Bind CanLaunch, Mode=OneWay}"
                         Tag="{x:Bind}"
                         ToolTipService.ToolTip="Launch" />
           <Button
@@ -58,11 +58,11 @@
                         Content="{helpers:FontIcon Glyph=&#xE71A;}"
                         Tag="{x:Bind}"
                         ToolTipService.ToolTip="Stop"
-                        Visibility="{x:Bind CanStop, Converter={StaticResource BoolToVis}}" />
+                        Visibility="{x:Bind CanStop, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
           <Button
                         Click="InstallGame_Click"
                         Content="{helpers:FontIcon Glyph=&#xE896;}"
-                        IsEnabled="{x:Bind CanModify}"
+                        IsEnabled="{x:Bind CanModify, Mode=OneWay}"
                         Tag="{x:Bind}"
                         ToolTipService.ToolTip="Install/Update" />
           <DropDownButton Content="{helpers:FontIcon Glyph=&#xE712;}" ToolTipService.ToolTip="More Options">
@@ -79,7 +79,7 @@
                                     Icon="{helpers:FontIcon Glyph=&#xE711;}"
                                     Tag="{x:Bind}"
                                     Text="Force Stop"
-                                    Visibility="{x:Bind HasActiveSession, Converter={StaticResource BoolToVis}}" />
+                                    Visibility="{x:Bind HasActiveSession, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                                     Click="ManageSettings_Click"
@@ -96,13 +96,13 @@
                 <MenuFlyoutItem
                   Click="RemoveGame_Click"
                                     Tag="{x:Bind}"
-                                    IsEnabled="{x:Bind CanModify}"
+                                    IsEnabled="{x:Bind CanModify, Mode=OneWay}"
                                     Icon="{helpers:FontIcon Glyph=&#xE74D;}"
                                     Text="Remove" />
                 <MenuFlyoutItem
                                     Tag="{x:Bind}"
                   Click="RemoveGameWFiles_Click"
-                                    IsEnabled="{x:Bind CanModify}"
+                                    IsEnabled="{x:Bind CanModify, Mode=OneWay}"
                                     Foreground="{ThemeResource SystemFillColorCriticalBrush}"
                                     Icon="{helpers:FontIcon Glyph=&#xE74D;}"
                                     Text="Remove with Files" />
