@@ -1,9 +1,11 @@
 using System.Security.Cryptography.X509Certificates;
 using CommonServiceLocator;
 using CommunityToolkit.Mvvm.DependencyInjection;
+using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Installers;
 using Emerald.Helpers;
 using Emerald.Models;
+using Emerald.Views;
 using Emerald.Views.Settings;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml.Controls;
@@ -172,6 +174,9 @@ public sealed partial class MainPage : Page
         {
             case "Tasks":
                 frame.Content = new Page { Content = new UserControls.NotificationListControl() };
+                break;
+            case "Home":
+                NavigateOnce(typeof(GamesPage));
                 break;
             default:
                 NavigateOnce(typeof(SettingsPage));

@@ -4,16 +4,16 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
-using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Cryptography;
+using Microsoft.Extensions.Logging;
 using System.Text;
 using Windows.System.Diagnostics;
 
-namespace Emerald.Helpers;
+namespace Emerald.CoreX.Helpers;
 
 public static class Extensions
 {
@@ -36,7 +36,6 @@ public static class Extensions
 
     public static int? GetMemoryGB()
     {
-
         var _logger = Ioc.Default.GetService<ILogger<SystemMemoryUsageReport>>();
         try
         {
@@ -69,27 +68,6 @@ public static class Extensions
             return (num / 100).ToString("0.#") + "K";
 
         return num.ToString("#,0");
-    }
-
-    public static ContentDialog ToContentDialog(this UIElement content, string title, string closebtnText = null, ContentDialogButton defaultButton = ContentDialogButton.Close, bool addScrollBar = true)
-    {
-        ContentDialog dialog = new()
-        {
-            XamlRoot = App.Current.MainWindow.Content.XamlRoot,
-            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
-            Title = title,
-            CloseButtonText = closebtnText,
-            DefaultButton = defaultButton,
-            Content = addScrollBar ? new ScrollViewer()
-            { 
-                Content = content, 
-                Padding = new(12) 
-            } : content,
-
-            RequestedTheme = (ElementTheme)Ioc.Default.GetService< Services.SettingsService>().Settings.App.Appearance.Theme
-        };
-        App.Current.Log().LogInformation("Created ContentDialog with title: {title}", title);
-        return dialog;
     }
 
     public static int Remove<T>(this ObservableCollection<T> coll, Func<T, bool> condition)
@@ -143,6 +121,40 @@ public static class Extensions
         return sb.ToString();
     }
 
+    public static string Localize(this string resourceKey)
+    {
+        var _logger = Ioc.Default.GetService<ILogger<ResourceLoader>>();
+        try
+        {
+            _logger.LogDebug("Localizing {resourceKey}", resourceKey);
+
+            if (cachedResources.TryGetValue(resourceKey, out string cached) && !string.IsNullOrEmpty(cached))
+            {
+                _logger.LogDebug("Found cached {resourceKey} in cache", resourceKey);
+                return cached;
+            }
+
+            string? s = Windows.ApplicationModel.Resources.ResourceLoader
+                .GetForViewIndependentUse() 
+                .GetString(resourceKey);
+
+            if (string.IsNullOrEmpty(s))
+            {
+                _logger.LogWarning("ResourceLoader.GetString returned empty/null, returning defaultkey");
+                return resourceKey;
+            }
+                
+            cachedResources.AddOrUpdate(resourceKey, s, (_, _) => s);
+            
+            _logger.LogDebug("Localized {resourceKey} to {s}", resourceKey, s);
+            return string.IsNullOrEmpty(s) ? resourceKey : s;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to localize {resourceKey}", resourceKey);
+            return resourceKey;
+        }
+    }
 
     //public static string Localize(this Core.Localized resourceKey) =>
     //     resourceKey.ToString().Localize();

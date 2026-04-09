@@ -11,6 +11,9 @@ namespace Emerald.CoreX;
 
 public class Game
 {
+    public static Game FromTuple((string Path, Versions.Version version, Models.GameSettings Options) t)
+        => new(new MinecraftPath(t.Path), t.Options, t.version);
+
     private readonly ILogger _logger;
 
     private readonly Notifications.INotificationService _notify;
@@ -26,13 +29,14 @@ public class Game
     /// Represents a Game instance, responsible for managing the installation, configuration,
     /// and launching of Minecraft versions.
     /// </summary>
-    public Game(MinecraftPath path, Models.GameSettings options)
+    public Game(MinecraftPath path, Models.GameSettings options, Versions.Version version)
     {
         _notify = Ioc.Default.GetService<Notifications.INotificationService>();
         _logger = this.Log();
         Launcher = new MinecraftLauncher();
         Path = path;
         Options = options;
+        Version = version;
         _logger.LogInformation("Game instance created with path: {Path} and options: {Options}", path, options);
     }
 
@@ -71,23 +75,30 @@ public class Game
 
         try
         {
-            string ver = await Ioc.Default.GetService<Installers.ModLoaderRouter>().RouteAndInitializeAsync(Path, Version);
+            string? ver = await Ioc.Default.GetService<Installers.ModLoaderRouter>().RouteAndInitializeAsync(Path, Version);
             _logger.LogInformation("Version initialization completed. Version: {Version}", ver);
 
             if (ver == null)
             {
-                var vers = await Launcher.GetAllVersionsAsync();
-                ver = vers.First(x => x.Name.ToLower().Contains(Version.BasedOn.ToLower())).Name;
+                _logger.LogWarning("Version {VersionType} {ModVersion} {BasedOn} not found.", Version.Type, Version.ModVersion, Version.BasedOn);
 
-                _logger.LogWarning("Version {VersionType} {ModVersion} {BasedOn} not found. Using {FallbackVersion} instead.", Version.Type, Version.ModVersion, Version.BasedOn, ver);
-
-                _notify.Update(
+                _notify.Complete(
                     not.Id,
-                    message: $"Version {Version.Type} {Version.ModVersion} {Version.BasedOn} not found. Using {ver} instead.",
-                    isIndeterminate: false
+                    message: $"Version {Version.Type} {Version.ModVersion} {Version.BasedOn} not found. Check your internet connection.",
+                    success: false
                 );
 
                 return;
+            }
+            if (isOffline) //checking if verison actually exists
+            {
+                var vers = await Launcher.GetAllVersionsAsync();
+                var mver = vers.Where(x => x.Name == ver).First();
+                if (mver == null)
+                {
+                    _logger.LogWarning("Version {Version} not found in offline mode. Can't proceed installation.", ver);
+                    throw new NullReferenceException($"Version {ver} not found in offline mode. Can't proceed installation.");
+                }
             }
 
             (string Files, string bytes, double prog) prog = (string.Empty, string.Empty, 0);
@@ -125,6 +136,7 @@ public class Game
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred during version installation.");
+            _notify.Complete(not.Id, false, "Installation Failed", ex);
         }
     }
 
@@ -133,10 +145,12 @@ public class Game
     /// </summary>
     /// <param name="version">The version of the game to be launched.</param>
     /// <returns>A Task that represents the process used to launch the Minecraft instance.</returns>
-    public async Task<Process> BuildProcess(string version)
+    public async Task<Process> BuildProcess(string version, CmlLib.Core.Auth.MSession session)
     {
         _logger.LogInformation("Building process for version: {Version}", version);
+        var launchOpt = Options.ToMLaunchOption();
+        launchOpt.Session = session;
         return await Launcher.BuildProcessAsync(
-            version, Options.ToMLaunchOption());
+            version, launchOpt);
     }
 }

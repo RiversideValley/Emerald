@@ -1,0 +1,104 @@
+﻿<UserControl
+    x:Class="Emerald.UserControls.AddGameWizardControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:corexVer="using:Emerald.CoreX.Versions"
+    xmlns:corexIns="using:Emerald.CoreX.Installers"
+    xmlns:helpers="using:Emerald.Helpers"
+    xmlns:conv="using:Emerald.Helpers.Converters"
+    mc:Ignorable="d">
+
+  <UserControl.Resources>
+    <conv:StepToVisibilityConverter x:Key="StepToVisibilityConverter" />
+    <conv:BoolToVisibility xmlns:conv="using:Emerald.Helpers.Converters" x:Key="BoolToVis" />
+  </UserControl.Resources>
+
+  <Grid MinWidth="450" MinHeight="480">
+    <StackPanel
+            Spacing="12"
+            Visibility="{Binding AddGameWizardStep, Mode=OneWay, Converter={StaticResource StepToVisibilityConverter}, ConverterParameter=0}">
+
+      <Grid ColumnSpacing="8">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBox
+                    Grid.Column="0"
+                    PlaceholderText="Search versions..."
+                    Text="{Binding VersionSearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+        <ComboBox
+                    Grid.Column="1"
+                    ItemsSource="{Binding ReleaseTypes, Mode=OneWay}"
+                    SelectedItem="{Binding SelectedReleaseTypeFilter, Mode=TwoWay}" />
+      </Grid>
+
+      <ListView
+                MinHeight="400"
+                MaxHeight="500"
+                ItemsSource="{Binding FilteredAvailableVersions, Mode=OneWay}"
+                SelectedItem="{Binding SelectedVersion, Mode=TwoWay}"
+                SelectionMode="Single">
+        <ListView.ItemTemplate>
+          <DataTemplate x:DataType="corexVer:Version">
+            <StackPanel Padding="0,4">
+              <TextBlock Text="{x:Bind BasedOn}" />
+              <TextBlock
+                                FontSize="12"
+                                Opacity="0.7"
+                                Text="{x:Bind ReleaseType}" />
+            </StackPanel>
+          </DataTemplate>
+        </ListView.ItemTemplate>
+      </ListView>
+    </StackPanel>
+
+    <ScrollViewer
+            VerticalScrollBarVisibility="Auto"
+            Visibility="{Binding AddGameWizardStep, Mode=OneWay, Converter={StaticResource StepToVisibilityConverter}, ConverterParameter=1}">
+      <StackPanel Spacing="16">
+        <TextBox
+                    Header="Instance Name"
+                    PlaceholderText="Enter a unique name"
+                    Text="{Binding NewGameName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+        <ComboBox
+                    x:Name="ModLoaderTypeComboBox"
+                    Header="Mod Loader Type (Optional)"
+                    HorizontalAlignment="Stretch"
+                    SelectedIndex="0"
+                    SelectionChanged="ModLoaderType_SelectionChanged">
+          <ComboBoxItem Content="Vanilla (No mods)" Tag="Vanilla" />
+          <ComboBoxItem Content="Fabric" Tag="Fabric" />
+          <ComboBoxItem Content="Forge" Tag="Forge" />
+          <ComboBoxItem Content="Quilt" Tag="Quilt" />
+          <ComboBoxItem Content="OptiFine" Tag="OptiFine" />
+          <ComboBoxItem Content="LiteLoader" Tag="LiteLoader" />
+        </ComboBox>
+
+        <ProgressBar
+                    Margin="0,8"
+                    IsIndeterminate="True"
+                    Visibility="{Binding IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+
+        <ListView
+                    x:Name="ModLoaderVersionListView"
+                    Header="Mod Loader Version"
+                    ItemsSource="{Binding AvailableModLoaders}"
+                    SelectedItem="{Binding SelectedModLoader, Mode=TwoWay}"
+                    SelectionMode="Single"
+                    Visibility="Collapsed"
+                    MinHeight="250"
+                    MaxHeight="350">
+          <ListView.ItemTemplate>
+            <DataTemplate x:DataType="corexIns:LoaderInfo">
+              <TextBlock Text="{x:Bind Version}" Padding="0,4"/>
+            </DataTemplate>
+          </ListView.ItemTemplate>
+        </ListView>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

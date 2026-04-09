@@ -34,50 +34,6 @@ public sealed partial class GeneralPage : Page
     {
         SS = Ioc.Default.GetService<Services.SettingsService>();
         this.InitializeComponent();
-    }
-    private async void btnChangeMPath_Click(object sender, RoutedEventArgs e)
-    {
-        this.Log().LogInformation("Choosing MC path");
-        string path;
-
-        var fop = new FolderPicker
-        {
-            CommitButtonText = "Select".Localize()
-        };
-        fop.FileTypeFilter.Add("*");
-
-        if(DirectResoucres.Platform == "Windows")
-            WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
-      
-        var f = await fop.PickSingleFolderAsync();
-
-        if (f != null)
-            path = f.Path;
-        else
-        {
-            this.Log().LogInformation("User did not select a MC path");
-            return;
-        }
-
-        this.Log().LogInformation("New Minecraft path: {path}",path);
-        SS.Settings.Minecraft.Path = path;
-
-        await Ioc.Default.GetService<CoreX.Core>().InitializeAndRefresh(new(path));
-    }
-
-    private void btnRamPlus_Click(object sender, RoutedEventArgs e) =>
-        SS.Settings.Minecraft.RAM = SS.Settings.Minecraft.RAM + (SS.Settings.Minecraft.RAM >= DirectResoucres.MaxRAM ? 0 : (DirectResoucres.MaxRAM - SS.Settings.Minecraft.RAM >= 50 ? 50 : DirectResoucres.MaxRAM - SS.Settings.Minecraft.RAM));
-
-
-    private void btnRamMinus_Click(object sender, RoutedEventArgs e) =>
-        SS.Settings.Minecraft.RAM = SS.Settings.Minecraft.RAM - (SS.Settings.Minecraft.RAM <= DirectResoucres.MinRAM ? 0 : 50);
-
-
-    private void btnAutoRAM_Click(object sender, RoutedEventArgs e) =>
-        SS.Settings.Minecraft.RAM = DirectResoucres.MaxRAM / 2;
-
-    private void ArgumentsListView_OnArgumentsChanged(object sender, IEnumerable<string> e)
-    {
-        SS.Settings.Minecraft.JVM.Arguments = e.ToArray();
+        MCUC.GameSettings = SS.Settings.GameSettings;
     }
 }
