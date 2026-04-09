@@ -8,7 +8,7 @@ public sealed class MinecraftLogEventAssemblerTests
     [Fact]
     public void AppendLine_FinalizesXmlEventOnlyWhenClosingTagArrives()
     {
-        var assembler = new MinecraftLogEventAssembler(GameLogSource.FileTail);
+        var assembler = new MinecraftLogEventAssembler(GameLogSource.StandardOutput);
         var startedAt = DateTimeOffset.UtcNow;
 
         var beforeClose = new List<GameLogEntry>();
@@ -29,7 +29,7 @@ public sealed class MinecraftLogEventAssemblerTests
     [Fact]
     public void AppendLine_XmlThrowable_BecomesDetailsText()
     {
-        var assembler = new MinecraftLogEventAssembler(GameLogSource.FileTail);
+        var assembler = new MinecraftLogEventAssembler(GameLogSource.StandardOutput);
         var lines = new[]
         {
             """<log4j:Event logger="com.mojang.realmsclient.RealmsAvailability" timestamp="1775683860934" level="ERROR" thread="IO-Worker-1">""",
@@ -52,7 +52,7 @@ public sealed class MinecraftLogEventAssemblerTests
     [Fact]
     public void AppendLine_ConsecutiveXmlEvents_ProduceSeparateEntries()
     {
-        var assembler = new MinecraftLogEventAssembler(GameLogSource.FileTail);
+        var assembler = new MinecraftLogEventAssembler(GameLogSource.StandardOutput);
         var produced = new List<GameLogEntry>();
         var timestamp = DateTimeOffset.UtcNow;
 
@@ -90,7 +90,7 @@ public sealed class MinecraftLogEventAssemblerTests
     [Fact]
     public void FlushPending_UnterminatedXml_FallsBackToRawPayload()
     {
-        var assembler = new MinecraftLogEventAssembler(GameLogSource.FileTail);
+        var assembler = new MinecraftLogEventAssembler(GameLogSource.StandardOutput);
         var timestamp = DateTimeOffset.UtcNow;
 
         Assert.Empty(assembler.AppendLine("""<log4j:Event logger="broken" timestamp="1775683856298" level="INFO" thread="Render thread">""", timestamp));

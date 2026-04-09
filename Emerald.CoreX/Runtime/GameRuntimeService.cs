@@ -30,7 +30,6 @@ public sealed class GameRuntimeService : IGameRuntimeService
         public DataReceivedEventHandler? OutputHandler { get; set; }
         public DataReceivedEventHandler? ErrorHandler { get; set; }
         public EventHandler? ExitedHandler { get; set; }
-        public Task? TailTask { get; set; }
         public object LogGate { get; } = new();
     }
 
@@ -122,8 +121,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
                 Assemblers = new Dictionary<GameLogSource, MinecraftLogEventAssembler>
                 {
                     [GameLogSource.StandardOutput] = new(GameLogSource.StandardOutput),
-                    [GameLogSource.StandardError] = new(GameLogSource.StandardError),
-                    [GameLogSource.FileTail] = new(GameLogSource.FileTail)
+                    [GameLogSource.StandardError] = new(GameLogSource.StandardError)
                 },
                 Deduplicator = new GameLogDeduplicator()
             };
@@ -170,20 +168,21 @@ public sealed class GameRuntimeService : IGameRuntimeService
                 process.BeginErrorReadLine();
             }
 
-            runtime.TailTask = runtime.LogCaptureEnabled
-                ? Task.Run(() => TailLatestLogAsync(runtime, runtime.Cancellation.Token))
-                : Task.CompletedTask;
-
             RunOnUI(() =>
             {
                 runtime.Session.ProcessId = TryGetProcessId(process);
                 runtime.Session.State = GameRunState.Running;
                 runtime.Session.CaptureMode = runtime.LogCaptureEnabled
-                    ? runtime.CanReadStandardStreams ? GameCaptureMode.StandardOutputOnly : GameCaptureMode.FileOnly
+                    ? runtime.CanReadStandardStreams ? GameCaptureMode.StandardOutputOnly : GameCaptureMode.StandardOutputUnavailable
                     : GameCaptureMode.LifecycleOnly;
 
                 ApplyActiveState(game, runtime.Session, runtime.Session.ProcessId);
             });
+
+            if (runtime.LogCaptureEnabled && !runtime.CanReadStandardStreams)
+            {
+                AppendLifecycle(runtime, GameLogLevel.Warn, "Standard output capture is unavailable for this session. Only lifecycle events will be shown.");
+            }
 
             AppendLifecycle(runtime, GameLogLevel.Info, $"Launched {game.Version.DisplayName}.");
             _notificationService.Info("GameLaunched", $"Launched {game.Version.DisplayName}");
@@ -371,17 +370,6 @@ public sealed class GameRuntimeService : IGameRuntimeService
             await runtime.Process.WaitForExitAsync();
             runtime.Cancellation.Cancel();
 
-            if (runtime.TailTask != null)
-            {
-                try
-                {
-                    await runtime.TailTask;
-                }
-                catch (OperationCanceledException)
-                {
-                }
-            }
-
             FlushPendingAssemblers(runtime);
 
             var crashReports = FindNewCrashReports(runtime);
@@ -451,57 +439,6 @@ public sealed class GameRuntimeService : IGameRuntimeService
         if (runtime.ExitedHandler != null)
         {
             runtime.Process.Exited -= runtime.ExitedHandler;
-        }
-    }
-
-    private async Task TailLatestLogAsync(ActiveSessionRuntime runtime, CancellationToken cancellationToken)
-    {
-        var latestLogPath = Path.Combine(runtime.Session.GamePath, "logs", "latest.log");
-        long position = File.Exists(latestLogPath) ? new FileInfo(latestLogPath).Length : 0;
-
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            try
-            {
-                if (!File.Exists(latestLogPath))
-                {
-                    await Task.Delay(250, cancellationToken);
-                    continue;
-                }
-
-                using var stream = new FileStream(latestLogPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-                if (stream.Length < position)
-                {
-                    position = 0;
-                }
-
-                stream.Seek(position, SeekOrigin.Begin);
-                using var reader = new StreamReader(stream, Encoding.UTF8);
-                string? line;
-                bool readAnything = false;
-                while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
-                {
-                    readAnything = true;
-                    AppendCapturedLine(runtime, line, GameLogSource.FileTail);
-                }
-
-                position = stream.Position;
-
-                if (readAnything && runtime.CanReadStandardStreams)
-                {
-                    RunOnUI(() => runtime.Session.CaptureMode = GameCaptureMode.Hybrid);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                break;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "Failed to tail latest.log for {GameName}", runtime.Session.DisplayName);
-            }
-
-            await Task.Delay(250, cancellationToken);
         }
     }
 
@@ -626,11 +563,6 @@ public sealed class GameRuntimeService : IGameRuntimeService
         {
             runtime.Session.Entries.Add(entry);
             UpdateSessionLogSummary(runtime.Session);
-
-            if (entry.Source == GameLogSource.FileTail && runtime.LogCaptureEnabled && !runtime.CanReadStandardStreams)
-            {
-                runtime.Session.CaptureMode = GameCaptureMode.FileOnly;
-            }
         });
     }
 

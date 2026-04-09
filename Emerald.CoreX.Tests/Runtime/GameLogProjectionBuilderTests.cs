@@ -136,7 +136,7 @@ public sealed class GameLogProjectionBuilderTests
             DetailsText = detailsText,
             ThreadName = threadName,
             LoggerName = loggerName,
-            Source = GameLogSource.FileTail,
+            Source = GameLogSource.StandardOutput,
             RawPayload = message
         };
 }

@@ -9,36 +9,36 @@ public sealed class GameLogDeduplicatorTests
     public void Register_MissingLogger_MergesIntoRicherCopy()
     {
         var deduplicator = new GameLogDeduplicator();
-        var streamEntry = CreateEntry(GameLogSource.StandardOutput, threadName: "Datafixer Bootstrap");
-        var fileEntry = CreateEntry(GameLogSource.FileTail, threadName: "Datafixer Bootstrap", loggerName: "com.mojang.datafixers.DataFixerBuilder");
+        var weakerEntry = CreateEntry(GameLogSource.StandardError, threadName: "Datafixer Bootstrap");
+        var richerEntry = CreateEntry(GameLogSource.StandardOutput, threadName: "Datafixer Bootstrap", loggerName: "com.mojang.datafixers.DataFixerBuilder");
 
-        deduplicator.Register(streamEntry, DateTimeOffset.UtcNow);
-        var result = deduplicator.Register(fileEntry, DateTimeOffset.UtcNow.AddMilliseconds(250));
+        deduplicator.Register(weakerEntry, DateTimeOffset.UtcNow);
+        var result = deduplicator.Register(richerEntry, DateTimeOffset.UtcNow.AddMilliseconds(250));
 
         Assert.True(result.ShouldAppend);
-        Assert.Same(streamEntry, result.EntryToRemove);
+        Assert.Same(weakerEntry, result.EntryToRemove);
     }
 
     [Fact]
     public void Register_MissingThread_MergesIntoRicherCopy()
     {
         var deduplicator = new GameLogDeduplicator();
-        var streamEntry = CreateEntry(GameLogSource.StandardOutput, loggerName: "net.minecraft.client.Minecraft");
-        var fileEntry = CreateEntry(GameLogSource.FileTail, threadName: "Render thread", loggerName: "net.minecraft.client.Minecraft");
+        var weakerEntry = CreateEntry(GameLogSource.StandardError, loggerName: "net.minecraft.client.Minecraft");
+        var richerEntry = CreateEntry(GameLogSource.StandardOutput, threadName: "Render thread", loggerName: "net.minecraft.client.Minecraft");
 
-        deduplicator.Register(streamEntry, DateTimeOffset.UtcNow);
-        var result = deduplicator.Register(fileEntry, DateTimeOffset.UtcNow.AddMilliseconds(250));
+        deduplicator.Register(weakerEntry, DateTimeOffset.UtcNow);
+        var result = deduplicator.Register(richerEntry, DateTimeOffset.UtcNow.AddMilliseconds(250));
 
         Assert.True(result.ShouldAppend);
-        Assert.Same(streamEntry, result.EntryToRemove);
+        Assert.Same(weakerEntry, result.EntryToRemove);
     }
 
     [Fact]
     public void Register_ConflictingThreadNames_StaysDistinct()
     {
         var deduplicator = new GameLogDeduplicator();
-        var first = CreateEntry(GameLogSource.FileTail, threadName: "Render thread");
-        var second = CreateEntry(GameLogSource.StandardOutput, threadName: "IO-Worker-1");
+        var first = CreateEntry(GameLogSource.StandardOutput, threadName: "Render thread");
+        var second = CreateEntry(GameLogSource.StandardError, threadName: "IO-Worker-1");
 
         var initial = deduplicator.Register(first, DateTimeOffset.UtcNow);
         var result = deduplicator.Register(second, DateTimeOffset.UtcNow.AddMilliseconds(250));
@@ -52,8 +52,8 @@ public sealed class GameLogDeduplicatorTests
     public void Register_ConflictingLoggerNames_StaysDistinct()
     {
         var deduplicator = new GameLogDeduplicator();
-        var first = CreateEntry(GameLogSource.FileTail, loggerName: "logger.one");
-        var second = CreateEntry(GameLogSource.StandardOutput, loggerName: "logger.two");
+        var first = CreateEntry(GameLogSource.StandardOutput, loggerName: "logger.one");
+        var second = CreateEntry(GameLogSource.StandardError, loggerName: "logger.two");
 
         deduplicator.Register(first, DateTimeOffset.UtcNow);
         var result = deduplicator.Register(second, DateTimeOffset.UtcNow.AddMilliseconds(250));
@@ -63,17 +63,17 @@ public sealed class GameLogDeduplicatorTests
     }
 
     [Fact]
-    public void Register_FileTailStillWinsWhenCopiesAreCompatible()
+    public void Register_StandardOutputStillWinsWhenCopiesAreCompatible()
     {
         var deduplicator = new GameLogDeduplicator();
-        var streamEntry = CreateEntry(GameLogSource.StandardOutput, threadName: "Render thread", loggerName: "net.minecraft.client.Minecraft");
-        var fileEntry = CreateEntry(GameLogSource.FileTail, threadName: "Render thread", loggerName: "net.minecraft.client.Minecraft");
+        var standardErrorEntry = CreateEntry(GameLogSource.StandardError, threadName: "Render thread", loggerName: "net.minecraft.client.Minecraft");
+        var standardOutputEntry = CreateEntry(GameLogSource.StandardOutput, threadName: "Render thread", loggerName: "net.minecraft.client.Minecraft");
 
-        deduplicator.Register(streamEntry, DateTimeOffset.UtcNow);
-        var result = deduplicator.Register(fileEntry, DateTimeOffset.UtcNow.AddMilliseconds(250));
+        deduplicator.Register(standardErrorEntry, DateTimeOffset.UtcNow);
+        var result = deduplicator.Register(standardOutputEntry, DateTimeOffset.UtcNow.AddMilliseconds(250));
 
         Assert.True(result.ShouldAppend);
-        Assert.Same(streamEntry, result.EntryToRemove);
+        Assert.Same(standardErrorEntry, result.EntryToRemove);
     }
 
     private static GameLogEntry CreateEntry(

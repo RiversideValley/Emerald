@@ -126,7 +126,6 @@ internal sealed class GameLogDeduplicator(TimeSpan? dedupeWindow = null)
 
     private static int GetSourcePreference(GameLogSource source) => source switch
     {
-        GameLogSource.FileTail => 3,
         GameLogSource.StandardOutput => 2,
         GameLogSource.StandardError => 1,
         _ => 0

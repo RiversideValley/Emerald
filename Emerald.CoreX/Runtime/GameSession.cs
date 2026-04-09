@@ -89,9 +89,8 @@ public partial class GameSession(Game game, DateTimeOffset startedAt) : Observab
 
     public string CaptureModeText => CaptureMode switch
     {
-        GameCaptureMode.Hybrid => "stdout + latest.log",
         GameCaptureMode.StandardOutputOnly => "stdout only",
-        GameCaptureMode.FileOnly => "latest.log only",
+        GameCaptureMode.StandardOutputUnavailable => "stdout unavailable",
         _ => "lifecycle only"
     };
 
@@ -99,8 +98,8 @@ public partial class GameSession(Game game, DateTimeOffset startedAt) : Observab
 
     public string? LogCaptureNotice => CaptureMode switch
     {
-        GameCaptureMode.FileOnly => "Using file-only log capture for this session.",
         GameCaptureMode.StandardOutputOnly => "Using standard output log capture for this session.",
+        GameCaptureMode.StandardOutputUnavailable => "Standard output capture is unavailable for this session. Only lifecycle events are shown.",
         GameCaptureMode.LifecycleOnly => "Log capture is disabled. Only lifecycle events are shown.",
         _ => null
     };

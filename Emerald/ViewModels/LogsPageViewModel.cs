@@ -101,7 +101,7 @@ public partial class LogsPageViewModel : ObservableObject
 
     public string EmptyStateMessage => HasSelectedSessionEntries
         ? "Try adjusting your search or log type filter."
-        : "Logs will appear here as full Minecraft events from stdout or latest.log.";
+        : "Logs will appear here as full Minecraft events from standard output.";
 
     public LogsPageViewModel(IGameRuntimeService gameRuntimeService)
     {

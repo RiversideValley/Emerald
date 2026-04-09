@@ -31,8 +31,7 @@ public enum GameCaptureMode
 {
     LifecycleOnly,
     StandardOutputOnly,
-    FileOnly,
-    Hybrid
+    StandardOutputUnavailable
 }
 
 public enum GameLogSource
@@ -40,6 +39,5 @@ public enum GameLogSource
     Lifecycle,
     StandardOutput,
     StandardError,
-    FileTail,
     CrashReport
 }
