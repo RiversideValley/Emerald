@@ -10,6 +10,8 @@ namespace Emerald.CoreX.Runtime;
 
 public sealed class GameRuntimeService : IGameRuntimeService
 {
+    private static readonly TimeSpan TextEventSettleDelay = TimeSpan.FromMilliseconds(100);
+
     private sealed class ActiveSessionRuntime
     {
         public required string PathKey { get; init; }
@@ -17,6 +19,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
         public required bool LogCaptureEnabled { get; init; }
         public required HashSet<string> ExistingCrashReports { get; init; }
         public required CancellationTokenSource Cancellation { get; init; }
+        public required Dictionary<GameLogSource, MinecraftLogEventAssembler> Assemblers { get; init; }
+        public required GameLogDeduplicator Deduplicator { get; init; }
 
         public Process? Process { get; set; }
         public bool ProcessStarted { get; set; }
@@ -27,9 +31,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
         public DataReceivedEventHandler? ErrorHandler { get; set; }
         public EventHandler? ExitedHandler { get; set; }
         public Task? TailTask { get; set; }
-        public GameLogEntry? LastEntry { get; set; }
         public object LogGate { get; } = new();
-        public Dictionary<string, (GameLogSource Source, DateTimeOffset SeenAt)> RecentLines { get; } = new(StringComparer.Ordinal);
     }
 
     private readonly ILogger<GameRuntimeService> _logger;
@@ -116,7 +118,14 @@ public sealed class GameRuntimeService : IGameRuntimeService
                 Session = session,
                 LogCaptureEnabled = _settings.IsLogCaptureEnabled,
                 ExistingCrashReports = SnapshotCrashReports(game.Path.BasePath),
-                Cancellation = new CancellationTokenSource()
+                Cancellation = new CancellationTokenSource(),
+                Assemblers = new Dictionary<GameLogSource, MinecraftLogEventAssembler>
+                {
+                    [GameLogSource.StandardOutput] = new(GameLogSource.StandardOutput),
+                    [GameLogSource.StandardError] = new(GameLogSource.StandardError),
+                    [GameLogSource.FileTail] = new(GameLogSource.FileTail)
+                },
+                Deduplicator = new GameLogDeduplicator()
             };
 
             _activeSessions[pathKey] = runtime;
@@ -322,17 +331,17 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
         runtime.OutputHandler = (_, args) =>
         {
-            if (!string.IsNullOrWhiteSpace(args.Data))
+            if (args.Data != null)
             {
-                AppendParsedLine(runtime, args.Data, GameLogSource.StandardOutput);
+                AppendCapturedLine(runtime, args.Data, GameLogSource.StandardOutput);
             }
         };
 
         runtime.ErrorHandler = (_, args) =>
         {
-            if (!string.IsNullOrWhiteSpace(args.Data))
+            if (args.Data != null)
             {
-                AppendParsedLine(runtime, args.Data, GameLogSource.StandardError);
+                AppendCapturedLine(runtime, args.Data, GameLogSource.StandardError);
             }
         };
 
@@ -372,6 +381,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
                 {
                 }
             }
+
+            FlushPendingAssemblers(runtime);
 
             var crashReports = FindNewCrashReports(runtime);
             foreach (var crashReportPath in crashReports)
@@ -471,7 +482,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
                 while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
                 {
                     readAnything = true;
-                    AppendParsedLine(runtime, line, GameLogSource.FileTail);
+                    AppendCapturedLine(runtime, line, GameLogSource.FileTail);
                 }
 
                 position = stream.Position;
@@ -494,23 +505,98 @@ public sealed class GameRuntimeService : IGameRuntimeService
         }
     }
 
-    private void AppendParsedLine(ActiveSessionRuntime runtime, string rawLine, GameLogSource source)
+    private void AppendCapturedLine(ActiveSessionRuntime runtime, string rawLine, GameLogSource source)
     {
-        if (string.IsNullOrWhiteSpace(rawLine))
-        {
-            return;
-        }
+        List<GameLogEntry> finalizedEntries;
+        long? pendingTextVersion = null;
 
-        GameLogEntry entry;
         lock (runtime.LogGate)
         {
-            if (!ShouldAcceptLine(runtime, rawLine, source))
+            if (!runtime.Assemblers.TryGetValue(source, out var assembler))
             {
                 return;
             }
 
-            entry = MinecraftLogParser.Parse(rawLine, source, runtime.LastEntry);
-            runtime.LastEntry = entry;
+            finalizedEntries = [.. assembler.AppendLine(rawLine, DateTimeOffset.Now)];
+            if (assembler.HasPendingText)
+            {
+                pendingTextVersion = assembler.PendingTextVersion;
+            }
+        }
+
+        foreach (var entry in finalizedEntries)
+        {
+            PublishEntry(runtime, entry);
+        }
+
+        if (pendingTextVersion.HasValue)
+        {
+            _ = FlushPendingTextAfterDelayAsync(runtime, source, pendingTextVersion.Value);
+        }
+    }
+
+    private async Task FlushPendingTextAfterDelayAsync(ActiveSessionRuntime runtime, GameLogSource source, long expectedVersion)
+    {
+        try
+        {
+            await Task.Delay(TextEventSettleDelay, runtime.Cancellation.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        GameLogEntry? entry = null;
+        lock (runtime.LogGate)
+        {
+            if (runtime.Assemblers.TryGetValue(source, out var assembler))
+            {
+                assembler.TryFlushPendingText(expectedVersion, DateTimeOffset.Now, out entry);
+            }
+        }
+
+        if (entry != null)
+        {
+            PublishEntry(runtime, entry);
+        }
+    }
+
+    private void FlushPendingAssemblers(ActiveSessionRuntime runtime)
+    {
+        List<GameLogEntry> pendingEntries;
+        lock (runtime.LogGate)
+        {
+            pendingEntries = runtime.Assemblers.Values
+                .SelectMany(assembler => assembler.FlushPending(DateTimeOffset.Now, includeXmlFallback: true))
+                .ToList();
+        }
+
+        foreach (var entry in pendingEntries)
+        {
+            PublishEntry(runtime, entry);
+        }
+    }
+
+    private void PublishEntry(ActiveSessionRuntime runtime, GameLogEntry entry)
+    {
+        GameLogEntry? replacedEntry = null;
+        bool shouldAppend;
+
+        lock (runtime.LogGate)
+        {
+            var dedupeResult = runtime.Deduplicator.Register(entry, DateTimeOffset.Now);
+            shouldAppend = dedupeResult.ShouldAppend;
+            replacedEntry = dedupeResult.EntryToRemove;
+        }
+
+        if (!shouldAppend)
+        {
+            return;
+        }
+
+        if (replacedEntry != null)
+        {
+            RemoveEntry(runtime, replacedEntry);
         }
 
         AppendEntry(runtime, entry);
@@ -527,16 +613,11 @@ public sealed class GameRuntimeService : IGameRuntimeService
             Level = level,
             Message = message,
             Source = source,
-            RawLine = message,
+            RawPayload = message,
             IsSynthetic = true
         };
 
-        lock (runtime.LogGate)
-        {
-            runtime.LastEntry = entry;
-        }
-
-        AppendEntry(runtime, entry);
+        PublishEntry(runtime, entry);
     }
 
     private void AppendEntry(ActiveSessionRuntime runtime, GameLogEntry entry)
@@ -544,8 +625,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
         RunOnUI(() =>
         {
             runtime.Session.Entries.Add(entry);
-            runtime.Session.EntryCount = runtime.Session.Entries.Count;
-            runtime.Session.LastMessagePreview = entry.Message.Trim();
+            UpdateSessionLogSummary(runtime.Session);
 
             if (entry.Source == GameLogSource.FileTail && runtime.LogCaptureEnabled && !runtime.CanReadStandardStreams)
             {
@@ -554,40 +634,21 @@ public sealed class GameRuntimeService : IGameRuntimeService
         });
     }
 
-    private bool ShouldAcceptLine(ActiveSessionRuntime runtime, string rawLine, GameLogSource source)
+    private void RemoveEntry(ActiveSessionRuntime runtime, GameLogEntry entry)
     {
-        if (source is GameLogSource.Lifecycle or GameLogSource.CrashReport)
+        RunOnUI(() =>
         {
-            return true;
-        }
-
-        var normalized = rawLine.Trim();
-        var now = DateTimeOffset.Now;
-
-        if (runtime.RecentLines.TryGetValue(normalized, out var existing)
-            && existing.Source != source
-            && now - existing.SeenAt <= TimeSpan.FromSeconds(1))
-        {
-            runtime.RecentLines[normalized] = (source, now);
-            return false;
-        }
-
-        runtime.RecentLines[normalized] = (source, now);
-
-        if (runtime.RecentLines.Count > 256)
-        {
-            var staleKeys = runtime.RecentLines
-                .Where(x => now - x.Value.SeenAt > TimeSpan.FromSeconds(10))
-                .Select(x => x.Key)
-                .ToArray();
-
-            foreach (var staleKey in staleKeys)
+            if (runtime.Session.Entries.Remove(entry))
             {
-                runtime.RecentLines.Remove(staleKey);
+                UpdateSessionLogSummary(runtime.Session);
             }
-        }
+        });
+    }
 
-        return true;
+    private static void UpdateSessionLogSummary(GameSession session)
+    {
+        session.EntryCount = session.Entries.Count;
+        session.LastMessagePreview = session.Entries.LastOrDefault()?.Message.Trim();
     }
 
     private void CompleteFailedLaunch(ActiveSessionRuntime runtime, GameRunState state, Exception? ex = null)
@@ -756,15 +817,11 @@ public sealed class GameRuntimeService : IGameRuntimeService
     }
 
     private void RunOnUI(Action action)
-    {
-        if (_dispatcher.HasThreadAccess)
+        => RunOnUI(() =>
         {
             action();
-            return;
-        }
-
-        _dispatcher.TryEnqueue(() => action());
-    }
+            return true;
+        });
 
     private static string GetPathKey(string path)
     {

@@ -13,6 +13,7 @@
     <File Path="global.json" />
   </Folder>
   <Project Path="Emerald.CoreX/Emerald.CoreX.csproj" />
+  <Project Path="Emerald.CoreX.Tests/Emerald.CoreX.Tests.csproj" />
   <Project Path="Emerald/Emerald.csproj">
     <Deploy />
   </Project>

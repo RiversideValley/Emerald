@@ -69,8 +69,7 @@
             FontFamily="Cascadia Mono"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Style="{StaticResource CaptionTextBlockStyle}"
-            Text="{x:Bind TimestampText}"
-            Visibility="{x:Bind IsContinuation, Converter={StaticResource InverseBoolToVis}}" />
+            Text="{x:Bind TimestampText}" />
 
           <TextBlock
             Grid.Column="1"
@@ -78,16 +77,7 @@
             FontWeight="SemiBold"
             Foreground="{Binding Level, Converter={StaticResource GameLogLevelToBrushConverter}}"
             Style="{StaticResource CaptionTextBlockStyle}"
-            Text="{x:Bind LevelText}"
-            Visibility="{x:Bind IsContinuation, Converter={StaticResource InverseBoolToVis}}" />
-
-          <TextBlock
-            Grid.Column="1"
-            FontFamily="Cascadia Mono"
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            Text="..."
-            Visibility="{x:Bind IsContinuation, Converter={StaticResource BoolToVis}}" />
+            Text="{x:Bind LevelText}" />
 
           <StackPanel Grid.Column="2" Spacing="2">
             <TextBlock
@@ -99,6 +89,13 @@
               FontFamily="Cascadia Mono"
               Text="{x:Bind Message}"
               TextWrapping="WrapWholeWords" />
+            <TextBlock
+              FontFamily="Cascadia Mono"
+              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+              Margin="0,2,0,0"
+              Text="{x:Bind DetailsText}"
+              TextWrapping="WrapWholeWords"
+              Visibility="{x:Bind HasDetails, Converter={StaticResource BoolToVis}}" />
           </StackPanel>
         </Grid>
       </Border>
@@ -253,7 +250,7 @@
                     HorizontalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="Logs will appear here as the game writes to stdout or latest.log." />
+                    Text="Logs will appear here as full Minecraft events from stdout or latest.log." />
                 </StackPanel>
               </Grid>
 

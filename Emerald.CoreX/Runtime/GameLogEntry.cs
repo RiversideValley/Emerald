@@ -12,17 +12,19 @@ public sealed class GameLogEntry
 
     public required string Message { get; init; }
 
+    public string? DetailsText { get; init; }
+
     public string? ThreadName { get; init; }
 
     public string? LoggerName { get; init; }
 
     public required GameLogSource Source { get; init; }
 
-    public string? RawLine { get; init; }
-
-    public bool IsContinuation { get; init; }
+    public string? RawPayload { get; init; }
 
     public bool IsSynthetic { get; init; }
+
+    public bool HasDetails => !string.IsNullOrWhiteSpace(DetailsText);
 
     public string TimestampText => OriginalTimeText ?? Timestamp.ToLocalTime().ToString("HH:mm:ss");
 
@@ -41,11 +43,6 @@ public sealed class GameLogEntry
     {
         get
         {
-            if (IsContinuation)
-            {
-                return null;
-            }
-
             var parts = new List<string>();
             if (!string.IsNullOrWhiteSpace(ThreadName))
             {
@@ -72,6 +69,13 @@ public sealed class GameLogEntry
         }
 
         builder.Append(' ').Append(Message);
+
+        if (HasDetails)
+        {
+            builder.AppendLine();
+            builder.Append(DetailsText);
+        }
+
         return builder.ToString();
     }
 }
