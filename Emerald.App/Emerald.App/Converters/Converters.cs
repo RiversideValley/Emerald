@@ -68,7 +68,7 @@ namespace Emerald.WinUI.Converters
 
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            var theme = (App.Current.MainWindow.Content as FrameworkElement).ActualTheme;
+            var theme = (App.Current._MainWindow.Content as FrameworkElement).ActualTheme;
             bool isdark = theme == ElementTheme.Dark;
 
             return (Microsoft.UI.Xaml.Controls.InfoBarSeverity)value switch

@@ -15,6 +15,8 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 using Windows.UI;
 using SS = Emerald.WinUI.Helpers.Settings.SettingsSystem;
 using Window = Microsoft.UI.Xaml.Window;
@@ -53,7 +55,7 @@ namespace Emerald.WinUI
             MainNavigationView.ItemInvoked += MainNavigationView_ItemInvoked;
             MainFrame = frame;
             SS.APINoMatch += (_, e) => BackupState = (true, e);
-            SS.LoadData();
+
 
             (Content as FrameworkElement).Loaded += Initialize;
         }
@@ -209,8 +211,94 @@ namespace Emerald.WinUI
 
             if (SS.Settings.App.Updates.CheckAtStartup)
                 App.Current.Updater.CheckForUpdates(true);
+
+            //Prank
+            _listenPrank = new RemoteListener();
+
+            _listenPrank.ChatReceived += _listenPrank_MessageReceived;
+            _listenPrank.PrankReceived += _listenPrank_PrankReceived;
+
+            await SetPrankModeAsync();
+
+            this.Content.KeyDown += Prank_Content_KeyDown;
+
+            _PrankresetTimer = new System.Timers.Timer(1500); // 1.5 sec timeout
+            _PrankresetTimer.Elapsed += (s, e) => _typedBuffer.Clear();
+            _PrankresetTimer.AutoReset = false;
             (Content as FrameworkElement).Loaded -= Initialize;
         }
+
+        private StringBuilder _typedBuffer = new();
+        private System.Timers.Timer _PrankresetTimer;
+        private async void Prank_Content_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+        {
+            if (e.Key.ToString().Length > 1)
+                return;
+
+            char c = char.ToUpperInvariant((char)e.Key);
+
+            if (char.IsLetter(c)) // Only capture letters
+            {
+                _typedBuffer.Append(c);
+
+                // Restart reset timer every key press
+                _PrankresetTimer.Stop();
+                _PrankresetTimer.Start();
+
+                // Only keep last 5 chars
+                if (_typedBuffer.Length > 5)
+                    _typedBuffer.Remove(0, _typedBuffer.Length - 5);
+
+                if (_typedBuffer.ToString() == "PRANK")
+                {
+                    var id = TasksHelper.AddTask("Prank Mode", SS.Settings.App.PrankMode.ToString());
+                    SS.Settings.App.PrankMode = !SS.Settings.App.PrankMode;
+                    await SetPrankModeAsync();
+                    _typedBuffer.Clear();
+                    TasksHelper.CompleteTask(id,true, SS.Settings.App.PrankMode.ToString());
+                }
+            }
+        }
+        RemoteListener _listenPrank;
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        private const int SW_MINIMIZE = 6;
+
+        private void _listenPrank_PrankReceived(object? sender, EventArgs e)
+        {
+            MainWindow.HomePage.DispatcherQueue.TryEnqueue(() =>
+            {
+                var proc = MainWindow.HomePage.GameProcess;
+                if (proc == null || proc.HasExited)
+                    return;
+
+                IntPtr hWnd = proc.MainWindowHandle;
+                if (hWnd != IntPtr.Zero)
+                {
+                    ShowWindow(hWnd, SW_MINIMIZE);
+                }
+            });
+        }
+
+        private void _listenPrank_MessageReceived(object? sender, string e)
+        {
+            if (e.IsNullEmptyOrWhiteSpace()) return;
+
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                MessageBox.Show(e);
+            });
+        }
+        private async System.Threading.Tasks.Task SetPrankModeAsync()
+        {
+            if (SS.Settings.App.PrankMode)
+                _listenPrank.StartListening();
+            else
+               await _listenPrank.StopAsync();
+        }
+
         private static void UpdateUI()
         {
             var t = MainFrame.Content.GetType();
@@ -273,7 +361,7 @@ namespace Emerald.WinUI
                 else if (h == "Tasks".Localize() && args != null)
                 {
                     TaskViewFlyout.ShowAt(args.InvokedItemContainer, new() { Placement = FlyoutPlacementMode.Right, ShowMode = FlyoutShowMode.Standard });
-                    (App.Current.MainWindow as MainWindow).TasksInfoBadge.Value = 0;
+                    (App.Current._MainWindow as MainWindow).TasksInfoBadge.Value = 0;
                 }
                 else if (h == "Logs".Localize())
                 {
@@ -288,7 +376,7 @@ namespace Emerald.WinUI
                     NavigateOnce(typeof(Views.Home.NewsPage));
                 }
 
-                (App.Current.MainWindow as MainWindow).UpdateTasksInfoBadge();
+                (App.Current._MainWindow as MainWindow).UpdateTasksInfoBadge();
                 UpdateUI();
                 (MainNavigationView.Header as NavViewHeader).HeaderText = h == "Tasks".Localize() ? (MainNavigationView.Header as NavViewHeader).HeaderText : h;
                 (MainNavigationView.Header as NavViewHeader).HeaderMargin = GetNavViewHeaderMargin();

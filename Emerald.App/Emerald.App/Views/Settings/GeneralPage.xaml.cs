@@ -29,7 +29,7 @@ namespace Emerald.WinUI.Views.Settings
                 {
                     CommitButtonText = "Select".Localize()
                 };
-                WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
+                WinRT.Interop.InitializeWithWindow.Initialize(fop, WinRT.Interop.WindowNative.GetWindowHandle(App.Current._MainWindow));
                 var f = await fop.PickSingleFolderAsync();
 
                 if (f != null)

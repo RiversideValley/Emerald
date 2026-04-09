@@ -38,7 +38,7 @@ namespace Emerald.WinUI.Models
             ID = iD;
             Severity = severity;
             CustomControls = customCOntrols;
-            (App.Current.MainWindow.Content as FrameworkElement).ActualThemeChanged += (_, _) => InvokePropertyChanged();
+            (App.Current._MainWindow.Content as FrameworkElement).ActualThemeChanged += (_, _) => InvokePropertyChanged();
         }
     }
 
