@@ -12,12 +12,12 @@ Emerald is a cross-platform Minecraft launcher built with Uno Platform and C#.
 ## Screenshots
 <table>
   <tr>
-    <td><img width="560" src="https://github.com/user-attachments/assets/e5eacfdf-17f0-409f-845a-390e3adad31e" /></td>
-    <td><img width="560" src="https://github.com/user-attachments/assets/af406e42-5330-4f03-8ddb-139c0115222f" /></td>
+    <td><img width="560" alt="windows" src="https://github.com/user-attachments/assets/e5eacfdf-17f0-409f-845a-390e3adad31e" /></td>
+    <td><img width="560"alt="windows"  src="https://github.com/user-attachments/assets/af406e42-5330-4f03-8ddb-139c0115222f" /></td>
   </tr>
   <tr>
-    <td><img width="560" src="https://github.com/user-attachments/assets/bf4c5eb0-557f-4b63-bbb2-2b97d3a705de" /></td>
-    <td><img width="560" src="https://github.com/user-attachments/assets/3c0d223c-20db-4f0f-bbf1-9bdc11479e4b" /></td>
+    <td><img width="560"alt="macos" src="https://github.com/user-attachments/assets/bf4c5eb0-557f-4b63-bbb2-2b97d3a705de" /></td>
+    <td><img width="560"alt="macos" src="https://github.com/user-attachments/assets/3c0d223c-20db-4f0f-bbf1-9bdc11479e4b" /></td>
   </tr>
 </table>
 
