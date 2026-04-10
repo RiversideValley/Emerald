@@ -30,7 +30,11 @@ jobs:
       - name: Restore project
         shell: pwsh
         run: |
-          dotnet msbuild .\Emerald\Emerald.csproj /r /t:Restore /p:Configuration=Release /p:PublishReadyToRun=false
+          dotnet msbuild .\Emerald\Emerald.csproj `
+            /r /t:Restore `
+            /p:Configuration=Release `
+            /p:PublishReadyToRun=false `
+            /nologo /v:minimal
 
       - name: Publish unsigned MSIX packages (x64 + arm64)
         shell: pwsh
@@ -49,7 +53,8 @@ jobs:
               /p:Platform=$platform `
               /p:PublishReadyToRun=false `
               /p:PublishUnsignedPackage=true `
-              /p:AppxPackageDir="$appxDir"
+              /p:AppxPackageDir="$appxDir" `
+              /nologo /v:minimal
           }
 
       - name: Bundle MSIX packages
@@ -65,12 +70,19 @@ jobs:
           $msixFiles = @()
           foreach ($platform in $platforms) {
             $platformDir = Join-Path $packagesRoot $platform
-            $package = Get-ChildItem $platformDir -Filter *.msix -File `
+            $package = Get-ChildItem $platformDir -Recurse -Filter *.msix -File `
+              | Where-Object { $_.Name -match "_$platform\\.msix$" } `
               | Sort-Object LastWriteTime -Descending `
               | Select-Object -First 1
 
             if (-not $package) {
-              throw "No top-level .msix package found for $platform in $platformDir."
+              $package = Get-ChildItem $platformDir -Recurse -Filter *.msix -File `
+              | Sort-Object LastWriteTime -Descending `
+              | Select-Object -First 1
+            }
+
+            if (-not $package) {
+              throw "No .msix package found for $platform in $platformDir."
             }
 
             $msixFiles += $package
