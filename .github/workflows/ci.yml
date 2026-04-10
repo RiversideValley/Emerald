@@ -30,7 +30,7 @@ jobs:
       - name: Restore project
         shell: pwsh
         run: |
-          dotnet msbuild .\Emerald\Emerald.csproj /r /t:Restore /p:Configuration=Release
+          dotnet msbuild .\Emerald\Emerald.csproj /r /t:Restore /p:Configuration=Release /p:PublishReadyToRun=false
 
       - name: Publish unsigned MSIX packages (x64 + arm64)
         shell: pwsh
@@ -47,6 +47,7 @@ jobs:
               /p:TargetFramework=net10.0-windows10.0.26100 `
               /p:Configuration=Release `
               /p:Platform=$platform `
+              /p:PublishReadyToRun=false `
               /p:PublishUnsignedPackage=true `
               /p:AppxPackageDir="$appxDir"
           }
