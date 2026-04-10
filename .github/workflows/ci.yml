@@ -1,123 +1,199 @@
-# .github/workflows/CI.yml
 name: CI Build & Artifacts
 
 on:
   push:
-    branches: [ main, release/** ]
+    branches: [main, release/**]
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [ main, release/** ]
+    branches: [main, release/**]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.os != 'windows-latest' }}
-
-    strategy:
-      fail-fast: false 
-      matrix:
-        include:
-          # == WINDOWS (WinUI 3 Unpackaged) ==
-          - os: windows-latest
-            platform: windows
-            target_framework: 'net10.0-windows10.0.26100' 
-            project_path: './Emerald/Emerald.csproj'
-            publish_output: 'Emerald_Windows'
-            artifact_name: 'Emerald-Windows-Release'
-
-          # == MACOS (Skia Desktop) ==
-          - os: macos-latest
-            platform: macos
-            target_framework: 'net10.0-desktop' 
-            project_path: './Emerald/Emerald.csproj'
-            publish_output: 'Emerald_macOS'
-            artifact_name: 'Emerald-macOS-Release'
-
-          # == LINUX (Skia Gtk) ==
-          - os: ubuntu-latest
-            platform: linux
-            target_framework: 'net10.0-desktop' 
-            project_path: './Emerald/Emerald.csproj'
-            publish_output: 'Emerald_Linux'
-            artifact_name: 'Emerald-Linux-Release'
+  publish-windows:
+    name: Windows Unsigned Bundle (x64 + arm64)
+    runs-on: windows-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
 
       - name: Install Dependencies
-        uses: ./.github/steps/install_dependencies 
+        uses: ./.github/steps/install_dependencies
         with:
-          job-platform: ${{ matrix.platform }}
+          job-platform: windows
 
-      - name: Setup MSBuild (Windows Only)
+      - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.3.1
-        if: matrix.os == 'windows-latest'
 
-      # == BUILD STEP ==
-      - name: Build and Publish (${{ matrix.platform }})
-        shell: pwsh 
-        run: |
-          $project = "${{ matrix.project_path }}"
-          $output = Join-Path $env:GITHUB_WORKSPACE "${{ matrix.publish_output }}"
-          Write-Host "Building $project to $output..."
-
-          # FIXED: Use an Array @() to pass multiple arguments correctly
-          # This ensures PowerShell passes them as separate flags, not one long string.
-          $commonArgs = @("/p:PublishTrimmed=false", "/p:PublishSingleFile=false")
-
-          if ('${{ matrix.platform }}' -eq 'windows') {
-            # Windows WinUI 3 (Unpackaged & Self-Contained)
-            msbuild $project /r /t:publish `
-              /p:TargetFramework=${{ matrix.target_framework }} `
-              /p:Configuration=Release `
-              /p:Platform=x64 `
-              /p:PublishDir="$output" `
-              /p:WindowsPackageType=None `
-              /p:WindowsAppSDKSelfContained=true `
-              /p:SelfContained=true `
-              /p:ErrorOnDuplicatePublishOutputFiles=false `
-              $commonArgs
-          }
-          elseif ('${{ matrix.platform }}' -eq 'macos') {
-            # macOS (App Bundle)
-            dotnet publish $project -c Release -f "${{ matrix.target_framework }}" `
-              -r osx-x64 --self-contained true `
-              -p:PackageFormat=app `
-              -o "$output" `
-              $commonArgs
-          }
-          else {
-            # Linux (Standard Binary)
-            dotnet publish $project -c Release -f "${{ matrix.target_framework }}" `
-              -r linux-x64 --self-contained true `
-              -o "$output" `
-              $commonArgs
-          }
-
-      # == ZIP STEP ==
-      - name: Zip Release Artifact
+      - name: Restore project
         shell: pwsh
         run: |
-          $source = Join-Path $env:GITHUB_WORKSPACE "${{ matrix.publish_output }}"
-          $zipName = "${{ matrix.artifact_name }}.zip"
-          $destination = Join-Path $env:GITHUB_WORKSPACE $zipName
-          
-          Write-Host "Zipping $source to $destination"
-          
-          # NOTE: Zips the folder itself, not the contents inside, preserving structure.
-          Compress-Archive -Path "$source" -DestinationPath $destination
+          msbuild .\Emerald\Emerald.csproj /r /t:Restore /p:Configuration=Release
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4 
+      - name: Publish unsigned MSIX packages (x64 + arm64)
+        shell: pwsh
+        run: |
+          $packagesRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\windows\packages"
+          New-Item -ItemType Directory -Path $packagesRoot -Force | Out-Null
+
+          $platforms = @("x64", "arm64")
+          foreach ($platform in $platforms) {
+            $appxDir = Join-Path $packagesRoot "$platform\"
+            New-Item -ItemType Directory -Path $appxDir -Force | Out-Null
+
+            msbuild .\Emerald\Emerald.csproj `
+              /p:TargetFramework=net10.0-windows10.0.26100 `
+              /p:Configuration=Release `
+              /p:Platform=$platform `
+              /p:PublishUnsignedPackage=true `
+              /p:AppxPackageDir="$appxDir"
+          }
+
+      - name: Bundle MSIX packages
+        shell: pwsh
+        run: |
+          $packagesRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\windows\packages"
+          $bundleInput = Join-Path $env:GITHUB_WORKSPACE "artifacts\windows\bundle-input"
+          $bundleOutput = Join-Path $env:GITHUB_WORKSPACE "artifacts\windows\final"
+          New-Item -ItemType Directory -Path $bundleInput -Force | Out-Null
+          New-Item -ItemType Directory -Path $bundleOutput -Force | Out-Null
+
+          $platforms = @("x64", "arm64")
+          $msixFiles = @()
+          foreach ($platform in $platforms) {
+            $platformDir = Join-Path $packagesRoot $platform
+            $package = Get-ChildItem $platformDir -Filter *.msix -File `
+              | Sort-Object LastWriteTime -Descending `
+              | Select-Object -First 1
+
+            if (-not $package) {
+              throw "No top-level .msix package found for $platform in $platformDir."
+            }
+
+            $msixFiles += $package
+          }
+
+          $msixFiles | ForEach-Object {
+            Copy-Item $_.FullName -Destination (Join-Path $bundleInput $_.Name) -Force
+          }
+
+          $makeAppx = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\makeappx.exe" `
+            | Sort-Object FullName -Descending `
+            | Select-Object -First 1 -ExpandProperty FullName
+
+          if (-not $makeAppx) {
+            throw "makeappx.exe not found on runner."
+          }
+
+          $bundlePath = Join-Path $bundleOutput "Emerald-Windows-Unsigned-x64-arm64.msixbundle"
+          & $makeAppx bundle /o /d $bundleInput /p $bundlePath
+
+          $zipPath = Join-Path $env:GITHUB_WORKSPACE "Emerald-Windows-Unsigned-x64-arm64.zip"
+          Compress-Archive -Path $bundlePath -DestinationPath $zipPath -Force
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}
-          path: ${{ github.workspace }}/${{ matrix.artifact_name }}.zip
-          retention-days: 5
+          name: Emerald-Windows-Unsigned-x64-arm64
+          path: ${{ github.workspace }}/Emerald-Windows-Unsigned-x64-arm64.zip
+          retention-days: 7
+
+  publish-macos:
+    name: macOS .app (arm64)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Dependencies
+        uses: ./.github/steps/install_dependencies
+        with:
+          job-platform: macos
+
+      - name: Publish macOS app
+        shell: bash
+        run: |
+          OUTPUT_DIR="$GITHUB_WORKSPACE/artifacts/macos/Emerald-macOS-arm64"
+          mkdir -p "$OUTPUT_DIR"
+
+          dotnet publish ./Emerald/Emerald.csproj \
+            -c Release \
+            -f net10.0-desktop \
+            -r osx-arm64 \
+            -p:SelfContained=true \
+            -p:PackageFormat=app \
+            -p:PublishTrimmed=false \
+            -p:PublishSingleFile=false \
+            -o "$OUTPUT_DIR"
+
+      - name: Zip macOS .app (preserve app bundle metadata)
+        shell: bash
+        run: |
+          OUTPUT_DIR="$GITHUB_WORKSPACE/artifacts/macos/Emerald-macOS-arm64"
+          APP_PATH="$(find "$OUTPUT_DIR" -maxdepth 2 -type d -name '*.app' | head -n 1)"
+
+          if [ -z "$APP_PATH" ]; then
+            echo "No .app bundle found in $OUTPUT_DIR"
+            exit 1
+          fi
+
+          ZIP_PATH="$GITHUB_WORKSPACE/Emerald-macOS-arm64-app.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ZIP_PATH"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-macOS-arm64-app
+          path: ${{ github.workspace }}/Emerald-macOS-arm64-app.zip
+          retention-days: 7
+
+  publish-linux:
+    name: Linux x64 Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Dependencies
+        uses: ./.github/steps/install_dependencies
+        with:
+          job-platform: linux
+
+      - name: Publish Linux app
+        shell: bash
+        run: |
+          OUTPUT_DIR="$GITHUB_WORKSPACE/artifacts/linux/Emerald-linux-x64"
+          mkdir -p "$OUTPUT_DIR"
+
+          dotnet publish ./Emerald/Emerald.csproj \
+            -c Release \
+            -f net10.0-desktop \
+            -r linux-x64 \
+            -p:SelfContained=true \
+            -p:PublishTrimmed=false \
+            -p:PublishSingleFile=false \
+            -o "$OUTPUT_DIR"
+
+      - name: Archive Linux package
+        shell: bash
+        run: |
+          ARCHIVE_PATH="$GITHUB_WORKSPACE/Emerald-linux-x64.tar.gz"
+          tar -czf "$ARCHIVE_PATH" -C "$GITHUB_WORKSPACE/artifacts/linux" "Emerald-linux-x64"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-x64
+          path: ${{ github.workspace }}/Emerald-linux-x64.tar.gz
+          retention-days: 7
