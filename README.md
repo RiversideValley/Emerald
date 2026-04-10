@@ -9,39 +9,64 @@ Emerald is a cross-platform Minecraft launcher built with Uno Platform and C#.
 [![Platform](https://img.shields.io/badge/platform-windows%20%7C%20macOS%20%7C%20linux-2ea44f)](https://github.com/RiversideValley/Emerald)
 [![Language](https://img.shields.io/badge/language-c%23-239120)](https://github.com/RiversideValley/Emerald/search?l=c%23)
 
-## Platform Support
-
-- Windows 10/11: packaged unsigned `.msixbundle` (x64 + arm64)
-- macOS: unsigned arm64 `.app` archive
-- Linux: x64 package archive
+## Screenshots
+<table>
+  <tr>
+    <td><img width="560" src="https://github.com/user-attachments/assets/e5eacfdf-17f0-409f-845a-390e3adad31e" /></td>
+    <td><img width="560" src="https://github.com/user-attachments/assets/af406e42-5330-4f03-8ddb-139c0115222f" /></td>
+  </tr>
+  <tr>
+    <td><img width="560" src="https://github.com/user-attachments/assets/bf4c5eb0-557f-4b63-bbb2-2b97d3a705de" /></td>
+    <td><img width="560" src="https://github.com/user-attachments/assets/3c0d223c-20db-4f0f-bbf1-9bdc11479e4b" /></td>
+  </tr>
+</table>
 
 ## Features
 
 Legend: `✅` fully supported, `🟡` partially supported, `❌` not yet supported
 
+#### Game Management
 | Capability | Status | Notes |
 |---|---|---|
 | Multi-instance Minecraft profiles | ✅ | Multiple game profiles are persisted and managed. |
-| Custom profile folder names | ✅ | Add-game flow supports custom folder names. |
-| Version selection and refresh | ✅ | Pulls and filters available vanilla versions. |
-| Install selected profile version | ✅ | Per-profile install workflow is available. |
-| Launch Minecraft | ✅ | Runtime launch goes through `IGameRuntimeService`. |
-| Stop / force stop running game | ✅ | Gentle and force-stop runtime paths are implemented. |
-| Runtime session tracking | ✅ | Tracks state, PID, timestamps, and run status. |
-| Live game logs | ✅ | Captures runtime output when stream access is available. |
-| Log filtering and pagination | ✅ | Search + level filters + page-based browsing. |
-| Microsoft account sign-in | ✅ | Microsoft authentication flow is available. |
-| Offline account support | ✅ | Offline account creation and launch are supported. |
+| Custom profile folder names | ✅ | You can add more than one game into the same folder. |
+| Version selection | ✅ | Supports all versions provided by Mojang |
 | Global Minecraft settings | ✅ | File-backed global settings with autosave behavior. |
 | Per-game settings overrides | ✅ | Profile-level override model is implemented. |
-| JVM argument settings | ✅ | JVM args are part of managed game settings. |
-| Mod loader: Vanilla | ✅ | Supported in launcher flow. |
-| Mod loader: Fabric | ✅ | Routed via installer pipeline. |
-| Mod loader: Forge | ✅ | Routed via installer pipeline. |
-| Mod loader: Quilt | ✅ | Routed via installer pipeline. |
-| Mod loader: OptiFine | ✅ | Routed via installer pipeline. |
-| Mod loader: LiteLoader | ✅ | Routed via installer pipeline. |
-| Modrinth content browsing/details | 🟡 | Present, but store surface is still under active refinement. |
+#### Mod Loaders  
+| Capability | Status | Notes |
+|---|---|---|
+| Vanilla | ✅ | Supported in launcher flow. |
+| Fabric | ✅ | Routed via installer pipeline. |
+| Forge | ✅ | Routed via installer pipeline. |
+| Quilt | ✅ | Routed via installer pipeline. |
+| OptiFine | 🟡 | Routed via installer pipeline. WIP |
+| LiteLoader | ✅ | Routed via installer pipeline. |
+#### Runtime Info
+| Capability | Status | Notes |
+|---|---|---|
+| Download Minecraft | ✅ | Downloads through offical Mojang servers, hash check available. |
+| Launch Minecraft | ✅ | --- |
+| Stop / force stop running game | ✅ |---|
+| Runtime session tracking | ✅ | Tracks state, PID, timestamps, and run status. |
+| Live game logs | ✅ | Captures runtime output with a rich UI |
+#### Sign-in Methods
+| Capability | Status | Notes |
+|---|---|---|
+| Microsoft account sign-in | ✅ | --- |
+| Offline account support | ✅ | * |
+>  We do not support piracy. You can't use Offline Accounts without logging in with at least one Microsoft Account.  
+> If you wish to bypass it, it's your responsibility, and a toggle which you can change is hardcoded the project. But we will not ship any releases with it.
+#### Store Support
+| Capability | Status | Notes |
+|---|---|---|
+| Mods | ✅ |---|
+| Shaders | ✅ |---|
+| Data Packs | ✅ |---|
+| Resource Packs | ✅ |---|
+| Plugins | ✅ |---|
+| Mods | 🟡 |WIP|
+| Modrinth content browsing/details | 🟡 | Present, Does not exactly match/auto download versions |
 | Modrinth install/remove tracking | 🟡 | Install/remove tracking exists; UX/workflow still evolving. |
 
 ## Releases
@@ -106,9 +131,6 @@ Maintained solution (`Emerald.slnx`):
 
 Legacy projects (`Emerald.App/`, `Emerald.Core/`) are retained for history and are not the primary active architecture.
 
-## Screenshots
-
-[![emerald-screenshot](https://github.com/user-attachments/assets/eb65ec6e-3dce-46a9-8f0a-1ffaf9dc43c3)](https://github.com/RiversideValley/Emerald)
 
 ## Contributing
 
