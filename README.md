@@ -1,103 +1,121 @@
 ![Emerald Banner](https://github.com/user-attachments/assets/dbe4839c-eddf-49fa-97cc-edbd70b3d81f)
 
-#### A swift Minecraft launcher made using WinUI technologies in the fast C# language that really pushes the boundary of the platform.
+# Emerald
 
-<p align="center">
-  <a title="GitHub Releases" target="_blank" href="https://github.com/RiversideValley/Emerald/releases">
-    <img align="left" src="https://img.shields.io/github/v/release/RiversideValley/Emerald?include_prereleases" alt="Release" />
-  </a>
-  <a title="Repository Size" target="_blank" href="https://github.com/RiversideValley/Emerald/activity">
-    <img align="left" src="https://img.shields.io/github/repo-size/RiversideValley/Emerald?color=%23cc0000" alt="Release" />
-  </a>
-  <a title="Platform" target="_blank" href="https://github.com/topics/windows">
-    <img align="left" src="https://img.shields.io/badge/platform-windows-purple" alt="Platform" />
-  </a>
-  <a title="Language" target="_blank" href="https://github.com/RiversideValley/Emerald/search?l=c%23">
-    <img align="left" src="https://img.shields.io/badge/language-c_sharp-green" alt="Platform" />
-  </a>
-</p>
+Emerald is a cross-platform Minecraft launcher built with Uno Platform and C#.
 
-<br/>
+[![CI Build & Artifacts](https://github.com/RiversideValley/Emerald/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/RiversideValley/Emerald/actions/workflows/ci.yml)
+[![GitHub Releases](https://img.shields.io/github/v/release/RiversideValley/Emerald?include_prereleases)](https://github.com/RiversideValley/Emerald/releases)
+[![Platform](https://img.shields.io/badge/platform-windows%20%7C%20macOS%20%7C%20linux-2ea44f)](https://github.com/RiversideValley/Emerald)
+[![Language](https://img.shields.io/badge/language-c%23-239120)](https://github.com/RiversideValley/Emerald/search?l=c%23)
 
----
+## Platform Support
 
-## 🎁 Installation
+- Windows 10/11: packaged unsigned `.msixbundle` (x64 + arm64)
+- macOS: unsigned arm64 `.app` archive
+- Linux: x64 package archive
 
-<!--### 🪟 Microsoft Store
+## Features
 
-<a title="Microsoft Store" href="https://apps.microsoft.com/store/detail/9PPC02GP33FT">
-  <img src="https://user-images.githubusercontent.com/76810494/189479518-fc0f18a9-b0a4-4a63-8e7b-27a4284d93af.png" alt="Release" />
-</a>-->
+- Multi-instance game management with custom profile folders
+- Version selection flow with release-type filtering
+- Mod loader routing and installation support for:
+  - Vanilla
+  - Fabric
+  - Forge
+  - Quilt
+  - OptiFine
+  - LiteLoader
+- Runtime session controls:
+  - Launch
+  - Gentle stop / force stop
+  - Session tracking with status and PID visibility
+- Built-in log viewer:
+  - Live capture
+  - Search + level filters
+  - Pagination
+  - Session-based history
+- Account management:
+  - Microsoft account sign-in
+  - Offline account support
+  - Select active account for launch
+- Global and per-game Minecraft settings with override support
+- Modrinth-backed store workflows (browse, install, and manage tracked content)
 
-### 😺 GitHub
+## Releases
 
-<a title="GitHub" href='https://github.com/RiversideValley/Emerald/releases/latest'>
-  <img src='https://user-images.githubusercontent.com/74561130/160255105-5e32f911-574f-4cc4-b90b-8769099086e4.png'alt='Get it from GitHub' />
-</a>
+Emerald is currently in its cross-platform Uno transition phase.
 
-### 🔨 Building from source
-###### ⭐Recommended⭐
+### Nightly Builds (GitHub Actions)
 
-This is our preferred method.
-See [this section](#-building-the-code)
+Nightly preview builds are distributed through GitHub Actions CI artifacts.
 
-### 📸 Screenshots
+1. Open [CI Build & Artifacts](https://github.com/RiversideValley/Emerald/actions/workflows/ci.yml).
+2. Select a recent successful run on `main`.
+3. Download the artifact for your platform:
+   - `Emerald-Windows-Unsigned-x64-arm64`
+   - `Emerald-macOS-arm64-app`
+   - `Emerald-linux-x64`
+
+### Stable Releases
+
+Stable releases for the new cross-platform version will be available soon.
+
+In the meantime, you can use nightly CI artifacts for the latest changes, or older tagged releases from [GitHub Releases](https://github.com/RiversideValley/Emerald/releases).
+
+## Building From Source
+
+### Prerequisites
+
+- [Git](https://git-scm.com/)
+- [.NET 10 SDK](https://dotnet.microsoft.com/) (preview channel supported)
+
+Optional for local Windows packaging workflows:
+
+- Visual Studio 2022 / Build Tools with Windows SDK components
+
+### Clone
+
+```bash
+git clone https://github.com/RiversideValley/Emerald
+cd Emerald
+```
+
+### Build
+
+```bash
+dotnet restore Emerald.slnx
+dotnet build Emerald.slnx
+```
+
+### Tests
+
+```bash
+dotnet test Emerald.CoreX.Tests/Emerald.CoreX.Tests.csproj
+```
+
+## Codebase Structure
+
+Maintained solution (`Emerald.slnx`):
+
+- `Emerald/` - Uno app shell, UI, pages, controls, and composition root
+- `Emerald.CoreX/` - launcher domain/runtime/services (accounts, installers, logging, settings)
+- `Emerald.CoreX.Tests/` - active CoreX regression tests
+
+Legacy projects (`Emerald.App/`, `Emerald.Core/`) are retained for history and are not the primary active architecture.
+
+## Screenshots
 
 [![emerald-screenshot](https://github.com/user-attachments/assets/eb65ec6e-3dce-46a9-8f0a-1ffaf9dc43c3)](https://github.com/RiversideValley/Emerald)
 
-## 🦜 Contributing & Feedback
+## Contributing
 
-There are multiple ways to participate in the community:
+- [Open an issue](https://github.com/RiversideValley/Emerald/issues/new/choose)
+- [Submit a pull request](https://github.com/RiversideValley/Emerald/pulls)
+- [Review recent commits](https://github.com/RiversideValley/Emerald/commits)
 
-- Upvote popular feature requests
-- [Submit a new feature](https://github.com/RiversideValley/Emerald/pulls)
-- [File bugs and feature requests](https://github.com/RiversideValley/Emerald/issues/new/choose).
-- Review source [code changes](https://github.com/RiversideValley/Emerald/commits)
+## License
 
-### 🏗️ Codebase Structure
+Copyright (c) 2022-2026 Riverside Valley Corporation
 
-```
-.
-├──Emerald.App                       // Emerald app code and packager
-|  ├──Emerald.App                    // Emerald app code (such as code related to UI but not Minecraft)
-|  └──Emerald.App.Package            // Package code for generating an uploadable MSIX bundle.
-├──Emerald.Core                      // Emerald core code (such as code related to launching and modifying Minecraft)
-└──Emerald.CoreX                     // Emerald core code for the ability to run different Minecraft installation profiles and mods.
-```
-
-## 🔨 Building the Code
-
-### 1️⃣ Prerequisites
-
-Ensure you have following components:
-
-- [Git](https://git-scm.com/)
-- [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) with following individual components:
-  - Universal Windows Platform Software Development Kit
-  - .NET 7
-  - Windows App Software Development Kit
-  - Windows 11 SDK
-- [Windows 11 or Windows 10](https://www.microsoft.com/en-us/windows) (version 1809+)
-- At least 4gb of RAM
-- [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)
-
-### 2️⃣ Git
-
-Clone the repository:
-
-```git
-git clone https://github.com/RiversideValley/Emerald
-```
-(`main` is the latest branch)
-
-### 3️⃣ Build the project
-
-- Open `Emerald.sln`.
-- Set the Startup Project to `Emerald.Package`
-- Build with `DEBUG|x64` (or `DEBUG|Any CPU`)
-
-## ⚖️ License
-
-Copyright (c) 2022-2024 Riverside Valley Corporation
-
-Licensed under the Nightshade Vexillum license as stated in the [LICENSE](LICENSE.md).
+Licensed under the Nightshade Vexillum license as stated in [LICENSE.md](LICENSE.md).
