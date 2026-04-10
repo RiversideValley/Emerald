@@ -1,6 +1,9 @@
 ﻿<Application x:Class="Emerald.App"
        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:skia="http://uno.ui/skia"
+             mc:Ignorable="skia">
 
   <Application.Resources>
     <ResourceDictionary>
@@ -28,10 +31,10 @@
         <ResourceDictionary x:Key="HighContrast" />
 
       </ResourceDictionary.ThemeDictionaries>
-      <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="Transparent"/>
-      <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="{ThemeResource ListViewItemBackgroundPointerOver}"/>
-      <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="{ThemeResource ListViewItemBackgroundPressed}"/>
- <Style TargetType="ListViewItem">
+      <skia:SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="Transparent"/>
+      <skia:SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="{ThemeResource ListViewItemBackgroundPointerOver}"/>
+      <skia:SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="{ThemeResource ListViewItemBackgroundPressed}"/>
+      <skia:Style TargetType="ListViewItem">
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 <Setter Property="VerticalContentAlignment"   Value="Center" />
                 <Setter Property="Padding"                    Value="0" />
@@ -110,7 +113,7 @@
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
-            </Style>
+            </skia:Style>
 
     </ResourceDictionary>
   </Application.Resources>
