@@ -17,30 +17,47 @@ Emerald is a cross-platform Minecraft launcher built with Uno Platform and C#.
 
 ## Features
 
-- Multi-instance game management with custom profile folders
-- Version selection flow with release-type filtering
-- Mod loader routing and installation support for:
-  - Vanilla
-  - Fabric
-  - Forge
-  - Quilt
-  - OptiFine
-  - LiteLoader
-- Runtime session controls:
-  - Launch
-  - Gentle stop / force stop
-  - Session tracking with status and PID visibility
-- Built-in log viewer:
-  - Live capture
-  - Search + level filters
-  - Pagination
-  - Session-based history
-- Account management:
-  - Microsoft account sign-in
-  - Offline account support
-  - Select active account for launch
-- Global and per-game Minecraft settings with override support
-- Modrinth-backed store workflows (browse, install, and manage tracked content)
+| Area | Capability | Status | Notes |
+|---|---|---|---|
+| Platform | Cross-platform Uno desktop shell | ✅ Supported | Maintained in `Emerald/` with Uno + WinUI-style UI. |
+| Platform | Windows artifact output | ✅ Supported | CI publishes unsigned packaged `.msixbundle` (x64 + arm64). |
+| Platform | macOS artifact output | ✅ Supported | CI publishes arm64 `.app` zip (unsigned). |
+| Platform | Linux artifact output | ✅ Supported | CI publishes x64 package archive. |
+| Game Management | Multi-instance profiles | ✅ Supported | Multiple game profiles are persisted and managed. |
+| Game Management | Custom profile folder names | ✅ Supported | Add-game flow supports custom folder names. |
+| Game Management | Add game wizard flow | ✅ Supported | Version + loader + profile configuration steps. |
+| Game Management | Vanilla version refresh | ✅ Supported | Pulls available vanilla versions from launcher backend. |
+| Game Management | Install selected profile version | ✅ Supported | Per-profile install workflow is available. |
+| Game Management | Remove profile | ✅ Supported | Profiles can be removed from managed list. |
+| Runtime | Launch game | ✅ Supported | Runtime launch goes through `IGameRuntimeService`. |
+| Runtime | Gentle stop | ✅ Supported | Graceful stop path is implemented. |
+| Runtime | Force stop | ✅ Supported | Force termination path is implemented. |
+| Runtime | Active session tracking | ✅ Supported | Tracks state, PID, timestamps, and run status. |
+| Logs | Live log capture | ✅ Supported | Captures runtime output when stream access is available. |
+| Logs | Lifecycle fallback mode | ✅ Supported | Falls back to lifecycle-only logs when needed. |
+| Logs | Search logs | ✅ Supported | Search query filtering on log projection. |
+| Logs | Level filter | ✅ Supported | Filter by Trace/Debug/Info/Warn/Error/Fatal/Unknown. |
+| Logs | Pagination | ✅ Supported | Page-size options with previous/next navigation. |
+| Logs | Session-based history | ✅ Supported | Logs are grouped by runtime sessions. |
+| Accounts | Microsoft account sign-in | ✅ Supported | Microsoft authentication flow is available. |
+| Accounts | Offline accounts | ✅ Supported | Offline account creation and launch are supported. |
+| Accounts | Selected account for launch | ✅ Supported | Selected account is used for launch flow. |
+| Accounts | Selected account persistence | ✅ Supported | Selected account state is persisted. |
+| Settings | Global Minecraft settings | ✅ Supported | Global settings are file-backed and autosaved. |
+| Settings | Per-game settings overrides | ✅ Supported | Profile-level override model is implemented. |
+| Settings | JVM argument settings | ✅ Supported | JVM args are part of managed game settings. |
+| Settings | Theme/appearance customization | ✅ Supported | Theme + tint customization is available. |
+| Loader Support | Vanilla loader | ✅ Supported | Supported in launcher flow. |
+| Loader Support | Fabric loader | ✅ Supported | Routed via installer pipeline. |
+| Loader Support | Forge loader | ✅ Supported | Routed via installer pipeline. |
+| Loader Support | Quilt loader | ✅ Supported | Routed via installer pipeline. |
+| Loader Support | OptiFine loader | ✅ Supported | Routed via installer pipeline. |
+| Loader Support | LiteLoader | ✅ Supported | Routed via installer pipeline. |
+| Store | Modrinth discovery and detail flow | 🟡 Partial | Present, but store surface is still under active refinement. |
+| Store | Modrinth install/remove tracking | 🟡 Partial | Install/remove tracking exists; UX/workflow still evolving. |
+| Distribution | Nightly GitHub Actions builds | ✅ Supported | Artifacts are published by CI workflow runs. |
+| Distribution | Stable cross-platform release channel | ❌ Not Yet | Stable releases for the new cross-platform era are coming soon. |
+| Distribution | Signed/notarized desktop binaries | ❌ Not Yet | Current CI outputs are unsigned artifacts. |
 
 ## Releases
 
