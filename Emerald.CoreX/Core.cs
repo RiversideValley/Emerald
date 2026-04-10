@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using CmlLib.Core;
 using CmlLib.Core.Utils;
@@ -7,18 +8,63 @@ using CmlLib.Core.VersionMetadata;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Notifications;
+using Emerald.CoreX.Runtime;
+using Emerald.CoreX.Services;
 using Emerald.Services;
 using Microsoft.Extensions.Logging;
 namespace Emerald.CoreX;
 
-public record SavedGame(string Path, Versions.Version Version, Models.GameSettings GameOptions);
+public sealed class SavedGame
+{
+    public string Path { get; set; } = string.Empty;
 
-public record SavedGameCollection(string BasePath, SavedGame[] Games);
+    public Versions.Version Version { get; set; } = new();
 
-public partial class Core(ILogger<Core> _logger, INotificationService _notify, IBaseSettingsService settingsService) : ObservableObject
+    public bool UsesCustomGameSettings { get; set; }
+
+    public Models.GameSettings? CustomGameSettings { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Models.GameSettings? GameOptions { get; set; }
+
+    public Game ToGame(IGlobalGameSettingsService globalGameSettingsService)
+        => new(
+            new MinecraftPath(Path),
+            Version,
+            UsesCustomGameSettings || GameOptions != null,
+            CustomGameSettings ?? GameOptions,
+            globalGameSettingsService);
+
+    public static SavedGame FromGame(Game game)
+        => new()
+        {
+            Path = game.Path.BasePath,
+            Version = game.Version,
+            UsesCustomGameSettings = game.UsesCustomGameSettings,
+            CustomGameSettings = game.UsesCustomGameSettings
+                ? game.CustomGameSettings?.Clone()
+                : null
+        };
+}
+
+public sealed class SavedGameCollection
+{
+    public string BasePath { get; set; } = string.Empty;
+
+    public SavedGame[] Games { get; set; } = [];
+}
+
+public partial class Core(
+    ILogger<Core> _logger,
+    INotificationService _notify,
+    IBaseSettingsService settingsService,
+    IGameRuntimeService runtimeService,
+    IGlobalGameSettingsService globalGameSettingsService) : ObservableObject
 {
     public const string GamesFolderName = "EmeraldGames";
     public MinecraftLauncher Launcher { get; set; }
+
+    public event EventHandler? VersionsRefreshed;
 
     public bool IsRunning { get; set; } = false;
     public MinecraftPath? BasePath { get; private set; } = null;
@@ -31,7 +77,10 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
     [ObservableProperty]
     private bool _initialized = false;
 
-    public Models.GameSettings GameOptions = new();
+    [ObservableProperty]
+    private bool _isRefreshing = false;
+
+    public Models.GameSettings GameOptions => globalGameSettingsService.Settings;
 
     private SavedGameCollection[] SavedgamesWithPaths = [];
 
@@ -50,7 +99,7 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             Directory.CreateDirectory(gamesFolder);
         }
 
-        SavedgamesWithPaths = settingsService.Get<SavedGameCollection[]>(SettingsKeys.SavedGames, [], true);
+        SavedgamesWithPaths = settingsService.Get<SavedGameCollection[]>(SettingsKeys.SavedGames, []);
 
         var collection = SavedgamesWithPaths.FirstOrDefault(x => x.BasePath == BasePath.BasePath);
         if (collection == null)
@@ -58,13 +107,12 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             _logger.LogInformation("Saved games paths does not contain any games");
             return;
         }
-
+        Games.Clear();
         foreach (var sg in collection.Games)
         {
             try
             {
-                var game = Game.FromTuple((sg.Path, sg.Version, sg.GameOptions));
-                Games.Add(game);
+                Games.Add(sg.ToGame(globalGameSettingsService));
             }
             catch (Exception ex)
             {
@@ -80,17 +128,21 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
         _logger.LogInformation("Saving {count} games", Games.Count);
 
         var toSave = Games.Select(x =>
-            new SavedGame(x.Path.BasePath, x.Version, x.Options)
+            SavedGame.FromGame(x)
         ).ToArray();
 
         try
         {
             var list = SavedgamesWithPaths.ToList();
             list.RemoveAll(x => x.BasePath == BasePath.BasePath);
-            list.Add(new SavedGameCollection(BasePath.BasePath, toSave));
+            list.Add(new SavedGameCollection
+            {
+                BasePath = BasePath.BasePath,
+                Games = toSave
+            });
 
             SavedgamesWithPaths = list.ToArray();
-            settingsService.Set(SettingsKeys.SavedGames, SavedgamesWithPaths, true);
+            settingsService.Set(SettingsKeys.SavedGames, SavedgamesWithPaths);
 
             _logger.LogInformation("Saved {count} games", toSave.Length);
         }
@@ -100,7 +152,6 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             throw;
         }
     }
-
 
     /// <summary>
     /// Initializes the Core with the given Minecraft path and retrieves the list of available vanilla Minecraft versions.
@@ -114,9 +165,9 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             isIndeterminate: true, 
             isCancellable: true
         );
+        IsRefreshing = true;
         try
         {
-            GameOptions = settingsService.Get("BaseGameOptions", Models.GameSettings.FromMLaunchOption(new()));
             _logger.LogInformation("Trying to load vanilla minecraft versions from servers");
 
             if (!Initialized && basePath == null)
@@ -136,8 +187,9 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             var l = await Launcher.GetAllVersionsAsync(not.CancellationToken.Value);
 
             VanillaVersions.Clear();
-            VanillaVersions.AddRange(l.Select(x => new Versions.Version() { Metadata = x, BasedOn = x.Name, ReleaseType = x.Type }));
+            VanillaVersions.AddRange(l.Select(x => new Versions.Version() { ReleaseTime = x.ReleaseTime.DateTime, BasedOn = x.Name, ReleaseType = x.Type }));
             IsOfflineMode = false;
+            _notify.Complete(not.Id, true);
         }
         catch (HttpRequestException)
         {
@@ -150,7 +202,16 @@ public partial class Core(ILogger<Core> _logger, INotificationService _notify, I
             _notify.Complete(not.Id, false, ex.Message, ex);
             Initialized = false;
         }
-        _logger.LogInformation("Loaded {count} vanilla versions", VanillaVersions.Count);
+        finally
+        {
+            foreach (var game in Games)
+            {
+                game.CreateMCLauncher(IsOfflineMode);
+            }
+            _logger.LogInformation("Loaded {count} vanilla versions", VanillaVersions.Count);
+            IsRefreshing = false;
+            VersionsRefreshed?.Invoke(this, new());
+        }
     }
 
     /// <summary>
@@ -165,7 +226,6 @@ public async Task InstallGame(Game game, bool showFileprog = false)
 
         try
         {
-
             _logger.LogInformation("Installing game {version}", version.BasedOn);
 
             if(game == null)
@@ -178,7 +238,8 @@ public async Task InstallGame(Game game, bool showFileprog = false)
                 isOffline: IsOfflineMode,
                 showFileProgress: showFileprog
             );
-
+            
+            SaveGames();
         }
         catch (Exception ex)
         {
@@ -186,16 +247,24 @@ public async Task InstallGame(Game game, bool showFileprog = false)
             _notify.Error("GameInstallError", ex.Message, ex:ex);
         }
     }
-    public void AddGame(Versions.Version version)
+    public void AddGame(Versions.Version version, string? folderName = null)
     {
         try
         {
             _logger.LogInformation("Adding game {version}", version.BasedOn);
 
-            var path = Path.Combine( BasePath.BasePath, GamesFolderName, version.DisplayName);
+            if (BasePath == null)
+            {
+                throw new InvalidOperationException("Cannot add a game before the base path is initialized.");
+            }
 
+            var resolvedFolderName = string.IsNullOrWhiteSpace(folderName)
+                ? version.DisplayName
+                : folderName.Trim();
+            var path = Path.Combine(BasePath.BasePath, GamesFolderName, resolvedFolderName);
 
-            var game = new Game(new(path), GameOptions, version);
+            var game = new Game(new(path), version, globalGameSettingsService: globalGameSettingsService);
+
 
             Games.Add(game);
             SaveGames();
@@ -226,6 +295,14 @@ public async Task InstallGame(Game game, bool showFileprog = false)
                 _logger.LogWarning("Game {version} not found in collection", game.Version.BasedOn);
                 throw new NullReferenceException($"Game {game.Version.BasedOn} not found in collection");
             }
+
+            if (runtimeService.TryGetActiveSession(game) != null)
+            {
+                _logger.LogWarning("Refusing to remove running game {version}", game.Version.BasedOn);
+                _notify.Warning("GameStillRunning", $"{game.Version.DisplayName} is still running. Stop it before removing the game.");
+                return;
+            }
+
             Games.Remove(game);
             SaveGames();
 

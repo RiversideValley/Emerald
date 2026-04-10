@@ -9,4 +9,9 @@ namespace Emerald.CoreX.Helpers;
 public static class SettingsKeys
 {
     public const string SavedGames = "SavedGames";
+    public const string BaseGameOptions = "BaseGameOptions";
+    public const string Settings = "Settings";
+    public const string MinecraftAccounts = "MinecraftAccounts";
+    public const string SelectedMinecraftAccount = "SelectedMinecraftAccount";
+    public const string StoreInstalledItems = "StoreInstalledItems";
 }

@@ -10,10 +10,15 @@ using CmlLib.Core.ProcessBuilder;
 using Emerald.CoreX.Helpers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Runtime.Serialization;
-
+using System.Collections.Specialized;
 namespace Emerald.CoreX.Models;
 public partial class GameSettings : ObservableObject
 {
+    public GameSettings()
+    {
+        JVMArgs.CollectionChanged += OnJvmArgsChanged;
+    }
+
     [JsonIgnore]
     public double MaxRAMinGB => Math.Round((MaximumRamMb / 1024.00), 2);
 
@@ -57,7 +62,6 @@ public partial class GameSettings : ObservableObject
     [ObservableProperty]
     private int _serverPort = 25565;
 
-    
     [ObservableProperty]
     private bool _HashCheck;
 
@@ -69,11 +73,9 @@ public partial class GameSettings : ObservableObject
     
     public ObservableCollection<string> JVMArgs { get; set; } = new();
 
-    
     [JsonIgnore]
     public string ScreenSizeStatus =>
         FullScreen ? "FullScreen".Localize() : ((ScreenWidth > 0 && ScreenHeight > 0) ? $"{ScreenWidth} × {ScreenHeight}" : "Default".Localize());
-
 
     public MLaunchOption ToMLaunchOption()
     {
@@ -92,8 +94,8 @@ public partial class GameSettings : ObservableObject
             ServerIp = _serverIp,
             ServerPort = _serverPort
         };
-        var args = opt.ExtraJvmArguments.ToList();
-        args.AddRange(JVMArgs.Select(x => new MArgument(x)));
+        var args = MLaunchOption.DefaultExtraJvmArguments.ToList();
+         args.AddRange(JVMArgs.Select(x => new MArgument(x)));
         opt.ExtraJvmArguments = args.ToArray();
         return opt;
     }
@@ -119,9 +121,49 @@ public partial class GameSettings : ObservableObject
         game.JVMArgs.Clear();
         foreach (var arg in option.ExtraJvmArguments)
         {
-            game.JVMArgs.Add(arg.ToString());
+            if(MLaunchOption.DefaultExtraJvmArguments.Contains(arg))
+                continue;
+            
+            game.JVMArgs.AddRange(arg.Values.ToArray());
         }
 
         return game;
     }
+
+    public GameSettings Clone()
+    {
+        var clone = new GameSettings
+        {
+            MaximumRamMb = MaximumRamMb,
+            MinimumRamMb = MinimumRamMb,
+            DockName = DockName,
+            IsDemo = IsDemo,
+            ScreenWidth = ScreenWidth,
+            ScreenHeight = ScreenHeight,
+            FullScreen = FullScreen,
+            QuickPlayPath = QuickPlayPath,
+            QuickPlaySingleplayer = QuickPlaySingleplayer,
+            QuickPlayRealms = QuickPlayRealms,
+            ServerIp = ServerIp,
+            ServerPort = ServerPort,
+            HashCheck = HashCheck,
+            AssetsCheck = AssetsCheck,
+            IsAdmin = IsAdmin
+        };
+
+        foreach (var arg in JVMArgs)
+        {
+            clone.JVMArgs.Add(arg);
+        }
+
+        return clone;
+    }
+
+    public static GameSettings Resolve(GameSettings globalSettings, bool usesCustomGameSettings, GameSettings? customGameSettings)
+        => usesCustomGameSettings && customGameSettings != null
+            ? customGameSettings
+            : globalSettings;
+
+    private void OnJvmArgsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        => OnPropertyChanged(nameof(JVMArgs));
 }

@@ -1,7 +1,7 @@
 using System;
-using System.ComponentModel;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX;
+using Emerald.CoreX.Helpers;
 using Emerald.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -10,8 +10,13 @@ using Windows.Storage;
 using Windows.System;
 using Path = System.IO.Path;
 using System.IO;
-using Emerald.UserControls;
+using System.Linq;
+using Emerald.CoreX.Models;
+using Emerald.CoreX.Services;
 using Emerald.Helpers;
+using Emerald.UserControls;
+using Emerald.Views.Store;
+using Microsoft.UI.Xaml.Media.Animation;
 
 namespace Emerald.Views;
 
@@ -37,80 +42,20 @@ public sealed partial class GamesPage : Page
     {
         ViewModel.StartAddGameCommand.Execute(null);
 
-        var wizardControl = new AddGameWizardControl();
-        // The DataContext is inherited from the Page, so the wizard will use our ViewModel
-        wizardControl.DataContext = ViewModel;
-
-        _addGameDialog = wizardControl.ToContentDialog(null,defaultButton: ContentDialogButton.Primary);
-
-        // We manage the dialog state manually here
-        ViewModel.PropertyChanged += OnViewModelPropertyChanged;
-        _addGameDialog.PrimaryButtonClick += OnDialogPrimaryButtonClick;
-        _addGameDialog.SecondaryButtonClick += OnDialogSecondaryButtonClick;
-
-        UpdateAddGameDialogButtons(); // Set initial button state
-        await _addGameDialog.ShowAsync();
-
-        // Clean up handlers to prevent memory leaks
-        ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
-        _addGameDialog.PrimaryButtonClick -= OnDialogPrimaryButtonClick;
-        _addGameDialog.SecondaryButtonClick -= OnDialogSecondaryButtonClick;
-        _addGameDialog = null;
-    }
-
-    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        // When a property that affects the button's state changes, we update it
-        if (e.PropertyName is nameof(ViewModel.AddGameWizardStep) or nameof(ViewModel.IsPrimaryButtonEnabled))
+        _addGameDialog = new AddGameDialog(ViewModel)
         {
-            UpdateAddGameDialogButtons();
-        }
-    }
+            XamlRoot = XamlRoot
+        };
+        _addGameDialog.Resources["ContentDialogMaxWidth"] = 1400;
 
-    private void UpdateAddGameDialogButtons()
-    {
-        if (_addGameDialog is null) return;
-
-        switch (ViewModel.AddGameWizardStep)
+        try
         {
-            case 0: // Version Selection
-                _addGameDialog.Title = "Add New Game (Step 1 of 2)";
-                _addGameDialog.PrimaryButtonText = "Next";
-                _addGameDialog.SecondaryButtonText = "Cancel";
-                break;
-            case 1: // Customize & Name
-                _addGameDialog.Title = "Add New Game (Step 2 of 2)";
-                _addGameDialog.PrimaryButtonText = "Create";
-                _addGameDialog.SecondaryButtonText = "Back";
-                break;
+            await _addGameDialog.ShowAsync();
         }
-        _addGameDialog.IsPrimaryButtonEnabled = ViewModel.IsPrimaryButtonEnabled;
-    }
-
-    private void OnDialogPrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
-    {
-        // "Next" or "Create"
-        if (ViewModel.AddGameWizardStep < 1) // If not on the last step
+        finally
         {
-            args.Cancel = true; // Keep dialog open
-            ViewModel.GoToNextStepCommand.Execute(null);
+            _addGameDialog = null;
         }
-        else
-        {
-            // Last step, create game and let dialog close
-            ViewModel.CreateGameCommand.Execute(null);
-        }
-    }
-
-    private void OnDialogSecondaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
-    {
-        // "Back" or "Cancel"
-        if (ViewModel.AddGameWizardStep > 0)
-        {
-            args.Cancel = true; // Keep dialog open
-            ViewModel.GoToPreviousStepCommand.Execute(null);
-        }
-        // On step 0, do nothing, which lets the dialog close as "Cancel"
     }
 
     // Unchanged methods below...
@@ -120,9 +65,10 @@ public sealed partial class GamesPage : Page
         {
             var GameSettingsControl = new MinecraftSettingsUC()
             {
-                ShowMainSettings = false
+                ShowMainSettings = false,
+                Game = game
             };
-            GameSettingsControl.GameSettings = game.Options;
+            GameSettingsControl.GameSettings = game.GetEditableSettings();
             var SettingsDialog = GameSettingsControl.ToContentDialog("Game Settings - " + game.Version.DisplayName, "Close");
 
             var result = await SettingsDialog.ShowAsync();
@@ -131,7 +77,6 @@ public sealed partial class GamesPage : Page
                 core.SaveGames();
         }
     }
-
 
     private async void OpenFolder_Click(object sender, RoutedEventArgs e)
     {
@@ -161,15 +106,115 @@ public sealed partial class GamesPage : Page
     {
         if (sender is Button btn && btn.Tag is Game game)
         {
-            _ = ViewModel.InstallGameCommand.ExecuteAsync(game);
+            Task.Run(() => ViewModel.InstallGameCommand.ExecuteAsync(game));
         }
     }
 
-    private void LaunchGame_Click(object sender, RoutedEventArgs e)
+    private async void LaunchGame_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is Game game)
         {
-            _ = ViewModel.LaunchGameCommand.ExecuteAsync(game);
+            var accountService = Ioc.Default.GetService<IAccountService>();
+            var notificationService = Ioc.Default.GetService<CoreX.Notifications.INotificationService>();
+
+            try
+            {
+                if (accountService.Accounts.Count == 0 || accountService.GetSelectedAccount() == null)
+                {
+                    await accountService.LoadAllAccountsAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                this.Log().LogError(ex, "Failed to load accounts for launch.");
+                notificationService.Error("AccountLoadError", "Could not load accounts for launch.", ex: ex);
+                return;
+            }
+
+            var selectedAccount = accountService.GetSelectedAccount();
+            if (selectedAccount == null)
+            {
+                notificationService.Warning("NoSelectedAccount", "Select an account before launching a game.");
+                NavigateToAccounts();
+                return;
+            }
+
+            await ViewModel.LaunchGameAsync(game, selectedAccount);
         }
+    }
+
+    private void StopGame_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is Game game)
+        {
+            _ = ViewModel.StopGameCommand.ExecuteAsync(game);
+        }
+    }
+
+    private void ForceStopGame_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem item && item.Tag is Game game)
+        {
+            _ = ViewModel.ForceStopGameCommand.ExecuteAsync(game);
+        }
+    }
+
+    private void ViewLogs_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not Game game)
+        {
+            return;
+        }
+
+        if (App.Current.MainWindow.Content is Frame rootFrame && rootFrame.Content is MainPage mainPage)
+        {
+            mainPage.NavigateToTag("Logs", game.Path.BasePath);
+            return;
+        }
+
+        Frame?.Navigate(typeof(LogsPage), game.Path.BasePath, new EntranceNavigationTransitionInfo());
+    }
+
+    private void OpenStore_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not Game game)
+        {
+            return;
+        }
+
+        if (App.Current.MainWindow.Content is Frame rootFrame && rootFrame.Content is MainPage mainPage)
+        {
+            mainPage.NavigateToTag("Store", game.Path.BasePath);
+            return;
+        }
+
+        Frame?.Navigate(typeof(ModrinthStorePage), game.Path.BasePath, new EntranceNavigationTransitionInfo());
+    }
+
+    private void RemoveGame_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem item && item.Tag is Game game)
+        {
+             ViewModel.RemoveGameCommand.Execute(game);
+        }
+        }
+
+    private void RemoveGameWFiles_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem item && item.Tag is Game game)
+        {
+            _ = ViewModel.RemoveGameWithFilesCommand.ExecuteAsync(game);
+        }
+    }
+
+    private void NavigateToAccounts()
+    {
+        if (App.Current.MainWindow.Content is Frame rootFrame && rootFrame.Content is MainPage mainPage)
+        {
+            mainPage.NavigateToTag("Accounts");
+            return;
+        }
+
+        Frame?.Navigate(typeof(AccountsPage), null, new EntranceNavigationTransitionInfo());
     }
 }

@@ -1,197 +1,70 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Emerald.CoreX.Store.Modrinth.JSON;
-using Microsoft.Extensions.Logging;
 using CmlLib.Core;
+using Emerald.CoreX.Store;
+using Microsoft.Extensions.Logging;
+
 namespace Emerald.CoreX.Store.Modrinth;
 
-public class ModStore : ModrinthStore
+public sealed class ModStore : ModrinthStore
 {
-    /// <summary>
-    /// Initializes a new instance of the ModStore class with a custom Minecraft path.
-    /// </summary>
-    /// <param name="path">The custom Minecraft path.</param>
-    /// <param name="logger">The logger instance.</param>
-    public ModStore(MinecraftPath path, ILogger logger) : base(path, logger, "mod")
+    public ModStore(MinecraftPath path, ILogger<ModStore> logger)
+        : base(path, logger, "mod", "mods", StoreContentType.Mod)
     {
     }
 
-    /// <summary>
-    /// Initializes a new instance of the ModStore class with the default Minecraft path.
-    /// </summary>
-    /// <param name="logger">The logger instance.</param>
-    public ModStore(ILogger logger) : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
+    public ModStore(ILogger<ModStore> logger)
+        : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
     {
-    }
-
-    public override async Task<StoreItem?> GetItemAsync(string id)
-    {
-        // Implement mod-specific logic if needed
-        return await base.GetItemAsync(id);
-    }
-
-    public override async Task<List<ItemVersion>?> GetVersionsAsync(string id)
-    {
-        // Implement mod-specific logic if needed
-        return await base.GetVersionsAsync(id);
-    }
-
-    public override async Task DownloadItemAsync(ItemFile file, string projectType, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
-    {
-        // Implement mod-specific download logic
-        await base.DownloadItemAsync(file, "mods",progress, cancellationToken);
     }
 }
 
-public class PluginStore : ModrinthStore
+public sealed class PluginStore : ModrinthStore
 {
-    /// <summary>
-    /// Initializes a new instance of the PluginStore class with a custom Minecraft path.
-    /// </summary>
-    /// <param name="path">The custom Minecraft path.</param>
-    /// <param name="logger">The logger instance.</param>
-    public PluginStore(MinecraftPath path, ILogger logger) : base(path, logger, "plugin")
+    public PluginStore(MinecraftPath path, ILogger<PluginStore> logger)
+        : base(path, logger, "plugin", "plugins", StoreContentType.Plugin)
     {
     }
 
-    /// <summary>
-    /// Initializes a new instance of the PluginStore class with the default Minecraft path.
-    /// </summary>
-    /// <param name="logger">The logger instance.</param>
-    public PluginStore(ILogger logger) : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
+    public PluginStore(ILogger<PluginStore> logger)
+        : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
     {
-    }
-
-    public override async Task<StoreItem?> GetItemAsync(string id)
-    {
-        return await base.GetItemAsync(id);
-    }
-
-    public override async Task<List<ItemVersion>?> GetVersionsAsync(string id)
-    {
-        return await base.GetVersionsAsync(id);
-    }
-
-    public override async Task DownloadItemAsync(ItemFile file, string projectType,
-        IProgress<double>? progress = null, CancellationToken cancellationToken = default)
-    {
-        await base.DownloadItemAsync(file, "mods", progress, cancellationToken);
     }
 }
 
-public class ResourcePackStore : ModrinthStore
+public sealed class ResourcePackStore : ModrinthStore
 {
-    /// <summary>
-    /// Initializes a new instance of the ResourcePackStore class with a custom Minecraft path.
-    /// </summary>
-    /// <param name="path">The custom Minecraft path.</param>
-    /// <param name="logger">The logger instance.</param>
-    public ResourcePackStore(MinecraftPath path, ILogger logger) : base(path, logger, "resourcepack")
+    public ResourcePackStore(MinecraftPath path, ILogger<ResourcePackStore> logger)
+        : base(path, logger, "resourcepack", "resourcepacks", StoreContentType.ResourcePack)
     {
     }
 
-    /// <summary>
-    /// Initializes a new instance of the ResourcePackStore class with the default Minecraft path.
-    /// </summary>
-    /// <param name="logger">The logger instance.</param>
-    public ResourcePackStore(ILogger logger) : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
+    public ResourcePackStore(ILogger<ResourcePackStore> logger)
+        : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
     {
-    }
-
-    public override async Task<StoreItem?> GetItemAsync(string id)
-    {
-        return await base.GetItemAsync(id);
-    }
-
-    public override async Task<List<ItemVersion>?> GetVersionsAsync(string id)
-    {
-        return await base.GetVersionsAsync(id);
-    }
-
-    public override async Task DownloadItemAsync(ItemFile file, string projectType,
-        IProgress<double>? progress = null, CancellationToken cancellationToken = default)
-    {
-        await base.DownloadItemAsync(file, "resourcepacks", progress, cancellationToken);
     }
 }
 
-public class ShaderStore : ModrinthStore
+public sealed class ShaderStore : ModrinthStore
 {
-    /// <summary>
-    /// Initializes a new instance of the ShaderStore class with a custom Minecraft path.
-    /// </summary>
-    /// <param name="path">The custom Minecraft path.</param>
-    /// <param name="logger">The logger instance.</param>
-    public ShaderStore(MinecraftPath path, ILogger logger) : base(path, logger, "shader")
+    public ShaderStore(MinecraftPath path, ILogger<ShaderStore> logger)
+        : base(path, logger, "shader", "shaderpacks", StoreContentType.Shader)
     {
     }
 
-    /// <summary>
-    /// Initializes a new instance of the ShaderStore class with the default Minecraft path.
-    /// </summary>
-    /// <param name="logger">The logger instance.</param>
-    public ShaderStore(ILogger logger) : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
+    public ShaderStore(ILogger<ShaderStore> logger)
+        : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
     {
-    }
-
-    public override async Task<StoreItem?> GetItemAsync(string id)
-    {
-        // Implement shader-specific logic if needed
-        return await base.GetItemAsync(id);
-    }
-
-    public override async Task<List<ItemVersion>?> GetVersionsAsync(string id)
-    {
-        // Implement shader-specific logic if needed
-        return await base.GetVersionsAsync(id);
-    }
-
-    public override async Task DownloadItemAsync(ItemFile file, string projectType,
-        IProgress<double>? progress = null, CancellationToken cancellationToken = default)
-    {
-        // Implement shader-specific download logic
-        await base.DownloadItemAsync(file, "shaderpacks", progress, cancellationToken);
     }
 }
 
-public class ModpackStore : ModrinthStore
+public sealed class DataPackStore : ModrinthStore
 {
-    /// <summary>
-    /// Initializes a new instance of the ModpackStore class with a custom Minecraft path.
-    /// </summary>
-    /// <param name="path">The custom Minecraft path.</param>
-    /// <param name="logger">The logger instance.</param>
-    public ModpackStore(MinecraftPath path, ILogger logger) : base(path, logger, "modpack")
+    public DataPackStore(MinecraftPath path, ILogger<DataPackStore> logger)
+        : base(path, logger, "datapack", "datapacks", StoreContentType.DataPack)
     {
     }
 
-    /// <summary>
-    /// Initializes a new instance of the ModpackStore class with the default Minecraft path.
-    /// </summary>
-    /// <param name="logger">The logger instance.</param>
-    public ModpackStore(ILogger logger) : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
+    public DataPackStore(ILogger<DataPackStore> logger)
+        : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
     {
-    }
-
-    public override async Task<StoreItem?> GetItemAsync(string id)
-    {
-        // Implement modpack-specific logic if needed
-        return await base.GetItemAsync(id);
-    }
-
-    public override async Task<List<ItemVersion>?> GetVersionsAsync(string id)
-    {
-        // Implement modpack-specific logic if needed
-        return await base.GetVersionsAsync(id);
-    }
-
-    public override async Task DownloadItemAsync(ItemFile file, string projectType,
-        IProgress<double>? progress = null, CancellationToken cancellationToken = default)
-    {
-        // Implement modpack-specific download logic. needs to be extracted to use them.
-        await base.DownloadItemAsync(file, "modpacks", progress, cancellationToken);
     }
 }

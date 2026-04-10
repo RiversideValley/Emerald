@@ -1,0 +1,215 @@
+<Page
+    x:Class="Emerald.Views.Store.ModrinthStoreInstalledPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cn="using:CommunityToolkit.WinUI.Controls"
+    xmlns:conv="using:Emerald.Helpers.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:corex="using:Emerald.CoreX"
+    xmlns:helpers="using:Emerald.Helpers"
+    xmlns:store="using:Emerald.CoreX.Store"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+  <Page.Resources>
+    <conv:BoolToVisibility x:Key="BoolToVis" />
+    <conv:BoolToVisibility x:Key="InverseBoolToVis" Reversed="True" />
+    <conv:StringToVisibilityConverter x:Key="StringToVis" />
+  </Page.Resources>
+
+  <Grid Margin="24,0,24,24" ColumnSpacing="16">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition MinWidth="320" MaxWidth="480"/>
+      <ColumnDefinition Width="*" />
+    </Grid.ColumnDefinitions>
+
+    <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="12">
+        <cn:SettingsCard
+          Header="Game"
+          Description="Select the game you want to browse"
+          HeaderIcon="{helpers:FontIcon Glyph=&#xE8F1;}">
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <ComboBox
+              ItemsSource="{Binding Games}"
+              SelectedItem="{Binding SelectedGame, Mode=TwoWay}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="corex:Game">
+                  <TextBlock Text="{x:Bind Version.DisplayName}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+
+          </StackPanel>
+        </cn:SettingsCard>
+        <cn:SettingsCard
+          Header="Content Type"
+          Description="Select whether to manage mods, shaders, etc.."
+          HeaderIcon="{helpers:FontIcon Glyph=&#xE8F1;}">
+          <ComboBox
+            DisplayMemberPath="DisplayName"
+            ItemsSource="{Binding ContentTypes}"
+            SelectedItem="{Binding SelectedContentTypeOption, Mode=TwoWay}" />
+          </cn:SettingsCard>
+        <cn:SettingsCard
+          Header="What you can do here"
+          Description="Tracked installs are safe to remove directly. Untracked files stay read-only until you explicitly force remove them."
+          HeaderIcon="{helpers:FontIcon Glyph=&#xE946;}">
+          <StackPanel Spacing="6">
+            <TextBlock
+              Opacity="0.8"
+              Style="{StaticResource CaptionTextBlockStyle}"
+              Text="Tracked items are files Emerald installed and can safely remove." />
+            <TextBlock
+              Opacity="0.8"
+              Style="{StaticResource CaptionTextBlockStyle}"
+              Text="Untracked items were found on disk and require explicit force remove." />
+          </StackPanel>
+        </cn:SettingsCard>
+      </StackPanel>
+    </ScrollViewer>
+
+    <cn:GridSplitter
+      Grid.Column="1"
+      Width="16"
+      HorizontalAlignment="Left"
+      ResizeBehavior="BasedOnAlignment"
+      ResizeDirection="Auto" />
+
+    <Grid Grid.Column="1" Padding="16,0,0,0">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
+
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Margin="12,0,0,12" Spacing="4">
+          <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Installed Content" />
+        </StackPanel>
+
+        <Button
+          Grid.Column="2"
+          VerticalAlignment="Center"
+          HorizontalAlignment="Right"
+          Command="{Binding RefreshInstalledItemsCommand}"
+          Content="{helpers:FontIcon Glyph=&#xE72C;}" />
+
+      </Grid>
+
+      <Grid Grid.Row="1">
+        <ListView
+          ItemsSource="{Binding InstalledItems}"
+          SelectionMode="None"
+          Visibility="{Binding HasInstalledItems, Converter={StaticResource BoolToVis}}">
+          <ListView.ItemTemplate>
+            <DataTemplate x:DataType="store:InstalledStoreItem">
+              <Border
+                Margin="0,0,0,12"
+                Padding="16"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="12">
+                <Grid ColumnSpacing="16">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+
+                  <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <TextBlock
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        Text="{x:Bind DisplayName}" />
+                      <Border
+                        Padding="8,2"
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        CornerRadius="999">
+                        <TextBlock
+                          Opacity="0.85"
+                          Style="{StaticResource CaptionTextBlockStyle}"
+                          Text="{x:Bind StatusText}" />
+                      </Border>
+                      <Border
+                        Padding="8,2"
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        CornerRadius="999">
+                        <TextBlock
+                          Opacity="0.85"
+                          Style="{StaticResource CaptionTextBlockStyle}"
+                          Text="{x:Bind ContentTypeDisplayName}" />
+                      </Border>
+                    </StackPanel>
+
+                    <TextBlock
+                      Opacity="0.8"
+                      Style="{StaticResource CaptionTextBlockStyle}"
+                      Text="{x:Bind SecondaryText}"
+                      Visibility="{x:Bind SecondaryText, Converter={StaticResource StringToVis}}" />
+
+                    <TextBlock
+                      MaxLines="2"
+                      Opacity="0.7"
+                      Style="{StaticResource CaptionTextBlockStyle}"
+                      Text="{x:Bind FilePath}"
+                      TextWrapping="WrapWholeWords" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                      <TextBlock
+                        Opacity="0.75"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind InstalledRelativeText}" />
+                      <TextBlock
+                        Opacity="0.75"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind FileSizeText}"
+                        Visibility="{x:Bind FileSizeText, Converter={StaticResource StringToVis}}" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8">
+                    <Button
+                      Click="RemoveTracked_Click"
+                      Content="Remove"
+                      Tag="{x:Bind}"
+                      Visibility="{x:Bind IsTracked, Converter={StaticResource BoolToVis}}" />
+                    <Button
+                      Click="ForceRemove_Click"
+                      Content="Force Remove"
+                      Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                      Tag="{x:Bind}"
+                      Visibility="{x:Bind IsTracked, Converter={StaticResource InverseBoolToVis}}" />
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ListView.ItemTemplate>
+        </ListView>
+
+        <StackPanel
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Spacing="12"
+          Visibility="{Binding HasInstalledItems, Converter={StaticResource InverseBoolToVis}}">
+          <FontIcon FontSize="36" Glyph="&#xE8F1;" Opacity="0.45" />
+          <TextBlock
+            HorizontalAlignment="Center"
+            Style="{StaticResource SubtitleTextBlockStyle}"
+            Text="Nothing installed yet" />
+          <TextBlock
+            MaxWidth="320"
+            Opacity="0.75"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            Text="Choose a game and content type, then head to Discover when you're ready to install something."
+            TextAlignment="Center"
+            TextWrapping="WrapWholeWords" />
+        </StackPanel>
+      </Grid>
+    </Grid>
+  </Grid>
+</Page>

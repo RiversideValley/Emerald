@@ -9,63 +9,21 @@ inputs:
   dotnet-version:
     description: 'Installs and sets the .NET SDK Version'
     required: false
-    default: '9.0.x' 
-  windows-sdk-version:
-    description: 'Windows SDK version (Windows only)'
-    required: false
-    default: '19041' 
+    default: '10.0.x'
 
 runs:
   using: "composite"
   steps:
-    # 1. Install .NET 9 SDK
+    # 1. Install .NET SDK
     - name: Setup .NET ${{ inputs.dotnet-version }}
       uses: actions/setup-dotnet@v4 
       with:
         dotnet-version: '${{ inputs.dotnet-version }}'
 
-    # 2. Install Windows SDK (Windows Only)
-    - name: Install Windows SDK ${{ inputs.windows-sdk-version }}
-      shell: pwsh
-      if: runner.os == 'Windows' && inputs.job-platform == 'windows'
-      run: |
-        Write-Host "Installing Windows SDK version: ${{ inputs.windows-sdk-version }}"
-        $sdkIsoScript = Join-Path $env:GITHUB_WORKSPACE ".github\Install-WindowsSdkISO.ps1"
-        if (Test-Path $sdkIsoScript) {
-          & $sdkIsoScript ${{ inputs.windows-sdk-version }} 
-        } else {
-          Write-Warning "Script not found at $sdkIsoScript. Skipping."
-        }
-
-    # 3. Install GTK Dependencies (Linux Only - Required for Skia.Gtk)
-    - name: Install GTK Dependencies
+    # 2. Install Linux native runtime deps (for Skia/Gtk desktop runs)
+    - name: Install Linux Dependencies
       shell: bash
       if: runner.os == 'Linux' && inputs.job-platform == 'linux'
       run: |
-        echo "Installing GTK dependencies..."
         sudo apt-get update
-        
-    # 4. Run Uno.Check
-    # FIXED: Changed ${{ inputs.target-platform }} to ${{ inputs.job-platform }}
-    - name: Install ${{ inputs.job-platform }} Workloads
-      shell: pwsh
-      if: runner.os != 'Windows' && inputs.job-platform != 'windows'
-      run: |
-        dotnet tool install -g uno.check
-        
-        # We use inputs.job-platform here
-        $platforms = "${{ inputs.job-platform }}"
-        
-        $platforms.Split(' ') | ForEach-Object {
-          $target = $_.Replace("_win", "").Replace("_macos", "")
-          
-          # Map 'linux' to 'skia' or 'linux' as expected by uno-check if needed
-          if ($target -eq 'linux') { $target = 'linux' } 
-          
-          if (![string]::IsNullOrEmpty($target)) {
-            echo "Running uno-check for target: $target"
-            # Added --continue-on-error logic implicitly by not failing script on exit code
-            uno-check -v --ci --non-interactive --fix --target $target --skip vswin --skip vsmac --skip xcode --skip vswinworkloads --skip androidemulator --skip dotnetnewunotemplates
-            echo "uno-check finished for target: $target"
-          }
-        }
+        sudo apt-get install -y libgtk-3-0

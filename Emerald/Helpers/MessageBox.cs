@@ -175,7 +175,6 @@ public partial class MessageBox : ContentDialog
     {
         var theme = ServiceLocator.IsLocationProviderSet ?
 
-
             (ElementTheme)Ioc.Default.GetService<Services.SettingsService>().Settings.App.Appearance.Theme :
             ElementTheme.Default;
         var d = new MessageBox("Information".Localize(), text, MessageBoxButtons.Ok)

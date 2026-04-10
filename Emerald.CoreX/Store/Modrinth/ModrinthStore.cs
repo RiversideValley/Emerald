@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Emerald.CoreX.Store;
 using Emerald.CoreX.Store.Modrinth.JSON;
 using Emerald.CoreX.Helpers;
 
@@ -18,9 +19,13 @@ public abstract class ModrinthStore : IModrinthStore
     protected readonly RestClient _client;
     protected readonly ILogger _logger;
     protected readonly string _projectType;
+    protected readonly string _installFolderName;
     protected readonly FileDownloader _fileDownloader;
     public MinecraftPath MCPath { get; set; }
     public Category[] Categories { get; private set; } = [];
+    public StoreContentType ContentType { get; }
+    public string ProjectType => _projectType;
+    public string InstallFolderName => _installFolderName;
 
     /// <summary>
     /// Initializes a new instance of the ModrinthStore class.
@@ -28,13 +33,20 @@ public abstract class ModrinthStore : IModrinthStore
     /// <param name="path">The Minecraft path.</param>
     /// <param name="logger">The logger instance.</param>
     /// <param name="projectType">The type of project (e.g., mod, plugin, resourcepack).</param>
-    protected ModrinthStore(MinecraftPath path, ILogger logger, string projectType)
+    protected ModrinthStore(
+        MinecraftPath path,
+        ILogger logger,
+        string projectType,
+        string installFolderName,
+        StoreContentType contentType)
     {
         _client = new RestClient("https://api.modrinth.com/v2/");
         _client.AddDefaultHeader("Accept", "application/json");
         MCPath = path;
         _logger = logger;
         _projectType = projectType;
+        _installFolderName = installFolderName;
+        ContentType = contentType;
         _fileDownloader = new FileDownloader(logger, new());
     }
 
@@ -54,9 +66,13 @@ public abstract class ModrinthStore : IModrinthStore
             {
                 var all = JsonSerializer.Deserialize<List<Category>>(response.Content);
 
+                var categoryProjectType = _projectType is "plugin" or "datapack"
+                    ? "mod"
+                    : _projectType;
+
                 var _categories = all
                     .Where(i => i.header == "categories"
-                                && i.project_type == _projectType
+                                && i.project_type == categoryProjectType
                                 && !string.IsNullOrWhiteSpace(i.icon)
                                 && !string.IsNullOrWhiteSpace(i.name))
                     .ToList();
@@ -166,13 +182,24 @@ public abstract class ModrinthStore : IModrinthStore
     /// </summary>
     /// <param name="id">The unique identifier of the item.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of item versions or null if an error occurred.</returns>
-    public virtual async Task<List<ItemVersion>?> GetVersionsAsync(string id)
+    public virtual async Task<List<ItemVersion>?> GetVersionsAsync(string id, string[]? gameVersions = null, string[]? loaders = null)
     {
         _logger.LogInformation($"Fetching versions for {_projectType} with ID: {id}");
 
         try
         {
             var request = new RestRequest($"project/{id}/version");
+
+            if (gameVersions is { Length: > 0 })
+            {
+                request.AddQueryParameter("game_versions", JsonSerializer.Serialize(gameVersions));
+            }
+
+            if (loaders is { Length: > 0 })
+            {
+                request.AddQueryParameter("loaders", JsonSerializer.Serialize(loaders));
+            }
+
             var response = await _client.ExecuteAsync(request);
 
             if (response.IsSuccessful)
@@ -198,14 +225,13 @@ public abstract class ModrinthStore : IModrinthStore
     /// Downloads a specific file for an item from the Modrinth store.
     /// </summary>
     /// <param name="file">The file information object containing download details.</param>
-    /// <param name="projectType">The type of project being downloaded (e.g., "mods", "resourcepacks").</param>
     /// <param name="progress">Optional. An IProgress{double} to report download progress.</param>
     /// <param name="cancellationToken">Optional. A CancellationToken to support cancellation of the download.</param>
     /// <returns>A task that represents the asynchronous download operation.</returns>
-    public virtual async Task DownloadItemAsync(ItemFile file, string projectType,
+    public virtual async Task DownloadItemAsync(ItemFile file,
         IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
-        var filePath = Path.Combine(MCPath.BasePath, projectType, file.Filename);
+        var filePath = Path.Combine(MCPath.BasePath, _installFolderName, file.Filename);
         await _fileDownloader.DownloadFileAsync(file.Url, filePath, file.Hashes, progress, cancellationToken);
     }
 }

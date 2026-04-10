@@ -8,12 +8,13 @@
 
   <Identity
     Name="Riverside.Emerald"
-    Publisher="O=Riverside Valley"
+    Publisher="CN=Riverside Valley, OID.2.25.311729368913984317654407730594956997722=1"
     Version="1.0.0.0" />
 
   <Properties>
     <DisplayName>Emerald</DisplayName>
     <PublisherDisplayName>Riverside Valley</PublisherDisplayName>
+    <Logo>Assets\AppsIcons\PackageLogo.png</Logo>
   </Properties>
 
   <Dependencies>
@@ -31,9 +32,9 @@
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
         DisplayName="Emerald"
-        Description="Emerald">
-        <uap:SplashScreen />
-        <uap:DefaultTile/>
+        Description="Emerald" Square150x150Logo="Assets\AppsIcons\MediumTile.png" Square44x44Logo="Assets\AppsIcons\AppIcon.png">
+        <uap:SplashScreen  Image="Assets\AppsIcons\SplashScreen.png"/>
+        <uap:DefaultTile Square71x71Logo="Assets\AppsIcons\SmallTile.png" Wide310x150Logo="Assets\AppsIcons\WideTile.png" Square310x310Logo="Assets\AppsIcons\LargeTile.png"/>
       </uap:VisualElements>
     </Application>
   </Applications>

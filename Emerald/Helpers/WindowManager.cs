@@ -1,6 +1,9 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.UI;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Composition.SystemBackdrops;
@@ -15,14 +18,34 @@ using Windows.Win32.Foundation;
 
 namespace Emerald.Helpers;
 
+/// <summary>
+/// Provides shell-level window helpers for icon, title bar, and backdrop configuration.
+/// </summary>
 public static class WindowManager
 {
+    private static ILogger Logger
+    {
+        get
+        {
+            try
+            {
+                return Ioc.Default.GetService<ILoggerFactory>()?.CreateLogger(typeof(WindowManager).FullName!)
+                    ?? NullLogger.Instance;
+            }
+            catch (InvalidOperationException)
+            {
+                return NullLogger.Instance;
+            }
+        }
+    }
+
     /// <summary>
     /// This will set the Window Icon for the given <see cref="global::Microsoft.UI.Xaml.Window" /> using the provided UnoIcon.
     /// </summary>
     public static void SetWindowIcon(this global::Microsoft.UI.Xaml.Window window, string iconpath = "icon.ico")
     {
 #if WINDOWS && !HAS_UNO
+            Logger.LogDebug("Setting window icon to {IconPath}.", iconpath);
             var hWnd = global::WinRT.Interop.WindowNative.GetWindowHandle(window);
 
             // Retrieve the WindowId that corresponds to hWnd.
@@ -45,11 +68,12 @@ public static class WindowManager
     public static MicaBackground? IntializeWindow(Window window)
     {
 #if WINDOWS
-
+        Logger.LogInformation("Initializing Mica backdrop for the main window.");
         var s = new MicaBackground(window);
             s.TrySetMicaBackdrop();
             return s;
 #endif
+        Logger.LogDebug("Skipping Mica backdrop initialization because the current platform does not support it.");
         return null;
     }
 
@@ -59,47 +83,36 @@ public static class WindowManager
     /// <exception cref="NullReferenceException"/>
     public static void SetTitleBar(Window window, UIElement AppTitleBar)
     {
-        FrameworkElement RootUI = (FrameworkElement)window.Content;
-        if (AppWindowTitleBar.IsCustomizationSupported())
-        {
-            var titlebar = window.AppWindow.TitleBar;
-            titlebar.ExtendsContentIntoTitleBar = true;
+            Logger.LogDebug("Applying custom title bar configuration.");
+            var titleBar = window.AppWindow.TitleBar;
+            titleBar.ExtendsContentIntoTitleBar = true;
+            titleBar.ButtonBackgroundColor = Colors.Transparent;
+            titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
 
-            void SetColor(ElementTheme acualTheme)
-            {
-                titlebar.ButtonBackgroundColor = titlebar.ButtonInactiveBackgroundColor = titlebar.ButtonPressedBackgroundColor = Colors.Transparent;
-                switch (acualTheme)
-                {
-                    case ElementTheme.Dark:
-                        titlebar.ButtonHoverBackgroundColor = Colors.Black;
-                        titlebar.ButtonForegroundColor = Colors.White;
-                        titlebar.ButtonHoverForegroundColor = Colors.White;
-                        titlebar.ButtonPressedForegroundColor = Colors.Silver;
-                        break;
-                    case ElementTheme.Light:
-                        titlebar.ButtonHoverBackgroundColor = Colors.White;
-                        titlebar.ButtonForegroundColor = Colors.Black;
-                        titlebar.ButtonHoverForegroundColor = Colors.Black;
-                        titlebar.ButtonPressedForegroundColor = Colors.DarkGray;
-                        break;
-                }
-            }
-
-            RootUI.ActualThemeChanged += (s, _) => SetColor(s.ActualTheme);
-            window.SetTitleBar(AppTitleBar);
-            SetColor(RootUI.ActualTheme);
-        }
-        else
-        {
-            window.ExtendsContentIntoTitleBar = true;
-            window.SetTitleBar(AppTitleBar);
-        }
     }
 }
 
+/// <summary>
+/// Ensures a Windows system dispatcher queue exists before system backdrop APIs are used.
+/// </summary>
 public class WindowsSystemDispatcherQueueHelper
 {
     private object? _dispatcherQueueController;
+    private static ILogger Logger
+    {
+        get
+        {
+            try
+            {
+                return Ioc.Default.GetService<ILoggerFactory>()?.CreateLogger(typeof(WindowsSystemDispatcherQueueHelper).FullName!)
+                    ?? NullLogger.Instance;
+            }
+            catch (InvalidOperationException)
+            {
+                return NullLogger.Instance;
+            }
+        }
+    }
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct DispatcherQueueOptions
@@ -117,6 +130,7 @@ public class WindowsSystemDispatcherQueueHelper
         if (Windows.System.DispatcherQueue.GetForCurrentThread() != null)
         {
             // one already exists, so we'll just use it.
+            Logger.LogDebug("Windows system dispatcher queue already exists for the current thread.");
             return;
         }
 
@@ -128,10 +142,14 @@ public class WindowsSystemDispatcherQueueHelper
             options.apartmentType = 2;
 
             CreateDispatcherQueueController(options, ref _dispatcherQueueController);
+            Logger.LogInformation("Created a Windows system dispatcher queue controller.");
         }
     }
 }
 
+/// <summary>
+/// Wraps WinUI Mica backdrop configuration for the active application window.
+/// </summary>
 public class MicaBackground
 {
 #if WINDOWS
@@ -139,6 +157,21 @@ public class MicaBackground
     public readonly MicaController MicaController = new();
     private SystemBackdropConfiguration _backdropConfiguration = new();
     private readonly WindowsSystemDispatcherQueueHelper _dispatcherQueueHelper = new();
+    private static ILogger Logger
+    {
+        get
+        {
+            try
+            {
+                return Ioc.Default.GetService<ILoggerFactory>()?.CreateLogger(typeof(MicaBackground).FullName!)
+                    ?? NullLogger.Instance;
+            }
+            catch (InvalidOperationException)
+            {
+                return NullLogger.Instance;
+            }
+        }
+    }
 
     public MicaBackground(Window window)
     {
@@ -165,10 +198,12 @@ public class MicaBackground
 
             MicaController.AddSystemBackdropTarget(_window.As<ICompositionSupportsSystemBackdrop>());
             MicaController.SetSystemBackdropConfiguration(_backdropConfiguration);
+            Logger.LogInformation("Applied Mica backdrop to the main window.");
 
             return true;
         }
 
+        Logger.LogDebug("Mica backdrop is not supported on the current window.");
         return false;
     }
 
@@ -176,6 +211,7 @@ public class MicaBackground
     {
         if (_backdropConfiguration != null)
         {
+            Logger.LogDebug("Updating Mica backdrop theme after theme change.");
             SetConfigurationSourceTheme();
         }
     }
@@ -192,6 +228,7 @@ public class MicaBackground
 
     private void WindowOnClosed(object sender, WindowEventArgs args)
     {
+        Logger.LogDebug("Disposing Mica backdrop resources after the window closed.");
         MicaController.Dispose();
         _window.Activated -= WindowOnActivated;
         _backdropConfiguration = null!;
@@ -200,6 +237,7 @@ public class MicaBackground
     private void WindowOnActivated(object sender, WindowActivatedEventArgs args)
     {
         _backdropConfiguration.IsInputActive = args.WindowActivationState is not WindowActivationState.Deactivated;
+        Logger.LogDebug("Updated Mica backdrop activation state. IsInputActive: {IsInputActive}.", _backdropConfiguration.IsInputActive);
     }
 #endif
 }
