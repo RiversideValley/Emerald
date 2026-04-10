@@ -8,7 +8,7 @@ namespace Emerald;
 public static class DirectResoucres
 {
     public static int MaxRAM
-        => (Extensions.GetMemoryGB() ?? 192) * 1024; //switches maximum ram if failed, I couldn't find the max ram for MC.
+        => (DeviceInfoHelper.GetMemoryGB() ?? 192) * 1024; //switches maximum ram if failed, I couldn't find the max ram for MC.
 
     public static int MinRAM
         => 512;

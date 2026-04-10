@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Emerald.CoreX.Helpers;
+using Emerald.CoreX.Store;
 
 namespace Emerald.CoreX.Store.Modrinth.JSON;
 
@@ -66,6 +65,17 @@ public class SearchHit
     [JsonPropertyName("license")] public string License { get; set; }
 
     [JsonPropertyName("gallery")] public string[] Gallery { get; set; }
+
+    public string DownloadCountText => Downloads.KiloFormat();
+    public string FollowCountText => Follows.KiloFormat();
+    public string UpdatedRelativeText => StoreDisplayFormatter.FormatRelativeTime(DateModified);
+    public string CompatibilityText => StoreDisplayFormatter.FormatCompatibility(ClientSide, ServerSide);
+    public string[] DisplayCategories => Categories?
+        .Where(category => !string.IsNullOrWhiteSpace(category))
+        .Select(StoreDisplayFormatter.ToDisplayLabel)
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Take(4)
+        .ToArray() ?? [];
 }
 
 public class StoreItem
@@ -121,6 +131,18 @@ public class StoreItem
     [JsonPropertyName("donation_urls")] public DonationUrls[] DonationUrls { get; set; }
 
     [JsonPropertyName("gallery")] public object[] Gallery { get; set; }
+
+    public string DownloadCountText => Downloads.KiloFormat();
+    public string FollowCountText => Followers.KiloFormat();
+    public string PublishedRelativeText => StoreDisplayFormatter.FormatRelativeTime(PublishedDate);
+    public string UpdatedRelativeText => StoreDisplayFormatter.FormatRelativeTime(UpdatedDate);
+    public string CompatibilityText => StoreDisplayFormatter.FormatCompatibility(ClientSide, ServerSide);
+    public string[] DisplayCategories => Categories?
+        .Where(category => !string.IsNullOrWhiteSpace(category))
+        .Select(StoreDisplayFormatter.ToDisplayLabel)
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Take(6)
+        .ToArray() ?? [];
 }
 
 public class ItemVersion : INotifyPropertyChanged
@@ -157,6 +179,23 @@ public class ItemVersion : INotifyPropertyChanged
     [JsonPropertyName("game_versions")] public string[] GameVersions { get; set; }
 
     [JsonPropertyName("loaders")] public string[] Loaders { get; set; }
+
+    public string DownloadCountText => Downloads.KiloFormat();
+    public string PublishedRelativeText => StoreDisplayFormatter.FormatRelativeTime(DatePublished);
+    public string VersionTypeDisplay => StoreDisplayFormatter.ToDisplayLabel(VersionType);
+    public string PrimaryFileSizeText => StoreDisplayFormatter.FormatFileSize(
+        Files?.FirstOrDefault(file => file.Primary)?.Size
+        ?? Files?.FirstOrDefault()?.Size);
+    public StoreTagChip[] LoaderChips { get; private set; } = [];
+    public StoreTagChip[] GameVersionChips { get; private set; } = [];
+
+    public void UpdateCompatibilityChips(IEnumerable<StoreTagChip> loaderChips, IEnumerable<StoreTagChip> gameVersionChips)
+    {
+        LoaderChips = loaderChips.ToArray();
+        GameVersionChips = gameVersionChips.ToArray();
+        InvokePropertyChanged(nameof(LoaderChips));
+        InvokePropertyChanged(nameof(GameVersionChips));
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

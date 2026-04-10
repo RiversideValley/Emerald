@@ -20,4 +20,12 @@ public sealed class InstalledStoreItem
     public string? Sha512 { get; set; }
 
     public string StatusText => IsTracked ? "Tracked" : "Untracked";
+    public string ContentTypeDisplayName => StoreDisplayFormatter.FormatContentType(ContentType);
+    public string InstalledRelativeText => InstalledAtUtc.HasValue
+        ? $"Installed {StoreDisplayFormatter.FormatRelativeTime(InstalledAtUtc.Value.UtcDateTime)}"
+        : IsTracked
+            ? "Tracked install"
+            : "Found on disk";
+    public string FileSizeText => StoreDisplayFormatter.FormatFileSize(FileSizeBytes);
+    public string SecondaryText => !string.IsNullOrWhiteSpace(VersionName) ? VersionName : FileName;
 }

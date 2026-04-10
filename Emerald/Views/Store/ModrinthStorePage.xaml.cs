@@ -1,11 +1,9 @@
 using CommunityToolkit.Mvvm.DependencyInjection;
-using Emerald.CoreX.Helpers;
-using Emerald.CoreX.Store;
 using Emerald.ViewModels;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
+using System.ComponentModel;
 
 namespace Emerald.Views.Store;
 
@@ -18,56 +16,67 @@ public sealed partial class ModrinthStorePage : Page
         ViewModel = Ioc.Default.GetService<ModrinthStorePageViewModel>();
         DataContext = ViewModel;
         InitializeComponent();
+        ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+        Unloaded += ModrinthStorePage_Unloaded;
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
         await ViewModel.InitializeCommand.ExecuteAsync(e.Parameter);
+        UpdateDetailsNavigationState();
+        StoreSectionsNav.SelectedItem = InstalledNavItem;
+        Navigate("Installed");
     }
 
-    private async void CategoryToggle_Click(object sender, RoutedEventArgs e)
+    private void StoreSectionsNav_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
     {
-        await ViewModel.SearchCommand.ExecuteAsync(null);
+        Navigate((StoreSectionsNav.SelectedItem as NavigationViewItem)?.Tag as string);
     }
 
-    private async void Page_KeyUp(object sender, KeyRoutedEventArgs e)
+    private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.Key == Windows.System.VirtualKey.Enter)
+        if (e.PropertyName is nameof(ModrinthStorePageViewModel.SelectedSearchResult)
+            or nameof(ModrinthStorePageViewModel.HasSelectedSearchResult))
         {
-            await ViewModel.SearchCommand.ExecuteAsync(null);
+            UpdateDetailsNavigationState();
+
+            if (ViewModel.SelectedSearchResult != null)
+            {
+                StoreSectionsNav.SelectedItem = DetailsNavItem;
+                Navigate("Details");
+            }
+            else if (StoreSectionsNav.SelectedItem == DetailsNavItem)
+            {
+                StoreSectionsNav.SelectedItem = BrowseNavItem;
+                Navigate("Browse");
+            }
         }
     }
 
-    private async void RemoveTracked_Click(object sender, RoutedEventArgs e)
+    private void UpdateDetailsNavigationState()
     {
-        if ((sender as FrameworkElement)?.Tag is InstalledStoreItem item)
-        {
-            await ViewModel.RemoveTrackedCommand.ExecuteAsync(item);
-        }
+        DetailsNavItem.IsEnabled = ViewModel.HasSelectedSearchResult;
     }
 
-    private async void ForceRemove_Click(object sender, RoutedEventArgs e)
+    private void Navigate(string? target)
     {
-        if ((sender as FrameworkElement)?.Tag is not InstalledStoreItem item)
+        var pageType = target switch
         {
-            return;
-        }
-
-        var confirmDialog = new ContentDialog
-        {
-            XamlRoot = XamlRoot,
-            Title = "Force remove untracked item?",
-            Content = $"This will permanently delete \"{item.DisplayName}\" from disk.",
-            PrimaryButtonText = "Force Remove",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Close
+            "Browse" => typeof(ModrinthStoreBrowsePage),
+            "Details" when ViewModel.HasSelectedSearchResult => typeof(ModrinthStoreDetailsPage),
+            _ => typeof(ModrinthStoreInstalledPage)
         };
 
-        var result = await confirmDialog.ShowAsync();
-        if (result == ContentDialogResult.Primary)
+        if (contentframe.Content?.GetType() != pageType)
         {
-            await ViewModel.ForceRemoveCommand.ExecuteAsync(item);
+            contentframe.Navigate(pageType, ViewModel, new DrillInNavigationTransitionInfo());
         }
+    }
+
+    private void ModrinthStorePage_Unloaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+        Unloaded -= ModrinthStorePage_Unloaded;
     }
 }

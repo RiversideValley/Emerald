@@ -10,6 +10,108 @@
         <!-- Load Uno.UI.Toolkit resources -->
         <ToolkitResources xmlns="using:Uno.Toolkit.UI" />
       </ResourceDictionary.MergedDictionaries>
+
+      <ResourceDictionary.ThemeDictionaries>
+
+        <ResourceDictionary x:Key="Default">
+          <SolidColorBrush x:Key="ListViewItemBackgroundSelected"         Color="#14FFFFFF" />
+          <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="#1EFFFFFF" />
+          <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed"  Color="#14FFFFFF" />
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="ListViewItemBackgroundSelected"         Color="#0A000000" />
+          <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="#14000000" />
+          <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed"  Color="#0A000000" />
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="HighContrast" />
+
+      </ResourceDictionary.ThemeDictionaries>
+      <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="Transparent"/>
+      <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="{ThemeResource ListViewItemBackgroundPointerOver}"/>
+      <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="{ThemeResource ListViewItemBackgroundPressed}"/>
+ <Style TargetType="ListViewItem">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="VerticalContentAlignment"   Value="Center" />
+                <Setter Property="Padding"                    Value="0" />
+                <Setter Property="Margin"                     Value="0" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListViewItem">
+                            <Grid>
+                                <!-- Hover / selected background -->
+                                <Border x:Name="BackgroundBorder"
+                                        Background="Transparent"
+                                        CornerRadius="4"
+                                        Margin="2,1" />
+
+                                <!-- Left accent strip (the WinUI selection indicator) -->
+                                <Rectangle x:Name="SelectionIndicator"
+                                           Width="3"
+                                           Fill="{ThemeResource SystemControlHighlightAccentBrush}"
+                                           HorizontalAlignment="Left"
+                                           RadiusX="2" RadiusY="2"
+                                           Margin="2,6,0,6"
+                                           Opacity="0" />
+
+                                <!-- Item content -->
+                                <ContentPresenter
+                                    Margin="16,0,12,0"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+
+                                        <VisualState x:Name="Normal" />
+
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="BackgroundBorder.Background"
+                                                        Value="{ThemeResource ListViewItemBackgroundPointerOver}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="BackgroundBorder.Background"
+                                                        Value="{ThemeResource ListViewItemBackgroundPressed}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+
+                                        <VisualState x:Name="Selected">
+                                            <VisualState.Setters>
+                                                <Setter Target="BackgroundBorder.Background"
+                                                        Value="{ThemeResource ListViewItemBackgroundSelected}" />
+                                                <Setter Target="SelectionIndicator.Opacity" Value="1" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+
+                                        <VisualState x:Name="PointerOverSelected">
+                                            <VisualState.Setters>
+                                                <Setter Target="BackgroundBorder.Background"
+                                                        Value="{ThemeResource ListViewItemBackgroundSelectedPointerOver}" />
+                                                <Setter Target="SelectionIndicator.Opacity" Value="1" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+
+                                        <VisualState x:Name="PressedSelected">
+                                            <VisualState.Setters>
+                                                <Setter Target="BackgroundBorder.Background"
+                                                        Value="{ThemeResource ListViewItemBackgroundSelectedPressed}" />
+                                                <Setter Target="SelectionIndicator.Opacity" Value="1" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
     </ResourceDictionary>
   </Application.Resources>
 

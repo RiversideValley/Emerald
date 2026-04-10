@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using CmlLib.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -9,17 +10,23 @@ using Emerald.CoreX.Store;
 using Emerald.CoreX.Store.Modrinth;
 using Emerald.CoreX.Store.Modrinth.JSON;
 using Emerald.Services;
+using GameVersionType = Emerald.CoreX.Versions.Type;
 
 namespace Emerald.ViewModels;
 
 public sealed partial class ModrinthStorePageViewModel : ObservableObject
 {
+    private static readonly TimeSpan SearchDebounceDelay = TimeSpan.FromMilliseconds(350);
+
     private readonly Core _core;
     private readonly SettingsService _settingsService;
     private readonly INotificationService _notificationService;
     private readonly IGameStoreContentService _gameStoreContentService;
     private readonly ILogger<ModrinthStorePageViewModel> _logger;
     private readonly Dictionary<StoreContentType, IModrinthStore> _stores;
+    private CancellationTokenSource? _searchDebounceCancellationTokenSource;
+    private bool _isInitialized;
+    private bool _suppressAutoSearch;
 
     public ObservableCollection<Game> Games { get; } = [];
     public ObservableCollection<StoreContentTypeOption> ContentTypes { get; } = [];
@@ -89,6 +96,11 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
     public bool HasCompatibilityNotice => !string.IsNullOrWhiteSpace(CompatibilityNotice);
     public bool CanSearch => SelectedGame != null && !IsSearching;
     public bool CanInstall => SelectedGame != null && SelectedItem != null && SelectedVersion != null && !IsInstalling;
+    public string SelectedGameInstallTargetName => SelectedGame?.Version.DisplayName ?? "Select a game";
+    public string SelectedGameBaseVersion => SelectedGame?.Version.BasedOn ?? string.Empty;
+    public string SelectedGameLoaderDisplayName => SelectedGame == null
+        ? string.Empty
+        : FormatLoaderDisplayName(SelectedGame.Version.Type);
 
     public ModrinthStorePageViewModel(
         Core core,
@@ -125,6 +137,7 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
         SearchResults.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasSearchResults));
         CompatibleVersions.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasCompatibleVersions));
         InstalledItems.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasInstalledItems));
+        CategoryFilters.CollectionChanged += CategoryFilters_CollectionChanged;
     }
 
     [RelayCommand]
@@ -149,6 +162,12 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
 
         await LoadCategoriesAsync();
         await RefreshInstalledItemsAsync();
+        _isInitialized = true;
+
+        if (SearchResults.Count == 0 && CanSearch)
+        {
+            await SearchAsync();
+        }
     }
 
     [RelayCommand(CanExecute = nameof(CanSearch))]
@@ -184,8 +203,12 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
 
             if (SearchResults.Count > 0)
             {
-                SelectedSearchResult = SearchResults[0];
-                ResultsStatusText = $"{SearchResults.Count} result(s)";
+                SelectedSearchResult = null;
+                SelectedItem = null;
+                SelectedVersion = null;
+                CompatibleVersions.Clear();
+                CompatibilityNotice = null;
+                ResultsStatusText = $"{SearchResults.Count} project(s) found.";
             }
             else
             {
@@ -362,16 +385,31 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
     {
         SearchCommand.NotifyCanExecuteChanged();
         InstallSelectedVersionCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(SelectedGameInstallTargetName));
+        OnPropertyChanged(nameof(SelectedGameBaseVersion));
+        OnPropertyChanged(nameof(SelectedGameLoaderDisplayName));
         _ = RefreshInstalledItemsAsync();
         if (SelectedSearchResult != null)
         {
             _ = LoadSelectedProjectDetailsAsync();
         }
+
+        QueueAutoSearch();
     }
 
     partial void OnSelectedContentTypeOptionChanged(StoreContentTypeOption? value)
     {
         _ = HandleContentTypeChangedAsync();
+    }
+
+    partial void OnSelectedSortOptionChanged(SearchSortOptionItem? value)
+    {
+        QueueAutoSearch();
+    }
+
+    partial void OnSearchQueryChanged(string value)
+    {
+        QueueAutoSearch();
     }
 
     partial void OnSelectedSearchResultChanged(SearchHit? value)
@@ -382,8 +420,8 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
     private async Task HandleContentTypeChangedAsync()
     {
         await LoadCategoriesAsync();
-        await SearchAsync();
         await RefreshInstalledItemsAsync();
+        QueueAutoSearch();
     }
 
     private async Task LoadCategoriesAsync()
@@ -398,22 +436,26 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
                 .Select(category => category.Name)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
+            _suppressAutoSearch = true;
             CategoryFilters.Clear();
             foreach (var category in store.Categories
                          .Select(category => category.name)
                          .Distinct(StringComparer.OrdinalIgnoreCase)
                          .OrderBy(name => name, StringComparer.OrdinalIgnoreCase))
             {
-                CategoryFilters.Add(new CategoryFilterOption(category)
-                {
-                    IsSelected = selectedCategories.Contains(category)
-                });
+                var option = new CategoryFilterOption(category);
+                option.IsSelected = selectedCategories.Contains(category);
+                CategoryFilters.Add(option);
             }
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to load store categories for {StoreType}.", SelectedContentType);
             CategoryFilters.Clear();
+        }
+        finally
+        {
+            _suppressAutoSearch = false;
         }
     }
 
@@ -444,6 +486,7 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
             CompatibleVersions.Clear();
             foreach (var version in versions.Versions)
             {
+                ApplySelectedGameCompatibility(version);
                 CompatibleVersions.Add(version);
             }
 
@@ -515,6 +558,134 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
 
     private static string NormalizePath(string path)
         => Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+    private void CategoryFilters_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (e.OldItems != null)
+        {
+            foreach (CategoryFilterOption item in e.OldItems)
+            {
+                item.PropertyChanged -= CategoryFilterOption_PropertyChanged;
+            }
+        }
+
+        if (e.NewItems != null)
+        {
+            foreach (CategoryFilterOption item in e.NewItems)
+            {
+                item.PropertyChanged += CategoryFilterOption_PropertyChanged;
+            }
+        }
+    }
+
+    private void CategoryFilterOption_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(CategoryFilterOption.IsSelected))
+        {
+            QueueAutoSearch();
+        }
+    }
+
+    private void QueueAutoSearch()
+    {
+        if (!_isInitialized || _suppressAutoSearch || SelectedGame == null)
+        {
+            return;
+        }
+
+        _searchDebounceCancellationTokenSource?.Cancel();
+        _searchDebounceCancellationTokenSource?.Dispose();
+        _searchDebounceCancellationTokenSource = new CancellationTokenSource();
+        _ = RunAutoSearchAsync(_searchDebounceCancellationTokenSource.Token);
+    }
+
+    private async Task RunAutoSearchAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(SearchDebounceDelay, cancellationToken);
+
+            while (IsSearching)
+            {
+                await Task.Delay(100, cancellationToken);
+            }
+
+            if (cancellationToken.IsCancellationRequested || !CanSearch)
+            {
+                return;
+            }
+
+            await SearchAsync();
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private void ApplySelectedGameCompatibility(ItemVersion version)
+    {
+        var selectedGameVersion = SelectedGame?.Version.BasedOn ?? string.Empty;
+        var selectedLoaders = ResolveSelectedLoaderAliases();
+
+        var loaderChips = (version.Loaders ?? [])
+            .Where(loader => !string.IsNullOrWhiteSpace(loader))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(loader => new StoreTagChip(
+                FormatStoreLabel(loader),
+                selectedLoaders.Contains(loader, StringComparer.OrdinalIgnoreCase)))
+            .ToArray();
+
+        var gameVersionChips = (version.GameVersions ?? [])
+            .Where(gameVersion => !string.IsNullOrWhiteSpace(gameVersion))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(6)
+            .Select(gameVersion => new StoreTagChip(
+                gameVersion,
+                string.Equals(gameVersion, selectedGameVersion, StringComparison.OrdinalIgnoreCase)))
+            .ToArray();
+
+        version.UpdateCompatibilityChips(loaderChips, gameVersionChips);
+    }
+
+    private string[] ResolveSelectedLoaderAliases()
+    {
+        if (SelectedGame == null)
+        {
+            return [];
+        }
+
+        return SelectedGame.Version.Type switch
+        {
+            GameVersionType.Fabric => ["fabric"],
+            GameVersionType.Forge => ["forge"],
+            GameVersionType.Quilt => ["quilt"],
+            GameVersionType.LiteLoader => ["liteloader"],
+            GameVersionType.OptiFine => ["optifine"],
+            _ => ["vanilla"]
+        };
+    }
+
+    private static string FormatLoaderDisplayName(GameVersionType type)
+    {
+        return type switch
+        {
+            GameVersionType.OptiFine => "OptiFine",
+            GameVersionType.LiteLoader => "LiteLoader",
+            _ => FormatStoreLabel(type.ToString())
+        };
+    }
+
+    private static string FormatStoreLabel(string value)
+    {
+        return value switch
+        {
+            "neoforge" => "NeoForge",
+            "optifine" => "OptiFine",
+            "liteloader" => "LiteLoader",
+            "datapack" => "Data Pack",
+            _ => CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value.Replace('-', ' ').Replace('_', ' ').ToLowerInvariant())
+        };
+    }
 }
 
 public sealed class StoreContentTypeOption
@@ -544,7 +715,19 @@ public sealed class SearchSortOptionItem
 public sealed partial class CategoryFilterOption(string name) : ObservableObject
 {
     public string Name { get; } = name;
+    public string DisplayName => FormatDisplayName(Name);
 
     [ObservableProperty]
     private bool _isSelected;
+
+    private static string FormatDisplayName(string name)
+    {
+        var words = name
+            .Replace('_', ' ')
+            .Replace('-', ' ')
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(word => CultureInfo.CurrentCulture.TextInfo.ToTitleCase(word.ToLowerInvariant()));
+
+        return string.Join(" ", words);
+    }
 }

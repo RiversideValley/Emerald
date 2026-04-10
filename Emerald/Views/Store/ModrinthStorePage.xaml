@@ -2,19 +2,22 @@
     x:Class="Emerald.Views.Store.ModrinthStorePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:conv="using:Emerald.Helpers.Converters"
-    xmlns:corex="using:Emerald.CoreX"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:modrinth="using:Emerald.CoreX.Store.Modrinth.JSON"
-    xmlns:store="using:Emerald.CoreX.Store"
-    xmlns:viewModels="using:Emerald.ViewModels"
+    xmlns:helpers="using:Emerald.Helpers"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    KeyUp="Page_KeyUp"
     mc:Ignorable="d">
 
   <Page.Resources>
-    <conv:BoolToVisibility x:Key="BoolToVis" />
-    <conv:BoolToVisibility x:Key="InverseBoolToVis" Reversed="True" />
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary>
+          <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+          <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
+          <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
+          <Thickness x:Key="NavigationViewTopPaneHeight">40</Thickness>
+        </ResourceDictionary>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
   </Page.Resources>
 
   <Grid>
@@ -30,333 +33,48 @@
         <TextBlock
           Opacity="0.7"
           Style="{StaticResource CaptionTextBlockStyle}"
-          Text="Browse and manage game content from Modrinth for the selected game instance." />
+          Text="Browse, inspect, and manage Modrinth content one step at a time." />
       </StackPanel>
     </Grid>
 
-    <Border
+    <NavigationView
       Grid.Row="1"
-      Margin="24,0,24,12"
-      Padding="12"
-      CornerRadius="10"
-      Background="{ThemeResource LayerFillColorDefaultBrush}"
-      BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-      BorderThickness="1">
-      <StackPanel Spacing="10">
-        <Grid ColumnSpacing="8">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*" />
-            <ColumnDefinition Width="2*" />
-            <ColumnDefinition Width="3*" />
-            <ColumnDefinition Width="2*" />
-            <ColumnDefinition Width="Auto" />
-          </Grid.ColumnDefinitions>
+      x:Name="StoreSectionsNav"
+      Margin="8,0,8,0"
+      IsBackButtonVisible="Collapsed"
+      IsSettingsVisible="False"
+      ItemInvoked="StoreSectionsNav_ItemInvoked"
+      PaneDisplayMode="Top">
+      <NavigationView.Resources>
+        <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
+      </NavigationView.Resources>
 
-          <ComboBox
-            Grid.Column="0"
-            Header="Game"
-            ItemsSource="{x:Bind ViewModel.Games, Mode=OneWay}"
-            SelectedItem="{x:Bind ViewModel.SelectedGame, Mode=TwoWay}">
-            <ComboBox.ItemTemplate>
-              <DataTemplate x:DataType="corex:Game">
-                <TextBlock Text="{x:Bind Version.DisplayName}" />
-              </DataTemplate>
-            </ComboBox.ItemTemplate>
-          </ComboBox>
+      <NavigationView.MenuItems>
+        <NavigationViewItem
+          x:Name="InstalledNavItem"
+          Icon="{helpers:FontIcon Glyph=&#xE8F1;}"
+          Content="Installed"
+          IsSelected="True"
+          Tag="Installed" />
+        <NavigationViewItem
+          x:Name="BrowseNavItem"
+          Icon="{helpers:FontIcon Glyph=&#xE8A5;}"
+          Content="Discover"
+          Tag="Browse" />
+        <NavigationViewItem
+          x:Name="DetailsNavItem"
+          Icon="{helpers:FontIcon Glyph=&#xE8FD;}"
+          Content="Details"
+          IsEnabled="False"
+          Tag="Details" />
+      </NavigationView.MenuItems>
+    </NavigationView>
 
-          <ComboBox
-            Grid.Column="1"
-            Header="Content"
-            DisplayMemberPath="DisplayName"
-            ItemsSource="{x:Bind ViewModel.ContentTypes, Mode=OneWay}"
-            SelectedItem="{x:Bind ViewModel.SelectedContentTypeOption, Mode=TwoWay}" />
-
-          <TextBox
-            Grid.Column="2"
-            Header="Search"
-            PlaceholderText="Search Modrinth projects..."
-            Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-          <ComboBox
-            Grid.Column="3"
-            Header="Sort"
-            DisplayMemberPath="DisplayName"
-            ItemsSource="{x:Bind ViewModel.SortOptions, Mode=OneWay}"
-            SelectedItem="{x:Bind ViewModel.SelectedSortOption, Mode=TwoWay}" />
-
-          <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom">
-            <Button
-              Command="{x:Bind ViewModel.SearchCommand}"
-              Content="Search"
-              IsEnabled="{x:Bind ViewModel.CanSearch, Mode=OneWay}"
-              Style="{ThemeResource AccentButtonStyle}" />
-            <Button
-              Command="{x:Bind ViewModel.RefreshInstalledItemsCommand}"
-              Content="Refresh Installed" />
-          </StackPanel>
-        </Grid>
-
-        <ScrollViewer HorizontalScrollBarVisibility="Auto" HorizontalScrollMode="Enabled">
-          <ItemsRepeater ItemsSource="{x:Bind ViewModel.CategoryFilters, Mode=OneWay}">
-            <ItemsRepeater.Layout>
-              <StackLayout Orientation="Horizontal" Spacing="8" />
-            </ItemsRepeater.Layout>
-            <ItemsRepeater.ItemTemplate>
-              <DataTemplate x:DataType="viewModels:CategoryFilterOption">
-                <ToggleButton
-                  MinWidth="64"
-                  Content="{x:Bind Name}"
-                  IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
-                  Click="CategoryToggle_Click" />
-              </DataTemplate>
-            </ItemsRepeater.ItemTemplate>
-          </ItemsRepeater>
-        </ScrollViewer>
-      </StackPanel>
-    </Border>
-
-    <Grid Grid.Row="2" Margin="24,0,24,24" ColumnSpacing="12">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="2*" />
-        <ColumnDefinition Width="3*" />
-        <ColumnDefinition Width="2*" />
-      </Grid.ColumnDefinitions>
-
-      <Border
-        Grid.Column="0"
-        Padding="12"
-        CornerRadius="10"
-        Background="{ThemeResource LayerFillColorDefaultBrush}"
-        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-        BorderThickness="1">
-        <Grid>
-          <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-          </Grid.RowDefinitions>
-
-          <TextBlock
-            Style="{StaticResource SubtitleTextBlockStyle}"
-            Text="Projects" />
-
-          <Grid Grid.Row="1">
-            <ListView
-              ItemsSource="{x:Bind ViewModel.SearchResults, Mode=OneWay}"
-              SelectedItem="{x:Bind ViewModel.SelectedSearchResult, Mode=TwoWay}"
-              SelectionMode="Single"
-              Visibility="{x:Bind ViewModel.HasSearchResults, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-              <ListView.ItemTemplate>
-                <DataTemplate x:DataType="modrinth:SearchHit">
-                  <StackPanel Spacing="4" Padding="0,6,0,6">
-                    <TextBlock
-                      FontWeight="SemiBold"
-                      Text="{x:Bind Title}" />
-                    <TextBlock
-                      Opacity="0.7"
-                      Style="{StaticResource CaptionTextBlockStyle}"
-                      Text="{x:Bind Author}" />
-                    <TextBlock
-                      MaxLines="2"
-                      Opacity="0.8"
-                      Style="{StaticResource CaptionTextBlockStyle}"
-                      Text="{x:Bind Description}"
-                      TextWrapping="WrapWholeWords" />
-                  </StackPanel>
-                </DataTemplate>
-              </ListView.ItemTemplate>
-            </ListView>
-
-            <StackPanel
-              HorizontalAlignment="Center"
-              VerticalAlignment="Center"
-              Spacing="8"
-              Visibility="{x:Bind ViewModel.HasSearchResults, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
-              <FontIcon Glyph="&#xE8A5;" FontSize="32" Opacity="0.5" />
-              <TextBlock
-                Opacity="0.8"
-                Text="{x:Bind ViewModel.ResultsStatusText, Mode=OneWay}"
-                TextAlignment="Center" />
-            </StackPanel>
-          </Grid>
-        </Grid>
-      </Border>
-
-      <Border
-        Grid.Column="1"
-        Padding="12"
-        CornerRadius="10"
-        Background="{ThemeResource LayerFillColorDefaultBrush}"
-        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-        BorderThickness="1">
-        <Grid>
-          <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-          </Grid.RowDefinitions>
-
-          <StackPanel Spacing="6">
-            <TextBlock
-              Style="{StaticResource SubtitleTextBlockStyle}"
-              Text="Project Details" />
-            <TextBlock
-              Opacity="0.75"
-              Style="{StaticResource CaptionTextBlockStyle}"
-              Text="{x:Bind ViewModel.SelectedItem.Title, Mode=OneWay}" />
-            <TextBlock
-              MaxLines="4"
-              Opacity="0.85"
-              Style="{StaticResource CaptionTextBlockStyle}"
-              Text="{x:Bind ViewModel.SelectedItem.Description, Mode=OneWay}"
-              TextWrapping="WrapWholeWords" />
-          </StackPanel>
-
-          <Border
-            Grid.Row="1"
-            Margin="0,10,0,0"
-            Padding="8"
-            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="1"
-            CornerRadius="8"
-            Visibility="{x:Bind ViewModel.HasCompatibilityNotice, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-            <TextBlock
-              Style="{StaticResource CaptionTextBlockStyle}"
-              Text="{x:Bind ViewModel.CompatibilityNotice, Mode=OneWay}"
-              TextWrapping="WrapWholeWords" />
-          </Border>
-
-          <Grid Grid.Row="2" Margin="0,12,0,0">
-            <ListView
-              ItemsSource="{x:Bind ViewModel.CompatibleVersions, Mode=OneWay}"
-              SelectedItem="{x:Bind ViewModel.SelectedVersion, Mode=TwoWay}"
-              SelectionMode="Single"
-              Visibility="{x:Bind ViewModel.HasCompatibleVersions, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-              <ListView.ItemTemplate>
-                <DataTemplate x:DataType="modrinth:ItemVersion">
-                  <StackPanel Spacing="2" Padding="0,4,0,4">
-                    <TextBlock
-                      FontWeight="SemiBold"
-                      Text="{x:Bind Name}" />
-                    <TextBlock
-                      Opacity="0.75"
-                      Style="{StaticResource CaptionTextBlockStyle}">
-                      <Run Text="{x:Bind VersionNumber}" />
-                      <Run Text="  •  " />
-                      <Run Text="{x:Bind VersionType}" />
-                    </TextBlock>
-                    <TextBlock
-                      Opacity="0.7"
-                      Style="{StaticResource CaptionTextBlockStyle}"
-                      Text="{x:Bind FileName}" />
-                  </StackPanel>
-                </DataTemplate>
-              </ListView.ItemTemplate>
-            </ListView>
-
-            <StackPanel
-              HorizontalAlignment="Center"
-              VerticalAlignment="Center"
-              Spacing="8"
-              Visibility="{x:Bind ViewModel.HasCompatibleVersions, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
-              <FontIcon Glyph="&#xE8FD;" FontSize="28" Opacity="0.5" />
-              <TextBlock
-                Opacity="0.8"
-                Text="Select a project to load versions."
-                TextAlignment="Center" />
-            </StackPanel>
-          </Grid>
-
-          <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button
-              Command="{x:Bind ViewModel.InstallSelectedVersionCommand}"
-              Content="Install"
-              IsEnabled="{x:Bind ViewModel.CanInstall, Mode=OneWay}"
-              Style="{ThemeResource AccentButtonStyle}" />
-          </StackPanel>
-        </Grid>
-      </Border>
-
-      <Border
-        Grid.Column="2"
-        Padding="12"
-        CornerRadius="10"
-        Background="{ThemeResource LayerFillColorDefaultBrush}"
-        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-        BorderThickness="1">
-        <Grid>
-          <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-          </Grid.RowDefinitions>
-          <TextBlock
-            Style="{StaticResource SubtitleTextBlockStyle}"
-            Text="Installed Items" />
-
-          <Grid Grid.Row="1">
-            <ListView
-              Margin="0,10,0,0"
-              ItemsSource="{x:Bind ViewModel.InstalledItems, Mode=OneWay}"
-              SelectionMode="None"
-              Visibility="{x:Bind ViewModel.HasInstalledItems, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-              <ListView.ItemTemplate>
-                <DataTemplate x:DataType="store:InstalledStoreItem">
-                  <Border
-                    Margin="0,0,0,8"
-                    Padding="8"
-                    CornerRadius="8"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
-                    <StackPanel Spacing="4">
-                      <TextBlock
-                        FontWeight="SemiBold"
-                        Text="{x:Bind DisplayName}" />
-                      <TextBlock
-                        Opacity="0.7"
-                        Style="{StaticResource CaptionTextBlockStyle}"
-                        Text="{x:Bind StatusText}" />
-                      <TextBlock
-                        MaxLines="2"
-                        Opacity="0.7"
-                        Style="{StaticResource CaptionTextBlockStyle}"
-                        Text="{x:Bind FilePath}"
-                        TextWrapping="WrapWholeWords" />
-
-                      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-                        <Button
-                          Click="RemoveTracked_Click"
-                          Content="Remove"
-                          Tag="{x:Bind}"
-                          Visibility="{x:Bind IsTracked, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
-                        <Button
-                          Click="ForceRemove_Click"
-                          Content="Force Remove"
-                          Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                          Tag="{x:Bind}"
-                          Visibility="{x:Bind IsTracked, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
-                      </StackPanel>
-                    </StackPanel>
-                  </Border>
-                </DataTemplate>
-              </ListView.ItemTemplate>
-            </ListView>
-
-            <StackPanel
-              HorizontalAlignment="Center"
-              VerticalAlignment="Center"
-              Spacing="8"
-              Visibility="{x:Bind ViewModel.HasInstalledItems, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
-              <FontIcon Glyph="&#xE8F1;" FontSize="28" Opacity="0.5" />
-              <TextBlock
-                Opacity="0.8"
-                Text="No installed items for this game/content type."
-                TextAlignment="Center" />
-            </StackPanel>
-          </Grid>
-        </Grid>
-      </Border>
+    <Grid
+      Grid.Row="2"
+      Padding="0,12"
+      BorderThickness="0,1,0,0">
+      <Frame x:Name="contentframe" />
     </Grid>
   </Grid>
 </Page>
