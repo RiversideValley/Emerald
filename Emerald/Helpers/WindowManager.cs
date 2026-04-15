@@ -89,6 +89,8 @@ public static class WindowManager
             titleBar.ButtonBackgroundColor = Colors.Transparent;
             titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
 
+            // Native macOS titlebar customization (no-op on other platforms)
+            MacOSTitleBarHelper.ExtendViewIntoTitleBar(window);
     }
 }
 
