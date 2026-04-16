@@ -138,6 +138,129 @@
             OnContent="{helpers:Localize KeyName=Yes}" />
         </cn:SettingsCard>
         <cn:SettingsExpander
+          Header="{helpers:Localize KeyName=CustomJavaRuntime}"
+          Description="{helpers:Localize KeyName=JavaRuntimeDescription}"
+          HeaderIcon="{helpers:FontIcon Glyph=}">
+          <cn:SettingsExpander.Content>
+            <ToggleSwitch
+              IsOn="{x:Bind GameSettings.UseCustomJava, Mode=TwoWay}"
+              Toggled="CustomJavaToggle_Toggled"
+              OffContent="{helpers:Localize KeyName=No}"
+              OnContent="{helpers:Localize KeyName=Yes}" />
+          </cn:SettingsExpander.Content>
+          <cn:SettingsExpander.Items>
+            <cn:SettingsCard
+              Header="{helpers:Localize KeyName=SelectedJavaRuntime}"
+              Description="{x:Bind SelectedJavaStatusText, Mode=OneWay}"
+              HeaderIcon="{helpers:FontIcon Glyph=}"
+
+              Visibility="{x:Bind GameSettings.UseCustomJava, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+              <StackPanel Spacing="8">
+                <HyperlinkButton
+                  Click="OpenSelectedJavaLocation_OnClick"
+                  HorizontalAlignment="Left"
+                  HorizontalContentAlignment="Left"
+                  IsEnabled="{x:Bind HasSelectedJavaPath, Mode=OneWay}">
+                  <TextBlock
+                    MaxWidth="420"
+                    Text="{x:Bind SelectedJavaPathText, Mode=OneWay}"
+                    TextWrapping="WrapWholeWords" />
+                </HyperlinkButton>
+                <TextBlock
+                  Visibility="{x:Bind HasMissingSelectedJavaPath, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                  Style="{StaticResource CaptionTextBlockStyle}"
+                  Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                  Text="{helpers:Localize KeyName=SelectedJavaPathUnavailable}" />
+              </StackPanel>
+            </cn:SettingsCard>
+            <StackPanel
+              Padding="12,0"
+              Spacing="12"
+              Visibility="{x:Bind GameSettings.UseCustomJava, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+              <TextBlock
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="{helpers:Localize KeyName=DetectedJavaRuntimes}" />
+              <TextBlock
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Opacity="0.8"
+                Text="{helpers:Localize KeyName=DetectedJavaRuntimesDescription}" />
+              <StackPanel
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button
+                  Click="RefreshJavaPaths_OnClick"
+                  Content="{helpers:Localize KeyName=RefreshDetectedJava}"
+                  IsEnabled="{x:Bind CanRefreshJavaPaths, Mode=OneWay}" />
+                <Button
+                  Click="AddJavaFolder_OnClick"
+                  Content="{helpers:Localize KeyName=AddJavaFolder}"
+                  IsEnabled="{x:Bind CanRefreshJavaPaths, Mode=OneWay}" />
+                <Button
+                  Click="AddJavaFile_OnClick"
+                  Content="{helpers:Localize KeyName=AddJavaFile}"
+                  IsEnabled="{x:Bind CanRefreshJavaPaths, Mode=OneWay}" />
+              </StackPanel>
+              <ProgressRing
+                IsActive="{x:Bind IsRefreshingJavaPaths, Mode=OneWay}"
+                Visibility="{x:Bind IsRefreshingJavaPaths, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+              <TextBlock
+                Visibility="{x:Bind HasNoDetectedJavaOptions, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Opacity="0.8"
+                Text="{helpers:Localize KeyName=NoJavaRuntimesFound}" />
+              <ListView
+                ItemsSource="{x:Bind JavaRuntimeOptions, Mode=OneWay}"
+                MaxHeight="320"
+                IsItemClickEnabled="True"
+                ItemClick="JavaRuntimeList_ItemClick"
+                SelectedItem="{x:Bind SelectedJavaRuntimeOption, Mode=OneWay}"
+                SelectionMode="Single">
+                <ListView.ItemTemplate>
+                  <DataTemplate>
+                    <Border
+                      Margin="0,0,0,8"
+                      Padding="10"
+                      BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                      BorderThickness="1"
+                      CornerRadius="8">
+                      <StackPanel Spacing="6">
+                        <StackPanel
+                          Orientation="Horizontal"
+                          Spacing="8">
+                          <TextBlock
+                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                            Text="{Binding Source}" />
+                          <TextBlock
+                            Visibility="{Binding IsCustomSaved, Converter={StaticResource BoolToVis}}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{helpers:Localize KeyName=Saved}" />
+                          <TextBlock
+                            Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{helpers:Localize KeyName=Selected}" />
+                        </StackPanel>
+                        <TextBlock
+                          Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                          Text="{Binding DisplayPath}"
+                          TextWrapping="WrapWholeWords" />
+                        <TextBlock
+                          Style="{StaticResource CaptionTextBlockStyle}"
+                          Text="{Binding StatusText}" />
+                        <Button
+                          Visibility="{Binding IsCustomSaved, Converter={StaticResource BoolToVis}}"
+                          Click="RemoveSavedJavaRuntime_OnClick"
+                          Content="{helpers:Localize KeyName=RemoveSavedJava}"
+                          HorizontalAlignment="Left"
+                          Tag="{Binding}" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ListView.ItemTemplate>
+              </ListView>
+            </StackPanel>
+          </cn:SettingsExpander.Items>
+        </cn:SettingsExpander>
+        <cn:SettingsExpander
           Header="{helpers:Localize KeyName=MCWindowsSize}"
           Description="{helpers:Localize KeyName=MCWindowsSizeDescription}"
           HeaderIcon="{helpers:FontIcon Glyph=}">

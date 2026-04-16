@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Windows.UI;
 using CmlLib.Core.ProcessBuilder;
 using Emerald.CoreX.Models;
@@ -69,10 +70,13 @@ public partial class Settings : JSON
 
 public partial class Minecraft : JSON
 {
+    private ObservableCollection<string> _savedJavaPaths = new();
+
     public Minecraft()
     {
         JVM.PropertyChanged += (_, _)
             => InvokePropertyChanged();
+        _savedJavaPaths.CollectionChanged += SavedJavaPaths_CollectionChanged;
         PropertyChanged += (_, e) =>
         {
             if (e.PropertyName != null)
@@ -98,8 +102,28 @@ public partial class Minecraft : JSON
 
     public JVM JVM { get; set; } = new();
 
+    public ObservableCollection<string> SavedJavaPaths
+    {
+        get => _savedJavaPaths;
+        set
+        {
+            if (ReferenceEquals(_savedJavaPaths, value))
+            {
+                return;
+            }
+
+            _savedJavaPaths.CollectionChanged -= SavedJavaPaths_CollectionChanged;
+            _savedJavaPaths = value ?? new ObservableCollection<string>();
+            _savedJavaPaths.CollectionChanged += SavedJavaPaths_CollectionChanged;
+            InvokePropertyChanged(nameof(SavedJavaPaths));
+        }
+    }
+
     public bool ReadLogs()
         => JVM.GameLogs && !IsAdmin;
+
+    private void SavedJavaPaths_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        => InvokePropertyChanged(nameof(SavedJavaPaths));
 }
 
 public class Account : JSON

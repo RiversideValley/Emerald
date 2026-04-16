@@ -257,6 +257,27 @@ public partial class Game : ObservableObject
         _logger.LogInformation("Building process for version: {Version}", version);
         var launchOpt = EffectiveSettings.ToMLaunchOption();
         launchOpt.Session = session;
+
+        if (EffectiveSettings.UseCustomJava)
+        {
+            var javaRuntimeCatalog = Ioc.Default.GetService<IJavaRuntimeCatalogService>()
+                ?? throw new InvalidOperationException("Java runtime catalog service is not available.");
+
+            var validation = await javaRuntimeCatalog.ValidateAsync(EffectiveSettings.JavaPath);
+            if (!validation.IsValid || string.IsNullOrWhiteSpace(validation.NormalizedPath))
+            {
+                throw new InvalidOperationException(validation.ErrorMessage ?? "The selected Java runtime could not be used.");
+            }
+
+            launchOpt.JavaPath = validation.NormalizedPath;
+
+            _logger.LogDebug(
+                "Using custom Java runtime for {Version}. JavaPath: {JavaPath}. VersionInfo: {VersionInfo}.",
+                version,
+                validation.NormalizedPath,
+                validation.Version);
+        }
+
         _logger.LogDebug("Preparing launch options for {Version}. FullScreen: {FullScreen}. DockName: {DockName}.", version, EffectiveSettings.FullScreen, EffectiveSettings.DockName);
         return await Launcher.BuildProcessAsync(version, launchOpt);
     }
