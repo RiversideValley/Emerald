@@ -8,7 +8,7 @@
     <ApplicationId>Riverside.Emerald</ApplicationId>
     <ApplicationDisplayVersion>1.0.0.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
-
+    <ApplicationPublisher>CN=Riverside</ApplicationPublisher>
     <UnoFeatures>
       Lottie;
       Hosting;
@@ -18,6 +18,7 @@
       Localization;
       LoggingSerilog;
       ThemeService;
+      SkiaRenderer;
     </UnoFeatures>
   </PropertyGroup>
 
@@ -41,10 +42,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Emerald.CoreX\Emerald.CoreX.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Views\GamesPage.xaml.cs">
       <DependentUpon>GamesPage.xaml</DependentUpon>
     </Compile>
@@ -52,6 +49,10 @@
 
   <ItemGroup>
     <Folder Include="Assets\Icons\AppxIcons\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Emerald.CoreX\Emerald.CoreX.csproj" />
   </ItemGroup>
 
 </Project>
