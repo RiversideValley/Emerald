@@ -2,7 +2,7 @@
   <PropertyGroup>
 
 
-    <TargetFrameworks>net10.0-windows10.0.26100;net10.0-desktop</TargetFrameworks>
+    <TargetFrameworks>net10.0;net10.0-windows10.0.26100;net10.0-desktop</TargetFrameworks>
 
     <UnoSingleProject>true</UnoSingleProject>
     <OutputType>Library</OutputType>
@@ -11,15 +11,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
-    <!--
-      UnoFeatures let's you quickly add and manage implicit package references based on the features you want to use.
-      https://aka.platform.uno/singleproject-features
-    -->
-    <!--
-    <UnoFeatures></UnoFeatures>
-    -->
 
     <UnoFeatures>
+      SkiaRenderer;
       Lottie;
       Hosting;
       Toolkit;

@@ -70,6 +70,12 @@ public partial class GameSettings : ObservableObject
 
     [ObservableProperty]
     private bool _IsAdmin;
+
+    [ObservableProperty]
+    private bool _UseCustomJava;
+
+    [ObservableProperty]
+    private string? _JavaPath;
     
     public ObservableCollection<string> JVMArgs { get; set; } = new();
 
@@ -92,7 +98,8 @@ public partial class GameSettings : ObservableObject
             QuickPlaySingleplayer = _quickPlaySingleplayer,
             QuickPlayRealms = _quickPlayRealms,
             ServerIp = _serverIp,
-            ServerPort = _serverPort
+            ServerPort = _serverPort,
+            JavaPath = _UseCustomJava ? _JavaPath : null
         };
         var args = MLaunchOption.DefaultExtraJvmArguments.ToList();
          args.AddRange(JVMArgs.Select(x => new MArgument(x)));
@@ -115,7 +122,9 @@ public partial class GameSettings : ObservableObject
             QuickPlaySingleplayer = option.QuickPlaySingleplayer,
             QuickPlayRealms = option.QuickPlayRealms,
             ServerIp = option.ServerIp,
-            ServerPort = option.ServerPort
+            ServerPort = option.ServerPort,
+            UseCustomJava = !string.IsNullOrWhiteSpace(option.JavaPath),
+            JavaPath = option.JavaPath
         };
 
         game.JVMArgs.Clear();
@@ -148,7 +157,9 @@ public partial class GameSettings : ObservableObject
             ServerPort = ServerPort,
             HashCheck = HashCheck,
             AssetsCheck = AssetsCheck,
-            IsAdmin = IsAdmin
+            IsAdmin = IsAdmin,
+            UseCustomJava = UseCustomJava,
+            JavaPath = JavaPath
         };
 
         foreach (var arg in JVMArgs)

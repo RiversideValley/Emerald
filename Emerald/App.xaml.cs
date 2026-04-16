@@ -74,6 +74,8 @@ public partial class App : Application
         services.AddSingleton<Services.IBaseSettingsService, Services.BaseSettingsService>();
         services.AddSingleton<CoreX.Services.IGlobalGameSettingsService, CoreX.Services.GlobalGameSettingsService>();
         services.AddSingleton<CoreX.Runtime.IGameRuntimeSettings, Services.GameRuntimeSettingsAdapter>();
+        services.AddSingleton<CoreX.Services.IJavaRuntimeProbe, CoreX.Services.ProcessJavaRuntimeProbe>();
+        services.AddSingleton<CoreX.Services.IJavaRuntimeCatalogService, CoreX.Services.JavaRuntimeCatalogService>();
 
         //Notifications
         services.AddSingleton<CoreX.Notifications.INotificationService>(provider =>

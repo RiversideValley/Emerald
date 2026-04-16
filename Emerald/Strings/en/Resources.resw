@@ -931,4 +931,76 @@
   <data name="Create" xml:space="preserve">
     <value>Create</value>
   </data>
+  <data name="AddJavaFile" xml:space="preserve">
+    <value>Add Java file</value>
+  </data>
+  <data name="AddJavaFolder" xml:space="preserve">
+    <value>Add Java folder</value>
+  </data>
+  <data name="AutoManage" xml:space="preserve">
+    <value>Auto Manage</value>
+  </data>
+  <data name="DetectedJavaRuntimes" xml:space="preserve">
+    <value>Detected Java runtimes</value>
+  </data>
+  <data name="DetectedJavaRuntimesDescription" xml:space="preserve">
+    <value>Refresh or choose a validated Java runtime for this settings scope.</value>
+  </data>
+  <data name="CustomJavaRuntime" xml:space="preserve">
+    <value>Custom Java Runtime</value>
+  </data>
+  <data name="JavaAutoManagedStatus" xml:space="preserve">
+    <value>Emerald will let CmlLib manage Java automatically.</value>
+  </data>
+  <data name="JavaCustomPathRequired" xml:space="preserve">
+    <value>Select a validated Java runtime or switch back to Auto Manage.</value>
+  </data>
+  <data name="JavaDetectError" xml:space="preserve">
+    <value>Java detection failed</value>
+  </data>
+  <data name="JavaDetectErrorMessage" xml:space="preserve">
+    <value>Emerald could not refresh the detected Java runtimes.</value>
+  </data>
+  <data name="JavaRuntime" xml:space="preserve">
+    <value>Java runtime</value>
+  </data>
+  <data name="JavaRuntimeDescription" xml:space="preserve">
+    <value>Let Emerald manage Java automatically, or choose a validated runtime yourself.</value>
+  </data>
+  <data name="JavaValidationFailed" xml:space="preserve">
+    <value>Java validation failed</value>
+  </data>
+  <data name="JavaValidationFailedMessage" xml:space="preserve">
+    <value>The selected path is not a runnable Java installation.</value>
+  </data>
+  <data name="JavaVersionUnavailable" xml:space="preserve">
+    <value>Version unavailable</value>
+  </data>
+  <data name="NoJavaRuntimeSelected" xml:space="preserve">
+    <value>No Java runtime selected</value>
+  </data>
+  <data name="NoJavaRuntimesFound" xml:space="preserve">
+    <value>No Java runtimes were found yet. Refresh detection or add one manually.</value>
+  </data>
+  <data name="RefreshDetectedJava" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="RemoveSavedJava" xml:space="preserve">
+    <value>Remove saved path</value>
+  </data>
+  <data name="Saved" xml:space="preserve">
+    <value>Saved</value>
+  </data>
+  <data name="SelectedJavaPathUnavailable" xml:space="preserve">
+    <value>The selected Java path is missing or no longer validates. Pick another runtime or switch to Auto Manage.</value>
+  </data>
+  <data name="SelectedJavaRuntime" xml:space="preserve">
+    <value>Selected Java runtime</value>
+  </data>
+  <data name="SetYourOwn" xml:space="preserve">
+    <value>Set Your Own</value>
+  </data>
+  <data name="UseThisJava" xml:space="preserve">
+    <value>Use this Java</value>
+  </data>
 </root>
