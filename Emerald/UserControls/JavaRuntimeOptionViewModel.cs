@@ -5,17 +5,17 @@ namespace Emerald.UserControls;
 
 public partial class JavaRuntimeOptionViewModel : ObservableObject
 {
-    public required string Path { get; init; }
+    public string Path { get; set; } = string.Empty;
 
-    public required string DisplayPath { get; init; }
+    public string DisplayPath { get; set; } = string.Empty;
 
-    public required string Source { get; init; }
+    public string Source { get; set; } = string.Empty;
 
-    public string? Version { get; init; }
+    public string? Version { get; set; }
 
-    public string? ErrorMessage { get; init; }
+    public string? ErrorMessage { get; set; }
 
-    public bool IsCustomSaved { get; init; }
+    public bool IsCustomSaved { get; set; }
 
     [NotifyPropertyChangedFor(nameof(CanSelect))]
     [ObservableProperty]
