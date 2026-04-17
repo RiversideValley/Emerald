@@ -326,28 +326,30 @@ jobs:
             -SkipBundleArchive `
             -CertificatePath $env:EMERALD_SIGNING_CERT_PATH
 
-      - name: Archive Windows packages
-        shell: pwsh
-        run: |
-          $finalDir = Join-Path $env:GITHUB_WORKSPACE "artifacts\windows\final"
-          if (-not (Test-Path -LiteralPath $finalDir)) {
-            throw "Windows final output directory not found: $finalDir"
-          }
-
-          $files = Get-ChildItem -Path $finalDir -File
-          if (-not $files) {
-            throw "No files found in Windows final output directory: $finalDir"
-          }
-
-          $zipPath = Join-Path $env:GITHUB_WORKSPACE "Emerald-Windows-Packages.zip"
-          Compress-Archive -Path (Join-Path $finalDir "*") -DestinationPath $zipPath -Force
-
-      - name: Upload artifact
+      - name: Upload CI appxbundle artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Emerald-Windows-Packages
-          path: ${{ github.workspace }}/Emerald-Windows-Packages.zip
+          name: Emerald-Windows-AppxBundle
+          path: ${{ github.workspace }}/artifacts/windows/final/Emerald-Windows-Signed-x64-arm64.appxbundle
           retention-days: 14
+
+      - name: Upload Windows release files to draft release
+        if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.ci-filter.outputs.release_tag }}
+          name: Emerald ${{ needs.ci-filter.outputs.public_version }}
+          target_commitish: ${{ github.sha }}
+          draft: true
+          prerelease: ${{ needs.ci-filter.outputs.release_is_prerelease == 'true' }}
+          make_latest: ${{ needs.ci-filter.outputs.release_channel == 'release' }}
+          generate_release_notes: false
+          files: |
+            ${{ github.workspace }}/artifacts/windows/final/*.msixbundle
+            ${{ github.workspace }}/artifacts/windows/final/*.appxbundle
+            ${{ github.workspace }}/artifacts/windows/final/*.msix
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cleanup signing certificate
         if: always()
@@ -491,26 +493,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download Windows artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: Emerald-Windows-Packages
-          path: release-assets/windows
-
-      - name: Extract Windows release payload
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          WINDOWS_ZIP="release-assets/windows/Emerald-Windows-Packages.zip"
-          if [ ! -f "$WINDOWS_ZIP" ]; then
-            echo "Expected Windows artifact zip not found: $WINDOWS_ZIP"
-            exit 1
-          fi
-
-          unzip -o "$WINDOWS_ZIP" -d release-assets/windows
-          rm -f "$WINDOWS_ZIP"
-
       - name: Download macOS artifacts
         uses: actions/download-artifact@v4
         with:
@@ -529,6 +511,7 @@ jobs:
           set -euo pipefail
 
           mkdir -p release-assets/metadata
+          mkdir -p release-assets/windows
           cat > release-assets/metadata/channel-info.json <<EOF
           {
             "channel": "${{ needs.ci-filter.outputs.release_channel }}",
