@@ -8,7 +8,7 @@
 
   <Identity
     Name="Riverside.Emerald"
-    Publisher="CN=Riverside Valley, OID.2.25.311729368913984317654407730594956997722=1"
+    Publisher="CN=Riverside Valley"
     Version="1.0.0.0" />
 
   <Properties>

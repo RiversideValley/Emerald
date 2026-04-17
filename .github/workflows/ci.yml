@@ -130,10 +130,11 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
   publish-windows:
-    name: Windows Unsigned Bundle (x64 + arm64)
+    name: Windows Signed Bundle (x64 + arm64)
     needs: ci-filter
-    if: ${{ needs.ci-filter.outputs.run_windows == 'true' }}
+    if: ${{ needs.ci-filter.outputs.run_windows == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) }}
     runs-on: windows-latest
+    timeout-minutes: 35
 
     steps:
       - name: Checkout code
@@ -146,91 +147,49 @@ jobs:
         with:
           job-platform: windows
 
-      - name: Restore project
+      - name: Materialize signing certificate
         shell: pwsh
+        env:
+          WINDOWS_SIGNING_CERT_BASE64: ${{ secrets.WINDOWS_SIGNING_CERT_BASE64 }}
         run: |
-          dotnet msbuild .\Emerald\Emerald.csproj `
-            /r /t:Restore `
-            /p:Configuration=Release `
-            /p:PublishReadyToRun=false `
-            /nologo /v:minimal
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_SIGNING_CERT_BASE64)) {
+            throw "WINDOWS_SIGNING_CERT_BASE64 secret is missing."
+          }
 
-      - name: Publish unsigned MSIX packages (x64 + arm64)
+          $certPath = Join-Path $env:RUNNER_TEMP "emerald-signing.pfx"
+          [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:WINDOWS_SIGNING_CERT_BASE64))
+          "EMERALD_SIGNING_CERT_PATH=$certPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Publish signed MSIX bundle (x64 + arm64)
         shell: pwsh
+        env:
+          WINDOWS_SIGNING_CERT_PASSWORD: ${{ secrets.WINDOWS_SIGNING_CERT_PASSWORD }}
         run: |
-          $packagesRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\windows\packages"
-          New-Item -ItemType Directory -Path $packagesRoot -Force | Out-Null
-
-          $platforms = @("x64", "arm64")
-          foreach ($platform in $platforms) {
-            $appxDir = Join-Path $packagesRoot "$platform\"
-            New-Item -ItemType Directory -Path $appxDir -Force | Out-Null
-
-            dotnet msbuild .\Emerald\Emerald.csproj `
-              /p:TargetFramework=net10.0-windows10.0.26100 `
-              /p:Configuration=Release `
-              /p:Platform=$platform `
-              /p:PublishReadyToRun=false `
-              /p:PublishUnsignedPackage=true `
-              /p:AppxPackageDir="$appxDir" `
-              /nologo /v:minimal
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_SIGNING_CERT_PASSWORD)) {
+            throw "WINDOWS_SIGNING_CERT_PASSWORD secret is missing."
           }
 
-      - name: Bundle MSIX packages
-        shell: pwsh
-        run: |
-          $packagesRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\windows\packages"
-          $bundleInput = Join-Path $env:GITHUB_WORKSPACE "artifacts\windows\bundle-input"
-          $bundleOutput = Join-Path $env:GITHUB_WORKSPACE "artifacts\windows\final"
-          New-Item -ItemType Directory -Path $bundleInput -Force | Out-Null
-          New-Item -ItemType Directory -Path $bundleOutput -Force | Out-Null
-
-          $platforms = @("x64", "arm64")
-          $msixFiles = @()
-          foreach ($platform in $platforms) {
-            $platformDir = Join-Path $packagesRoot $platform
-            $package = Get-ChildItem $platformDir -Recurse -Filter *.msix -File `
-              | Where-Object { $_.Name -match "_$platform\\.msix$" } `
-              | Sort-Object LastWriteTime -Descending `
-              | Select-Object -First 1
-
-            if (-not $package) {
-              $package = Get-ChildItem $platformDir -Recurse -Filter *.msix -File `
-              | Sort-Object LastWriteTime -Descending `
-              | Select-Object -First 1
-            }
-
-            if (-not $package) {
-              throw "No .msix package found for $platform in $platformDir."
-            }
-
-            $msixFiles += $package
-          }
-
-          $msixFiles | ForEach-Object {
-            Copy-Item $_.FullName -Destination (Join-Path $bundleInput $_.Name) -Force
-          }
-
-          $makeAppx = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\makeappx.exe" `
-            | Sort-Object FullName -Descending `
-            | Select-Object -First 1 -ExpandProperty FullName
-
-          if (-not $makeAppx) {
-            throw "makeappx.exe not found on runner."
-          }
-
-          $bundlePath = Join-Path $bundleOutput "Emerald-Windows-Unsigned-x64-arm64.msixbundle"
-          & $makeAppx bundle /o /d $bundleInput /p $bundlePath
-
-          $zipPath = Join-Path $env:GITHUB_WORKSPACE "Emerald-Windows-Unsigned-x64-arm64.zip"
-          Compress-Archive -Path $bundlePath -DestinationPath $zipPath -Force
+          & .\scripts\windows\publish-windows-msix.ps1 `
+            -ProjectPath ".\Emerald\Emerald.csproj" `
+            -OutputRoot (Join-Path $env:GITHUB_WORKSPACE "artifacts\windows") `
+            -SkipBundleVerify `
+            -SkipBundleArchive `
+            -CertificatePath $env:EMERALD_SIGNING_CERT_PATH
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Emerald-Windows-Unsigned-x64-arm64
-          path: ${{ github.workspace }}/Emerald-Windows-Unsigned-x64-arm64.zip
+          name: Emerald-Windows-Signed-x64-arm64
+          path: ${{ github.workspace }}/artifacts/windows/final/Emerald-Windows-Signed-x64-arm64.msixbundle
           retention-days: 7
+
+      - name: Cleanup signing certificate
+        if: always()
+        shell: pwsh
+        run: |
+          if ($env:EMERALD_SIGNING_CERT_PATH -and (Test-Path -LiteralPath $env:EMERALD_SIGNING_CERT_PATH)) {
+            Remove-Item -LiteralPath $env:EMERALD_SIGNING_CERT_PATH -Force
+          }
 
   publish-macos:
     name: macOS .app (arm64)

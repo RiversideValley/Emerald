@@ -8,7 +8,7 @@
     <ApplicationId>Riverside.Emerald</ApplicationId>
     <ApplicationDisplayVersion>1.0.0.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
-    <ApplicationPublisher>CN=Riverside</ApplicationPublisher>
+    <ApplicationPublisher>CN=Riverside Valley</ApplicationPublisher>
     <UnoFeatures>
       Lottie;
       Hosting;
@@ -27,6 +27,14 @@
     <AppxBundle>Never</AppxBundle>
     <UapAppxPackageBuildMode>Sideloading</UapAppxPackageBuildMode>
     <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(PublishSignedPackage)' == 'true' ">
+    <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
+    <AppxBundle>Never</AppxBundle>
+    <UapAppxPackageBuildMode>Sideloading</UapAppxPackageBuildMode>
+    <AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
+    <PackageCertificateThumbprint></PackageCertificateThumbprint>
   </PropertyGroup>
 
   <ItemGroup>

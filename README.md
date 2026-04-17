@@ -80,7 +80,7 @@ Nightly preview builds are distributed through GitHub Actions CI artifacts.
 1. Open [CI Build & Artifacts](https://github.com/RiversideValley/Emerald/actions/workflows/ci.yml).
 2. Select a recent successful run on `main`.
 3. Download the artifact for your platform:
-   - `Emerald-Windows-Unsigned-x64-arm64`
+   - `Emerald-Windows-Signed-x64-arm64`
    - `Emerald-macOS-arm64-app`
    - `Emerald-linux-x64`
 
@@ -120,6 +120,12 @@ dotnet build Emerald.slnx
 ```bash
 dotnet test Emerald.CoreX.Tests/Emerald.CoreX.Tests.csproj
 ```
+
+### Windows Signed Packaging
+
+Windows packaged builds now use signed MSIX output.
+
+- Setup and local publish instructions: [docs/windows-signing.md](docs/windows-signing.md)
 
 ## Codebase Structure
 
