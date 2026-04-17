@@ -385,6 +385,7 @@ jobs:
             -f net10.0-desktop \
             -r osx-arm64 \
             -p:SelfContained=true \
+            -p:PackageFormat=app \
             -p:PublishTrimmed=false \
             -p:PublishSingleFile=false \
             -p:Version="${{ needs.ci-filter.outputs.package_version }}" \
@@ -399,22 +400,19 @@ jobs:
             -p:EmeraldBuildTimestampUtc="${{ needs.ci-filter.outputs.build_timestamp_utc }}" \
             -o "$OUTPUT_DIR"
 
-      - name: Archive macOS publish output
+      - name: Zip macOS .app (preserve app bundle metadata)
         shell: bash
         run: |
-          set -euo pipefail
-
           OUTPUT_DIR="$GITHUB_WORKSPACE/artifacts/macos/Emerald-macOS-arm64"
-          ZIP_PATH="$GITHUB_WORKSPACE/Emerald-macOS-arm64-app.zip"
-          APP_PATH="$(find "$OUTPUT_DIR" -maxdepth 2 -type d -name '*.app' | head -n 1 || true)"
+          APP_PATH="$(find "$OUTPUT_DIR" -maxdepth 2 -type d -name '*.app' | head -n 1)"
 
-          if [ -n "$APP_PATH" ]; then
-            echo "Found .app bundle at $APP_PATH"
-            ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ZIP_PATH"
-          else
-            echo "No .app bundle found in $OUTPUT_DIR. Archiving publish folder instead."
-            ditto -c -k --sequesterRsrc --keepParent "$OUTPUT_DIR" "$ZIP_PATH"
+          if [ -z "$APP_PATH" ]; then
+            echo "No .app bundle found in $OUTPUT_DIR"
+            exit 1
           fi
+
+          ZIP_PATH="$GITHUB_WORKSPACE/Emerald-macOS-arm64-app.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ZIP_PATH"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
