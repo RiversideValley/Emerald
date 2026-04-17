@@ -4,10 +4,24 @@
     <OutputType>Exe</OutputType>
     <UnoSingleProject>true</UnoSingleProject>
 
+    <VersionPrefix Condition="'$(VersionPrefix)' == ''">0.1.0</VersionPrefix>
+    <EmeraldUpdateChannel Condition="'$(EmeraldUpdateChannel)' == ''">nightly</EmeraldUpdateChannel>
+    <EmeraldPublicVersion Condition="'$(EmeraldPublicVersion)' == ''">nightly-local</EmeraldPublicVersion>
+    <EmeraldPackageVersion Condition="'$(EmeraldPackageVersion)' == ''">0.1.0.1</EmeraldPackageVersion>
+    <EmeraldPackageRevision Condition="'$(EmeraldPackageRevision)' == ''">1</EmeraldPackageRevision>
+    <EmeraldReleaseTag Condition="'$(EmeraldReleaseTag)' == ''">nightly-local</EmeraldReleaseTag>
+    <EmeraldCommitSha Condition="'$(EmeraldCommitSha)' == ''">local</EmeraldCommitSha>
+    <EmeraldBuildTimestampUtc Condition="'$(EmeraldBuildTimestampUtc)' == ''">1970-01-01T00:00:00Z</EmeraldBuildTimestampUtc>
+
+    <Version Condition="'$(Version)' == ''">$(EmeraldPackageVersion)</Version>
+    <FileVersion Condition="'$(FileVersion)' == ''">$(EmeraldPackageVersion)</FileVersion>
+    <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">$(EmeraldPackageVersion)</AssemblyVersion>
+    <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(EmeraldPublicVersion)</InformationalVersion>
+
     <ApplicationTitle>Emerald</ApplicationTitle>
     <ApplicationId>Riverside.Emerald</ApplicationId>
-    <ApplicationDisplayVersion>1.0.0.0</ApplicationDisplayVersion>
-    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>$(EmeraldPackageVersion)</ApplicationDisplayVersion>
+    <ApplicationVersion>$(EmeraldPackageRevision)</ApplicationVersion>
     <ApplicationPublisher>CN=Riverside Valley</ApplicationPublisher>
     <UnoFeatures>
       Lottie;
@@ -47,6 +61,29 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Emerald.UpdateChannel</_Parameter1>
+      <_Parameter2>$(EmeraldUpdateChannel)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Emerald.PublicVersion</_Parameter1>
+      <_Parameter2>$(EmeraldPublicVersion)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Emerald.ReleaseTag</_Parameter1>
+      <_Parameter2>$(EmeraldReleaseTag)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Emerald.CommitSha</_Parameter1>
+      <_Parameter2>$(EmeraldCommitSha)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Emerald.BuildTimestampUtc</_Parameter1>
+      <_Parameter2>$(EmeraldBuildTimestampUtc)</_Parameter2>
+    </AssemblyAttribute>
   </ItemGroup>
 
   <ItemGroup>

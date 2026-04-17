@@ -1,4 +1,4 @@
-name: CI Build & Artifacts
+name: CI Build, Channels, and Release Drafts
 
 on:
   push:
@@ -8,6 +8,20 @@ on:
     branches: [main, release/**]
   workflow_dispatch:
     inputs:
+      channel:
+        description: Release channel
+        type: choice
+        required: true
+        default: nightly
+        options:
+          - nightly
+          - pre-release
+          - release
+      version_prefix:
+        description: Semver prefix for pre-release/release (for example 1.4.0)
+        type: string
+        required: false
+        default: ""
       run_windows:
         description: Build Windows artifact
         type: boolean
@@ -30,15 +44,28 @@ concurrency:
 
 jobs:
   ci-filter:
-    name: Resolve CI Platform Filter
+    name: Resolve CI Channel and Platform Filter
     runs-on: ubuntu-latest
     outputs:
       run_windows: ${{ steps.filter.outputs.run_windows }}
       run_macos: ${{ steps.filter.outputs.run_macos }}
       run_linux: ${{ steps.filter.outputs.run_linux }}
+      release_channel: ${{ steps.filter.outputs.release_channel }}
+      is_release_flow: ${{ steps.filter.outputs.is_release_flow }}
+      release_is_prerelease: ${{ steps.filter.outputs.release_is_prerelease }}
+      public_version: ${{ steps.filter.outputs.public_version }}
+      package_version: ${{ steps.filter.outputs.package_version }}
+      package_revision: ${{ steps.filter.outputs.package_revision }}
+      release_tag: ${{ steps.filter.outputs.release_tag }}
+      build_timestamp_utc: ${{ steps.filter.outputs.build_timestamp_utc }}
 
     steps:
-      - name: Resolve commit/PR tags
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve commit/PR tags and build channel
         id: filter
         shell: bash
         run: |
@@ -83,18 +110,60 @@ jobs:
             printf '%s %s %s\n' "$run_windows" "$run_macos" "$run_linux"
           }
 
+          resolve_channel() {
+            local source_text="$1"
+            local source_text_lc
+            source_text_lc="$(printf '%s' "$source_text" | tr '[:upper:]' '[:lower:]')"
+
+            local has_rel=false
+            local has_pre=false
+            local has_nightly=false
+
+            if [[ "$source_text_lc" == *"[ci-rel]"* ]]; then
+              has_rel=true
+            fi
+            if [[ "$source_text_lc" == *"[ci-pre]"* ]]; then
+              has_pre=true
+            fi
+            if [[ "$source_text_lc" == *"[ci-nightly]"* ]]; then
+              has_nightly=true
+            fi
+
+            local count=0
+            $has_rel && count=$((count + 1))
+            $has_pre && count=$((count + 1))
+            $has_nightly && count=$((count + 1))
+
+            if [ "$count" -gt 1 ]; then
+              echo "Conflicting CI channel tags found in source text."
+              exit 1
+            fi
+
+            if $has_rel; then
+              printf '%s\n' "release"
+            elif $has_pre; then
+              printf '%s\n' "pre-release"
+            elif $has_nightly; then
+              printf '%s\n' "nightly"
+            else
+              printf '%s\n' "nightly"
+            fi
+          }
+
           if [ "$event_name" = "workflow_dispatch" ]; then
             run_windows="$(jq -r '.inputs.run_windows // "true"' "$GITHUB_EVENT_PATH")"
             run_macos="$(jq -r '.inputs.run_macos // "true"' "$GITHUB_EVENT_PATH")"
             run_linux="$(jq -r '.inputs.run_linux // "true"' "$GITHUB_EVENT_PATH")"
+            release_channel="$(jq -r '.inputs.channel // "nightly"' "$GITHUB_EVENT_PATH")"
+            version_prefix_input="$(jq -r '.inputs.version_prefix // ""' "$GITHUB_EVENT_PATH")"
             source_used="workflow_dispatch.inputs"
           elif [ "$event_name" = "pull_request" ]; then
-            # Baseline for PRs is always PR description/body.
             pr_description="$(jq -r '.pull_request.body // ""' "$GITHUB_EVENT_PATH")"
             read -r run_windows run_macos run_linux <<< "$(resolve_flags "$pr_description")"
+            release_channel="$(resolve_channel "$pr_description")"
             source_used="pull_request.body"
+            version_prefix_input=""
 
-            # On synchronize, latest commit message overrides PR description rule.
             if [ "$event_action" = "synchronize" ]; then
               head_repo_api="$(jq -r '.pull_request.head.repo.url // ""' "$GITHUB_EVENT_PATH")"
               head_sha="$(jq -r '.pull_request.head.sha // ""' "$GITHUB_EVENT_PATH")"
@@ -113,24 +182,96 @@ jobs:
 
               if [ -n "$commit_text" ]; then
                 read -r run_windows run_macos run_linux <<< "$(resolve_flags "$commit_text")"
+                release_channel="$(resolve_channel "$commit_text")"
                 source_used="pull_request.head_commit.message"
               fi
             fi
           else
             push_message="$(jq -r '.head_commit.message // ""' "$GITHUB_EVENT_PATH")"
             read -r run_windows run_macos run_linux <<< "$(resolve_flags "$push_message")"
+            release_channel="$(resolve_channel "$push_message")"
             source_used="head_commit.message"
+            version_prefix_input=""
           fi
 
-          echo "Resolved flags from $source_used: windows=$run_windows macos=$run_macos linux=$run_linux"
+          if [ -z "$version_prefix_input" ]; then
+            version_prefix_input="$(sed -n 's#.*<VersionPrefix>\(.*\)</VersionPrefix>.*#\1#p' Emerald/Emerald.csproj | head -n 1)"
+          fi
+          if [ -z "$version_prefix_input" ]; then
+            version_prefix_input="0.1.0"
+          fi
+
+          if [[ "$release_channel" != "nightly" ]]; then
+            run_windows=true
+            run_macos=true
+            run_linux=true
+          fi
+
+          if ! [[ "$version_prefix_input" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "version_prefix must use semantic format MAJOR.MINOR.PATCH. Found: $version_prefix_input"
+            exit 1
+          fi
+
+          major="${BASH_REMATCH[1]}"
+          minor="${BASH_REMATCH[2]}"
+          patch="${BASH_REMATCH[3]}"
+
+          short_sha="${GITHUB_SHA:0:7}"
+          build_timestamp_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          run_number="${GITHUB_RUN_NUMBER:-1}"
+          run_attempt="${GITHUB_RUN_ATTEMPT:-1}"
+
+          if [ "$release_channel" = "nightly" ]; then
+            timestamp_slug="$(date -u +%Y%m%d.%H%M)"
+            package_major="$(date -u +%y)"
+            package_minor="$(date -u +%j)"
+            package_build="$(date -u +%H%M)"
+            package_revision="$run_attempt"
+
+            public_version="nightly-${timestamp_slug}+sha.${short_sha}"
+            package_version="${package_major}.${package_minor}.${package_build}.${package_revision}"
+            release_tag="nightly-${timestamp_slug}+pkg.${package_version}"
+            release_is_prerelease=true
+            is_release_flow=false
+          else
+            package_revision="$(( (run_number % 65534) + 1 ))"
+            package_version="${major}.${minor}.${patch}.${package_revision}"
+
+            if [ "$release_channel" = "pre-release" ]; then
+              public_version="${version_prefix_input}-pre.${package_revision}"
+              release_is_prerelease=true
+            else
+              public_version="${version_prefix_input}"
+              release_is_prerelease=false
+            fi
+
+            release_tag="v${public_version}+pkg.${package_version}"
+            is_release_flow=true
+          fi
+
+          echo "Resolved flags from $source_used:"
+          echo "  channel=$release_channel"
+          echo "  windows=$run_windows macos=$run_macos linux=$run_linux"
+          echo "  public_version=$public_version"
+          echo "  package_version=$package_version"
+          echo "  release_tag=$release_tag"
+
           {
             echo "run_windows=$run_windows"
             echo "run_macos=$run_macos"
             echo "run_linux=$run_linux"
+            echo "release_channel=$release_channel"
+            echo "is_release_flow=$is_release_flow"
+            echo "release_is_prerelease=$release_is_prerelease"
+            echo "public_version=$public_version"
+            echo "package_version=$package_version"
+            echo "package_revision=$package_revision"
+            echo "release_tag=$release_tag"
+            echo "build_timestamp_utc=$build_timestamp_utc"
           } >> "$GITHUB_OUTPUT"
 
   publish-windows:
-    name: Windows Signed Bundle (x64 + arm64)
+    name: Windows Signed Bundle and MSIX
     needs: ci-filter
     if: ${{ needs.ci-filter.outputs.run_windows == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) }}
     runs-on: windows-latest
@@ -160,7 +301,7 @@ jobs:
           [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:WINDOWS_SIGNING_CERT_BASE64))
           "EMERALD_SIGNING_CERT_PATH=$certPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Publish signed MSIX bundle (x64 + arm64)
+      - name: Publish signed Windows packages
         shell: pwsh
         env:
           WINDOWS_SIGNING_CERT_PASSWORD: ${{ secrets.WINDOWS_SIGNING_CERT_PASSWORD }}
@@ -172,6 +313,15 @@ jobs:
           & .\scripts\windows\publish-windows-msix.ps1 `
             -ProjectPath ".\Emerald\Emerald.csproj" `
             -OutputRoot (Join-Path $env:GITHUB_WORKSPACE "artifacts\windows") `
+            -Version "${{ needs.ci-filter.outputs.package_version }}" `
+            -FileVersion "${{ needs.ci-filter.outputs.package_version }}" `
+            -AssemblyVersion "${{ needs.ci-filter.outputs.package_version }}" `
+            -InformationalVersion "${{ needs.ci-filter.outputs.public_version }}" `
+            -UpdateChannel "${{ needs.ci-filter.outputs.release_channel }}" `
+            -PublicVersion "${{ needs.ci-filter.outputs.public_version }}" `
+            -ReleaseTag "${{ needs.ci-filter.outputs.release_tag }}" `
+            -CommitSha "${{ github.sha }}" `
+            -BuildTimestampUtc "${{ needs.ci-filter.outputs.build_timestamp_utc }}" `
             -SkipBundleVerify `
             -SkipBundleArchive `
             -CertificatePath $env:EMERALD_SIGNING_CERT_PATH
@@ -179,9 +329,9 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Emerald-Windows-Signed-x64-arm64
-          path: ${{ github.workspace }}/artifacts/windows/final/Emerald-Windows-Signed-x64-arm64.msixbundle
-          retention-days: 7
+          name: Emerald-Windows-Packages
+          path: ${{ github.workspace }}/artifacts/windows/final/*
+          retention-days: 14
 
       - name: Cleanup signing certificate
         if: always()
@@ -219,9 +369,18 @@ jobs:
             -f net10.0-desktop \
             -r osx-arm64 \
             -p:SelfContained=true \
-            -p:PackageFormat=app \
             -p:PublishTrimmed=false \
             -p:PublishSingleFile=false \
+            -p:Version="${{ needs.ci-filter.outputs.package_version }}" \
+            -p:FileVersion="${{ needs.ci-filter.outputs.package_version }}" \
+            -p:AssemblyVersion="${{ needs.ci-filter.outputs.package_version }}" \
+            -p:InformationalVersion="${{ needs.ci-filter.outputs.public_version }}" \
+            -p:EmeraldPackageVersion="${{ needs.ci-filter.outputs.package_version }}" \
+            -p:EmeraldPublicVersion="${{ needs.ci-filter.outputs.public_version }}" \
+            -p:EmeraldUpdateChannel="${{ needs.ci-filter.outputs.release_channel }}" \
+            -p:EmeraldReleaseTag="${{ needs.ci-filter.outputs.release_tag }}" \
+            -p:EmeraldCommitSha="${{ github.sha }}" \
+            -p:EmeraldBuildTimestampUtc="${{ needs.ci-filter.outputs.build_timestamp_utc }}" \
             -o "$OUTPUT_DIR"
 
       - name: Zip macOS .app (preserve app bundle metadata)
@@ -243,7 +402,7 @@ jobs:
         with:
           name: Emerald-macOS-arm64-app
           path: ${{ github.workspace }}/Emerald-macOS-arm64-app.zip
-          retention-days: 7
+          retention-days: 14
 
   publish-linux:
     name: Linux x64 Package
@@ -275,6 +434,16 @@ jobs:
             -p:SelfContained=true \
             -p:PublishTrimmed=false \
             -p:PublishSingleFile=false \
+            -p:Version="${{ needs.ci-filter.outputs.package_version }}" \
+            -p:FileVersion="${{ needs.ci-filter.outputs.package_version }}" \
+            -p:AssemblyVersion="${{ needs.ci-filter.outputs.package_version }}" \
+            -p:InformationalVersion="${{ needs.ci-filter.outputs.public_version }}" \
+            -p:EmeraldPackageVersion="${{ needs.ci-filter.outputs.package_version }}" \
+            -p:EmeraldPublicVersion="${{ needs.ci-filter.outputs.public_version }}" \
+            -p:EmeraldUpdateChannel="${{ needs.ci-filter.outputs.release_channel }}" \
+            -p:EmeraldReleaseTag="${{ needs.ci-filter.outputs.release_tag }}" \
+            -p:EmeraldCommitSha="${{ github.sha }}" \
+            -p:EmeraldBuildTimestampUtc="${{ needs.ci-filter.outputs.build_timestamp_utc }}" \
             -o "$OUTPUT_DIR"
 
       - name: Archive Linux package
@@ -288,4 +457,97 @@ jobs:
         with:
           name: Emerald-linux-x64
           path: ${{ github.workspace }}/Emerald-linux-x64.tar.gz
-          retention-days: 7
+          retention-days: 14
+
+  draft-release:
+    name: Draft GitHub Release
+    needs: [ci-filter, publish-windows, publish-macos, publish-linux]
+    if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: Emerald-Windows-Packages
+          path: release-assets/windows
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: Emerald-macOS-arm64-app
+          path: release-assets/macos
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: Emerald-linux-x64
+          path: release-assets/linux
+
+      - name: Build release metadata files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p release-assets/metadata
+          cat > release-assets/metadata/channel-info.json <<EOF
+          {
+            "channel": "${{ needs.ci-filter.outputs.release_channel }}",
+            "publicVersion": "${{ needs.ci-filter.outputs.public_version }}",
+            "packageVersion": "${{ needs.ci-filter.outputs.package_version }}",
+            "tag": "${{ needs.ci-filter.outputs.release_tag }}",
+            "commit": "${{ github.sha }}",
+            "buildTimestampUtc": "${{ needs.ci-filter.outputs.build_timestamp_utc }}"
+          }
+          EOF
+
+          if [ "${{ needs.ci-filter.outputs.release_channel }}" = "release" ]; then
+            cat > release-assets/windows/Emerald-Release.appinstaller <<EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <AppInstaller
+            Uri="https://github.com/RiversideValley/Emerald/releases/latest/download/Emerald-Release.appinstaller"
+            Version="${{ needs.ci-filter.outputs.package_version }}"
+            xmlns="http://schemas.microsoft.com/appx/appinstaller/2018"
+            xmlns:main="http://schemas.microsoft.com/appx/appinstaller/2017"
+            xmlns:s4="http://schemas.microsoft.com/appx/appinstaller/2021">
+            <MainBundle
+              Name="Riverside.Emerald"
+              Publisher="CN=Riverside Valley"
+              Version="${{ needs.ci-filter.outputs.package_version }}"
+              Uri="https://github.com/RiversideValley/Emerald/releases/latest/download/Emerald-Windows-Signed-x64-arm64.msixbundle" />
+            <UpdateSettings>
+              <s4:AutomaticBackgroundTask />
+              <main:OnLaunch HoursBetweenUpdateChecks="0" ShowPrompt="true" UpdateBlocksActivation="false" />
+            </UpdateSettings>
+          </AppInstaller>
+          EOF
+          fi
+
+      - name: Collect release file list
+        id: files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          {
+            echo "files<<EOF"
+            find release-assets/windows -maxdepth 1 -type f | sort
+            find release-assets/macos -maxdepth 1 -type f | sort
+            find release-assets/linux -maxdepth 1 -type f | sort
+            find release-assets/metadata -maxdepth 1 -type f | sort
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.ci-filter.outputs.release_tag }}
+          name: Emerald ${{ needs.ci-filter.outputs.public_version }}
+          target_commitish: ${{ github.sha }}
+          draft: true
+          prerelease: ${{ needs.ci-filter.outputs.release_is_prerelease == 'true' }}
+          make_latest: ${{ needs.ci-filter.outputs.release_channel == 'release' }}
+          generate_release_notes: true
+          files: ${{ steps.files.outputs.files }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

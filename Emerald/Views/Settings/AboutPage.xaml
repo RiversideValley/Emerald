@@ -5,6 +5,7 @@
     xmlns:cn="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helpers="using:Emerald.Helpers"
+    xmlns:local="using:Emerald.Views.Settings"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     x:Name="Root"
     mc:Ignorable="d">
@@ -35,7 +36,7 @@
                                 Margin="6,0,0,0"
                                 VerticalAlignment="Center"
                                 FontWeight="SemiBold"
-                                Text="{x:Bind BuildType, Mode=OneWay}" />
+                                Text="{x:Bind BuildTypeLabel, Mode=OneWay}" />
                         </StackPanel>
                     </StackPanel>
 
@@ -106,8 +107,14 @@
                     <cn:SettingsCard Header="{helpers:Localize KeyName=CheckForUpdates}">
                         <Button x:Name="CheckUpdatesButton" Click="CheckUpdates_Click" Content="{helpers:Localize KeyName=CheckNow}" />
                     </cn:SettingsCard>
-                    <cn:SettingsCard Header="{helpers:Localize KeyName=IncludePreReleases}">
-                        <ToggleSwitch IsOn="{x:Bind SS.Settings.App.Updates.IncludePreReleases, Mode=TwoWay}" />
+                    <cn:SettingsCard Header="{helpers:Localize KeyName=UpdateChannel}">
+                        <ComboBox ItemsSource="{x:Bind AvailableChannels, Mode=OneWay}" SelectedItem="{x:Bind SelectedUpdateChannel, Mode=TwoWay}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="local:ChannelOption">
+                                    <TextBlock Text="{x:Bind Label, Mode=OneWay}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </cn:SettingsCard>
                     <cn:SettingsCard Header="{helpers:Localize KeyName=CheckForUpdatesAtStartup}">
                         <ToggleSwitch IsOn="{x:Bind SS.Settings.App.Updates.CheckAtStartup, Mode=TwoWay}" />
@@ -135,6 +142,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -144,6 +152,8 @@
                     <TextBlock Grid.Column="1" Text="{x:Bind AppVersion, Mode=OneWay}" />
                     <TextBlock Grid.Row="1" Margin="0,0,8,0" Text="{helpers:Localize KeyName=BuildType}" />
                     <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind BuildInfo, Mode=OneWay}" />
+                    <TextBlock Grid.Row="2" Margin="0,0,8,0" Text="{helpers:Localize KeyName=PackageVersion}" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind PackageVersion, Mode=OneWay}" />
                 </Grid>
             </TeachingTip.Content>
         </TeachingTip>

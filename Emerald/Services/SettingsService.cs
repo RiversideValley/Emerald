@@ -3,6 +3,7 @@ using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Services;
 using Emerald.Helpers.Settings;
+using Emerald.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Emerald.Services;
@@ -42,6 +43,14 @@ public class SettingsService(
 
                 loadedSettings = Helpers.Settings.JSON.Settings.CreateNew();
                 baseService.Set(SettingsKeys.Settings, loadedSettings);
+            }
+
+            if (loadedSettings.App.Updates.PreferredChannel == AppReleaseChannel.Nightly
+                && DirectResoucres.ReleaseChannel != AppReleaseChannel.Nightly)
+            {
+                loadedSettings.App.Updates.PreferredChannel = loadedSettings.App.Updates.IncludePreReleases
+                    ? AppReleaseChannel.Prerelease
+                    : DirectResoucres.ReleaseChannel;
             }
 
             Settings = loadedSettings;
