@@ -49,6 +49,7 @@ function Write-Step([string]$Message) {
 }
 
 try {
+    Write-Step "Loading certificate metadata..."
     $pfxProbe = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($certificateFullPath, $CertificatePassword)
     try {
         $hadMyCertBeforeImport = Test-Path -LiteralPath "Cert:\CurrentUser\My\$($pfxProbe.Thumbprint)"
@@ -57,6 +58,7 @@ try {
         $pfxProbe.Dispose()
     }
 
+    Write-Step "Importing signing certificate into CurrentUser\\My..."
     $securePassword = ConvertTo-SecureString -String $CertificatePassword -AsPlainText -Force
     $importedCerts = Import-PfxCertificate `
         -FilePath $certificateFullPath `
@@ -110,24 +112,27 @@ try {
 
     $importedThumbprint = $importedCert.Thumbprint
 
-    $rootStore = [System.Security.Cryptography.X509Certificates.X509Store]::new("Root", "CurrentUser")
-    $rootStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-    try {
-        $alreadyInRoot = $false
-        foreach ($cert in $rootStore.Certificates) {
-            if ($cert.Thumbprint -eq $importedThumbprint) {
-                $alreadyInRoot = $true
-                break
+    if (-not $SkipBundleVerify) {
+        Write-Step "Ensuring certificate is trusted in CurrentUser\\Root for bundle verification..."
+        $rootStore = [System.Security.Cryptography.X509Certificates.X509Store]::new("Root", "CurrentUser")
+        $rootStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+        try {
+            $alreadyInRoot = $false
+            foreach ($cert in $rootStore.Certificates) {
+                if ($cert.Thumbprint -eq $importedThumbprint) {
+                    $alreadyInRoot = $true
+                    break
+                }
+            }
+
+            if (-not $alreadyInRoot) {
+                $rootStore.Add($importedCert)
+                $addedToRootStore = $true
             }
         }
-
-        if (-not $alreadyInRoot) {
-            $rootStore.Add($importedCert)
-            $addedToRootStore = $true
+        finally {
+            $rootStore.Close()
         }
-    }
-    finally {
-        $rootStore.Close()
     }
 
     Write-Step "Restoring project dependencies..."
