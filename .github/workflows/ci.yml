@@ -479,7 +479,15 @@ jobs:
   draft-release:
     name: Draft GitHub Release
     needs: [ci-filter, publish-windows, publish-macos, publish-linux]
-    if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' && github.event_name != 'pull_request' }}
+    if: >-
+      ${{
+        always() &&
+        needs.ci-filter.outputs.is_release_flow == 'true' &&
+        needs.publish-windows.result == 'success' &&
+        needs.publish-macos.result == 'success' &&
+        needs.publish-linux.result == 'success' &&
+        (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false)
+      }}
     runs-on: ubuntu-latest
 
     steps:
