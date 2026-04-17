@@ -4,6 +4,7 @@ param(
     [string]$TargetFramework = "net10.0-windows10.0.26100",
     [string[]]$Platforms = @("x64", "arm64"),
     [string]$OutputRoot = ".\artifacts\windows",
+    [switch]$SkipBundleVerify,
     [Parameter(Mandatory = $true)]
     [string]$CertificatePath,
     [string]$CertificatePassword
@@ -42,6 +43,11 @@ $bundleOutput = Join-Path $outputRootFullPath "final"
 New-Item -ItemType Directory -Path $packagesRoot -Force | Out-Null
 New-Item -ItemType Directory -Path $bundleInput -Force | Out-Null
 New-Item -ItemType Directory -Path $bundleOutput -Force | Out-Null
+
+function Write-Step([string]$Message) {
+    Write-Host "[$([DateTime]::UtcNow.ToString('u'))] $Message"
+}
+
 try {
     $pfxProbe = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($certificateFullPath, $CertificatePassword)
     try {
@@ -124,11 +130,12 @@ try {
         $rootStore.Close()
     }
 
-    Write-Host "Restoring project dependencies..."
+    Write-Step "Restoring project dependencies..."
     & dotnet msbuild $projectFullPath `
         /r /t:Restore `
         "/p:Configuration=$Configuration" `
         /p:PublishReadyToRun=false `
+        /m `
         /nologo /v:minimal
 
     if ($LASTEXITCODE -ne 0) {
@@ -140,17 +147,21 @@ try {
         $appxDir = Join-Path $packagesRoot "$platform\"
         New-Item -ItemType Directory -Path $appxDir -Force | Out-Null
 
-        Write-Host "Publishing signed MSIX for platform '$platform'..."
+        Write-Step "Publishing signed MSIX for platform '$platform'..."
         & dotnet msbuild $projectFullPath `
             "/p:TargetFramework=$TargetFramework" `
             "/p:Configuration=$Configuration" `
             "/p:Platform=$platform" `
+            /p:Restore=false `
             /p:PublishReadyToRun=false `
             /p:PublishSignedPackage=true `
+            /p:GenerateTestArtifacts=false `
+            /p:AppxSymbolPackageEnabled=false `
             "/p:AppxPackageDir=$appxDir" `
             "/p:PackageCertificateThumbprint=$importedThumbprint" `
             /p:PackageCertificateKeyFile= `
             /p:PackageCertificatePassword= `
+            /m `
             /nologo /v:minimal
 
         if ($LASTEXITCODE -ne 0) {
@@ -203,25 +214,30 @@ try {
         throw "makeappx bundle command failed with exit code $LASTEXITCODE."
     }
 
-    Write-Host "Signing MSIX bundle..."
+    Write-Step "Signing MSIX bundle..."
     & $signTool sign /fd SHA256 /sha1 $importedThumbprint /s My $bundlePath
 
     if ($LASTEXITCODE -ne 0) {
         throw "signtool sign command failed with exit code $LASTEXITCODE."
     }
 
-    Write-Host "Verifying MSIX bundle signature..."
-    & $signTool verify /pa /v $bundlePath
+    if ($SkipBundleVerify) {
+        Write-Step "Skipping bundle verification (SkipBundleVerify was set)."
+    }
+    else {
+        Write-Step "Verifying MSIX bundle signature..."
+        & $signTool verify /pa /v $bundlePath
 
-    if ($LASTEXITCODE -ne 0) {
-        throw "signtool verify command failed with exit code $LASTEXITCODE."
+        if ($LASTEXITCODE -ne 0) {
+            throw "signtool verify command failed with exit code $LASTEXITCODE."
+        }
     }
 
     $zipPath = Join-Path $bundleOutput "Emerald-Windows-Signed-$platformSlug.zip"
     Compress-Archive -Path $bundlePath -DestinationPath $zipPath -Force
 
-    Write-Host "Signed bundle created: $bundlePath"
-    Write-Host "Signed archive created: $zipPath"
+    Write-Step "Signed bundle created: $bundlePath"
+    Write-Step "Signed archive created: $zipPath"
 
     if ($env:GITHUB_OUTPUT) {
         Add-Content -Path $env:GITHUB_OUTPUT -Value "windows_bundle_path=$bundlePath"

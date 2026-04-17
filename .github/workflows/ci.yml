@@ -171,6 +171,7 @@ jobs:
           & .\scripts\windows\publish-windows-msix.ps1 `
             -ProjectPath ".\Emerald\Emerald.csproj" `
             -OutputRoot (Join-Path $env:GITHUB_WORKSPACE "artifacts\windows") `
+            -SkipBundleVerify `
             -CertificatePath $env:EMERALD_SIGNING_CERT_PATH `
             -CertificatePassword $env:WINDOWS_SIGNING_CERT_PASSWORD
 

@@ -79,3 +79,5 @@ If CI fails with certificate import/signing errors:
 `mspdbcmf.exe` warning during packaging is non-blocking and does not cause signing failure.
 
 In CI, verification now trusts the imported cert in the current user root store temporarily, then removes it during cleanup.
+
+To reduce CI runtime, workflow packaging runs with `-SkipBundleVerify` and relies on signing command success.
