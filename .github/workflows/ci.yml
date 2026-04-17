@@ -4,8 +4,25 @@ on:
   push:
     branches: [main, release/**]
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, edited]
     branches: [main, release/**]
+  workflow_dispatch:
+    inputs:
+      run_windows:
+        description: Build Windows artifact
+        type: boolean
+        required: true
+        default: true
+      run_macos:
+        description: Build macOS artifact
+        type: boolean
+        required: true
+        default: true
+      run_linux:
+        description: Build Linux artifact
+        type: boolean
+        required: true
+        default: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -66,7 +83,12 @@ jobs:
             printf '%s %s %s\n' "$run_windows" "$run_macos" "$run_linux"
           }
 
-          if [ "$event_name" = "pull_request" ]; then
+          if [ "$event_name" = "workflow_dispatch" ]; then
+            run_windows="$(jq -r '.inputs.run_windows // "true"' "$GITHUB_EVENT_PATH")"
+            run_macos="$(jq -r '.inputs.run_macos // "true"' "$GITHUB_EVENT_PATH")"
+            run_linux="$(jq -r '.inputs.run_linux // "true"' "$GITHUB_EVENT_PATH")"
+            source_used="workflow_dispatch.inputs"
+          elif [ "$event_name" = "pull_request" ]; then
             # Baseline for PRs is always PR description/body.
             pr_description="$(jq -r '.pull_request.body // ""' "$GITHUB_EVENT_PATH")"
             read -r run_windows run_macos run_linux <<< "$(resolve_flags "$pr_description")"
