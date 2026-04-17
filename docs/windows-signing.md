@@ -64,3 +64,16 @@ Import-Certificate -FilePath "C:\secrets\EmeraldSigning.cer" -CertStoreLocation 
 ```
 
 Then install the `.msixbundle`.
+
+## CI troubleshooting (APPX0105 / APPX0107)
+
+If CI fails with certificate import/signing errors:
+
+- Ensure the PFX actually contains a private key.
+- Ensure certificate `Subject` exactly matches manifest publisher (`CN=Riverside Valley`).
+- Ensure certificate includes Code Signing EKU (`1.3.6.1.5.5.7.3.3`).
+- Recreate GitHub secrets after exporting a fresh PFX:
+  - `WINDOWS_SIGNING_CERT_BASE64`
+  - `WINDOWS_SIGNING_CERT_PASSWORD`
+
+`mspdbcmf.exe` warning during packaging is non-blocking and does not cause signing failure.
