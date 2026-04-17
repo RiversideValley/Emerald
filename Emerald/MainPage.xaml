@@ -6,6 +6,7 @@
       xmlns:models="using:Emerald.Models"
       xmlns:uc="using:Emerald.UserControls"
     xmlns:conv="using:Emerald.Helpers.Converters"
+      Background="Transparent"
       xmlns:helpers="using:Emerald.Helpers">
   <Page.Resources>
     <conv:BoolToVisibility x:Key="BoolToVisibilty"/>
@@ -22,7 +23,7 @@
                 x:Name="NavView"
                 Margin="0,48,0,0"
                 AlwaysShowHeader="False"
-        
+
                 IsBackButtonVisible="Collapsed"
                 IsPaneToggleButtonVisible="False"
                 IsSettingsVisible="False"
@@ -54,7 +55,7 @@
           </Grid>
         </DataTemplate>
       </NavigationView.HeaderTemplate>
-        
+
       <NavigationView.Resources>
         <x:Double x:Key="NavigationViewSelectionIndicatorWidth">4</x:Double>
         <x:Double x:Key="NavigationViewSelectionIndicatorHeight">24</x:Double>
@@ -121,7 +122,7 @@
         </DataTemplate>
       </NavigationView.MenuItemTemplate>
 
-        
+
 
       <Frame x:Name="frame"/>
 

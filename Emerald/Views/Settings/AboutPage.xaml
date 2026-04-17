@@ -1,0 +1,151 @@
+<Page
+    x:Class="Emerald.Views.Settings.AboutPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cn="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:helpers="using:Emerald.Helpers"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Name="Root"
+    mc:Ignorable="d">
+
+    <Grid Margin="16">
+        <StackPanel Spacing="12">
+            <Border CornerRadius="12" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                <Grid Padding="12" ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <Image Width="40" Height="40" Source="/Assets/icon.png" />
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock FontSize="30" FontWeight="Bold" Text="Emerald">
+                                <TextBlock.Foreground>
+                                    <LinearGradientBrush>
+                                        <GradientStop Color="#4FC3B0" Offset="0.1" />
+                                        <GradientStop Color="#23938F" />
+                                        <GradientStop Color="#228694" Offset="0.8" />
+                                    </LinearGradientBrush>
+                                </TextBlock.Foreground>
+                            </TextBlock>
+                            <TextBlock
+                                Margin="6,0,0,0"
+                                VerticalAlignment="Center"
+                                FontWeight="SemiBold"
+                                Text="{x:Bind BuildType, Mode=OneWay}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Column="2"
+                        Margin="8,0,0,0"
+                        HorizontalAlignment="Left"
+                        Orientation="Horizontal"
+                        Spacing="8"
+                        VerticalAlignment="Center">
+                        <Button x:Name="VersionButton" Background="Transparent" BorderThickness="0" Click="Version_Click" MinWidth="150">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon VerticalAlignment="Center" Glyph="&#xE946;" />
+                                <StackPanel>
+                                    <TextBlock FontWeight="SemiBold" Text="{helpers:Localize KeyName=Version}" />
+                                    <TextBlock
+                                        FontSize="12"
+                                        Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                        Text="{x:Bind AppVersion, Mode=OneWay}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Button>
+
+                        <Button  Background="Transparent" BorderThickness="0" Click="Credits_Click" MinWidth="150">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon VerticalAlignment="Center" Glyph="&#xECA7;" />
+                                <StackPanel>
+                                    <TextBlock FontWeight="SemiBold" Text="{helpers:Localize KeyName=Credits}" />
+                                    <TextBlock
+                                        FontSize="12"
+                                        Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                        Text="{helpers:Localize KeyName=CreditsDescription}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Button>
+
+                        <HyperlinkButton NavigateUri="https://github.com/RiversideValley/Emerald">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon VerticalAlignment="Center" Glyph="&#xEC7A;" />
+                                <StackPanel>
+                                    <TextBlock FontWeight="SemiBold" Text="{helpers:Localize KeyName=Github}" />
+                                    <TextBlock FontSize="12" Text="{helpers:Localize KeyName=Contribute}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </HyperlinkButton>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <cn:SettingsCard
+                Header="{helpers:Localize KeyName=Links}"
+                Description="{helpers:Localize KeyName=LinksDescription}"
+                HeaderIcon="{helpers:FontIcon Glyph=&#xE12B;}">
+                <cn:SettingsCard.Content>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <HyperlinkButton Content="Discord" NavigateUri="https://discord.gg/x7MPYvzGMT" />
+                            <HyperlinkButton Content="Source code" NavigateUri="https://github.com/RiversideValley/Emerald" />
+                            <HyperlinkButton Content="Website" NavigateUri="https://theriversi.de/" />
+                        </StackPanel>
+                </cn:SettingsCard.Content>
+            </cn:SettingsCard>
+
+            <cn:SettingsExpander
+                Header="{helpers:Localize KeyName=Updates}"
+                Description="{helpers:Localize KeyName=UpdatesDescription}"
+                HeaderIcon="{helpers:FontIcon Glyph=&#xE12B;}">
+                <cn:SettingsExpander.Items>
+                    <cn:SettingsCard Header="{helpers:Localize KeyName=CheckForUpdates}">
+                        <Button x:Name="CheckUpdatesButton" Click="CheckUpdates_Click" Content="{helpers:Localize KeyName=CheckNow}" />
+                    </cn:SettingsCard>
+                    <cn:SettingsCard Header="{helpers:Localize KeyName=IncludePreReleases}">
+                        <ToggleSwitch IsOn="{x:Bind SS.Settings.App.Updates.IncludePreReleases, Mode=TwoWay}" />
+                    </cn:SettingsCard>
+                    <cn:SettingsCard Header="{helpers:Localize KeyName=CheckForUpdatesAtStartup}">
+                        <ToggleSwitch IsOn="{x:Bind SS.Settings.App.Updates.CheckAtStartup, Mode=TwoWay}" />
+                    </cn:SettingsCard>
+                    <cn:SettingsCard Header="{helpers:Localize KeyName=AutoDownloadUpdates}">
+                        <ToggleSwitch IsOn="{x:Bind SS.Settings.App.Updates.AutoDownload, Mode=TwoWay}" />
+                    </cn:SettingsCard>
+                </cn:SettingsExpander.Items>
+            </cn:SettingsExpander>
+        </StackPanel>
+
+        <TeachingTip
+            x:Name="VersionInfoTip"
+            ActionButtonClick="VersionInfoTip_ActionButtonClick"
+            ActionButtonContent="{helpers:Localize KeyName=CheckForUpdates}"
+            CloseButtonClick="VersionInfoTip_CloseButtonClick"
+            CloseButtonContent="{helpers:Localize KeyName=CopyVersion}"
+            IsLightDismissEnabled="True"
+            IsOpen="False"
+            PreferredPlacement="Bottom"
+            Target="{x:Bind VersionButton}"
+            Title="{helpers:Localize KeyName=MoreVerInfo}">
+            <TeachingTip.Content>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Margin="0,0,8,0" Text="{helpers:Localize KeyName=Version}" />
+                    <TextBlock Grid.Column="1" Text="{x:Bind AppVersion, Mode=OneWay}" />
+                    <TextBlock Grid.Row="1" Margin="0,0,8,0" Text="{helpers:Localize KeyName=BuildType}" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind BuildInfo, Mode=OneWay}" />
+                </Grid>
+            </TeachingTip.Content>
+        </TeachingTip>
+    </Grid>
+</Page>

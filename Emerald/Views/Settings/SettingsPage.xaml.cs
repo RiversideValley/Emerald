@@ -27,7 +27,8 @@ public sealed partial class SettingsPage : Page
                 NavigateOnce(typeof(AppearancePage));
                 break;
             case "About":
-                throw new NotImplementedException();
+                NavigateOnce(typeof(AboutPage));
+                break;
             default:
                 NavigateOnce(typeof(GeneralPage));
                 break;
