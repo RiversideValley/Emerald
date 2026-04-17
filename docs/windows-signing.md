@@ -77,3 +77,5 @@ If CI fails with certificate import/signing errors:
   - `WINDOWS_SIGNING_CERT_PASSWORD`
 
 `mspdbcmf.exe` warning during packaging is non-blocking and does not cause signing failure.
+
+In CI, verification now trusts the imported cert in the current user root store temporarily, then removes it during cleanup.

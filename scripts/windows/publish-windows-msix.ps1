@@ -13,6 +13,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $importedCert = $null
 $importedThumbprint = $null
+$hadMyCertBeforeImport = $false
+$addedToRootStore = $false
 
 if ([string]::IsNullOrWhiteSpace($CertificatePassword)) {
     $CertificatePassword = $env:WINDOWS_SIGNING_CERT_PASSWORD
@@ -41,6 +43,14 @@ New-Item -ItemType Directory -Path $packagesRoot -Force | Out-Null
 New-Item -ItemType Directory -Path $bundleInput -Force | Out-Null
 New-Item -ItemType Directory -Path $bundleOutput -Force | Out-Null
 try {
+    $pfxProbe = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($certificateFullPath, $CertificatePassword)
+    try {
+        $hadMyCertBeforeImport = Test-Path -LiteralPath "Cert:\CurrentUser\My\$($pfxProbe.Thumbprint)"
+    }
+    finally {
+        $pfxProbe.Dispose()
+    }
+
     $securePassword = ConvertTo-SecureString -String $CertificatePassword -AsPlainText -Force
     $importedCerts = Import-PfxCertificate `
         -FilePath $certificateFullPath `
@@ -93,6 +103,26 @@ try {
     }
 
     $importedThumbprint = $importedCert.Thumbprint
+
+    $rootStore = [System.Security.Cryptography.X509Certificates.X509Store]::new("Root", "CurrentUser")
+    $rootStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+    try {
+        $alreadyInRoot = $false
+        foreach ($cert in $rootStore.Certificates) {
+            if ($cert.Thumbprint -eq $importedThumbprint) {
+                $alreadyInRoot = $true
+                break
+            }
+        }
+
+        if (-not $alreadyInRoot) {
+            $rootStore.Add($importedCert)
+            $addedToRootStore = $true
+        }
+    }
+    finally {
+        $rootStore.Close()
+    }
 
     Write-Host "Restoring project dependencies..."
     & dotnet msbuild $projectFullPath `
@@ -199,9 +229,23 @@ try {
     }
 }
 finally {
+    if ($addedToRootStore -and -not [string]::IsNullOrWhiteSpace($importedThumbprint)) {
+        $rootStore = [System.Security.Cryptography.X509Certificates.X509Store]::new("Root", "CurrentUser")
+        $rootStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+        try {
+            $rootMatches = @($rootStore.Certificates | Where-Object { $_.Thumbprint -eq $importedThumbprint })
+            foreach ($rootMatch in $rootMatches) {
+                $rootStore.Remove($rootMatch)
+            }
+        }
+        finally {
+            $rootStore.Close()
+        }
+    }
+
     if (-not [string]::IsNullOrWhiteSpace($importedThumbprint)) {
         $certPathInStore = "Cert:\CurrentUser\My\$importedThumbprint"
-        if (Test-Path -LiteralPath $certPathInStore) {
+        if ((-not $hadMyCertBeforeImport) -and (Test-Path -LiteralPath $certPathInStore)) {
             Remove-Item -LiteralPath $certPathInStore -Force
         }
     }
