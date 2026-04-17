@@ -17,6 +17,7 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
     private const string RepositoryOwner = "RiversideValley";
     private const string RepositoryName = "Emerald";
     private const string ReleaseAppInstallerFileName = "Emerald-Release.appinstaller";
+    private const string NightlyArtifactsUrl = $"https://github.com/{RepositoryOwner}/{RepositoryName}/actions/workflows/ci.yml?query=branch%3Amain";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -38,6 +39,19 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
         var currentPublicVersion = DirectResoucres.PublicVersion;
         var currentPackageVersion = ParsePackageVersion(DirectResoucres.PackageVersion);
         var currentChannel = DirectResoucres.ReleaseChannel;
+
+        if (preferredChannel == AppReleaseChannel.Nightly)
+        {
+            return new AppUpdateCheckResult(
+                Status: AppUpdateStatus.ManualDownloadRequired,
+                CurrentPublicVersion: currentPublicVersion,
+                CurrentPackageVersion: currentPackageVersion,
+                CurrentChannel: currentChannel,
+                LatestChannel: AppReleaseChannel.Nightly,
+                InstallMethod: AppUpdateInstallMethod.Browser,
+                PreferredInstallUri: NightlyArtifactsUrl,
+                ErrorMessage: "Nightly builds are distributed as GitHub Actions artifacts and must be downloaded manually.");
+        }
 
         try
         {

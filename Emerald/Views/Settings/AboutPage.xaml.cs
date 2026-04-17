@@ -9,12 +9,16 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Uno.Logging;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.System;
 using LocalMessageBoxButtons = Emerald.Helpers.Enums.MessageBoxButtons;
+using LocalMessageBoxResults = Emerald.Helpers.Enums.MessageBoxResults;
 
 namespace Emerald.Views.Settings;
 
 public sealed partial class AboutPage : Page
 {
+    private const string NightlyArtifactsFallbackUrl = "https://github.com/RiversideValley/Emerald/actions/workflows/ci.yml?query=branch%3Amain";
+
     private readonly IAppUpdateService _updateService;
     private readonly INotificationService _notifications;
     private readonly List<ChannelOption> _availableChannels;
@@ -29,6 +33,10 @@ public sealed partial class AboutPage : Page
     public string BuildInfo => $"{GetChannelLabel(DirectResoucres.ReleaseChannel)} {DirectResoucres.Architecture}";
 
     public IReadOnlyList<ChannelOption> AvailableChannels => _availableChannels;
+    public Visibility NightlyArtifactsCardVisibility =>
+        SS.Settings.App.Updates.PreferredChannel == AppReleaseChannel.Nightly
+            ? Visibility.Visible
+            : Visibility.Collapsed;
 
     public ChannelOption SelectedUpdateChannel
     {
@@ -47,6 +55,7 @@ public sealed partial class AboutPage : Page
             if (SS.Settings.App.Updates.PreferredChannel != value.Channel)
             {
                 SS.Settings.App.Updates.PreferredChannel = value.Channel;
+                Bindings.Update();
             }
         }
     }
@@ -65,6 +74,7 @@ public sealed partial class AboutPage : Page
         ];
 
         InitializeComponent();
+        Bindings.Update();
     }
 
     private async Task CheckForUpdatesAsync()
@@ -100,7 +110,7 @@ public sealed partial class AboutPage : Page
                         LocalMessageBoxButtons.CustomWithCancel,
                         "InstallUpdate".Localize());
 
-                    if (response == Helpers.Enums.MessageBoxResults.CustomResult1)
+                    if (response == LocalMessageBoxResults.CustomResult1)
                     {
                         var installResult = await _updateService.TryInstallUpdateAsync(result);
                         if (!installResult.Succeeded)
@@ -122,6 +132,26 @@ public sealed partial class AboutPage : Page
                     await MessageBox.Show("DowngradeAvailable".Localize(), "DowngradeDescription".Localize(), LocalMessageBoxButtons.Ok);
                     _notifications.Complete(operation.Id, true, "DowngradeAvailable".Localize());
                     break;
+                case AppUpdateStatus.ManualDownloadRequired:
+                {
+                    var response = await MessageBox.Show(
+                        "NightlyManualUpdateTitle".Localize(),
+                        result.ErrorMessage ?? "NightlyManualUpdateDescription".Localize(),
+                        LocalMessageBoxButtons.CustomWithCancel,
+                        "OpenNightlyArtifacts".Localize());
+
+                    if (response == LocalMessageBoxResults.CustomResult1)
+                    {
+                        var opened = await OpenUrlAsync(result.PreferredInstallUri ?? NightlyArtifactsFallbackUrl);
+                        if (!opened)
+                        {
+                            await MessageBox.Show("Error".Localize(), "CouldNotOpenNightlyArtifacts".Localize(), LocalMessageBoxButtons.Ok);
+                        }
+                    }
+
+                    _notifications.Complete(operation.Id, true, "NightlyManualUpdateTitle".Localize());
+                    break;
+                }
                 default:
                     await MessageBox.Show("Error".Localize(), result.ErrorMessage ?? "CheckForUpdates".Localize(), LocalMessageBoxButtons.Ok);
                     _notifications.Complete(operation.Id, false, result.ErrorMessage ?? "CheckForUpdates".Localize());
@@ -162,6 +192,16 @@ public sealed partial class AboutPage : Page
     private async void CheckUpdates_Click(object sender, RoutedEventArgs e)
         => await CheckForUpdatesAsync();
 
+    private async void OpenNightlyArtifacts_Click(object sender, RoutedEventArgs e)
+    {
+        var result = await _updateService.CheckForUpdatesAsync(AppReleaseChannel.Nightly);
+        var opened = await OpenUrlAsync(result.PreferredInstallUri ?? NightlyArtifactsFallbackUrl);
+        if (!opened)
+        {
+            await MessageBox.Show("Error".Localize(), "CouldNotOpenNightlyArtifacts".Localize(), LocalMessageBoxButtons.Ok);
+        }
+    }
+
     private void CopyVersionToClipboard()
     {
         var package = new DataPackage
@@ -184,6 +224,16 @@ public sealed partial class AboutPage : Page
             AppReleaseChannel.Prerelease => "UpdateChannelPrerelease".Localize(),
             _ => "UpdateChannelRelease".Localize()
         };
+    }
+
+    private static async Task<bool> OpenUrlAsync(string rawUrl)
+    {
+        if (!Uri.TryCreate(rawUrl, UriKind.Absolute, out var uri))
+        {
+            return false;
+        }
+
+        return await Launcher.LaunchUriAsync(uri);
     }
 }
 

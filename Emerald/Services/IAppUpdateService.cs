@@ -13,6 +13,7 @@ public enum AppUpdateStatus
     UpToDate,
     UpdateAvailable,
     LocalBuildIsNewer,
+    ManualDownloadRequired,
     Unavailable
 }
 

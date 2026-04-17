@@ -117,6 +117,12 @@
                             </ComboBox.ItemTemplate>
                         </ComboBox>
                     </cn:SettingsCard>
+                    <cn:SettingsCard
+                        Header="{helpers:Localize KeyName=NightlyArtifacts}"
+                        Description="{helpers:Localize KeyName=NightlyArtifactsDescription}"
+                        Visibility="{x:Bind NightlyArtifactsCardVisibility, Mode=OneWay}">
+                        <Button Click="OpenNightlyArtifacts_Click" Content="{helpers:Localize KeyName=OpenNightlyArtifacts}" />
+                    </cn:SettingsCard>
                     <cn:SettingsCard Header="{helpers:Localize KeyName=CheckForUpdatesAtStartup}">
                         <ToggleSwitch IsOn="{x:Bind SS.Settings.App.Updates.CheckAtStartup, Mode=TwoWay}" />
                     </cn:SettingsCard>
