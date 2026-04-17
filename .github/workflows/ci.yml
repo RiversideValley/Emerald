@@ -12,8 +12,70 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  ci-filter:
+    name: Resolve CI Platform Filter
+    runs-on: ubuntu-latest
+    outputs:
+      run_windows: ${{ steps.filter.outputs.run_windows }}
+      run_macos: ${{ steps.filter.outputs.run_macos }}
+      run_linux: ${{ steps.filter.outputs.run_linux }}
+
+    steps:
+      - name: Resolve commit/PR tags
+        id: filter
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          event_name="${{ github.event_name }}"
+
+          if [ "$event_name" = "pull_request" ]; then
+            source_text="$(jq -r '.pull_request.title // "", .pull_request.body // ""' "$GITHUB_EVENT_PATH")"
+          else
+            source_text="$(jq -r '.head_commit.message // ""' "$GITHUB_EVENT_PATH")"
+          fi
+
+          source_text_lc="$(printf '%s' "$source_text" | tr '[:upper:]' '[:lower:]')"
+
+          run_windows=true
+          run_macos=true
+          run_linux=true
+
+          has_ci_windows=false
+          has_ci_macos=false
+          has_ci_linux=false
+
+          if [[ "$source_text_lc" == *"[ci-windows]"* ]]; then
+            has_ci_windows=true
+          fi
+          if [[ "$source_text_lc" == *"[ci-macos]"* ]]; then
+            has_ci_macos=true
+          fi
+          if [[ "$source_text_lc" == *"[ci-linux]"* ]]; then
+            has_ci_linux=true
+          fi
+
+          if [[ "$source_text_lc" == *"[no-ci]"* ]]; then
+            run_windows=false
+            run_macos=false
+            run_linux=false
+          elif $has_ci_windows || $has_ci_macos || $has_ci_linux; then
+            run_windows=$has_ci_windows
+            run_macos=$has_ci_macos
+            run_linux=$has_ci_linux
+          fi
+
+          echo "Resolved flags: windows=$run_windows macos=$run_macos linux=$run_linux"
+          {
+            echo "run_windows=$run_windows"
+            echo "run_macos=$run_macos"
+            echo "run_linux=$run_linux"
+          } >> "$GITHUB_OUTPUT"
+
   publish-windows:
     name: Windows Unsigned Bundle (x64 + arm64)
+    needs: ci-filter
+    if: ${{ needs.ci-filter.outputs.run_windows == 'true' }}
     runs-on: windows-latest
 
     steps:
@@ -115,6 +177,8 @@ jobs:
 
   publish-macos:
     name: macOS .app (arm64)
+    needs: ci-filter
+    if: ${{ needs.ci-filter.outputs.run_macos == 'true' }}
     runs-on: macos-latest
 
     steps:
@@ -167,6 +231,8 @@ jobs:
 
   publish-linux:
     name: Linux x64 Package
+    needs: ci-filter
+    if: ${{ needs.ci-filter.outputs.run_linux == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
