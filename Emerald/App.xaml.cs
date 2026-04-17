@@ -72,6 +72,7 @@ public partial class App : Application
         //Settings
         services.AddSingleton<Services.SettingsService>();
         services.AddSingleton<Services.IBaseSettingsService, Services.BaseSettingsService>();
+        services.AddSingleton<Services.IAppUpdateService, Services.AppUpdateService>();
         services.AddSingleton<CoreX.Services.IGlobalGameSettingsService, CoreX.Services.GlobalGameSettingsService>();
         services.AddSingleton<CoreX.Runtime.IGameRuntimeSettings, Services.GameRuntimeSettingsAdapter>();
         services.AddSingleton<CoreX.Services.IJavaRuntimeProbe, CoreX.Services.ProcessJavaRuntimeProbe>();
@@ -185,6 +186,7 @@ public partial class App : Application
         MainWindow.Activate();
         MainWindow.Closed += MainWindow_Closed;
         this.Log().LogInformation("Main window activated.");
+        _ = CheckForUpdatesAtStartupAsync();
     }
 
     /// <summary>
@@ -194,6 +196,36 @@ public partial class App : Application
     {
         this.Log().LogInformation("Main window is closing. Persisting settings.");
         SS.SaveData();
+    }
+
+    private async Task CheckForUpdatesAtStartupAsync()
+    {
+        try
+        {
+            if (!SS.Settings.App.Updates.CheckAtStartup)
+            {
+                return;
+            }
+
+            var updateService = Ioc.Default.GetService<Services.IAppUpdateService>();
+            var notificationService = Ioc.Default.GetService<CoreX.Notifications.INotificationService>();
+
+            if (updateService is null || notificationService is null)
+            {
+                return;
+            }
+
+            var result = await updateService.CheckForUpdatesAsync(SS.Settings.App.Updates.PreferredChannel);
+            if (result.Status == Services.AppUpdateStatus.UpdateAvailable)
+            {
+                var message = $"{result.LatestPublicVersion ?? result.LatestPackageVersion?.ToString() ?? "-"}";
+                notificationService.Info("UpdateAvailable".Localize(), message);
+            }
+        }
+        catch (Exception ex)
+        {
+            this.Log().LogWarning(ex, "Startup update check failed.");
+        }
     }
 
     public new static App Current => (App)Application.Current;

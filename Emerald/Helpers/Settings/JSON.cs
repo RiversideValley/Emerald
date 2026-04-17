@@ -12,6 +12,7 @@ using CmlLib.Core.ProcessBuilder;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Store.Modrinth;
 using Emerald.CoreX.Helpers;
+using Emerald.Models;
 namespace Emerald.Helpers.Settings.JSON;
 
 public class JSON : Models.Model
@@ -46,6 +47,10 @@ public partial class Settings : JSON
             {
                 MicaTintColor = (int)Enums.MicaTintColor.NoColor,
                 Theme = (int)ElementTheme.Default
+            },
+            Updates = new()
+            {
+                PreferredChannel = DirectResoucres.ReleaseChannel
             }
         },
         Minecraft = new()
@@ -198,6 +203,9 @@ public partial class App : JSON
 }
 public partial class Updates : JSON
 {
+    [ObservableProperty]
+    private AppReleaseChannel _preferredChannel = AppReleaseChannel.Nightly;
+
     [ObservableProperty]
     private bool _checkAtStartup = true;
 

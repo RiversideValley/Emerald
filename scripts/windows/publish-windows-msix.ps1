@@ -4,6 +4,15 @@ param(
     [string]$TargetFramework = "net10.0-windows10.0.26100",
     [string[]]$Platforms = @("x64", "arm64"),
     [string]$OutputRoot = ".\artifacts\windows",
+    [string]$Version = "",
+    [string]$FileVersion = "",
+    [string]$AssemblyVersion = "",
+    [string]$InformationalVersion = "",
+    [string]$UpdateChannel = "",
+    [string]$PublicVersion = "",
+    [string]$ReleaseTag = "",
+    [string]$CommitSha = "",
+    [string]$BuildTimestampUtc = "",
     [switch]$SkipBundleVerify,
     [switch]$SkipBundleArchive,
     [Parameter(Mandatory = $true)]
@@ -32,6 +41,16 @@ $outputRootFullPath = [System.IO.Path]::GetFullPath($OutputRoot)
 $packagesRoot = Join-Path $outputRootFullPath "packages"
 $bundleInput = Join-Path $outputRootFullPath "bundle-input"
 $bundleOutput = Join-Path $outputRootFullPath "final"
+
+if ([string]::IsNullOrWhiteSpace($Version)) { $Version = "0.1.0.1" }
+if ([string]::IsNullOrWhiteSpace($FileVersion)) { $FileVersion = $Version }
+if ([string]::IsNullOrWhiteSpace($AssemblyVersion)) { $AssemblyVersion = $Version }
+if ([string]::IsNullOrWhiteSpace($InformationalVersion)) { $InformationalVersion = $Version }
+if ([string]::IsNullOrWhiteSpace($UpdateChannel)) { $UpdateChannel = "nightly" }
+if ([string]::IsNullOrWhiteSpace($PublicVersion)) { $PublicVersion = "nightly-local" }
+if ([string]::IsNullOrWhiteSpace($ReleaseTag)) { $ReleaseTag = "nightly-local" }
+if ([string]::IsNullOrWhiteSpace($CommitSha)) { $CommitSha = "local" }
+if ([string]::IsNullOrWhiteSpace($BuildTimestampUtc)) { $BuildTimestampUtc = [DateTime]::UtcNow.ToString("o") }
 
 New-Item -ItemType Directory -Path $packagesRoot -Force | Out-Null
 New-Item -ItemType Directory -Path $bundleInput -Force | Out-Null
@@ -174,6 +193,16 @@ try {
             /p:PublishSignedPackage=true `
             /p:GenerateTestArtifacts=false `
             /p:AppxSymbolPackageEnabled=false `
+            "/p:Version=$Version" `
+            "/p:FileVersion=$FileVersion" `
+            "/p:AssemblyVersion=$AssemblyVersion" `
+            "/p:InformationalVersion=$InformationalVersion" `
+            "/p:EmeraldPackageVersion=$Version" `
+            "/p:EmeraldPublicVersion=$PublicVersion" `
+            "/p:EmeraldUpdateChannel=$UpdateChannel" `
+            "/p:EmeraldReleaseTag=$ReleaseTag" `
+            "/p:EmeraldCommitSha=$CommitSha" `
+            "/p:EmeraldBuildTimestampUtc=$BuildTimestampUtc" `
             "/p:AppxPackageDir=$appxDir" `
             "/p:PackageCertificateThumbprint=$importedThumbprint" `
             /p:PackageCertificateKeyFile= `
@@ -205,6 +234,7 @@ try {
 
     $msixFiles | ForEach-Object {
         Copy-Item $_.FullName -Destination (Join-Path $bundleInput $_.Name) -Force
+        Copy-Item $_.FullName -Destination (Join-Path $bundleOutput $_.Name) -Force
     }
 
     $makeAppx = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\makeappx.exe" `
@@ -225,6 +255,7 @@ try {
 
     $platformSlug = ($Platforms -join "-")
     $bundlePath = Join-Path $bundleOutput "Emerald-Windows-Signed-$platformSlug.msixbundle"
+    $appxBundlePath = Join-Path $bundleOutput "Emerald-Windows-Signed-$platformSlug.appxbundle"
     & $makeAppx bundle /o /d $bundleInput /p $bundlePath
 
     if ($LASTEXITCODE -ne 0) {
@@ -260,9 +291,12 @@ try {
     }
 
     Write-Step "Signed bundle created: $bundlePath"
+    Copy-Item -LiteralPath $bundlePath -Destination $appxBundlePath -Force
+    Write-Step "Appx-compatible bundle copy created: $appxBundlePath"
 
     if ($env:GITHUB_OUTPUT) {
         Add-Content -Path $env:GITHUB_OUTPUT -Value "windows_bundle_path=$bundlePath"
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "windows_appxbundle_path=$appxBundlePath"
         if (-not $SkipBundleArchive) {
             Add-Content -Path $env:GITHUB_OUTPUT -Value "windows_zip_path=$zipPath"
         }

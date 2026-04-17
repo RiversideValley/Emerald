@@ -399,6 +399,18 @@
   <data name="IncludePreReleases" xml:space="preserve">
     <value>Include pre-releases</value>
   </data>
+  <data name="UpdateChannel" xml:space="preserve">
+    <value>Update channel</value>
+  </data>
+  <data name="UpdateChannelNightly" xml:space="preserve">
+    <value>Nightly</value>
+  </data>
+  <data name="UpdateChannelPrerelease" xml:space="preserve">
+    <value>Pre-release</value>
+  </data>
+  <data name="UpdateChannelRelease" xml:space="preserve">
+    <value>Release</value>
+  </data>
   <data name="InitializeCore" xml:space="preserve">
     <value>Initialize Launcher Core</value>
   </data>
@@ -576,6 +588,24 @@
   <data name="NoUpdatesAvailable" xml:space="preserve">
     <value>No Updates Available</value>
   </data>
+  <data name="NightlyArtifacts" xml:space="preserve">
+    <value>Nightly artifacts</value>
+  </data>
+  <data name="NightlyArtifactsDescription" xml:space="preserve">
+    <value>Nightly updates are published as CI workflow artifacts and must be downloaded manually.</value>
+  </data>
+  <data name="OpenNightlyArtifacts" xml:space="preserve">
+    <value>Open nightly artifacts</value>
+  </data>
+  <data name="NightlyManualUpdateTitle" xml:space="preserve">
+    <value>Nightly update is manual</value>
+  </data>
+  <data name="NightlyManualUpdateDescription" xml:space="preserve">
+    <value>Nightly builds are not published in Releases. Open the CI workflow artifacts page and download the latest nightly package.</value>
+  </data>
+  <data name="CouldNotOpenNightlyArtifacts" xml:space="preserve">
+    <value>Could not open the nightly artifacts page.</value>
+  </data>
   <data name="OfflineAccount" xml:space="preserve">
     <value>Offline account</value>
   </data>
@@ -728,7 +758,7 @@
     <value>Updates</value>
   </data>
   <data name="UpdatesDescription" xml:space="preserve">
-    <value>Auto update, include prerelease etc..</value>
+    <value>Choose your channel and update behavior.</value>
   </data>
   <data name="Username" xml:space="preserve">
     <value>Username</value>
@@ -744,6 +774,9 @@
   </data>
   <data name="Version" xml:space="preserve">
     <value>Version</value>
+  </data>
+  <data name="PackageVersion" xml:space="preserve">
+    <value>Package version</value>
   </data>
   <data name="View" xml:space="preserve">
     <value>View</value>
