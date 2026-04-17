@@ -33,9 +33,11 @@ Keep `EmeraldSigning.pfx` private. You may distribute `EmeraldSigning.cer` to tr
 From the repository root on Windows:
 
 ```powershell
+$certPassword = Read-Host -AsSecureString "PFX password"
+
 pwsh ./scripts/windows/publish-windows-msix.ps1 `
   -CertificatePath "C:\secrets\EmeraldSigning.pfx" `
-  -CertificatePassword "<pfx-password>"
+  -CertificatePassword $certPassword
 ```
 
 Output archive:

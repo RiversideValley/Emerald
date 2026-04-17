@@ -7,7 +7,7 @@ param(
     [switch]$SkipBundleVerify,
     [Parameter(Mandatory = $true)]
     [string]$CertificatePath,
-    [string]$CertificatePassword
+    [SecureString]$CertificatePassword
 )
 
 Set-StrictMode -Version Latest
@@ -16,14 +16,6 @@ $importedCert = $null
 $importedThumbprint = $null
 $hadMyCertBeforeImport = $false
 $addedToRootStore = $false
-
-if ([string]::IsNullOrWhiteSpace($CertificatePassword)) {
-    $CertificatePassword = $env:WINDOWS_SIGNING_CERT_PASSWORD
-}
-
-if ([string]::IsNullOrWhiteSpace($CertificatePassword)) {
-    throw "Certificate password was not provided. Pass -CertificatePassword or set WINDOWS_SIGNING_CERT_PASSWORD."
-}
 
 if (-not (Test-Path -LiteralPath $ProjectPath)) {
     throw "Project file was not found: $ProjectPath"
@@ -48,7 +40,27 @@ function Write-Step([string]$Message) {
     Write-Host "[$([DateTime]::UtcNow.ToString('u'))] $Message"
 }
 
+function Convert-PlainTextToSecureString([string]$PlainText) {
+    $secure = New-Object System.Security.SecureString
+    foreach ($ch in $PlainText.ToCharArray()) {
+        $secure.AppendChar($ch)
+    }
+
+    $secure.MakeReadOnly()
+    return $secure
+}
+
 try {
+    if (-not $CertificatePassword) {
+        $passwordFromEnv = $env:WINDOWS_SIGNING_CERT_PASSWORD
+        if ([string]::IsNullOrWhiteSpace($passwordFromEnv)) {
+            throw "Certificate password was not provided. Pass -CertificatePassword or set WINDOWS_SIGNING_CERT_PASSWORD."
+        }
+
+        $CertificatePassword = Convert-PlainTextToSecureString -PlainText $passwordFromEnv
+        $passwordFromEnv = $null
+    }
+
     Write-Step "Loading certificate metadata..."
     $pfxProbe = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($certificateFullPath, $CertificatePassword)
     try {
@@ -59,10 +71,9 @@ try {
     }
 
     Write-Step "Importing signing certificate into CurrentUser\\My..."
-    $securePassword = ConvertTo-SecureString -String $CertificatePassword -AsPlainText -Force
     $importedCerts = Import-PfxCertificate `
         -FilePath $certificateFullPath `
-        -Password $securePassword `
+        -Password $CertificatePassword `
         -CertStoreLocation "Cert:\CurrentUser\My" `
         -Exportable
 
