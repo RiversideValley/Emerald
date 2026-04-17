@@ -5,6 +5,7 @@ param(
     [string[]]$Platforms = @("x64", "arm64"),
     [string]$OutputRoot = ".\artifacts\windows",
     [switch]$SkipBundleVerify,
+    [switch]$SkipBundleArchive,
     [Parameter(Mandatory = $true)]
     [string]$CertificatePath,
     [SecureString]$CertificatePassword
@@ -250,14 +251,21 @@ try {
     }
 
     $zipPath = Join-Path $bundleOutput "Emerald-Windows-Signed-$platformSlug.zip"
-    Compress-Archive -Path $bundlePath -DestinationPath $zipPath -Force
+    if ($SkipBundleArchive) {
+        Write-Step "Skipping bundle archive creation (SkipBundleArchive was set)."
+    }
+    else {
+        Compress-Archive -Path $bundlePath -DestinationPath $zipPath -Force
+        Write-Step "Signed archive created: $zipPath"
+    }
 
     Write-Step "Signed bundle created: $bundlePath"
-    Write-Step "Signed archive created: $zipPath"
 
     if ($env:GITHUB_OUTPUT) {
         Add-Content -Path $env:GITHUB_OUTPUT -Value "windows_bundle_path=$bundlePath"
-        Add-Content -Path $env:GITHUB_OUTPUT -Value "windows_zip_path=$zipPath"
+        if (-not $SkipBundleArchive) {
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "windows_zip_path=$zipPath"
+        }
     }
 }
 finally {

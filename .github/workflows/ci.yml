@@ -173,13 +173,14 @@ jobs:
             -ProjectPath ".\Emerald\Emerald.csproj" `
             -OutputRoot (Join-Path $env:GITHUB_WORKSPACE "artifacts\windows") `
             -SkipBundleVerify `
+            -SkipBundleArchive `
             -CertificatePath $env:EMERALD_SIGNING_CERT_PATH
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: Emerald-Windows-Signed-x64-arm64
-          path: ${{ github.workspace }}/artifacts/windows/final/Emerald-Windows-Signed-x64-arm64.zip
+          path: ${{ github.workspace }}/artifacts/windows/final/Emerald-Windows-Signed-x64-arm64.msixbundle
           retention-days: 7
 
       - name: Cleanup signing certificate
