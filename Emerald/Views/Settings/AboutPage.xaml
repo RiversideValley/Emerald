@@ -1,6 +1,7 @@
 <Page
     x:Class="Emerald.Views.Settings.AboutPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:not_skia="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cn="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -24,13 +25,13 @@
                         <Image Width="40" Height="40" Source="/Assets/icon.png" />
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock FontSize="30" FontWeight="Bold" Text="Emerald">
-                                <TextBlock.Foreground>
-                                    <LinearGradientBrush>
+                                <not_skia:TextBlock.Foreground>
+                                    <not_skia:LinearGradientBrush>
                                         <GradientStop Color="#4FC3B0" Offset="0.1" />
                                         <GradientStop Color="#23938F" />
                                         <GradientStop Color="#228694" Offset="0.8" />
-                                    </LinearGradientBrush>
-                                </TextBlock.Foreground>
+                                    </not_skia:LinearGradientBrush>
+                                </not_skia:TextBlock.Foreground>
                             </TextBlock>
                             <TextBlock
                                 Margin="6,0,0,0"
