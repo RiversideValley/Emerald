@@ -525,23 +525,21 @@ jobs:
 
           if [ "${{ needs.ci-filter.outputs.release_channel }}" = "release" ]; then
             cat > release-assets/windows/Emerald-Release.appinstaller <<EOF
-          <?xml version="1.0" encoding="utf-8"?>
-          <AppInstaller
-            Uri="https://github.com/RiversideValley/Emerald/releases/latest/download/Emerald-Release.appinstaller"
-            Version="${{ needs.ci-filter.outputs.package_version }}"
-            xmlns="http://schemas.microsoft.com/appx/appinstaller/2018"
-            xmlns:main="http://schemas.microsoft.com/appx/appinstaller/2017"
-            xmlns:s4="http://schemas.microsoft.com/appx/appinstaller/2021">
-            <MainBundle
-              Name="Riverside.Emerald"
-              Publisher="CN=Riverside Valley"
-              Version="${{ needs.ci-filter.outputs.package_version }}"
-              Uri="https://github.com/RiversideValley/Emerald/releases/latest/download/Emerald-Windows-Signed-x64-arm64.msixbundle" />
-            <UpdateSettings>
-              <s4:AutomaticBackgroundTask />
-              <main:OnLaunch HoursBetweenUpdateChecks="0" ShowPrompt="true" UpdateBlocksActivation="false" />
-            </UpdateSettings>
-          </AppInstaller>
+<?xml version="1.0" encoding="utf-8"?>
+<AppInstaller
+  xmlns="http://schemas.microsoft.com/appx/appinstaller/2018"
+  Version="${{ needs.ci-filter.outputs.package_version }}"
+  Uri="https://github.com/RiversideValley/Emerald/releases/latest/download/Emerald-Release.appinstaller">
+  <MainBundle
+    Name="Riverside.Emerald"
+    Publisher="CN=Riverside Valley"
+    Version="${{ needs.ci-filter.outputs.package_version }}"
+    Uri="https://github.com/RiversideValley/Emerald/releases/latest/download/Emerald-Windows-Signed-x64-arm64.appxbundle" />
+  <UpdateSettings>
+    <OnLaunch HoursBetweenUpdateChecks="0" />
+    <AutomaticBackgroundTask />
+  </UpdateSettings>
+</AppInstaller>
           EOF
           fi
 
