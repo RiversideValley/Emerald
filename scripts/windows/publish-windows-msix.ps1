@@ -145,7 +145,9 @@ try {
     $manifestPath = Join-Path (Split-Path -Parent $projectFullPath) "Package.appxmanifest"
     if (Test-Path -LiteralPath $manifestPath) {
         $manifestOriginalBytes = [System.IO.File]::ReadAllBytes($manifestPath)
-        [xml]$manifestXml = [System.Text.Encoding]::UTF8.GetString($manifestOriginalBytes)
+        $manifestXml = [System.Xml.XmlDocument]::new()
+        $manifestXml.PreserveWhitespace = $true
+        $manifestXml.Load($manifestPath)
         $manifestPublisher = $manifestXml.Package.Identity.Publisher
         if (-not [string]::IsNullOrWhiteSpace($manifestPublisher) -and $importedCert.Subject -ne $manifestPublisher) {
             throw "Certificate subject '$($importedCert.Subject)' does not match manifest publisher '$manifestPublisher'."
