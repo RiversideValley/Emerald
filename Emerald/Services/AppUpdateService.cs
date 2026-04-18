@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Net.Http.Headers;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -6,8 +8,6 @@ using Emerald.Models;
 using Microsoft.Extensions.Logging;
 using Windows.System;
 #if WINDOWS
-using Windows.ApplicationModel;
-using Windows.Management.Deployment;
 #endif
 
 namespace Emerald.Services;
@@ -132,36 +132,33 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
             switch (updateResult.InstallMethod)
             {
                 case AppUpdateInstallMethod.PackageManager:
-#if WINDOWS
-                    if (string.IsNullOrWhiteSpace(updateResult.PreferredInstallUri)
-                        || !Uri.TryCreate(updateResult.PreferredInstallUri, UriKind.Absolute, out var appInstallerUri))
-                    {
-                        return new AppUpdateInstallResult(false, "The package manager install URI is invalid.");
-                    }
-
-                    var packageManager = new PackageManager();
-                    var deploymentOperation = packageManager.AddPackageByAppInstallerFileAsync(
-                        appInstallerUri,
-                        AddPackageByAppInstallerOptions.None,
-                        packageManager.GetDefaultPackageVolume());
-                    var deploymentResult = await deploymentOperation;
-
-                    if (!string.IsNullOrWhiteSpace(deploymentResult.ErrorText))
-                    {
-                        return new AppUpdateInstallResult(false, deploymentResult.ErrorText);
-                    }
-
-                    return new AppUpdateInstallResult(true, "Update installation has been started.");
-#else
                     goto case AppUpdateInstallMethod.AppInstaller;
-#endif
                 case AppUpdateInstallMethod.AppInstaller:
                 {
-                    var installUri = BuildAppInstallerLaunchUri(updateResult.PreferredInstallUri ?? updateResult.ReleaseUrl!);
-                    var launched = await Launcher.LaunchUriAsync(installUri);
+#if WINDOWS
+                    var appInstallerUrl = updateResult.PreferredInstallUri ?? updateResult.ReleaseUrl!;
+                    if (!Uri.TryCreate(appInstallerUrl, UriKind.Absolute, out var appInstallerUri))
+                    {
+                        return new AppUpdateInstallResult(false, "The App Installer URL is invalid.");
+                    }
+
+                    var downloadedFilePath = await DownloadAppInstallerToTempAsync(appInstallerUri, cancellationToken);
+                    LaunchDownloadedAppInstaller(downloadedFilePath);
+                    ScheduleApplicationTermination();
+
+                    return new AppUpdateInstallResult(true, "App Installer launched. Emerald will close to continue the update.");
+#else
+                    var installUri = updateResult.PreferredInstallUri ?? updateResult.ReleaseUrl!;
+                    if (!Uri.TryCreate(installUri, UriKind.Absolute, out var launchUri))
+                    {
+                        return new AppUpdateInstallResult(false, "The App Installer URL is invalid.");
+                    }
+
+                    var launched = await Launcher.LaunchUriAsync(launchUri);
                     return launched
-                        ? new AppUpdateInstallResult(true, "App Installer launched successfully.")
-                        : new AppUpdateInstallResult(false, "Failed to launch App Installer.");
+                        ? new AppUpdateInstallResult(true, "Installer link launched successfully.")
+                        : new AppUpdateInstallResult(false, "Failed to launch the installer link.");
+#endif
                 }
                 default:
                 {
@@ -208,9 +205,7 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
         }
 
 #if WINDOWS
-        return IsAppInstallerAssociatedWithCurrentPackage()
-            ? AppUpdateInstallMethod.PackageManager
-            : AppUpdateInstallMethod.AppInstaller;
+        return AppUpdateInstallMethod.AppInstaller;
 #else
         return AppUpdateInstallMethod.Browser;
 #endif
@@ -221,28 +216,6 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
         return preferredChannel == AppReleaseChannel.Release
             ? ReleaseAppInstallerUrl
             : releaseUrl;
-    }
-
-#if WINDOWS
-    private static bool IsAppInstallerAssociatedWithCurrentPackage()
-    {
-        try
-        {
-            var package = Package.Current;
-            var appInstallerInfo = package.GetAppInstallerInfo();
-            return appInstallerInfo is not null;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-#endif
-
-    private static Uri BuildAppInstallerLaunchUri(string sourceUri)
-    {
-        var encoded = Uri.EscapeDataString(sourceUri);
-        return new Uri($"ms-appinstaller:?source={encoded}");
     }
 
     private static Version ParsePackageVersion(string rawVersion)
@@ -346,6 +319,44 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         return httpClient;
     }
+
+#if WINDOWS
+    private async Task<string> DownloadAppInstallerToTempAsync(Uri appInstallerUri, CancellationToken cancellationToken)
+    {
+        using var response = await _httpClient.GetAsync(appInstallerUri, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        var tempDirectory = Path.Combine(Path.GetTempPath(), "Emerald", "Updates");
+        Directory.CreateDirectory(tempDirectory);
+
+        var tempFilePath = Path.Combine(tempDirectory, ReleaseAppInstallerFileName);
+        await using var targetStream = File.Create(tempFilePath);
+        await using var sourceStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        await sourceStream.CopyToAsync(targetStream, cancellationToken);
+
+        return tempFilePath;
+    }
+
+    private static void LaunchDownloadedAppInstaller(string filePath)
+    {
+        var processStartInfo = new ProcessStartInfo
+        {
+            FileName = filePath,
+            UseShellExecute = true
+        };
+
+        Process.Start(processStartInfo);
+    }
+
+    private static void ScheduleApplicationTermination()
+    {
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(500);
+            Process.GetCurrentProcess().Kill();
+        });
+    }
+#endif
 
     private sealed record ReleaseCandidate(
         string TagName,
