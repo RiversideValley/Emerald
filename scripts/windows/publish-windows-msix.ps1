@@ -256,7 +256,7 @@ try {
     $platformSlug = ($Platforms -join "-")
     $bundlePath = Join-Path $bundleOutput "Emerald-Windows-Signed-$platformSlug.msixbundle"
     $appxBundlePath = Join-Path $bundleOutput "Emerald-Windows-Signed-$platformSlug.appxbundle"
-    & $makeAppx bundle /o /d $bundleInput /p $bundlePath
+    & $makeAppx bundle /o /d $bundleInput /p $bundlePath /bv $Version
 
     if ($LASTEXITCODE -ne 0) {
         throw "makeappx bundle command failed with exit code $LASTEXITCODE."
