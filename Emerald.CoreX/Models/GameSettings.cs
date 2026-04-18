@@ -63,10 +63,10 @@ public partial class GameSettings : ObservableObject
     private int _serverPort = 25565;
 
     [ObservableProperty]
-    private bool _HashCheck;
+    private bool _HashCheck = true;
 
     [ObservableProperty]
-    private bool _AssetsCheck;
+    private bool _AssetsCheck = true;
 
     [ObservableProperty]
     private bool _IsAdmin;

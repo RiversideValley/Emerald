@@ -23,6 +23,7 @@ namespace Emerald.UserControls;
 public sealed partial class MinecraftSettingsUC : UserControl
 {
     private bool _isUpdatingOverrideControls;
+    private bool _isSyncingCustomJavaToggle;
     private CancellationTokenSource? _javaRefreshCts;
     private GameSettings? _subscribedGameSettings;
 
@@ -62,6 +63,29 @@ public sealed partial class MinecraftSettingsUC : UserControl
     public bool CanRefreshJavaPaths => !IsRefreshingJavaPaths;
 
     public bool HasNoDetectedJavaOptions => !JavaRuntimeOptions.Any();
+
+    public int MinRamMb => DirectResoucres.MinRAM;
+
+    public int MaxRamMb => DirectResoucres.MaxRAM;
+
+    public double RamSliderValue
+    {
+        get => GameSettings?.MaximumRamMb ?? MinRamMb;
+        set
+        {
+            if (GameSettings == null)
+            {
+                return;
+            }
+
+            var roundedToStep = (int)Math.Round(value / 64d) * 64;
+            var clamped = Math.Clamp(roundedToStep, MinRamMb, MaxRamMb);
+            if (GameSettings.MaximumRamMb != clamped)
+            {
+                GameSettings.MaximumRamMb = clamped;
+            }
+        }
+    }
 
     public string SelectedJavaPathText => string.IsNullOrWhiteSpace(GameSettings?.JavaPath)
         ? "NoJavaRuntimeSelected".Localize()
@@ -164,11 +188,7 @@ public sealed partial class MinecraftSettingsUC : UserControl
         }
 
         var newValue = GameSettings.MaximumRamMb + delta;
-
-        GameSettings.MaximumRamMb = Math.Clamp(
-            newValue,
-            DirectResoucres.MinRAM,
-            DirectResoucres.MaxRAM);
+        GameSettings.MaximumRamMb = Math.Clamp(newValue, MinRamMb, MaxRamMb);
     }
 
     private void btnRamPlus_Click(object sender, RoutedEventArgs e) => AdjustRam(64);
@@ -380,6 +400,23 @@ public sealed partial class MinecraftSettingsUC : UserControl
 
     private void CustomJavaToggle_Toggled(object sender, RoutedEventArgs e)
     {
+        if (GameSettings != null
+            && sender is ToggleSwitch toggle
+            && GameSettings.UseCustomJava != toggle.IsOn
+            && !_isSyncingCustomJavaToggle)
+        {
+            _isSyncingCustomJavaToggle = true;
+            try
+            {
+                // Keep source and control in sync before refreshing bindings.
+                GameSettings.UseCustomJava = toggle.IsOn;
+            }
+            finally
+            {
+                _isSyncingCustomJavaToggle = false;
+            }
+        }
+
         UpdateJavaSelectionState();
 
         if (GameSettings?.UseCustomJava == true && JavaRuntimeOptions.Count == 0)
@@ -492,6 +529,12 @@ public sealed partial class MinecraftSettingsUC : UserControl
 
     private void GameSettings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(CoreX.Models.GameSettings.MaximumRamMb))
+        {
+            Bindings.Update();
+            return;
+        }
+
         if (e.PropertyName == nameof(GameSettings.JavaPath) || e.PropertyName == nameof(GameSettings.UseCustomJava))
         {
             UpdateJavaSelectionState();

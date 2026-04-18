@@ -69,31 +69,54 @@
         x:Name="PerGameEditablePanel"
         Spacing="16">
         <StackPanel Spacing="4">
-        <cn:SettingsCard
+        <cn:SettingsExpander
           HeaderIcon="{helpers:FontIcon Glyph=}"
           Header="{helpers:Localize KeyName=RAM}"
           Description="{helpers:Localize KeyName=RAMDescription}">
-          <StackPanel
-            Orientation="Horizontal"
-            Spacing="5">
-            <TextBlock
-              x:Name="txtRam"
-              VerticalAlignment="Center">
-              <Run
-                Text="{x:Bind GameSettings.MaxRAMinGB, Mode=OneWay}" />
-                                GB</TextBlock>
-            <RepeatButton
-              Padding="5"
-              Click="btnRamPlus_Click"
-              Content="{helpers:FontIcon Glyph=}"
-              FontWeight="SemiBold" />
-            <RepeatButton
-              Padding="5"
-              Click="btnRamMinus_Click"
-              Content="{helpers:FontIcon Glyph=}"
-              FontWeight="SemiBold" />
-          </StackPanel>
-        </cn:SettingsCard>
+          <cn:SettingsExpander.Content>
+            <StackPanel
+              Orientation="Horizontal"
+              Spacing="5">
+              <TextBlock
+                x:Name="txtRam"
+                VerticalAlignment="Center">
+                <Run
+                  Text="{x:Bind GameSettings.MaxRAMinGB, Mode=OneWay}" />
+                GB
+              </TextBlock>
+              <RepeatButton
+                Padding="5"
+                Click="btnRamPlus_Click"
+                Content="{helpers:FontIcon Glyph=}"
+                FontWeight="SemiBold" />
+              <RepeatButton
+                Padding="5"
+                Click="btnRamMinus_Click"
+                Content="{helpers:FontIcon Glyph=}"
+                FontWeight="SemiBold" />
+            </StackPanel>
+          </cn:SettingsExpander.Content>
+          <cn:SettingsExpander.Items>
+            <StackPanel
+              Padding="12,12,12,6"
+              Spacing="8">
+              <Slider
+                Minimum="{x:Bind MinRamMb, Mode=OneWay}"
+                Maximum="{x:Bind MaxRamMb, Mode=OneWay}"
+                StepFrequency="64"
+                SmallChange="64"
+                LargeChange="256"
+                Value="{x:Bind RamSliderValue, Mode=TwoWay}" />
+              <TextBlock
+                HorizontalAlignment="Right"
+                Opacity="0.8"
+                Style="{StaticResource CaptionTextBlockStyle}">
+                <Run Text="{x:Bind GameSettings.MaximumRamMb, Mode=OneWay}" />
+                <Run Text=" MB" />
+              </TextBlock>
+            </StackPanel>
+          </cn:SettingsExpander.Items>
+        </cn:SettingsExpander>
         <cn:SettingsExpander
           Header="{helpers:Localize KeyName=DownloadSettings}"
           HeaderIcon="{helpers:FontIcon Glyph=}"

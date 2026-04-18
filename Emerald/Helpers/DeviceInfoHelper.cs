@@ -38,10 +38,14 @@ public static class DeviceInfoHelper
     [DllImport("libc", SetLastError = true)]
     private static extern int sysctlbyname(string name, out long oldp, ref IntPtr oldlenp, IntPtr newp, IntPtr newlen);
 
+    public static int? LoadedRamGB = null;
+    
     public static int? GetMemoryGB()
     {
+        if (LoadedRamGB != null)
+            return LoadedRamGB;
         // Adjust IoC call to match your actual setup
-        var _logger = Ioc.Default.GetService<ILogger>();
+        var _logger = Ioc.Default.GetService<ILogger<App>>();
         
         try
         {
@@ -95,6 +99,7 @@ public static class DeviceInfoHelper
                 int memGb = (int)Math.Round(gb);
                 
                 _logger.LogDebug("Memory: {memGb} GB", memGb);
+                LoadedRamGB = memGb;
                 return memGb;
             }
 

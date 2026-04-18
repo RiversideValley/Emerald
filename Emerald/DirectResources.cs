@@ -18,7 +18,7 @@ public static class DirectResoucres
     private static readonly IReadOnlyDictionary<string, string> AssemblyMetadata = LoadAssemblyMetadata();
 
     public static int MaxRAM
-        => (DeviceInfoHelper.GetMemoryGB() ?? 192) * 1024; //switches maximum ram if failed, I couldn't find the max ram for MC.
+        => (DeviceInfoHelper.GetMemoryGB() ?? 192) * 1024; //switches PC ram if failed, I couldn't find the max ram for MC.
 
     public static int MinRAM
         => 512;
