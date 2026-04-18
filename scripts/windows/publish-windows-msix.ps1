@@ -26,6 +26,9 @@ $importedCert = $null
 $importedThumbprint = $null
 $hadMyCertBeforeImport = $false
 $addedToRootStore = $false
+$manifestPath = $null
+$manifestOriginalBytes = $null
+$manifestVersionTemporarilyPatched = $false
 
 if (-not (Test-Path -LiteralPath $ProjectPath)) {
     throw "Project file was not found: $ProjectPath"
@@ -51,6 +54,13 @@ if ([string]::IsNullOrWhiteSpace($PublicVersion)) { $PublicVersion = "nightly-lo
 if ([string]::IsNullOrWhiteSpace($ReleaseTag)) { $ReleaseTag = "nightly-local" }
 if ([string]::IsNullOrWhiteSpace($CommitSha)) { $CommitSha = "local" }
 if ([string]::IsNullOrWhiteSpace($BuildTimestampUtc)) { $BuildTimestampUtc = [DateTime]::UtcNow.ToString("o") }
+
+$packageVersion = $null
+if (-not [Version]::TryParse($Version, [ref]$packageVersion) -or $packageVersion.Revision -lt 0) {
+    throw "Version must use four numeric components (Major.Minor.Build.Revision). Received: $Version"
+}
+
+$packageRevision = $packageVersion.Revision.ToString()
 
 New-Item -ItemType Directory -Path $packagesRoot -Force | Out-Null
 New-Item -ItemType Directory -Path $bundleInput -Force | Out-Null
@@ -134,10 +144,38 @@ try {
 
     $manifestPath = Join-Path (Split-Path -Parent $projectFullPath) "Package.appxmanifest"
     if (Test-Path -LiteralPath $manifestPath) {
-        [xml]$manifestXml = Get-Content -LiteralPath $manifestPath
+        $manifestOriginalBytes = [System.IO.File]::ReadAllBytes($manifestPath)
+        [xml]$manifestXml = [System.Text.Encoding]::UTF8.GetString($manifestOriginalBytes)
         $manifestPublisher = $manifestXml.Package.Identity.Publisher
         if (-not [string]::IsNullOrWhiteSpace($manifestPublisher) -and $importedCert.Subject -ne $manifestPublisher) {
             throw "Certificate subject '$($importedCert.Subject)' does not match manifest publisher '$manifestPublisher'."
+        }
+
+        $manifestVersion = [string]$manifestXml.Package.Identity.Version
+        if ([string]::IsNullOrWhiteSpace($manifestVersion)) {
+            throw "Package.appxmanifest is missing Identity Version."
+        }
+
+        if ($manifestVersion -ne $Version) {
+            $manifestXml.Package.Identity.Version = $Version
+
+            $xmlSettings = [System.Xml.XmlWriterSettings]::new()
+            $xmlSettings.Encoding = [System.Text.UTF8Encoding]::new($true)
+            $xmlSettings.Indent = $true
+            $xmlSettings.OmitXmlDeclaration = $false
+            $xmlSettings.NewLineChars = "`r`n"
+            $xmlSettings.NewLineHandling = [System.Xml.NewLineHandling]::Replace
+
+            $xmlWriter = [System.Xml.XmlWriter]::Create($manifestPath, $xmlSettings)
+            try {
+                $manifestXml.Save($xmlWriter)
+            }
+            finally {
+                $xmlWriter.Dispose()
+            }
+
+            $manifestVersionTemporarilyPatched = $true
+            Write-Step "Patched Package.appxmanifest Identity Version from '$manifestVersion' to '$Version' for this build."
         }
     }
 
@@ -198,11 +236,13 @@ try {
             "/p:AssemblyVersion=$AssemblyVersion" `
             "/p:InformationalVersion=$InformationalVersion" `
             "/p:EmeraldPackageVersion=$Version" `
+            "/p:EmeraldPackageRevision=$packageRevision" `
             "/p:EmeraldPublicVersion=$PublicVersion" `
             "/p:EmeraldUpdateChannel=$UpdateChannel" `
             "/p:EmeraldReleaseTag=$ReleaseTag" `
             "/p:EmeraldCommitSha=$CommitSha" `
             "/p:EmeraldBuildTimestampUtc=$BuildTimestampUtc" `
+            "/p:AppxPackageVersion=$Version" `
             "/p:AppxPackageDir=$appxDir" `
             "/p:PackageCertificateThumbprint=$importedThumbprint" `
             /p:PackageCertificateKeyFile= `
@@ -303,6 +343,10 @@ try {
     }
 }
 finally {
+    if ($manifestVersionTemporarilyPatched -and -not [string]::IsNullOrWhiteSpace($manifestPath) -and $manifestOriginalBytes) {
+        [System.IO.File]::WriteAllBytes($manifestPath, $manifestOriginalBytes)
+    }
+
     if ($addedToRootStore -and -not [string]::IsNullOrWhiteSpace($importedThumbprint)) {
         $rootStore = [System.Security.Cryptography.X509Certificates.X509Store]::new("Root", "CurrentUser")
         $rootStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)

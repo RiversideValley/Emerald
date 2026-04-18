@@ -20,9 +20,12 @@
 
     <ApplicationTitle>Emerald</ApplicationTitle>
     <ApplicationId>Riverside.Emerald</ApplicationId>
+    <AppxPackageIdentityName Condition="'$(AppxPackageIdentityName)' == ''">$(ApplicationId)</AppxPackageIdentityName>
     <ApplicationDisplayVersion>$(EmeraldPackageVersion)</ApplicationDisplayVersion>
     <ApplicationVersion>$(EmeraldPackageRevision)</ApplicationVersion>
     <ApplicationPublisher>CN=Riverside Valley</ApplicationPublisher>
+    <AppxPackagePublisher Condition="'$(AppxPackagePublisher)' == ''">$(ApplicationPublisher)</AppxPackagePublisher>
+    <AppxPackageVersion Condition="'$(AppxPackageVersion)' == ''">$(EmeraldPackageVersion)</AppxPackageVersion>
     <UnoFeatures>
       Lottie;
       Hosting;
