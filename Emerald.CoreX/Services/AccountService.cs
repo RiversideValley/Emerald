@@ -7,101 +7,143 @@ using Emerald.CoreX.Models;
 using Emerald.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Client;
-using Uno.Extensions.Specialized;
 using XboxAuthNet.Game.Accounts;
 using XboxAuthNet.Game.Msal;
 using XboxAuthNet.Game.Msal.OAuth;
 
 namespace Emerald.CoreX.Services;
 
-public class AccountService : IAccountService
+public sealed class AccountService : IAccountService
 {
-    // Legal policy switch:
-    // true  = require at least one Microsoft account before allowing offline account usage.
-    // false = allow offline accounts without a Microsoft account.
+    // ──────────────────────────────────────────────
+    // Policy
+    // ──────────────────────────────────────────────
+
     public bool RequireMicrosoftAccountForOfflineAccounts => true;
+
+    // ──────────────────────────────────────────────
+    // Dependencies
+    // ──────────────────────────────────────────────
 
     private readonly ILogger<AccountService> _logger;
     private readonly IBaseSettingsService _settingsService;
-    private readonly ObservableCollection<EAccount> _accounts;
+
+    // ──────────────────────────────────────────────
+    // State
+    // ──────────────────────────────────────────────
+
+    // Protects all mutations of _accounts and _selectedAccountId.
+    private readonly SemaphoreSlim _gate = new(1, 1);
+
+    // Serialises LoadAllAccountsAsync calls independently so they can be
+    // awaited without blocking every other mutating operation.
     private readonly SemaphoreSlim _loadGate = new(1, 1);
-    private readonly object _initializationGate = new();
+
+    private readonly ObservableCollection<EAccount> _accounts = new();
+
+    // Init state — reset to null when init fails so callers can retry.
+    private readonly object _initLock = new();
+    private Task? _initializationTask;
 
     private JELoginHandler? _loginHandler;
     private IPublicClientApplication? _msalApp;
-    private Task? _initializationTask;
     private string? _selectedAccountId;
 
-    public ObservableCollection<EAccount> Accounts => _accounts;
+    // ──────────────────────────────────────────────
+    // Constructor
+    // ──────────────────────────────────────────────
 
     public AccountService(ILogger<AccountService> logger, IBaseSettingsService settingsService)
     {
         _logger = logger;
         _settingsService = settingsService;
-        _accounts = new ObservableCollection<EAccount>();
         _selectedAccountId = _settingsService.Get<string?>(SettingsKeys.SelectedMinecraftAccount, null);
     }
 
+    // ──────────────────────────────────────────────
+    // IAccountService – Public surface
+    // ──────────────────────────────────────────────
+
+    public ObservableCollection<EAccount> Accounts => _accounts;
+
     public Task InitializeAsync(string clientId)
     {
-        lock (_initializationGate)
+        lock (_initLock)
         {
-            _initializationTask ??= InitializeCoreAsync(clientId);
+            // Start a fresh task only when there is none, or the previous one faulted.
+            if (_initializationTask is null || _initializationTask.IsFaulted)
+            {
+                _initializationTask = InitializeCoreAsync(clientId);
+            }
+
             return _initializationTask;
         }
     }
 
     public async Task LoadAllAccountsAsync()
     {
-        await EnsureInitializedAsync();
-        await _loadGate.WaitAsync();
+        await EnsureInitializedAsync().ConfigureAwait(false);
+        await _loadGate.WaitAsync().ConfigureAwait(false);
 
         try
         {
-            _logger.LogInformation("Loading all accounts.");
+            _logger.LogInformation("Loading accounts.");
 
-            if (_loginHandler == null)
-            {
+            if (_loginHandler is null)
                 throw new InvalidOperationException("LoginHandler was not initialized.");
-            }
-
-            _accounts.Clear();
 
             var storedAccounts = _settingsService.Get(SettingsKeys.MinecraftAccounts, new List<EAccount>());
-            _logger.LogInformation("Found {Count} stored accounts.", storedAccounts.Count);
-
-            var onlineAccounts = _loginHandler.AccountManager
+            var onlineAccounts  = _loginHandler.AccountManager
                 .GetAccounts()
                 .OfType<JEGameAccount>()
                 .ToArray();
 
-            _logger.LogInformation("Found {Count} online accounts.", onlineAccounts.Length);
+            _logger.LogInformation(
+                "Found {StoredCount} stored accounts and {OnlineCount} online accounts.",
+                storedAccounts.Count, onlineAccounts.Length);
 
-            _accounts.AddRange(storedAccounts.Where(acc => acc.Type == AccountType.Offline));
-
-            foreach (var onlineAccount in onlineAccounts)
+            await _gate.WaitAsync().ConfigureAwait(false);
+            try
             {
-                if (_accounts.Any(acc => acc.UniqueId == onlineAccount.Identifier && acc.Type == AccountType.Microsoft))
+                _accounts.Clear();
+
+                // Add offline accounts from local storage.
+                foreach (var offline in storedAccounts.Where(a => a.Type == AccountType.Offline))
+                    _accounts.Add(EnsureUniqueId(offline));
+
+                // Merge Microsoft accounts from the login handler.
+                // Use a set keyed on UniqueId to avoid O(n²) lookups.
+                var existingIds = new HashSet<string>(
+                    _accounts.Select(a => a.UniqueId),
+                    StringComparer.Ordinal);
+
+                foreach (var online in onlineAccounts)
                 {
-                    continue;
+                    if (existingIds.Contains(online.Identifier))
+                        continue;
+
+                    _accounts.Add(new EAccount(
+                        online.Profile?.Username ?? "Microsoft Account",
+                        AccountType.Microsoft,
+                        online.Profile?.UUID ?? string.Empty,
+                        online.Identifier)
+                    {
+                        LastUsed = online.LastAccess
+                    });
+
+                    existingIds.Add(online.Identifier);
                 }
 
-                var newAccount = new EAccount(
-                    onlineAccount.Profile?.Username ?? "Microsoft Account",
-                    AccountType.Microsoft,
-                    onlineAccount.Profile?.UUID ?? string.Empty,
-                    onlineAccount.Identifier);
-
-                newAccount.LastUsed = onlineAccount.LastAccess;
-                _accounts.Add(newAccount);
+                RestoreSelectedAccount();
+                EnforceOfflineSelectionPolicy(persist: false);
+            }
+            finally
+            {
+                _gate.Release();
             }
 
-            EnsureUniqueIds();
-            RestoreSelectedAccount();
-            EnforceOfflineSelectionPolicy(persistSelection: false);
-            SaveAccounts();
-
-            _logger.LogInformation("Loaded {Count} total accounts.", _accounts.Count);
+            PersistAccounts();
+            _logger.LogInformation("Loaded {TotalCount} accounts.", _accounts.Count);
         }
         catch (Exception ex)
         {
@@ -116,353 +158,345 @@ public class AccountService : IAccountService
 
     public void CreateOfflineAccount(string username)
     {
+        if (string.IsNullOrWhiteSpace(username))
+            throw new ArgumentException("Username cannot be empty.", nameof(username));
+
+        EnsureOfflineAccountPolicyMet("Creating offline accounts requires at least one Microsoft account.");
+
+        _gate.Wait();
         try
         {
-            _logger.LogInformation("Creating offline account for username: {Username}", username);
-
-            if (string.IsNullOrWhiteSpace(username))
-            {
-                throw new ArgumentException("Username cannot be empty.", nameof(username));
-            }
-
-            EnsureOfflineAccountPolicySatisfied("Creating offline accounts requires at least one Microsoft account.");
-
-            if (_accounts.Any(acc => acc.Name.Equals(username, StringComparison.OrdinalIgnoreCase)))
-            {
-                throw new InvalidOperationException($"Account with username '{username}' already exists.");
-            }
+            if (_accounts.Any(a => a.Name.Equals(username, StringComparison.OrdinalIgnoreCase)))
+                throw new InvalidOperationException($"An account named '{username}' already exists.");
 
             var account = new EAccount(username, AccountType.Offline);
             _accounts.Add(account);
 
-            if (GetSelectedAccount() == null)
-            {
-                ApplySelectedAccount(account.UniqueId, persistSelection: false);
-            }
-
-            SaveAccounts();
+            // Auto-select first account.
+            if (GetSelectedAccount() is null)
+                ApplySelectedAccount(account.UniqueId, persist: false);
         }
-        catch (Exception ex)
+        finally
         {
-            _logger.LogError(ex, "Failed to create offline account for username: {Username}", username);
-            throw;
+            _gate.Release();
         }
+
+        PersistAccounts();
+        _logger.LogInformation("Created offline account '{Username}'.", username);
     }
 
     public async Task SignInMicrosoftAccountAsync()
     {
-        await EnsureInitializedAsync();
+        await EnsureInitializedAsync().ConfigureAwait(false);
 
+        if (_loginHandler is null)
+            throw new InvalidOperationException("LoginHandler not initialized.");
+
+        _logger.LogInformation("Starting interactive Microsoft sign-in.");
+        var session = await _loginHandler.AuthenticateInteractively().ConfigureAwait(false);
+        _logger.LogInformation("Signed in as '{Username}'.", session.Username);
+
+        await LoadAllAccountsAsync().ConfigureAwait(false);
+
+        // Auto-select the account that was just added.
+        await _gate.WaitAsync().ConfigureAwait(false);
         try
         {
-            _logger.LogInformation("Starting Microsoft account sign-in.");
-
-            if (_loginHandler == null)
+            if (GetSelectedAccount() is null)
             {
-                throw new InvalidOperationException("LoginHandler not initialized. Call InitializeAsync first.");
-            }
+                var matched = _accounts.FirstOrDefault(a =>
+                    a.Type == AccountType.Microsoft &&
+                    string.Equals(a.Name, session.Username, StringComparison.OrdinalIgnoreCase));
 
-            var session = await _loginHandler.AuthenticateInteractively();
-            _logger.LogInformation("Successfully signed in Microsoft account: {Username}", session.Username);
-
-            await LoadAllAccountsAsync();
-
-            if (GetSelectedAccount() == null)
-            {
-                var matchingAccount = _accounts.FirstOrDefault(acc =>
-                    acc.Type == AccountType.Microsoft &&
-                    string.Equals(acc.Name, session.Username, StringComparison.OrdinalIgnoreCase));
-
-                if (matchingAccount != null)
-                {
-                    SetSelectedAccount(matchingAccount);
-                }
+                if (matched is not null)
+                    ApplySelectedAccount(matched.UniqueId, persist: true);
             }
         }
-        catch (Exception ex)
+        finally
         {
-            _logger.LogError(ex, "Failed to sign in Microsoft account.");
-            throw;
+            _gate.Release();
         }
     }
 
     public async Task RemoveAccountAsync(EAccount account)
     {
+        _logger.LogInformation("Removing account '{Name}' ({Type}).", account.Name, account.Type);
+
+        if (account.Type == AccountType.Microsoft && _loginHandler is not null)
+        {
+            var onlineAccount = _loginHandler.AccountManager
+                .GetAccounts()
+                .OfType<JEGameAccount>()
+                .FirstOrDefault(a => a.Profile?.UUID == account.UUID);
+
+            if (onlineAccount is not null)
+            {
+                await _loginHandler.Signout(onlineAccount).ConfigureAwait(false);
+                _logger.LogInformation("Signed out Microsoft account '{Name}'.", account.Name);
+            }
+        }
+
+        bool wasSelected;
+
+        await _gate.WaitAsync().ConfigureAwait(false);
         try
         {
-            _logger.LogInformation("Removing account: {Name} ({Type})", account.Name, account.Type);
-
-            if (account.Type == AccountType.Microsoft && _loginHandler != null)
-            {
-                var selectedAccount = _loginHandler.AccountManager
-                    .GetAccounts()
-                    .OfType<JEGameAccount>()
-                    .FirstOrDefault(acc => acc.Profile?.UUID == account.UUID);
-
-                if (selectedAccount != null)
-                {
-                    await _loginHandler.Signout(selectedAccount);
-                    _logger.LogInformation("Signed out Microsoft account: {Name}", account.Name);
-                }
-            }
-
-            var wasSelected = string.Equals(account.UniqueId, _selectedAccountId, StringComparison.Ordinal);
+            wasSelected = string.Equals(account.UniqueId, _selectedAccountId, StringComparison.Ordinal);
             _accounts.Remove(account);
 
             if (wasSelected)
-            {
-                ApplySelectedAccount(null, persistSelection: false);
-            }
+                ApplySelectedAccount(null, persist: false);
 
-            EnforceOfflineSelectionPolicy(persistSelection: false);
-            SaveAccounts();
+            EnforceOfflineSelectionPolicy(persist: false);
         }
-        catch (Exception ex)
+        finally
         {
-            _logger.LogError(ex, "Failed to remove account: {Name}", account.Name);
-            throw;
+            _gate.Release();
         }
+
+        PersistAccounts();
     }
 
     public async Task<MSession> AuthenticateAccountAsync(EAccount account)
     {
-        try
+        _logger.LogInformation("Authenticating '{Name}' ({Type}).", account.Name, account.Type);
+
+        MSession session;
+
+        if (account.Type == AccountType.Offline)
         {
-            _logger.LogInformation("Authenticating account: {Name} ({Type})", account.Name, account.Type);
-
-            MSession session;
-
-            if (account.Type == AccountType.Offline)
-            {
-                EnsureOfflineAccountPolicySatisfied("Offline accounts require at least one Microsoft account.");
-                session = MSession.CreateOfflineSession(account.Name);
-            }
-            else if (account.Type == AccountType.Microsoft)
-            {
-                await EnsureInitializedAsync();
-
-                if (_loginHandler == null)
-                {
-                    throw new InvalidOperationException("LoginHandler not initialized. Call InitializeAsync first.");
-                }
-
-                var selectedAccount = _loginHandler.AccountManager
-                    .GetAccounts()
-                    .OfType<JEGameAccount>()
-                    .FirstOrDefault(acc => acc.Profile?.UUID == account.UUID);
-
-                if (selectedAccount == null)
-                {
-                    throw new InvalidOperationException($"Microsoft account '{account.Name}' was not found in the login handler.");
-                }
-
-                session = await _loginHandler.Authenticate(selectedAccount);
-            }
-            else
-            {
-                throw new ArgumentException($"Unknown account type: {account.Type}");
-            }
-
-            account.LastUsed = DateTime.UtcNow;
-            SaveAccounts();
-            return session;
+            EnsureOfflineAccountPolicyMet("Offline accounts require at least one Microsoft account.");
+            session = MSession.CreateOfflineSession(account.Name);
         }
-        catch (Exception ex)
+        else if (account.Type == AccountType.Microsoft)
         {
-            _logger.LogError(ex, "Failed to authenticate account: {Name}", account.Name);
-            throw;
+            await EnsureInitializedAsync().ConfigureAwait(false);
+
+            if (_loginHandler is null)
+                throw new InvalidOperationException("LoginHandler not initialized.");
+
+            var onlineAccount = _loginHandler.AccountManager
+                .GetAccounts()
+                .OfType<JEGameAccount>()
+                .FirstOrDefault(a => a.Profile?.UUID == account.UUID)
+                ?? throw new InvalidOperationException(
+                    $"Microsoft account '{account.Name}' was not found in the login handler.");
+
+            session = await _loginHandler.Authenticate(onlineAccount).ConfigureAwait(false);
         }
+        else
+        {
+            throw new ArgumentException($"Unknown account type: {account.Type}");
+        }
+
+        account.LastUsed = DateTime.UtcNow;
+        PersistAccounts();
+        return session;
     }
 
     public EAccount? GetMostRecentlyUsedAccount()
     {
-        try
-        {
-            return _accounts
-                .OrderByDescending(acc => acc.LastUsed)
-                .FirstOrDefault();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get the most recently used account.");
-            return null;
-        }
+        // Snapshot to avoid enumerating a live collection.
+        var snapshot = _accounts.ToList();
+        return snapshot.Count == 0
+            ? null
+            : snapshot.OrderByDescending(a => a.LastUsed).First();
     }
 
     public EAccount? GetSelectedAccount()
-        => _accounts.FirstOrDefault(acc => string.Equals(acc.UniqueId, _selectedAccountId, StringComparison.Ordinal));
+        => string.IsNullOrWhiteSpace(_selectedAccountId)
+            ? null
+            : _accounts.FirstOrDefault(a =>
+                string.Equals(a.UniqueId, _selectedAccountId, StringComparison.Ordinal));
 
     public void SetSelectedAccount(EAccount? account)
     {
-        if (account == null)
+        if (account is null)
         {
-            ApplySelectedAccount(null);
+            _gate.Wait();
+            try { ApplySelectedAccount(null, persist: true); }
+            finally { _gate.Release(); }
             return;
         }
 
-        var hadLegacyIds = EnsureUniqueIds();
-
-        if (string.IsNullOrWhiteSpace(account.UniqueId))
+        _gate.Wait();
+        try
         {
-            account.UniqueId = Guid.NewGuid().ToString();
-            hadLegacyIds = true;
+            // Resolve against the live collection by UniqueId only.
+            // Fallback by reference in case it was added directly.
+            var matched = _accounts.FirstOrDefault(a =>
+                ReferenceEquals(a, account) ||
+                string.Equals(a.UniqueId, account.UniqueId, StringComparison.Ordinal));
+
+            if (matched is null)
+            {
+                _logger.LogWarning(
+                    "SetSelectedAccount: account '{Name}' (id={Id}) not found in the collection.",
+                    account.Name, account.UniqueId);
+                return;
+            }
+
+            if (matched.Type == AccountType.Offline)
+                EnsureOfflineAccountPolicyMet("Selecting an offline account requires at least one Microsoft account.");
+
+            ApplySelectedAccount(matched.UniqueId, persist: true);
         }
-
-        var matchingAccount = _accounts.FirstOrDefault(acc => ReferenceEquals(acc, account))
-            ?? _accounts.FirstOrDefault(acc => string.Equals(acc.UniqueId, account.UniqueId, StringComparison.Ordinal))
-            ?? _accounts.FirstOrDefault(acc =>
-                acc.Type == account.Type &&
-                string.Equals(acc.UUID, account.UUID, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(acc.Name, account.Name, StringComparison.OrdinalIgnoreCase));
-
-        if (matchingAccount?.Type == AccountType.Offline)
+        finally
         {
-            EnsureOfflineAccountPolicySatisfied("Selecting offline accounts requires at least one Microsoft account.");
-        }
-
-        ApplySelectedAccount(matchingAccount?.UniqueId);
-
-        if (hadLegacyIds)
-        {
-            SaveAccounts();
+            _gate.Release();
         }
     }
 
+    // ──────────────────────────────────────────────
+    // Private – Initialisation
+    // ──────────────────────────────────────────────
+
     private async Task InitializeCoreAsync(string clientId)
     {
+        _logger.LogInformation("Initializing AccountService (clientId={ClientId}).", clientId);
+
         try
         {
-            _logger.LogInformation("Initializing AccountService with client ID: {ClientId}", clientId);
-
-            _msalApp = await MsalClientHelper.BuildApplicationWithCache(clientId);
-
+            _msalApp  = await MsalClientHelper.BuildApplicationWithCache(clientId).ConfigureAwait(false);
             _loginHandler = new JELoginHandlerBuilder()
                 .WithLogger(_logger)
                 .WithOAuthProvider(new MsalCodeFlowProvider(_msalApp))
                 .WithAccountManager(new InMemoryXboxGameAccountManager(JEGameAccount.FromSessionStorage))
                 .Build();
 
-            _logger.LogInformation("AccountService initialized successfully.");
+            _logger.LogInformation("AccountService initialized.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to initialize AccountService.");
+            // Allow callers to retry by resetting the task on failure.
+            lock (_initLock) { _initializationTask = null; }
+            _logger.LogError(ex, "AccountService initialization failed.");
             throw;
         }
     }
 
     private async Task EnsureInitializedAsync()
     {
-        Task? initializationTask;
+        Task? task;
+        lock (_initLock) { task = _initializationTask; }
 
-        lock (_initializationGate)
-        {
-            initializationTask = _initializationTask;
-        }
+        if (task is null)
+            throw new InvalidOperationException(
+                "AccountService.InitializeAsync must be called before using account operations.");
 
-        if (initializationTask == null)
-        {
-            throw new InvalidOperationException("AccountService.InitializeAsync must be called before using account operations.");
-        }
-
-        await initializationTask;
+        await task.ConfigureAwait(false);
     }
+
+    // ──────────────────────────────────────────────
+    // Private – Selection helpers (call under _gate)
+    // ──────────────────────────────────────────────
 
     private void RestoreSelectedAccount()
     {
+        // Reload persisted id – it may differ from what was set in the constructor
+        // if LoadAllAccountsAsync is called after the constructor.
         _selectedAccountId = _settingsService.Get<string?>(SettingsKeys.SelectedMinecraftAccount, null);
 
-        if (!string.IsNullOrWhiteSpace(_selectedAccountId) && GetSelectedAccount() == null)
+        if (!string.IsNullOrWhiteSpace(_selectedAccountId) && GetSelectedAccount() is null)
         {
-            _logger.LogInformation("Stored selected account no longer exists. Clearing the selection.");
-            ApplySelectedAccount(null);
+            _logger.LogInformation("Previously selected account no longer exists; clearing selection.");
+            ApplySelectedAccount(null, persist: false);
             return;
         }
 
-        ApplySelectedAccount(_selectedAccountId, persistSelection: false);
+        // Re-apply to refresh IsSelected flags.
+        ApplySelectedAccount(_selectedAccountId, persist: false);
     }
 
-    private bool EnsureUniqueIds()
+    /// <summary>
+    /// Updates <see cref="_selectedAccountId"/> and refreshes the <c>IsSelected</c> flag on
+    /// every account in the collection. Must be called under <see cref="_gate"/>.
+    /// </summary>
+    private void ApplySelectedAccount(string? uniqueId, bool persist)
     {
-        var hadLegacyIds = false;
+        _selectedAccountId = string.IsNullOrWhiteSpace(uniqueId) ? null : uniqueId;
 
-        foreach (var account in _accounts)
-        {
-            if (!string.IsNullOrWhiteSpace(account.UniqueId))
-            {
-                continue;
-            }
+        foreach (var a in _accounts)
+            a.IsSelected = string.Equals(a.UniqueId, _selectedAccountId, StringComparison.Ordinal);
 
-            account.UniqueId = Guid.NewGuid().ToString();
-            hadLegacyIds = true;
-            _logger.LogInformation("Generated missing unique account id for {AccountName} ({AccountType}).", account.Name, account.Type);
-        }
-
-        return hadLegacyIds;
+        if (persist)
+            _settingsService.Set(SettingsKeys.SelectedMinecraftAccount, _selectedAccountId);
     }
+
+    // ──────────────────────────────────────────────
+    // Private – Policy
+    // ──────────────────────────────────────────────
 
     private bool HasMicrosoftAccount()
-        => _accounts.Any(account => account.Type == AccountType.Microsoft);
+        => _accounts.Any(a => a.Type == AccountType.Microsoft);
 
     private bool IsOfflineAccountAllowed()
         => !RequireMicrosoftAccountForOfflineAccounts || HasMicrosoftAccount();
 
-    private void EnsureOfflineAccountPolicySatisfied(string message)
+    private void EnsureOfflineAccountPolicyMet(string message)
+    {
+        if (!IsOfflineAccountAllowed())
+            throw new InvalidOperationException(message);
+    }
+
+    /// <summary>
+    /// If an offline account is selected but the policy no longer allows it,
+    /// clears the selection. Must be called under <see cref="_gate"/>.
+    /// </summary>
+    private void EnforceOfflineSelectionPolicy(bool persist)
     {
         if (IsOfflineAccountAllowed())
-        {
             return;
-        }
 
-        throw new InvalidOperationException(message);
-    }
-
-    private void EnforceOfflineSelectionPolicy(bool persistSelection)
-    {
-        if (IsOfflineAccountAllowed())
+        if (GetSelectedAccount()?.Type == AccountType.Offline)
         {
-            return;
-        }
-
-        var selectedAccount = GetSelectedAccount();
-        if (selectedAccount?.Type != AccountType.Offline)
-        {
-            return;
-        }
-
-        _logger.LogInformation(
-            "Clearing selected offline account because the policy requires at least one Microsoft account.");
-        ApplySelectedAccount(null, persistSelection);
-    }
-
-    private void ApplySelectedAccount(string? uniqueId, bool persistSelection = true)
-    {
-        _selectedAccountId = string.IsNullOrWhiteSpace(uniqueId) ? null : uniqueId;
-
-        foreach (var account in _accounts)
-        {
-            account.IsSelected = string.Equals(account.UniqueId, _selectedAccountId, StringComparison.Ordinal);
-        }
-
-        if (persistSelection)
-        {
-            _settingsService.Set(SettingsKeys.SelectedMinecraftAccount, _selectedAccountId);
+            _logger.LogInformation("Clearing offline account selection due to policy.");
+            ApplySelectedAccount(null, persist);
         }
     }
 
-    private void SaveAccounts()
+    // ──────────────────────────────────────────────
+    // Private – Persistence
+    // ──────────────────────────────────────────────
+
+    private void PersistAccounts()
     {
         try
         {
             _settingsService.Set(SettingsKeys.MinecraftAccounts, _accounts.ToList());
             _settingsService.Set(SettingsKeys.SelectedMinecraftAccount, _selectedAccountId);
-            _loginHandler?.AccountManager.SaveAccounts();
-            _logger.LogDebug("Saved {Count} accounts to settings.", _accounts.Count);
+
+            // Note: InMemoryXboxGameAccountManager.SaveAccounts() is intentionally
+            // not called – it is a no-op and Microsoft auth tokens are re-fetched
+            // from the MSAL token cache on the next authentication.
+
+            _logger.LogDebug("Persisted {Count} accounts.", _accounts.Count);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to save accounts to settings.");
+            _logger.LogError(ex, "Failed to persist accounts.");
             throw;
         }
+    }
+
+    // ──────────────────────────────────────────────
+    // Private – Utilities
+    // ──────────────────────────────────────────────
+
+    /// <summary>
+    /// Ensures the account has a non-empty UniqueId, generating one if needed.
+    /// Returns the same account for fluent use.
+    /// </summary>
+    private EAccount EnsureUniqueId(EAccount account)
+    {
+        if (string.IsNullOrWhiteSpace(account.UniqueId))
+        {
+            account.UniqueId = Guid.NewGuid().ToString();
+            _logger.LogInformation(
+                "Generated missing UniqueId for account '{Name}' ({Type}).",
+                account.Name, account.Type);
+        }
+
+        return account;
     }
 }
