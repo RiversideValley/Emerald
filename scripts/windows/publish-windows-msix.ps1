@@ -55,19 +55,35 @@ if ([string]::IsNullOrWhiteSpace($ReleaseTag)) { $ReleaseTag = "nightly-local" }
 if ([string]::IsNullOrWhiteSpace($CommitSha)) { $CommitSha = "local" }
 if ([string]::IsNullOrWhiteSpace($BuildTimestampUtc)) { $BuildTimestampUtc = [DateTime]::UtcNow.ToString("o") }
 
-$packageVersion = $null
-if (-not [Version]::TryParse($Version, [ref]$packageVersion) -or $packageVersion.Revision -lt 0) {
-    throw "Version must use four numeric components (Major.Minor.Build.Revision). Received: $Version"
-}
-
-$packageRevision = $packageVersion.Revision.ToString()
-
 New-Item -ItemType Directory -Path $packagesRoot -Force | Out-Null
 New-Item -ItemType Directory -Path $bundleInput -Force | Out-Null
 New-Item -ItemType Directory -Path $bundleOutput -Force | Out-Null
 
 function Write-Step([string]$Message) {
     Write-Host "[$([DateTime]::UtcNow.ToString('u'))] $Message"
+}
+
+function Normalize-AppxVersion([string]$RawVersion) {
+    $parts = $RawVersion.Split('.', [System.StringSplitOptions]::RemoveEmptyEntries)
+    if ($parts.Count -ne 4) {
+        throw "Version must use four numeric components (Major.Minor.Build.Revision). Received: $RawVersion"
+    }
+
+    $normalizedParts = New-Object System.Collections.Generic.List[string]
+    foreach ($part in $parts) {
+        if ($part -notmatch '^[0-9]+$') {
+            throw "Version components must be numeric for MSIX packaging. Received: $RawVersion"
+        }
+
+        $component = [uint32]::Parse($part, [System.Globalization.CultureInfo]::InvariantCulture)
+        if ($component -gt 65535) {
+            throw "Version components must be between 0 and 65535 for MSIX packaging. Received: $RawVersion"
+        }
+
+        $normalizedParts.Add($component.ToString([System.Globalization.CultureInfo]::InvariantCulture))
+    }
+
+    return [string]::Join('.', $normalizedParts)
 }
 
 function Convert-PlainTextToSecureString([string]$PlainText) {
@@ -81,6 +97,11 @@ function Convert-PlainTextToSecureString([string]$PlainText) {
 }
 
 try {
+    $Version = Normalize-AppxVersion -RawVersion $Version
+    if (-not [string]::IsNullOrWhiteSpace($FileVersion)) { $FileVersion = Normalize-AppxVersion -RawVersion $FileVersion }
+    if (-not [string]::IsNullOrWhiteSpace($AssemblyVersion)) { $AssemblyVersion = Normalize-AppxVersion -RawVersion $AssemblyVersion }
+    $packageRevision = $Version.Split('.')[3]
+
     if (-not $CertificatePassword) {
         $passwordFromEnv = $env:WINDOWS_SIGNING_CERT_PASSWORD
         if ([string]::IsNullOrWhiteSpace($passwordFromEnv)) {

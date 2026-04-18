@@ -150,6 +150,24 @@ jobs:
             fi
           }
 
+          normalize_msix_component() {
+            local raw_value="$1"
+            local label="$2"
+
+            if ! [[ "$raw_value" =~ ^[0-9]+$ ]]; then
+              echo "$label must be numeric for MSIX package versions. Found: $raw_value"
+              exit 1
+            fi
+
+            local normalized_value=$((10#$raw_value))
+            if [ "$normalized_value" -gt 65535 ]; then
+              echo "$label must be between 0 and 65535 for MSIX package versions. Found: $normalized_value"
+              exit 1
+            fi
+
+            printf '%s\n' "$normalized_value"
+          }
+
           if [ "$event_name" = "workflow_dispatch" ]; then
             run_windows="$(jq -r '.inputs.run_windows // "true"' "$GITHUB_EVENT_PATH")"
             run_macos="$(jq -r '.inputs.run_macos // "true"' "$GITHUB_EVENT_PATH")"
@@ -223,10 +241,10 @@ jobs:
 
           if [ "$release_channel" = "nightly" ]; then
             timestamp_slug="$(date -u +%Y%m%d.%H%M)"
-            package_major="$(date -u +%y)"
-            package_minor="$(date -u +%j)"
-            package_build="$(date -u +%H%M)"
-            package_revision="$run_attempt"
+            package_major="$(normalize_msix_component "$(date -u +%y)" "nightly package major")"
+            package_minor="$(normalize_msix_component "$(date -u +%j)" "nightly package minor")"
+            package_build="$(normalize_msix_component "$(date -u +%H%M)" "nightly package build")"
+            package_revision="$(normalize_msix_component "$run_attempt" "nightly package revision")"
 
             public_version="nightly-${timestamp_slug}+sha.${short_sha}"
             package_version="${package_major}.${package_minor}.${package_build}.${package_revision}"
@@ -234,8 +252,11 @@ jobs:
             release_is_prerelease=true
             is_release_flow=false
           else
-            package_revision="$(( (run_number % 65534) + 1 ))"
-            package_version="${major}.${minor}.${patch}.${package_revision}"
+            package_major="$(normalize_msix_component "$major" "release package major")"
+            package_minor="$(normalize_msix_component "$minor" "release package minor")"
+            package_build="$(normalize_msix_component "$patch" "release package build")"
+            package_revision="$(normalize_msix_component "$(( (run_number % 65534) + 1 ))" "release package revision")"
+            package_version="${package_major}.${package_minor}.${package_build}.${package_revision}"
 
             if [ "$release_channel" = "pre-release" ]; then
               public_version="${version_prefix_input}-pre.${package_revision}"
