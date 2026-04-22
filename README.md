@@ -2,7 +2,7 @@
 > [!IMPORTANT]
 > **Notice**  
 > We are sorry to announce that currently, Emerald is waiting for approval from Mojang for authenitcating with Microsoft.  
-> This means you cant currently use this app for any thing.  
+> This means you cant currently use this app for any thing.
 > We will hope that we get approved from Mojang soon.
 
 
