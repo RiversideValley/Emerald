@@ -7,6 +7,7 @@ using Emerald.CoreX.Models;
 using Emerald.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Client;
+using Microsoft.UI.Dispatching;
 using XboxAuthNet.Game.Accounts;
 using XboxAuthNet.Game.Msal;
 using XboxAuthNet.Game.Msal.OAuth;
@@ -49,14 +50,18 @@ public sealed class AccountService : IAccountService
     private IPublicClientApplication? _msalApp;
     private string? _selectedAccountId;
 
+    //Used to call in the main thread.
+    private readonly DispatcherQueue _dispatcher;
+    
     // ──────────────────────────────────────────────
     // Constructor
     // ──────────────────────────────────────────────
 
-    public AccountService(ILogger<AccountService> logger, IBaseSettingsService settingsService)
+    public AccountService(ILogger<AccountService> logger, IBaseSettingsService settingsService, DispatcherQueue dispatcher)
     {
         _logger = logger;
         _settingsService = settingsService;
+        _dispatcher = dispatcher;
         _selectedAccountId = _settingsService.Get<string?>(SettingsKeys.SelectedMinecraftAccount, null);
     }
 
@@ -79,7 +84,13 @@ public sealed class AccountService : IAccountService
             return _initializationTask;
         }
     }
-
+    private void RunOnUI(Action action)
+    {
+        if (_dispatcher.HasThreadAccess)
+            action();
+        else
+            _dispatcher.TryEnqueue(() => action());
+    }
     public async Task LoadAllAccountsAsync()
     {
         await EnsureInitializedAsync().ConfigureAwait(false);
@@ -105,37 +116,40 @@ public sealed class AccountService : IAccountService
             await _gate.WaitAsync().ConfigureAwait(false);
             try
             {
-                _accounts.Clear();
-
-                // Add offline accounts from local storage.
-                foreach (var offline in storedAccounts.Where(a => a.Type == AccountType.Offline))
-                    _accounts.Add(EnsureUniqueId(offline));
-
-                // Merge Microsoft accounts from the login handler.
-                // Use a set keyed on UniqueId to avoid O(n²) lookups.
-                var existingIds = new HashSet<string>(
-                    _accounts.Select(a => a.UniqueId),
-                    StringComparer.Ordinal);
-
-                foreach (var online in onlineAccounts)
+                RunOnUI(() =>
                 {
-                    if (existingIds.Contains(online.Identifier))
-                        continue;
+                    _accounts.Clear();
 
-                    _accounts.Add(new EAccount(
-                        online.Profile?.Username ?? "Microsoft Account",
-                        AccountType.Microsoft,
-                        online.Profile?.UUID ?? string.Empty,
-                        online.Identifier)
+                    // Add offline accounts from local storage.
+                    foreach (var offline in storedAccounts.Where(a => a.Type == AccountType.Offline))
+                        _accounts.Add(EnsureUniqueId(offline));
+
+                    // Merge Microsoft accounts from the login handler.
+                    // Use a set keyed on UniqueId to avoid O(n²) lookups.
+                    var existingIds = new HashSet<string>(
+                        _accounts.Select(a => a.UniqueId),
+                        StringComparer.Ordinal);
+
+                    foreach (var online in onlineAccounts)
                     {
-                        LastUsed = online.LastAccess
-                    });
+                        if (existingIds.Contains(online.Identifier))
+                            continue;
 
-                    existingIds.Add(online.Identifier);
-                }
+                        _accounts.Add(new EAccount(
+                            online.Profile?.Username ?? "Microsoft Account",
+                            AccountType.Microsoft,
+                            online.Profile?.UUID ?? string.Empty,
+                            online.Identifier)
+                        {
+                            LastUsed = online.LastAccess
+                        });
 
-                RestoreSelectedAccount();
-                EnforceOfflineSelectionPolicy(persist: false);
+                        existingIds.Add(online.Identifier);
+                    }
+
+                    RestoreSelectedAccount();
+                    EnforceOfflineSelectionPolicy(persist: false);
+                });
             }
             finally
             {

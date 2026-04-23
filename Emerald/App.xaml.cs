@@ -112,8 +112,13 @@ public partial class App : Application
         //Core
         services.AddSingleton<CoreX.Core>();
         //Accounts
-        services.AddSingleton<CoreX.Services.IAccountService, CoreX.Services.AccountService>();
-
+        services.AddSingleton<CoreX.Services.IAccountService>(provider =>
+            new CoreX.Services.AccountService(
+                provider.GetRequiredService<ILogger<CoreX.Services.AccountService>>(),
+                provider.GetRequiredService<Services.IBaseSettingsService>(),
+                MainWindow?.DispatcherQueue
+                ?? DispatcherQueue.GetForCurrentThread()
+                ?? throw new InvalidOperationException("A DispatcherQueue is required for the game runtime service.")));
         //ViewModels
         services.AddTransient<ViewModels.GamesPageViewModel>();
         services.AddTransient<ViewModels.AccountsPageViewModel>();
