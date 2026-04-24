@@ -55,7 +55,7 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
-    public async Task LoadAllAccountsAsync_MergesOfflineSettingsWithMicrosoftAccounts_AndCleansLegacyMicrosoftEntries()
+    public async Task LoadAllAccountsAsync_LoadsOfflineFromSettings_UsesCmlLibForMicrosoft_AndWarnsWhenStoredMicrosoftIsLoggedOut()
     {
         var baseSettingsService = new InMemoryBaseSettingsService();
         baseSettingsService.Set(
@@ -68,8 +68,9 @@ public sealed class AccountServiceTests
 
         var microsoftClient = new FakeMicrosoftAccountClient();
         microsoftClient.Accounts.Add(new MicrosoftAccountInfo("ms-1", "Microsoft Alpha", "ms-uuid-1", DateTime.UtcNow.AddMinutes(-5)));
+        var notificationService = new FakeNotificationService();
 
-        var service = CreateService(baseSettingsService, microsoftClient);
+        var service = CreateService(baseSettingsService, microsoftClient, notificationService);
         await service.InitializeAsync("test-client");
 
         await service.LoadAllAccountsAsync();
@@ -81,9 +82,11 @@ public sealed class AccountServiceTests
 
         var storedAccounts = baseSettingsService.Peek<List<EAccount>>(SettingsKeys.MinecraftAccounts);
         Assert.NotNull(storedAccounts);
-        var offlineOnly = Assert.Single(storedAccounts!);
-        Assert.Equal(AccountType.Offline, offlineOnly.Type);
-        Assert.Equal("offline-alpha", offlineOnly.UniqueId);
+        Assert.Equal(2, storedAccounts!.Count);
+        Assert.Contains(storedAccounts, account => account.Type == AccountType.Offline && account.UniqueId == "offline-alpha");
+        Assert.Contains(storedAccounts, account => account.Type == AccountType.Microsoft && account.UniqueId == "ms-1");
+        Assert.Single(notificationService.WarningCalls);
+        Assert.Contains("LegacyMicrosoft", notificationService.WarningCalls[0].Message);
     }
 
     [Fact]
@@ -274,17 +277,24 @@ public sealed class AccountServiceTests
     }
 
     private static AccountService CreateService(InMemoryBaseSettingsService baseSettingsService)
-        => CreateService(baseSettingsService, new FakeMicrosoftAccountClient());
+        => CreateService(baseSettingsService, new FakeMicrosoftAccountClient(), new FakeNotificationService());
 
     private static AccountService CreateService(
         InMemoryBaseSettingsService baseSettingsService,
         FakeMicrosoftAccountClient microsoftAccountClient)
+        => CreateService(baseSettingsService, microsoftAccountClient, new FakeNotificationService());
+
+    private static AccountService CreateService(
+        InMemoryBaseSettingsService baseSettingsService,
+        FakeMicrosoftAccountClient microsoftAccountClient,
+        FakeNotificationService notificationService)
         => new(
             NullLogger<AccountService>.Instance,
             baseSettingsService,
             new ImmediateUiDispatcher(),
             "/tmp/emerald-tests/cml_accounts.json",
-            microsoftAccountClient);
+            microsoftAccountClient,
+            notificationService);
 
     private static void AddMicrosoftAccount(AccountService service, string name = "Microsoft")
     {

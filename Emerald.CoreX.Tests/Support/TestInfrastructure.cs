@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using CmlLib.Core.Auth;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Notifications;
@@ -121,6 +122,116 @@ internal sealed class FakeMicrosoftAccountClient : IMicrosoftAccountClient
         }
 
         return Task.CompletedTask;
+    }
+}
+
+internal sealed class FakeNotificationService : INotificationService
+{
+    public ObservableCollection<Notification> ActiveNotifications { get; } = [];
+    public List<(string Title, string Message)> WarningCalls { get; } = [];
+    public List<(string Title, string Message)> InfoCalls { get; } = [];
+    public List<(string Title, string Message, Exception? Exception)> ErrorCalls { get; } = [];
+
+    public (string Id, CancellationToken? CancellationToken) Create(
+        string title,
+        string message = null!,
+        double progress = 0,
+        bool isIndeterminate = false,
+        bool isCancellable = false)
+    {
+        var notification = new Notification
+        {
+            Id = Guid.NewGuid().ToString(),
+            Title = title,
+            Message = message,
+            Type = NotificationType.Progress,
+            Progress = progress,
+            IsIndeterminate = isIndeterminate,
+            Timestamp = DateTime.UtcNow,
+            CancellationSource = isCancellable ? new CancellationTokenSource() : null
+        };
+
+        ActiveNotifications.Add(notification);
+        return (notification.Id, notification.CancellationSource?.Token);
+    }
+
+    public void Update(string? id = null, string? title = null, string? message = null, double? progress = null, bool? isIndeterminate = null)
+    {
+        var notification = ActiveNotifications.FirstOrDefault(n => n.Id == id);
+        if (notification is null)
+            return;
+
+        if (title is not null)
+            notification.Title = title;
+        if (message is not null)
+            notification.Message = message;
+        if (progress is not null)
+            notification.Progress = progress.Value;
+        if (isIndeterminate is not null)
+            notification.IsIndeterminate = isIndeterminate.Value;
+    }
+
+    public void Complete(string id, bool success, string message = null!, Exception ex = null!)
+    {
+        var notification = ActiveNotifications.FirstOrDefault(n => n.Id == id);
+        if (notification is null)
+            return;
+
+        notification.Type = success ? NotificationType.Success : NotificationType.Error;
+        notification.Message = message ?? notification.Message;
+        if (ex is not null)
+            notification.Exception = ex;
+        notification.IsCompleted = true;
+        notification.IsIndeterminate = false;
+    }
+
+    public string Warning(string title, string message, TimeSpan? duration = null)
+    {
+        WarningCalls.Add((title, message));
+        return AddNotification(title, message, NotificationType.Warning, duration, null);
+    }
+
+    public string Info(string title, string message, TimeSpan? duration = null)
+    {
+        InfoCalls.Add((title, message));
+        return AddNotification(title, message, NotificationType.Info, duration, null);
+    }
+
+    public string Error(string title, string message, TimeSpan? duration = null, Exception? ex = null)
+    {
+        ErrorCalls.Add((title, message, ex));
+        return AddNotification(title, message, NotificationType.Error, duration, ex);
+    }
+
+    public void RemoveNotification(string id)
+    {
+        var notification = ActiveNotifications.FirstOrDefault(n => n.Id == id);
+        if (notification is not null)
+            ActiveNotifications.Remove(notification);
+    }
+
+    public void Cancel(string id)
+    {
+        var notification = ActiveNotifications.FirstOrDefault(n => n.Id == id);
+        notification?.CancellationSource?.Cancel();
+    }
+
+    private string AddNotification(string title, string message, NotificationType type, TimeSpan? duration, Exception? ex)
+    {
+        var notification = new Notification
+        {
+            Id = Guid.NewGuid().ToString(),
+            Title = title,
+            Message = message,
+            Type = type,
+            Timestamp = DateTime.UtcNow,
+            Duration = duration
+        };
+        if (ex is not null)
+            notification.Exception = ex;
+
+        ActiveNotifications.Add(notification);
+        return notification.Id;
     }
 }
 

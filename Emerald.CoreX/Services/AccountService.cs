@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CmlLib.Core.Auth;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Models;
+using Emerald.CoreX.Notifications;
 using Emerald.Services;
 using Microsoft.Extensions.Logging;
 
@@ -15,6 +16,7 @@ public sealed class AccountService : IAccountService
     private readonly IBaseSettingsService _settingsService;
     private readonly IUiDispatcher _uiDispatcher;
     private readonly IMicrosoftAccountClient _microsoftAccountClient;
+    private readonly INotificationService? _notificationService;
     private readonly string _accountStorePath;
 
     // Protects mutations of _accounts and _selectedAccountId.
@@ -31,7 +33,7 @@ public sealed class AccountService : IAccountService
     private string? _selectedAccountId;
 
     public AccountService(ILogger<AccountService> logger, IBaseSettingsService settingsService)
-        : this(logger, settingsService, new InlineUiDispatcher())
+        : this(logger, settingsService, new InlineUiDispatcher(), notificationService: null)
     {
     }
 
@@ -40,12 +42,14 @@ public sealed class AccountService : IAccountService
         IBaseSettingsService settingsService,
         IUiDispatcher uiDispatcher,
         string? accountStorePath = null,
-        IMicrosoftAccountClient? microsoftAccountClient = null)
+        IMicrosoftAccountClient? microsoftAccountClient = null,
+        INotificationService? notificationService = null)
     {
         _logger = logger;
         _settingsService = settingsService;
         _uiDispatcher = uiDispatcher;
         _microsoftAccountClient = microsoftAccountClient ?? new CmlLibMicrosoftAccountClient(logger);
+        _notificationService = notificationService;
         _accountStorePath = string.IsNullOrWhiteSpace(accountStorePath)
             ? GetDefaultAccountStorePath()
             : accountStorePath;
@@ -75,66 +79,20 @@ public sealed class AccountService : IAccountService
         try
         {
             _logger.LogInformation("Loading accounts from Emerald settings and the CmlLib account store.");
-
-            var storedAccounts = _settingsService.Get(SettingsKeys.MinecraftAccounts, new List<EAccount>());
-            var offlineAccounts = storedAccounts
-                .Where(account => account.Type == AccountType.Offline)
-                .Select(EnsureUniqueId)
-                .ToList();
-            var ignoredLegacyMicrosoftCount = storedAccounts.Count - offlineAccounts.Count;
-            var onlineAccounts = _microsoftAccountClient.GetAccounts();
+            var loadState = BuildAccountLoadState();
 
             _logger.LogInformation(
-                "Found {OfflineCount} offline accounts, ignored {IgnoredLegacyMicrosoftCount} legacy Microsoft settings entries, and found {OnlineCount} Microsoft accounts in CmlLib.",
-                offlineAccounts.Count,
-                ignoredLegacyMicrosoftCount,
-                onlineAccounts.Count);
-
-            var totalCount = 0;
-            var microsoftCount = 0;
+                "Found {OfflineCount} offline accounts and {StoredMicrosoftCount} stored Microsoft accounts in settings, and found {OnlineCount} Microsoft accounts in CmlLib.",
+                loadState.OfflineCount,
+                loadState.StoredMicrosoftCount,
+                loadState.MicrosoftCount);
 
             await _gate.WaitAsync().ConfigureAwait(false);
             try
             {
                 await _uiDispatcher.InvokeAsync(() =>
                 {
-                    _accounts.Clear();
-
-                    foreach (var offline in offlineAccounts)
-                        _accounts.Add(EnsureUniqueId(offline));
-
-                    var existingIds = new HashSet<string>(
-                        _accounts.Select(account => account.UniqueId),
-                        StringComparer.Ordinal);
-
-                    foreach (var online in onlineAccounts)
-                    {
-                        if (string.IsNullOrWhiteSpace(online.Identifier))
-                        {
-                            _logger.LogWarning("Skipping a Microsoft account with a missing identifier.");
-                            continue;
-                        }
-
-                        if (existingIds.Contains(online.Identifier))
-                            continue;
-
-                        _accounts.Add(new EAccount(
-                            online.Name,
-                            AccountType.Microsoft,
-                            string.IsNullOrWhiteSpace(online.UUID) ? online.Identifier : online.UUID,
-                            online.Identifier)
-                        {
-                            LastUsed = online.LastAccess == default ? DateTime.UtcNow : online.LastAccess
-                        });
-
-                        existingIds.Add(online.Identifier);
-                    }
-
-                    RestoreSelectedAccountCore();
-                    EnforceOfflineSelectionPolicyCore(persist: false);
-
-                    totalCount = _accounts.Count;
-                    microsoftCount = _accounts.Count(account => account.Type == AccountType.Microsoft);
+                    ApplyLoadedAccountsCore(loadState.Accounts);
                 }).ConfigureAwait(false);
             }
             finally
@@ -143,11 +101,13 @@ public sealed class AccountService : IAccountService
             }
 
             PersistAccounts();
+            NotifyLoggedOutMicrosoftAccounts(loadState.LoggedOutMicrosoftAccountNames);
             _logger.LogInformation(
-                "Loaded {TotalCount} accounts ({OfflineCount} offline, {MicrosoftCount} Microsoft).",
-                totalCount,
-                offlineAccounts.Count,
-                microsoftCount);
+                "Loaded {TotalCount} accounts ({OfflineCount} offline, {MicrosoftCount} Microsoft). Logged out Microsoft accounts detected: {LoggedOutMicrosoftCount}.",
+                loadState.TotalCount,
+                loadState.OfflineCount,
+                loadState.MicrosoftCount,
+                loadState.LoggedOutMicrosoftCount);
         }
         catch (Exception ex)
         {
@@ -482,22 +442,25 @@ public sealed class AccountService : IAccountService
     {
         try
         {
-            List<EAccount> offlineAccounts = [];
+            List<EAccount> storedAccounts = [];
             string? selectedAccountId = null;
             _uiDispatcher.Invoke(() =>
             {
-                offlineAccounts = _accounts
-                    .Where(account => account.Type == AccountType.Offline)
+                storedAccounts = _accounts
                     .Select(CloneStoredAccount)
                     .ToList();
                 selectedAccountId = _selectedAccountId;
             });
 
-            _settingsService.Set(SettingsKeys.MinecraftAccounts, offlineAccounts);
+            _settingsService.Set(SettingsKeys.MinecraftAccounts, storedAccounts);
             _settingsService.Set(SettingsKeys.SelectedMinecraftAccount, selectedAccountId);
+            var offlineCount = storedAccounts.Count(account => account.Type == AccountType.Offline);
+            var microsoftCount = storedAccounts.Count(account => account.Type == AccountType.Microsoft);
             _logger.LogDebug(
-                "Persisted {OfflineCount} offline accounts. SelectedAccountId: {SelectedAccountId}.",
-                offlineAccounts.Count,
+                "Persisted {TotalCount} accounts ({OfflineCount} offline, {MicrosoftCount} Microsoft). SelectedAccountId: {SelectedAccountId}.",
+                storedAccounts.Count,
+                offlineCount,
+                microsoftCount,
                 selectedAccountId ?? "None");
         }
         catch (Exception ex)
@@ -528,6 +491,90 @@ public sealed class AccountService : IAccountService
         {
             LastUsed = storedAccount.LastUsed
         };
+    }
+
+    private AccountLoadState BuildAccountLoadState()
+    {
+        var storedAccounts = _settingsService.Get(SettingsKeys.MinecraftAccounts, new List<EAccount>());
+        var offlineAccounts = storedAccounts
+            .Where(account => account.Type == AccountType.Offline)
+            .Select(CloneStoredAccount)
+            .ToList();
+        var storedMicrosoftAccounts = storedAccounts
+            .Where(account => account.Type == AccountType.Microsoft)
+            .Select(CloneStoredAccount)
+            .ToList();
+        var onlineMicrosoftAccounts = _microsoftAccountClient.GetAccounts()
+            .Where(account =>
+            {
+                if (!string.IsNullOrWhiteSpace(account.Identifier))
+                    return true;
+
+                _logger.LogWarning("Skipping a Microsoft account with a missing identifier.");
+                return false;
+            })
+            .Select(CreateMicrosoftAccount)
+            .ToList();
+
+        var onlineIdentifiers = new HashSet<string>(
+            onlineMicrosoftAccounts.Select(account => account.UniqueId),
+            StringComparer.Ordinal);
+        var loggedOutAccountNames = storedMicrosoftAccounts
+            .Where(account => !onlineIdentifiers.Contains(account.UniqueId))
+            .Select(account => account.Name)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var loadedAccounts = new List<EAccount>(offlineAccounts.Count + onlineMicrosoftAccounts.Count);
+        loadedAccounts.AddRange(offlineAccounts);
+        loadedAccounts.AddRange(onlineMicrosoftAccounts);
+
+        return new AccountLoadState(
+            loadedAccounts,
+            offlineAccounts.Count,
+            storedMicrosoftAccounts.Count,
+            onlineMicrosoftAccounts.Count,
+            loggedOutAccountNames);
+    }
+
+    private void NotifyLoggedOutMicrosoftAccounts(IReadOnlyList<string> loggedOutMicrosoftAccountNames)
+    {
+        if (_notificationService is null || loggedOutMicrosoftAccountNames.Count == 0)
+            return;
+
+        if (loggedOutMicrosoftAccountNames.Count == 1)
+        {
+            _notificationService.Warning(
+                "Microsoft account signed out",
+                $"'{loggedOutMicrosoftAccountNames[0]}' is no longer signed in and was removed from Accounts.");
+            return;
+        }
+
+        _notificationService.Warning(
+            "Microsoft accounts signed out",
+            $"{loggedOutMicrosoftAccountNames.Count} Microsoft accounts are no longer signed in and were removed from Accounts.");
+    }
+
+    private static EAccount CreateMicrosoftAccount(MicrosoftAccountInfo account)
+        => new(
+            account.Name,
+            AccountType.Microsoft,
+            string.IsNullOrWhiteSpace(account.UUID) ? account.Identifier : account.UUID,
+            account.Identifier)
+        {
+            LastUsed = account.LastAccess == default ? DateTime.UtcNow : account.LastAccess
+        };
+
+    private void ApplyLoadedAccountsCore(IEnumerable<EAccount> accounts)
+    {
+        _accounts.Clear();
+
+        foreach (var account in accounts)
+            _accounts.Add(account);
+
+        RestoreSelectedAccountCore();
+        EnforceOfflineSelectionPolicyCore(persist: false);
     }
 
     private static IReadOnlyList<string> BuildMaterializationCandidates(
@@ -584,4 +631,15 @@ public sealed class AccountService : IAccountService
             "Emerald",
             "accounts",
             "cml_accounts.json");
+
+    private sealed record AccountLoadState(
+        List<EAccount> Accounts,
+        int OfflineCount,
+        int StoredMicrosoftCount,
+        int MicrosoftCount,
+        IReadOnlyList<string> LoggedOutMicrosoftAccountNames)
+    {
+        public int TotalCount => Accounts.Count;
+        public int LoggedOutMicrosoftCount => LoggedOutMicrosoftAccountNames.Count;
+    }
 }

@@ -122,7 +122,8 @@ public partial class App : Application
                 provider.GetRequiredService<ILogger<CoreX.Services.AccountService>>(),
                 provider.GetRequiredService<Services.IBaseSettingsService>(),
                 new Services.DispatcherQueueUiDispatcher(dispatcherQueue),
-                Path.Combine(DirectResoucres.LocalDataPath, "accounts", "cml_accounts.json"));
+                Path.Combine(DirectResoucres.LocalDataPath, "accounts", "cml_accounts.json"),
+                notificationService: provider.GetRequiredService<CoreX.Notifications.INotificationService>());
         });
         //ViewModels
         services.AddTransient<ViewModels.GamesPageViewModel>();
