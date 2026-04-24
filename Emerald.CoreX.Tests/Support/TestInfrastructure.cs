@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
+using CmlLib.Core.Auth;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Notifications;
+using Emerald.CoreX.Services;
 using Emerald.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -47,6 +49,79 @@ public sealed class InMemoryBaseSettingsService : IBaseSettingsService
         => _values.TryGetValue(key, out var value) && value is T typedValue
             ? typedValue
             : default;
+}
+
+internal sealed class ImmediateUiDispatcher : IUiDispatcher
+{
+    public bool HasThreadAccess => true;
+
+    public void Invoke(Action action) => action();
+
+    public Task InvokeAsync(Action action)
+    {
+        action();
+        return Task.CompletedTask;
+    }
+}
+
+internal sealed class FakeMicrosoftAccountClient : IMicrosoftAccountClient
+{
+    public List<MicrosoftAccountInfo> Accounts { get; } = [];
+    public List<string> AuthenticatedIdentifiers { get; } = [];
+    public List<string> SignedOutIdentifiers { get; } = [];
+
+    public string? InitializedClientId { get; private set; }
+    public string? InitializedAccountStorePath { get; private set; }
+    public string? DefaultAccountIdentifier { get; set; }
+
+    public Func<FakeMicrosoftAccountClient, Task<MicrosoftInteractiveSignInResult>>? OnInteractiveSignInAsync { get; set; }
+    public Func<string, MSession>? AuthenticateFactory { get; set; }
+
+    public Task InitializeAsync(string clientId, string accountStorePath)
+    {
+        InitializedClientId = clientId;
+        InitializedAccountStorePath = accountStorePath;
+        return Task.CompletedTask;
+    }
+
+    public IReadOnlyList<MicrosoftAccountInfo> GetAccounts()
+        => Accounts.ToList();
+
+    public string? GetDefaultAccountIdentifier()
+        => DefaultAccountIdentifier;
+
+    public async Task<MicrosoftInteractiveSignInResult> SignInInteractivelyAsync()
+    {
+        if (OnInteractiveSignInAsync is null)
+        {
+            return new MicrosoftInteractiveSignInResult(DefaultAccountIdentifier, null, null);
+        }
+
+        return await OnInteractiveSignInAsync(this);
+    }
+
+    public Task<MSession> AuthenticateAsync(string accountIdentifier)
+    {
+        AuthenticatedIdentifiers.Add(accountIdentifier);
+        var session = AuthenticateFactory?.Invoke(accountIdentifier)
+            ?? MSession.CreateOfflineSession($"auth-{accountIdentifier}");
+        return Task.FromResult(session);
+    }
+
+    public Task SignOutAsync(string accountIdentifier)
+    {
+        SignedOutIdentifiers.Add(accountIdentifier);
+        Accounts.RemoveAll(account => string.Equals(account.Identifier, accountIdentifier, StringComparison.Ordinal));
+        if (string.Equals(DefaultAccountIdentifier, accountIdentifier, StringComparison.Ordinal))
+        {
+            DefaultAccountIdentifier = Accounts
+                .OrderByDescending(account => account.LastAccess)
+                .Select(account => account.Identifier)
+                .FirstOrDefault();
+        }
+
+        return Task.CompletedTask;
+    }
 }
 
 public static class AsyncAssert
