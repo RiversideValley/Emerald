@@ -22,70 +22,13 @@ internal sealed class ElyByLoopbackOAuthBrowser(
     {
         EnsureLoopbackRedirectUri(request.RedirectUri);
 
-        using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeoutSource.CancelAfter(AuthorizationTimeout);
-
-        using var listener = new HttpListener();
-        listener.Prefixes.Add(ToListenerPrefix(request.RedirectUri));
-        listener.Start();
-
-        var opened = await LaunchBrowserAsync(request.AuthorizationUri).ConfigureAwait(false);
-        if (!opened)
-            throw new ElyByAuthException("Could not open the Ely.by authorization page in your browser.");
+        using var timeoutSource = CreateAuthorizationTimeoutSource(cancellationToken);
+        using var listener = StartLoopbackListener(request.RedirectUri);
+        await EnsureBrowserOpenedAsync(request.AuthorizationUri).ConfigureAwait(false);
 
         try
         {
-            while (true)
-            {
-                var context = await listener.GetContextAsync().WaitAsync(timeoutSource.Token).ConfigureAwait(false);
-                if (!IsExpectedCallback(request.RedirectUri, context.Request.Url))
-                {
-                    await WriteHtmlResponseAsync(
-                        context.Response,
-                        404,
-                        "Not found",
-                        "This callback does not belong to the current Ely.by sign-in request.").ConfigureAwait(false);
-                    continue;
-                }
-
-                var query = context.Request.QueryString;
-                var state = query["state"];
-                if (!string.Equals(state, request.State, StringComparison.Ordinal))
-                {
-                    await WriteHtmlResponseAsync(
-                        context.Response,
-                        400,
-                        "Sign-in rejected",
-                        "The Ely.by sign-in response did not match the original request.").ConfigureAwait(false);
-                    throw new ElyByAuthException("Ely.by sign-in returned an invalid OAuth state.");
-                }
-
-                var error = query["error"];
-                if (!string.IsNullOrWhiteSpace(error))
-                {
-                    var message = query["error_message"] ?? query["error_description"] ?? error;
-                    await WriteHtmlResponseAsync(context.Response, 400, "Sign-in cancelled", message).ConfigureAwait(false);
-                    throw new ElyByAuthException(message);
-                }
-
-                var code = query["code"];
-                if (string.IsNullOrWhiteSpace(code))
-                {
-                    await WriteHtmlResponseAsync(
-                        context.Response,
-                        400,
-                        "Sign-in failed",
-                        "Ely.by did not return an authorization code.").ConfigureAwait(false);
-                    throw new ElyByAuthException("Ely.by did not return an authorization code.");
-                }
-
-                await WriteHtmlResponseAsync(
-                    context.Response,
-                    200,
-                    "Sign-in complete",
-                    "You can close this browser tab and return to Emerald.").ConfigureAwait(false);
-                return new ElyByOAuthAuthorizationResult(code);
-            }
+            return await WaitForAuthorizationResultAsync(listener, request, timeoutSource.Token).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
@@ -99,6 +42,111 @@ internal sealed class ElyByLoopbackOAuthBrowser(
         {
             listener.Stop();
         }
+    }
+
+    private static CancellationTokenSource CreateAuthorizationTimeoutSource(CancellationToken cancellationToken)
+    {
+        var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutSource.CancelAfter(AuthorizationTimeout);
+        return timeoutSource;
+    }
+
+    private static HttpListener StartLoopbackListener(Uri redirectUri)
+    {
+        var listener = new HttpListener();
+        listener.Prefixes.Add(ToListenerPrefix(redirectUri));
+        listener.Start();
+        return listener;
+    }
+
+    private async Task EnsureBrowserOpenedAsync(Uri authorizationUri)
+    {
+        var opened = await LaunchBrowserAsync(authorizationUri).ConfigureAwait(false);
+        if (!opened)
+            throw new ElyByAuthException("Could not open the Ely.by authorization page in your browser.");
+    }
+
+    private static async Task<ElyByOAuthAuthorizationResult> WaitForAuthorizationResultAsync(
+        HttpListener listener,
+        ElyByOAuthAuthorizationRequest request,
+        CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            var context = await listener.GetContextAsync().WaitAsync(cancellationToken).ConfigureAwait(false);
+            var result = await TryHandleCallbackAsync(request, context).ConfigureAwait(false);
+            if (result is not null)
+                return result;
+        }
+    }
+
+    private static async Task<ElyByOAuthAuthorizationResult?> TryHandleCallbackAsync(
+        ElyByOAuthAuthorizationRequest request,
+        HttpListenerContext context)
+    {
+        if (!IsExpectedCallback(request.RedirectUri, context.Request.Url))
+        {
+            await WriteHtmlResponseAsync(
+                context.Response,
+                404,
+                "Not found",
+                "This callback does not belong to the current Ely.by sign-in request.").ConfigureAwait(false);
+            return null;
+        }
+
+        await EnsureExpectedStateAsync(request, context).ConfigureAwait(false);
+        await EnsureNoOAuthErrorAsync(context).ConfigureAwait(false);
+        var code = await GetAuthorizationCodeAsync(context).ConfigureAwait(false);
+
+        await WriteHtmlResponseAsync(
+            context.Response,
+            200,
+            "Sign-in complete",
+            "You can close this browser tab and return to Emerald.").ConfigureAwait(false);
+
+        return new ElyByOAuthAuthorizationResult(code);
+    }
+
+    private static async Task EnsureExpectedStateAsync(
+        ElyByOAuthAuthorizationRequest request,
+        HttpListenerContext context)
+    {
+        var state = context.Request.QueryString["state"];
+        if (string.Equals(state, request.State, StringComparison.Ordinal))
+            return;
+
+        await WriteHtmlResponseAsync(
+            context.Response,
+            400,
+            "Sign-in rejected",
+            "The Ely.by sign-in response did not match the original request.").ConfigureAwait(false);
+        throw new ElyByAuthException("Ely.by sign-in returned an invalid OAuth state.");
+    }
+
+    private static async Task EnsureNoOAuthErrorAsync(HttpListenerContext context)
+    {
+        var query = context.Request.QueryString;
+        var error = query["error"];
+        if (string.IsNullOrWhiteSpace(error))
+            return;
+
+        var message = query["error_message"] ?? query["error_description"] ?? error;
+        await WriteHtmlResponseAsync(context.Response, 400, "Sign-in cancelled", message).ConfigureAwait(false);
+        throw new ElyByAuthException(message);
+    }
+
+    private static async Task<string> GetAuthorizationCodeAsync(HttpListenerContext context)
+    {
+        var code = context.Request.QueryString["code"];
+        if (!string.IsNullOrWhiteSpace(code))
+            return code;
+
+        await WriteHtmlResponseAsync(
+            context.Response,
+            400,
+            "Sign-in failed",
+            "Ely.by did not return an authorization code.").ConfigureAwait(false);
+        throw new ElyByAuthException("Ely.by did not return an authorization code.");
     }
 
     private Task<bool> LaunchBrowserAsync(Uri uri)
