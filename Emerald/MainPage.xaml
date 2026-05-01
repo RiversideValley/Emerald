@@ -10,6 +10,13 @@
       xmlns:helpers="using:Emerald.Helpers">
   <Page.Resources>
     <conv:BoolToVisibility x:Key="BoolToVisibilty"/>
+    <conv:NotificationTypeToBrushConverter
+      x:Key="TaskToastTypeToBrush"
+      ErrorBrush="{StaticResource SystemFillColorCriticalBrush}"
+      InfoBrush="{StaticResource SystemFillColorSolidNeutralBrush}"
+      ProgressBrush="{StaticResource SystemFillColorAttentionBrush}"
+      SuccessBrush="{StaticResource SystemFillColorSuccessBrush}"
+      WarningBrush="{StaticResource SystemFillColorCautionBrush}" />
   </Page.Resources>
   <Grid x:Name="MainGrid">
     <uc:TitleBar
@@ -127,5 +134,47 @@
       <Frame x:Name="frame"/>
 
     </NavigationView>
+
+    <ItemsControl
+      Margin="0,12,16,0"
+      HorizontalAlignment="Right"
+      IsHitTestVisible="False"
+      ItemsSource="{x:Bind TaskToasts, Mode=OneWay}"
+      VerticalAlignment="Top">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="models:TaskToastItem">
+          <Border
+            MaxWidth="360"
+            Margin="0,0,0,8"
+            Padding="12"
+            Loaded="TaskToastBorder_Loaded"
+            Opacity="0"
+            Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="10">
+            <Grid ColumnSpacing="10">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="4" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <Border
+                Grid.Column="0"
+                Background="{x:Bind Type, Mode=OneWay, Converter={StaticResource TaskToastTypeToBrush}}"
+                CornerRadius="2" />
+              <StackPanel Grid.Column="1" Spacing="4">
+                <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind Title, Mode=OneWay}" />
+                <TextBlock
+                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                  Style="{StaticResource CaptionTextBlockStyle}"
+                  Text="{x:Bind Message, Mode=OneWay}"
+                  TextWrapping="WrapWholeWords"
+                  Visibility="{x:Bind HasMessage, Mode=OneWay, Converter={StaticResource BoolToVisibilty}}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
   </Grid>
 </Page>
