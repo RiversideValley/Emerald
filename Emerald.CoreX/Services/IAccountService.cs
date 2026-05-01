@@ -16,9 +16,13 @@ public interface IAccountService
     bool RequireMicrosoftAccountForElyByAccounts { get; }
     Task LoadAllAccountsAsync();
     void CreateOfflineAccount(string username);
-    Task SignInMicrosoftAccountAsync();
-    Task SignInElyByAccountAsync();
-    Task SignInElyByAccountAsync(string login, string password, string? twoFactorCode = null);
+    Task SignInMicrosoftAccountAsync(CancellationToken cancellationToken = default);
+    Task SignInElyByAccountAsync(CancellationToken cancellationToken = default);
+    Task SignInElyByAccountAsync(
+        string login,
+        string password,
+        string? twoFactorCode = null,
+        CancellationToken cancellationToken = default);
     Task RemoveAccountAsync(EAccount account);
     Task<GameAuthenticationResult> AuthenticateAccountAsync(EAccount account);
     EAccount? GetMostRecentlyUsedAccount();

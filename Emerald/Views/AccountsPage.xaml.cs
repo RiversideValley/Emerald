@@ -35,7 +35,7 @@ public sealed partial class AccountsPage : Page
 
     private async void AddOfflineAccount_Click(object sender, RoutedEventArgs e)
     {
-        if (!ViewModel.CanCreateOfflineAccount)
+        if (!ViewModel.CanStartOfflineAccount)
         {
             return;
         }

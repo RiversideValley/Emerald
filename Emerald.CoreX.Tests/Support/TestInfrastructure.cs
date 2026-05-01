@@ -78,7 +78,7 @@ internal sealed class FakeMicrosoftAccountClient : IMicrosoftAccountClient
     public string? InitializedAccountStorePath { get; private set; }
     public string? DefaultAccountIdentifier { get; set; }
 
-    public Func<FakeMicrosoftAccountClient, Task<MicrosoftInteractiveSignInResult>>? OnInteractiveSignInAsync { get; set; }
+    public Func<FakeMicrosoftAccountClient, CancellationToken, Task<MicrosoftInteractiveSignInResult>>? OnInteractiveSignInAsync { get; set; }
     public Func<string, MSession>? AuthenticateFactory { get; set; }
 
     public Task InitializeAsync(string clientId, string accountStorePath)
@@ -94,14 +94,15 @@ internal sealed class FakeMicrosoftAccountClient : IMicrosoftAccountClient
     public string? GetDefaultAccountIdentifier()
         => DefaultAccountIdentifier;
 
-    public async Task<MicrosoftInteractiveSignInResult> SignInInteractivelyAsync()
+    public async Task<MicrosoftInteractiveSignInResult> SignInInteractivelyAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (OnInteractiveSignInAsync is null)
         {
             return new MicrosoftInteractiveSignInResult(DefaultAccountIdentifier, null, null);
         }
 
-        return await OnInteractiveSignInAsync(this);
+        return await OnInteractiveSignInAsync(this, cancellationToken);
     }
 
     public Task<MSession> AuthenticateAsync(string accountIdentifier)
@@ -160,6 +161,7 @@ internal sealed class FakeElyByAuthClient : IElyByAuthClient
 
     public Task<ElyByAuthSession> ExchangeOAuthCodeAsync(string code, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ExchangeOAuthCodeCalls.Add(code);
         return Task.FromResult(ExchangeOAuthCodeResult);
     }
@@ -170,24 +172,28 @@ internal sealed class FakeElyByAuthClient : IElyByAuthClient
         string? twoFactorCode = null,
         CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         AuthenticateCalls.Add((login, password, twoFactorCode));
         return Task.FromResult(AuthenticateResult);
     }
 
     public Task<bool> ValidateAsync(string accessToken, string clientToken, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ValidateCalls.Add((accessToken, clientToken));
         return Task.FromResult(ValidateResult);
     }
 
     public Task<ElyByAuthSession> RefreshAsync(ElyByStoredAccount account, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         RefreshCalls.Add(account.UniqueId);
         return Task.FromResult(RefreshResult);
     }
 
     public Task InvalidateAsync(ElyByStoredAccount account, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         InvalidateCalls.Add(account.UniqueId);
         return Task.CompletedTask;
     }
@@ -197,13 +203,18 @@ internal sealed class FakeElyByOAuthBrowser : IElyByOAuthBrowser
 {
     public string Code { get; set; } = "ely-oauth-code";
     public List<ElyByOAuthAuthorizationRequest> Requests { get; } = [];
+    public Func<ElyByOAuthAuthorizationRequest, CancellationToken, Task<ElyByOAuthAuthorizationResult>>? OnAuthorizeAsync { get; set; }
 
     public Task<ElyByOAuthAuthorizationResult> AuthorizeAsync(
         ElyByOAuthAuthorizationRequest request,
         CancellationToken cancellationToken = default)
     {
         Requests.Add(request);
-        return Task.FromResult(new ElyByOAuthAuthorizationResult(Code));
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return OnAuthorizeAsync is not null
+            ? OnAuthorizeAsync(request, cancellationToken)
+            : Task.FromResult(new ElyByOAuthAuthorizationResult(Code));
     }
 }
 

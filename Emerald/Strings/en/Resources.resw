@@ -730,6 +730,9 @@
   <data name="SignInWithElyBy" xml:space="preserve">
     <value>Sign in with Ely.by</value>
   </data>
+  <data name="CancelLogin" xml:space="preserve">
+    <value>Cancel login</value>
+  </data>
   <data name="Store" xml:space="preserve">
     <value>Store</value>
   </data>

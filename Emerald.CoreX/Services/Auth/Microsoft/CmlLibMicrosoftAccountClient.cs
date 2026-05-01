@@ -56,11 +56,24 @@ internal sealed class CmlLibMicrosoftAccountClient(ILogger<AccountService> logge
             : null;
     }
 
-    public async Task<MicrosoftInteractiveSignInResult> SignInInteractivelyAsync()
+    public async Task<MicrosoftInteractiveSignInResult> SignInInteractivelyAsync(CancellationToken cancellationToken = default)
     {
         EnsureInitialized();
+        cancellationToken.ThrowIfCancellationRequested();
 
-        var session = await _loginHandler!.AuthenticateInteractively().ConfigureAwait(false);
+        var interactiveTask = _loginHandler!.AuthenticateInteractively();
+        MSession session;
+        try
+        {
+            session = await interactiveTask.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            ObserveInteractiveSignInAfterCancellation(interactiveTask);
+            throw;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
         SaveAccounts();
 
         return new MicrosoftInteractiveSignInResult(
@@ -112,6 +125,21 @@ internal sealed class CmlLibMicrosoftAccountClient(ILogger<AccountService> logge
     {
         if (_loginHandler is null)
             throw new InvalidOperationException("Microsoft account client was not initialized.");
+    }
+
+    private void ObserveInteractiveSignInAfterCancellation(Task<MSession> task)
+    {
+        _ = task.ContinueWith(
+            completedTask =>
+            {
+                if (completedTask.Exception is not null)
+                {
+                    _logger.LogDebug(
+                        completedTask.Exception,
+                        "A canceled Microsoft interactive sign-in completed with an error.");
+                }
+            },
+            TaskContinuationOptions.ExecuteSynchronously);
     }
 
     private static string? Normalize(string? value)

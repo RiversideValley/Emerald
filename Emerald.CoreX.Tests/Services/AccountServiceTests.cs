@@ -80,6 +80,34 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
+    public async Task SignInElyByAccountAsync_CanceledDuringBrowserAuthorization_DoesNotAddAccount()
+    {
+        var baseSettingsService = new InMemoryBaseSettingsService();
+        var elyByClient = new FakeElyByAuthClient();
+        var authorizationStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var oauthBrowser = new FakeElyByOAuthBrowser
+        {
+            OnAuthorizeAsync = async (_, cancellationToken) =>
+            {
+                authorizationStarted.SetResult(true);
+                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+                return new ElyByOAuthAuthorizationResult("unused-code");
+            }
+        };
+
+        var service = CreateServiceWithEly(baseSettingsService, elyByClient: elyByClient, elyByOAuthBrowser: oauthBrowser);
+        using var cancellation = new CancellationTokenSource();
+
+        var signInTask = service.SignInElyByAccountAsync(cancellation.Token);
+        await authorizationStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        cancellation.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => signInTask);
+        Assert.Empty(service.Accounts);
+        Assert.Empty(elyByClient.ExchangeOAuthCodeCalls);
+    }
+
+    [Fact]
     public void SetSelectedAccount_ElyByWithoutMicrosoftAccount_SelectsAccount()
     {
         var service = CreateService(new InMemoryBaseSettingsService());
@@ -159,7 +187,7 @@ public sealed class AccountServiceTests
     public async Task SignInMicrosoftAccountAsync_SelectsMaterializedAccount_WhenNoSelectionExists()
     {
         var microsoftClient = new FakeMicrosoftAccountClient();
-        microsoftClient.OnInteractiveSignInAsync = client =>
+        microsoftClient.OnInteractiveSignInAsync = (client, _) =>
         {
             var identifier = "ms-new";
             client.Accounts.Add(new MicrosoftAccountInfo(identifier, "New Microsoft", identifier, DateTime.UtcNow));
@@ -180,11 +208,37 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
+    public async Task SignInMicrosoftAccountAsync_CanceledDuringInteractiveSignIn_DoesNotMaterializeAccount()
+    {
+        var signInStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var microsoftClient = new FakeMicrosoftAccountClient
+        {
+            OnInteractiveSignInAsync = async (_, cancellationToken) =>
+            {
+                signInStarted.SetResult(true);
+                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+                return new MicrosoftInteractiveSignInResult("unused-id", "Unused", "unused-id");
+            }
+        };
+
+        var service = CreateService(new InMemoryBaseSettingsService(), microsoftClient);
+        await service.InitializeAsync("client-id");
+        using var cancellation = new CancellationTokenSource();
+
+        var signInTask = service.SignInMicrosoftAccountAsync(cancellation.Token);
+        await signInStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        cancellation.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => signInTask);
+        Assert.Empty(service.Accounts);
+    }
+
+    [Fact]
     public async Task SignInMicrosoftAccountAsync_Throws_WhenAccountDoesNotMaterialize()
     {
         var microsoftClient = new FakeMicrosoftAccountClient
         {
-            OnInteractiveSignInAsync = _ => Task.FromResult(new MicrosoftInteractiveSignInResult("missing-id", "Ghost", "missing-id"))
+            OnInteractiveSignInAsync = (_, _) => Task.FromResult(new MicrosoftInteractiveSignInResult("missing-id", "Ghost", "missing-id"))
         };
 
         var service = CreateService(new InMemoryBaseSettingsService(), microsoftClient);

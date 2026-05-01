@@ -160,7 +160,7 @@ public partial class App : Application
         });
         //ViewModels
         services.AddTransient<ViewModels.GamesPageViewModel>();
-        services.AddTransient<ViewModels.AccountsPageViewModel>();
+        services.AddSingleton<ViewModels.AccountsPageViewModel>();
         services.AddTransient<ViewModels.LogsPageViewModel>();
         services.AddTransient<ViewModels.ModrinthStorePageViewModel>();
     }

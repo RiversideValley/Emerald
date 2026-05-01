@@ -39,9 +39,10 @@ public sealed partial class AccountService
         _logger.LogInformation("Created offline account '{Username}'.", username);
     }
 
-    public async Task SignInMicrosoftAccountAsync()
+    public async Task SignInMicrosoftAccountAsync(CancellationToken cancellationToken = default)
     {
-        await EnsureInitializedAsync().ConfigureAwait(false);
+        await EnsureInitializedAsync().WaitAsync(cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
 
         _logger.LogInformation("Starting interactive Microsoft sign-in.");
         var beforeIdentifiers = _microsoftAccountClient
@@ -50,7 +51,8 @@ public sealed partial class AccountService
             .Where(identifier => !string.IsNullOrWhiteSpace(identifier))
             .ToHashSet(StringComparer.Ordinal);
 
-        var signInResult = await _microsoftAccountClient.SignInInteractivelyAsync().ConfigureAwait(false);
+        var signInResult = await _microsoftAccountClient.SignInInteractivelyAsync(cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         _logger.LogInformation(
             "Interactive Microsoft sign-in completed for '{Username}' (candidate identifier: {Identifier}).",
             signInResult.Username ?? "Unknown",
@@ -58,6 +60,7 @@ public sealed partial class AccountService
 
         var afterAccounts = _microsoftAccountClient.GetAccounts();
         await LoadAllAccountsAsync().ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var candidateIdentifiers = BuildMaterializationCandidates(
             signInResult,
@@ -66,7 +69,7 @@ public sealed partial class AccountService
             _microsoftAccountClient.GetDefaultAccountIdentifier());
 
         EAccount? materializedAccount = null;
-        await _gate.WaitAsync().ConfigureAwait(false);
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             await _uiDispatcher.InvokeAsync(() =>
@@ -93,26 +96,31 @@ public sealed partial class AccountService
             materializedAccount.UniqueId);
     }
 
-    public async Task SignInElyByAccountAsync()
+    public async Task SignInElyByAccountAsync(CancellationToken cancellationToken = default)
     {
         EnsureElyByAccountPolicyMet("Signing in with Ely.by requires at least one Microsoft account.");
+        cancellationToken.ThrowIfCancellationRequested();
 
         var state = CreateOAuthState();
         var authorizationRequest = _elyByAuthClient.CreateOAuthAuthorizationRequest(state);
 
         _logger.LogInformation("Starting Ely.by browser sign-in.");
         var authorizationResult = await _elyByOAuthBrowser
-            .AuthorizeAsync(authorizationRequest)
+            .AuthorizeAsync(authorizationRequest, cancellationToken)
             .ConfigureAwait(false);
         var session = await _elyByAuthClient
-            .ExchangeOAuthCodeAsync(authorizationResult.Code)
+            .ExchangeOAuthCodeAsync(authorizationResult.Code, cancellationToken)
             .ConfigureAwait(false);
 
-        await AddOrUpdateElyBySessionAsync(session).ConfigureAwait(false);
+        await AddOrUpdateElyBySessionAsync(session, cancellationToken).ConfigureAwait(false);
         _logger.LogInformation("Ely.by account '{Name}' signed in through OAuth.", session.Name);
     }
 
-    public async Task SignInElyByAccountAsync(string login, string password, string? twoFactorCode = null)
+    public async Task SignInElyByAccountAsync(
+        string login,
+        string password,
+        string? twoFactorCode = null,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(login))
             throw new ArgumentException("Ely.by username or email cannot be empty.", nameof(login));
@@ -121,22 +129,29 @@ public sealed partial class AccountService
             throw new ArgumentException("Ely.by password cannot be empty.", nameof(password));
 
         EnsureElyByAccountPolicyMet("Signing in with Ely.by requires at least one Microsoft account.");
+        cancellationToken.ThrowIfCancellationRequested();
 
         _logger.LogInformation("Starting Ely.by sign-in for '{Login}'.", login);
         var session = await _elyByAuthClient
-            .AuthenticateAsync(login.Trim(), password, string.IsNullOrWhiteSpace(twoFactorCode) ? null : twoFactorCode.Trim())
+            .AuthenticateAsync(
+                login.Trim(),
+                password,
+                string.IsNullOrWhiteSpace(twoFactorCode) ? null : twoFactorCode.Trim(),
+                cancellationToken)
             .ConfigureAwait(false);
 
-        await AddOrUpdateElyBySessionAsync(session).ConfigureAwait(false);
+        await AddOrUpdateElyBySessionAsync(session, cancellationToken).ConfigureAwait(false);
         _logger.LogInformation("Ely.by account '{Name}' signed in.", session.Name);
     }
 
-    private async Task AddOrUpdateElyBySessionAsync(ElyByAuthSession session)
+    private async Task AddOrUpdateElyBySessionAsync(ElyByAuthSession session, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var storedAccount = CreateStoredElyByAccount(session);
+        cancellationToken.ThrowIfCancellationRequested();
         _elyByAccountStore.Upsert(storedAccount);
 
-        await _gate.WaitAsync().ConfigureAwait(false);
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             await _uiDispatcher.InvokeAsync(() =>

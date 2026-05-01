@@ -10,7 +10,7 @@ internal interface IMicrosoftAccountClient
 
     string? GetDefaultAccountIdentifier();
 
-    Task<MicrosoftInteractiveSignInResult> SignInInteractivelyAsync();
+    Task<MicrosoftInteractiveSignInResult> SignInInteractivelyAsync(CancellationToken cancellationToken = default);
 
     Task<MSession> AuthenticateAsync(string accountIdentifier);
 
