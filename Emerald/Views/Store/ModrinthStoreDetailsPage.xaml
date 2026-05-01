@@ -12,6 +12,7 @@
   <Page.Resources>
     <conv:BoolToVisibility x:Key="BoolToVis" />
     <conv:BoolToVisibility x:Key="InverseBoolToVis" Reversed="True" />
+    <conv:ImageUrlToImageSourceConverter x:Key="ImageUrlToImageSource" />
     <conv:StringToVisibilityConverter x:Key="StringToVis" />
   </Page.Resources>
 
@@ -95,7 +96,9 @@
             Height="104"
             Background="{ThemeResource LayerFillColorDefaultBrush}"
             CornerRadius="16">
-            <Image Source="{Binding SelectedItem.IconUrl}" Stretch="UniformToFill" />
+            <Image
+              Source="{Binding SelectedItem.IconUrl, Converter={StaticResource ImageUrlToImageSource}}"
+              Stretch="UniformToFill" />
           </Border>
 
           <StackPanel Grid.Column="1" Spacing="8">
