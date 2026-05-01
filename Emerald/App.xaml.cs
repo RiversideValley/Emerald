@@ -21,6 +21,11 @@ namespace Emerald;
 /// </summary>
 public partial class App : Application
 {
+    private const string MicrosoftClientId = "dfeccda7-604a-4895-b409-9d35f1679b5d";
+    private const string ElyByClientId = "emerald1";
+    private const string ElyByClientSecret = "_hrxVlIoEWm1sqRlruFevD5v87mYW4EKPdmPWlraQoVP6kOXxJV9Y-qMrcm7Znk4";
+    private const string ElyByRedirectUri = "http://127.0.0.1:58135/oauth/elyby/";
+
     private Services.SettingsService SS;
 
     /// <summary>
@@ -77,9 +82,26 @@ public partial class App : Application
         services.AddSingleton<CoreX.Runtime.IGameRuntimeSettings, Services.GameRuntimeSettingsAdapter>();
         services.AddSingleton<CoreX.Services.IJavaRuntimeProbe, CoreX.Services.ProcessJavaRuntimeProbe>();
         services.AddSingleton<CoreX.Services.IJavaRuntimeCatalogService, CoreX.Services.JavaRuntimeCatalogService>();
+        services.AddSingleton<CoreX.Services.Auth.ElyBy.ElyByOAuthOptions>(_ =>
+            new CoreX.Services.Auth.ElyBy.ElyByOAuthOptions(
+                ElyByClientId,
+                ElyByClientSecret,
+                ElyByRedirectUri));
         services.AddSingleton<CoreX.Services.Auth.ElyBy.IElyByAuthClient>(provider =>
-            new CoreX.Services.Auth.ElyBy.ElyByAuthClient(provider.GetRequiredService<ILogger<CoreX.Services.Auth.ElyBy.ElyByAuthClient>>()));
+            new CoreX.Services.Auth.ElyBy.ElyByAuthClient(
+                provider.GetRequiredService<ILogger<CoreX.Services.Auth.ElyBy.ElyByAuthClient>>(),
+                provider.GetRequiredService<CoreX.Services.Auth.ElyBy.ElyByOAuthOptions>()));
         services.AddSingleton<CoreX.Services.Auth.ElyBy.IElyByAccountStore, CoreX.Services.Auth.ElyBy.ElyByAccountStore>();
+        services.AddSingleton<CoreX.Services.Auth.ElyBy.IElyByOAuthBrowser>(provider =>
+        {
+            var dispatcherQueue = MainWindow?.DispatcherQueue
+                ?? DispatcherQueue.GetForCurrentThread()
+                ?? throw new InvalidOperationException("A DispatcherQueue is required for Ely.by browser authentication.");
+
+            return new Services.ElyByLoopbackOAuthBrowser(
+                provider.GetRequiredService<ILogger<Services.ElyByLoopbackOAuthBrowser>>(),
+                dispatcherQueue);
+        });
         services.AddSingleton<CoreX.Services.Auth.Authlib.IAuthlibInjectorService>(provider =>
             new CoreX.Services.Auth.Authlib.AuthlibInjectorService(
                 provider.GetRequiredService<ILogger<CoreX.Services.Auth.Authlib.AuthlibInjectorService>>(),
@@ -133,6 +155,7 @@ public partial class App : Application
                 notificationService: provider.GetRequiredService<CoreX.Notifications.INotificationService>(),
                 elyByAuthClient: provider.GetRequiredService<CoreX.Services.Auth.ElyBy.IElyByAuthClient>(),
                 elyByAccountStore: provider.GetRequiredService<CoreX.Services.Auth.ElyBy.IElyByAccountStore>(),
+                elyByOAuthBrowser: provider.GetRequiredService<CoreX.Services.Auth.ElyBy.IElyByOAuthBrowser>(),
                 authlibInjectorService: provider.GetRequiredService<CoreX.Services.Auth.Authlib.IAuthlibInjectorService>());
         });
         //ViewModels
@@ -180,7 +203,7 @@ public partial class App : Application
         this.Log().LogInformation("Application settings loaded.");
 
         var ac = Ioc.Default.GetService<CoreX.Services.IAccountService>();
-        _ = ac.InitializeAsync("dfeccda7-604a-4895-b409-9d35f1679b5d");
+        _ = ac.InitializeAsync(MicrosoftClientId);
         this.Log().LogInformation("Account service initialization requested.");
 
         // Do not repeat app initialization when the Window already has content,

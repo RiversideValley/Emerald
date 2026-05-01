@@ -20,7 +20,23 @@ internal sealed class ElyByAccountAuthenticationProvider(
             ?? throw new InvalidOperationException($"Ely.by account '{account.Name}' is no longer signed in.");
 
         ElyByAuthSession session;
-        if (await authClient.ValidateAsync(storedAccount.AccessToken, storedAccount.ClientToken, cancellationToken).ConfigureAwait(false))
+        if (storedAccount.AuthFlow == ElyByAuthFlow.OAuth)
+        {
+            var shouldRefresh = storedAccount.AccessTokenExpiresAt is null ||
+                                storedAccount.AccessTokenExpiresAt <= DateTimeOffset.UtcNow.AddMinutes(1);
+
+            session = shouldRefresh
+                ? await authClient.RefreshAsync(storedAccount, cancellationToken).ConfigureAwait(false)
+                : new ElyByAuthSession(
+                    storedAccount.Name,
+                    storedAccount.UUID,
+                    storedAccount.AccessToken,
+                    storedAccount.ClientToken,
+                    storedAccount.RefreshToken,
+                    storedAccount.AccessTokenExpiresAt,
+                    ElyByAuthFlow.OAuth);
+        }
+        else if (await authClient.ValidateAsync(storedAccount.AccessToken, storedAccount.ClientToken, cancellationToken).ConfigureAwait(false))
         {
             session = new ElyByAuthSession(storedAccount.Name, storedAccount.UUID, storedAccount.AccessToken, storedAccount.ClientToken);
         }
@@ -33,6 +49,9 @@ internal sealed class ElyByAccountAuthenticationProvider(
         storedAccount.UUID = session.UUID;
         storedAccount.AccessToken = session.AccessToken;
         storedAccount.ClientToken = session.ClientToken;
+        storedAccount.RefreshToken = session.RefreshToken ?? storedAccount.RefreshToken;
+        storedAccount.AccessTokenExpiresAt = session.AccessTokenExpiresAt;
+        storedAccount.AuthFlow = session.AuthFlow;
         storedAccount.LastUsed = DateTime.UtcNow;
         accountStore.Upsert(storedAccount);
 

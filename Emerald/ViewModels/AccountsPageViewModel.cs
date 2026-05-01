@@ -6,7 +6,6 @@ using CommunityToolkit.Mvvm.Input;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Services;
-using Emerald.CoreX.Services.Auth.ElyBy;
 using Microsoft.Extensions.Logging;
 using System;
 
@@ -27,15 +26,6 @@ public partial class AccountsPageViewModel : ObservableObject
 
     [ObservableProperty]
     private string _offlineUsername = string.Empty;
-
-    [ObservableProperty]
-    private string _elyByLogin = string.Empty;
-
-    [ObservableProperty]
-    private string _elyByPassword = string.Empty;
-
-    [ObservableProperty]
-    private string _elyByTwoFactorCode = string.Empty;
 
     public ObservableCollection<EAccount> Accounts => _accountService.Accounts;
     public bool HasLoadError => !string.IsNullOrWhiteSpace(LoadErrorMessage);
@@ -114,34 +104,14 @@ public partial class AccountsPageViewModel : ObservableObject
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(ElyByLogin))
-        {
-            _notificationService.Warning("InvalidUsername", "Ely.by username or email cannot be empty.");
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(ElyByPassword))
-        {
-            _notificationService.Warning("InvalidPassword", "Ely.by password cannot be empty.");
-            return;
-        }
-
         IsLoading = true;
         LoadErrorMessage = null;
         try
         {
-            await _accountService.SignInElyByAccountAsync(ElyByLogin, ElyByPassword, ElyByTwoFactorCode);
+            _notificationService.Info("UsingBrowser", "Complete Ely.by sign-in in your browser.");
+            await _accountService.SignInElyByAccountAsync();
             _notificationService.Info("AccountAdded", "Ely.by account added successfully!");
-            ElyByLogin = string.Empty;
-            ElyByPassword = string.Empty;
-            ElyByTwoFactorCode = string.Empty;
             NotifyAccountStateChanged();
-        }
-        catch (ElyByTwoFactorRequiredException ex)
-        {
-            _logger.LogWarning(ex, "Ely.by sign-in requires two-factor authentication.");
-            LoadErrorMessage = "Enter the Ely.by two-factor code and try again.";
-            _notificationService.Warning("TwoFactorRequired", "Enter the Ely.by two-factor code and try again.");
         }
         catch (Exception ex)
         {

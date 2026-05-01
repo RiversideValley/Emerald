@@ -24,6 +24,7 @@ public sealed partial class AccountService : IAccountService
     private readonly IMicrosoftAccountClient _microsoftAccountClient;
     private readonly IElyByAuthClient _elyByAuthClient;
     private readonly IElyByAccountStore _elyByAccountStore;
+    private readonly IElyByOAuthBrowser _elyByOAuthBrowser;
     private readonly INotificationService? _notificationService;
     private readonly string _accountStorePath;
     private readonly IReadOnlyDictionary<AccountType, IAccountAuthenticationProvider> _authenticationProviders;
@@ -55,6 +56,7 @@ public sealed partial class AccountService : IAccountService
         INotificationService? notificationService = null,
         IElyByAuthClient? elyByAuthClient = null,
         IElyByAccountStore? elyByAccountStore = null,
+        IElyByOAuthBrowser? elyByOAuthBrowser = null,
         IAuthlibInjectorService? authlibInjectorService = null,
         IEnumerable<IAccountAuthenticationProvider>? authenticationProviders = null)
     {
@@ -64,6 +66,7 @@ public sealed partial class AccountService : IAccountService
         _microsoftAccountClient = microsoftAccountClient ?? new CmlLibMicrosoftAccountClient(logger);
         _elyByAuthClient = elyByAuthClient ?? new ElyByAuthClient(NullLogger<ElyByAuthClient>.Instance);
         _elyByAccountStore = elyByAccountStore ?? new ElyByAccountStore(settingsService);
+        _elyByOAuthBrowser = elyByOAuthBrowser ?? new UnsupportedElyByOAuthBrowser();
         _notificationService = notificationService;
         _accountStorePath = string.IsNullOrWhiteSpace(accountStorePath)
             ? GetDefaultAccountStorePath()

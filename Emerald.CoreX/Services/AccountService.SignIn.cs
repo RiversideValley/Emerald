@@ -1,6 +1,8 @@
 using Emerald.CoreX.Models;
+using Emerald.CoreX.Services.Auth.ElyBy;
 using Emerald.CoreX.Services.Auth.Microsoft;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
 
 namespace Emerald.CoreX.Services;
 
@@ -91,6 +93,25 @@ public sealed partial class AccountService
             materializedAccount.UniqueId);
     }
 
+    public async Task SignInElyByAccountAsync()
+    {
+        EnsureElyByAccountPolicyMet("Signing in with Ely.by requires at least one Microsoft account.");
+
+        var state = CreateOAuthState();
+        var authorizationRequest = _elyByAuthClient.CreateOAuthAuthorizationRequest(state);
+
+        _logger.LogInformation("Starting Ely.by browser sign-in.");
+        var authorizationResult = await _elyByOAuthBrowser
+            .AuthorizeAsync(authorizationRequest)
+            .ConfigureAwait(false);
+        var session = await _elyByAuthClient
+            .ExchangeOAuthCodeAsync(authorizationResult.Code)
+            .ConfigureAwait(false);
+
+        await AddOrUpdateElyBySessionAsync(session).ConfigureAwait(false);
+        _logger.LogInformation("Ely.by account '{Name}' signed in through OAuth.", session.Name);
+    }
+
     public async Task SignInElyByAccountAsync(string login, string password, string? twoFactorCode = null)
     {
         if (string.IsNullOrWhiteSpace(login))
@@ -106,6 +127,12 @@ public sealed partial class AccountService
             .AuthenticateAsync(login.Trim(), password, string.IsNullOrWhiteSpace(twoFactorCode) ? null : twoFactorCode.Trim())
             .ConfigureAwait(false);
 
+        await AddOrUpdateElyBySessionAsync(session).ConfigureAwait(false);
+        _logger.LogInformation("Ely.by account '{Name}' signed in.", session.Name);
+    }
+
+    private async Task AddOrUpdateElyBySessionAsync(ElyByAuthSession session)
+    {
         var storedAccount = CreateStoredElyByAccount(session);
         _elyByAccountStore.Upsert(storedAccount);
 
@@ -141,7 +168,13 @@ public sealed partial class AccountService
         }
 
         PersistAccounts();
-        _logger.LogInformation("Ely.by account '{Name}' signed in.", storedAccount.Name);
+    }
+
+    private static string CreateOAuthState()
+    {
+        Span<byte> bytes = stackalloc byte[32];
+        RandomNumberGenerator.Fill(bytes);
+        return Convert.ToHexString(bytes).ToLowerInvariant();
     }
 
     private static IReadOnlyList<string> BuildMaterializationCandidates(

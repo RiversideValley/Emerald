@@ -158,6 +158,9 @@ public sealed partial class AccountService
             UUID = session.UUID,
             AccessToken = session.AccessToken,
             ClientToken = session.ClientToken,
+            RefreshToken = session.RefreshToken ?? string.Empty,
+            AccessTokenExpiresAt = session.AccessTokenExpiresAt,
+            AuthFlow = session.AuthFlow,
             LastUsed = DateTime.UtcNow
         };
 

@@ -2,6 +2,12 @@ namespace Emerald.CoreX.Services.Auth.ElyBy;
 
 internal interface IElyByAuthClient
 {
+    ElyByOAuthAuthorizationRequest CreateOAuthAuthorizationRequest(string state, string? loginHint = null);
+
+    Task<ElyByAuthSession> ExchangeOAuthCodeAsync(
+        string code,
+        CancellationToken cancellationToken = default);
+
     Task<ElyByAuthSession> AuthenticateAsync(
         string login,
         string password,
@@ -26,4 +32,7 @@ internal sealed record ElyByAuthSession(
     string Name,
     string UUID,
     string AccessToken,
-    string ClientToken);
+    string ClientToken,
+    string? RefreshToken = null,
+    DateTimeOffset? AccessTokenExpiresAt = null,
+    ElyByAuthFlow AuthFlow = ElyByAuthFlow.Direct);

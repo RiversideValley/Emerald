@@ -17,6 +17,7 @@ public interface IAccountService
     Task LoadAllAccountsAsync();
     void CreateOfflineAccount(string username);
     Task SignInMicrosoftAccountAsync();
+    Task SignInElyByAccountAsync();
     Task SignInElyByAccountAsync(string login, string password, string? twoFactorCode = null);
     Task RemoveAccountAsync(EAccount account);
     Task<GameAuthenticationResult> AuthenticateAccountAsync(EAccount account);

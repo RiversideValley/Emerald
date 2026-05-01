@@ -131,13 +131,38 @@ internal sealed class FakeMicrosoftAccountClient : IMicrosoftAccountClient
 internal sealed class FakeElyByAuthClient : IElyByAuthClient
 {
     public ElyByAuthSession AuthenticateResult { get; set; } = new("ElyPlayer", "ely-uuid", "ely-access", "ely-client");
+    public ElyByAuthSession ExchangeOAuthCodeResult { get; set; } = new(
+        "ElyOAuthPlayer",
+        "ely-oauth-uuid",
+        "ely-oauth-access",
+        "ely-oauth-client",
+        "ely-oauth-refresh",
+        DateTimeOffset.UtcNow.AddHours(1),
+        ElyByAuthFlow.OAuth);
     public ElyByAuthSession RefreshResult { get; set; } = new("ElyPlayer", "ely-uuid", "ely-refreshed", "ely-client");
     public bool ValidateResult { get; set; } = true;
 
+    public List<(string State, string? LoginHint)> AuthorizationRequestCalls { get; } = [];
+    public List<string> ExchangeOAuthCodeCalls { get; } = [];
     public List<(string Login, string Password, string? TwoFactorCode)> AuthenticateCalls { get; } = [];
     public List<(string AccessToken, string ClientToken)> ValidateCalls { get; } = [];
     public List<string> RefreshCalls { get; } = [];
     public List<string> InvalidateCalls { get; } = [];
+
+    public ElyByOAuthAuthorizationRequest CreateOAuthAuthorizationRequest(string state, string? loginHint = null)
+    {
+        AuthorizationRequestCalls.Add((state, loginHint));
+        return new ElyByOAuthAuthorizationRequest(
+            new Uri($"https://account.ely.by/oauth2/v1?state={state}"),
+            new Uri("http://127.0.0.1:58135/oauth/elyby/"),
+            state);
+    }
+
+    public Task<ElyByAuthSession> ExchangeOAuthCodeAsync(string code, CancellationToken cancellationToken = default)
+    {
+        ExchangeOAuthCodeCalls.Add(code);
+        return Task.FromResult(ExchangeOAuthCodeResult);
+    }
 
     public Task<ElyByAuthSession> AuthenticateAsync(
         string login,
@@ -165,6 +190,20 @@ internal sealed class FakeElyByAuthClient : IElyByAuthClient
     {
         InvalidateCalls.Add(account.UniqueId);
         return Task.CompletedTask;
+    }
+}
+
+internal sealed class FakeElyByOAuthBrowser : IElyByOAuthBrowser
+{
+    public string Code { get; set; } = "ely-oauth-code";
+    public List<ElyByOAuthAuthorizationRequest> Requests { get; } = [];
+
+    public Task<ElyByOAuthAuthorizationResult> AuthorizeAsync(
+        ElyByOAuthAuthorizationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        Requests.Add(request);
+        return Task.FromResult(new ElyByOAuthAuthorizationResult(Code));
     }
 }
 

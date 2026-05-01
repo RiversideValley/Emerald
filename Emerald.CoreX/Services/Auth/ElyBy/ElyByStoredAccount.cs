@@ -7,5 +7,8 @@ internal sealed class ElyByStoredAccount
     public string UUID { get; set; } = string.Empty;
     public string AccessToken { get; set; } = string.Empty;
     public string ClientToken { get; set; } = string.Empty;
+    public string RefreshToken { get; set; } = string.Empty;
+    public DateTimeOffset? AccessTokenExpiresAt { get; set; }
+    public ElyByAuthFlow AuthFlow { get; set; } = ElyByAuthFlow.Direct;
     public DateTime LastUsed { get; set; } = DateTime.UtcNow;
 }

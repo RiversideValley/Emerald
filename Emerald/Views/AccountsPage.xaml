@@ -77,7 +77,7 @@
           <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
           <CommandBar Background="Transparent" DefaultLabelPosition="Right">
             <AppBarButton Command="{x:Bind ViewModel.AddMicrosoftAccountCommand}" Icon="Contact" Label="{helpers:Localize KeyName=SignInWithMS}"/>
-            <AppBarButton Click="AddElyByAccount_Click" Icon="World" Label="{helpers:Localize KeyName=SignInWithElyBy}" IsEnabled="{x:Bind ViewModel.CanCreateElyByAccount, Mode=OneWay}"/>
+            <AppBarButton Command="{x:Bind ViewModel.AddElyByAccountCommand}" Icon="World" Label="{helpers:Localize KeyName=SignInWithElyBy}" IsEnabled="{x:Bind ViewModel.CanCreateElyByAccount, Mode=OneWay}"/>
             <AppBarButton Click="AddOfflineAccount_Click" Icon="AddFriend" Label="{helpers:Localize KeyName=OfflineAccount}" IsEnabled="{x:Bind ViewModel.CanCreateOfflineAccount, Mode=OneWay}"/>
           </CommandBar>
         </StackPanel>
