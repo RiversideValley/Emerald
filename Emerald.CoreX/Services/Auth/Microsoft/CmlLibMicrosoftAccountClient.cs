@@ -1,11 +1,12 @@
 using CmlLib.Core.Auth;
 using CmlLib.Core.Auth.Microsoft;
 using CmlLib.Core.Auth.Microsoft.Sessions;
+using Emerald.CoreX.Services;
 using Microsoft.Extensions.Logging;
 using XboxAuthNet.Game.Msal;
 using XboxAuthNet.Game.Msal.OAuth;
 
-namespace Emerald.CoreX.Services;
+namespace Emerald.CoreX.Services.Auth.Microsoft;
 
 internal sealed class CmlLibMicrosoftAccountClient(ILogger<AccountService> logger) : IMicrosoftAccountClient
 {

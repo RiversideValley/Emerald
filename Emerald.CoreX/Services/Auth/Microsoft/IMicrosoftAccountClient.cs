@@ -1,6 +1,6 @@
 using CmlLib.Core.Auth;
 
-namespace Emerald.CoreX.Services;
+namespace Emerald.CoreX.Services.Auth.Microsoft;
 
 internal interface IMicrosoftAccountClient
 {

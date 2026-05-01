@@ -4,6 +4,9 @@ using CmlLib.Core.Auth;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Services;
+using Emerald.CoreX.Services.Auth.Authlib;
+using Emerald.CoreX.Services.Auth.ElyBy;
+using Emerald.CoreX.Services.Auth.Microsoft;
 using Emerald.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -122,6 +125,58 @@ internal sealed class FakeMicrosoftAccountClient : IMicrosoftAccountClient
         }
 
         return Task.CompletedTask;
+    }
+}
+
+internal sealed class FakeElyByAuthClient : IElyByAuthClient
+{
+    public ElyByAuthSession AuthenticateResult { get; set; } = new("ElyPlayer", "ely-uuid", "ely-access", "ely-client");
+    public ElyByAuthSession RefreshResult { get; set; } = new("ElyPlayer", "ely-uuid", "ely-refreshed", "ely-client");
+    public bool ValidateResult { get; set; } = true;
+
+    public List<(string Login, string Password, string? TwoFactorCode)> AuthenticateCalls { get; } = [];
+    public List<(string AccessToken, string ClientToken)> ValidateCalls { get; } = [];
+    public List<string> RefreshCalls { get; } = [];
+    public List<string> InvalidateCalls { get; } = [];
+
+    public Task<ElyByAuthSession> AuthenticateAsync(
+        string login,
+        string password,
+        string? twoFactorCode = null,
+        CancellationToken cancellationToken = default)
+    {
+        AuthenticateCalls.Add((login, password, twoFactorCode));
+        return Task.FromResult(AuthenticateResult);
+    }
+
+    public Task<bool> ValidateAsync(string accessToken, string clientToken, CancellationToken cancellationToken = default)
+    {
+        ValidateCalls.Add((accessToken, clientToken));
+        return Task.FromResult(ValidateResult);
+    }
+
+    public Task<ElyByAuthSession> RefreshAsync(ElyByStoredAccount account, CancellationToken cancellationToken = default)
+    {
+        RefreshCalls.Add(account.UniqueId);
+        return Task.FromResult(RefreshResult);
+    }
+
+    public Task InvalidateAsync(ElyByStoredAccount account, CancellationToken cancellationToken = default)
+    {
+        InvalidateCalls.Add(account.UniqueId);
+        return Task.CompletedTask;
+    }
+}
+
+internal sealed class FakeAuthlibInjectorService : IAuthlibInjectorService
+{
+    public string JavaAgentArgument { get; set; } = "-javaagent:/fake/authlib-injector.jar=ely.by";
+    public int Calls { get; private set; }
+
+    public Task<string> GetJavaAgentArgumentAsync(CancellationToken cancellationToken = default)
+    {
+        Calls++;
+        return Task.FromResult(JavaAgentArgument);
     }
 }
 

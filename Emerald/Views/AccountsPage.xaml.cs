@@ -13,7 +13,11 @@ namespace Emerald.Views;
 public sealed partial class AccountsPage : Page
 {
     public AccountsPageViewModel ViewModel { get; }
-    private TextBox OfflineUserNameTextBox;
+    private TextBox OfflineUserNameTextBox = null!;
+    private TextBox ElyByLoginTextBox = null!;
+    private PasswordBox ElyByPasswordBox = null!;
+    private TextBox ElyByTwoFactorTextBox = null!;
+
     public AccountsPage()
     {
         ViewModel = Ioc.Default.GetService<AccountsPageViewModel>();
@@ -28,6 +32,7 @@ public sealed partial class AccountsPage : Page
             Header = "Username".Localize(),
             PlaceholderText = "EnterYourDesiredUsername".Localize()
         };
+
         await ViewModel.InitializeCommand.ExecuteAsync(null);
     }
 
@@ -49,10 +54,62 @@ public sealed partial class AccountsPage : Page
         dia.PrimaryButtonClick -= AddOfflineAccountDialog_PrimaryButtonClick;
     }
 
+    private async void AddElyByAccount_Click(object sender, RoutedEventArgs e)
+    {
+        ElyByLoginTextBox = new TextBox
+        {
+            Header = "ElyByUsernameOrEmail".Localize(),
+            PlaceholderText = "ElyByUsernameOrEmailPlaceholder".Localize()
+        };
+
+        ElyByPasswordBox = new PasswordBox
+        {
+            Header = "Password".Localize(),
+            PlaceholderText = "ElyByPasswordPlaceholder".Localize()
+        };
+
+        ElyByTwoFactorTextBox = new TextBox
+        {
+            Header = "ElyByTwoFactorCode".Localize(),
+            PlaceholderText = "ElyByTwoFactorCodePlaceholder".Localize()
+        };
+
+        var content = new StackPanel
+        {
+            Spacing = 12,
+            Children =
+            {
+                ElyByLoginTextBox,
+                ElyByPasswordBox,
+                ElyByTwoFactorTextBox
+            }
+        };
+
+        var dialog = content.ToContentDialog(
+            "SignInWithElyBy".Localize(),
+            PrimaryButtonText: "Login".Localize(),
+            closebtnText: "Cancel".Localize(),
+            defaultButton: ContentDialogButton.Primary);
+
+        dialog.PrimaryButtonClick += AddElyByAccountDialog_PrimaryButtonClick;
+
+        await dialog.ShowAsync();
+
+        dialog.PrimaryButtonClick -= AddElyByAccountDialog_PrimaryButtonClick;
+    }
+
     private void AddOfflineAccountDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
         ViewModel.OfflineUsername = OfflineUserNameTextBox.Text.Trim();
         ViewModel.AddOfflineAccountCommand.Execute(null);
+    }
+
+    private void AddElyByAccountDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+    {
+        ViewModel.ElyByLogin = ElyByLoginTextBox.Text.Trim();
+        ViewModel.ElyByPassword = ElyByPasswordBox.Password;
+        ViewModel.ElyByTwoFactorCode = ElyByTwoFactorTextBox.Text.Trim();
+        ViewModel.AddElyByAccountCommand.Execute(null);
     }
 
     private async void RemoveAccount_Click(object sender, RoutedEventArgs e)

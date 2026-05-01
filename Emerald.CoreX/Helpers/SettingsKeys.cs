@@ -13,5 +13,6 @@ public static class SettingsKeys
     public const string Settings = "Settings";
     public const string MinecraftAccounts = "MinecraftAccounts";
     public const string SelectedMinecraftAccount = "SelectedMinecraftAccount";
+    public const string ElyByAccounts = "ElyByAccounts";
     public const string StoreInstalledItems = "StoreInstalledItems";
 }

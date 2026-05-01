@@ -7,13 +7,15 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Emerald.CoreX.Services.Auth;
 
 namespace Emerald.CoreX.Models;
 
 public enum AccountType
 {
     Offline,
-    Microsoft
+    Microsoft,
+    ElyBy
 }
 
 [ObservableObject]
@@ -23,6 +25,7 @@ public partial class EAccount
 
     private string _name = string.Empty;
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ProviderDisplayName))]
     private AccountType _type;
 
     [ObservableProperty]
@@ -34,9 +37,20 @@ public partial class EAccount
     [ObservableProperty]
     private string _uniqueId = string.Empty;
 
+    [ObservableProperty]
+    private string _providerId = string.Empty;
+
     [JsonIgnore]
     [ObservableProperty]
     private bool _isSelected;
+
+    [JsonIgnore]
+    public string ProviderDisplayName => Type switch
+    {
+        AccountType.Microsoft => "Microsoft",
+        AccountType.ElyBy => "Ely.by",
+        _ => "Offline"
+    };
 
     public EAccount() { }
 
@@ -48,6 +62,7 @@ public partial class EAccount
         UniqueId = string.IsNullOrWhiteSpace(uniqueId)
             ? Guid.NewGuid().ToString()
             : uniqueId;
+        ProviderId = AccountProviderIds.FromAccountType(type);
         LastUsed = DateTime.UtcNow;
     }
 }

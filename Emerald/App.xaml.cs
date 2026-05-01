@@ -77,6 +77,13 @@ public partial class App : Application
         services.AddSingleton<CoreX.Runtime.IGameRuntimeSettings, Services.GameRuntimeSettingsAdapter>();
         services.AddSingleton<CoreX.Services.IJavaRuntimeProbe, CoreX.Services.ProcessJavaRuntimeProbe>();
         services.AddSingleton<CoreX.Services.IJavaRuntimeCatalogService, CoreX.Services.JavaRuntimeCatalogService>();
+        services.AddSingleton<CoreX.Services.Auth.ElyBy.IElyByAuthClient>(provider =>
+            new CoreX.Services.Auth.ElyBy.ElyByAuthClient(provider.GetRequiredService<ILogger<CoreX.Services.Auth.ElyBy.ElyByAuthClient>>()));
+        services.AddSingleton<CoreX.Services.Auth.ElyBy.IElyByAccountStore, CoreX.Services.Auth.ElyBy.ElyByAccountStore>();
+        services.AddSingleton<CoreX.Services.Auth.Authlib.IAuthlibInjectorService>(provider =>
+            new CoreX.Services.Auth.Authlib.AuthlibInjectorService(
+                provider.GetRequiredService<ILogger<CoreX.Services.Auth.Authlib.AuthlibInjectorService>>(),
+                Path.Combine(DirectResoucres.LocalDataPath, "authlib-injector")));
 
         //Notifications
         services.AddSingleton<CoreX.Notifications.INotificationService>(provider =>
@@ -123,7 +130,10 @@ public partial class App : Application
                 provider.GetRequiredService<Services.IBaseSettingsService>(),
                 new Services.DispatcherQueueUiDispatcher(dispatcherQueue),
                 Path.Combine(DirectResoucres.LocalDataPath, "accounts", "cml_accounts.json"),
-                notificationService: provider.GetRequiredService<CoreX.Notifications.INotificationService>());
+                notificationService: provider.GetRequiredService<CoreX.Notifications.INotificationService>(),
+                elyByAuthClient: provider.GetRequiredService<CoreX.Services.Auth.ElyBy.IElyByAuthClient>(),
+                elyByAccountStore: provider.GetRequiredService<CoreX.Services.Auth.ElyBy.IElyByAccountStore>(),
+                authlibInjectorService: provider.GetRequiredService<CoreX.Services.Auth.Authlib.IAuthlibInjectorService>());
         });
         //ViewModels
         services.AddTransient<ViewModels.GamesPageViewModel>();

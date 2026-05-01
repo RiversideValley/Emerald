@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Services;
+using Emerald.CoreX.Services.Auth.ElyBy;
 using Microsoft.Extensions.Logging;
 using System;
 
@@ -27,14 +28,28 @@ public partial class AccountsPageViewModel : ObservableObject
     [ObservableProperty]
     private string _offlineUsername = string.Empty;
 
+    [ObservableProperty]
+    private string _elyByLogin = string.Empty;
+
+    [ObservableProperty]
+    private string _elyByPassword = string.Empty;
+
+    [ObservableProperty]
+    private string _elyByTwoFactorCode = string.Empty;
+
     public ObservableCollection<EAccount> Accounts => _accountService.Accounts;
     public bool HasLoadError => !string.IsNullOrWhiteSpace(LoadErrorMessage);
     public EAccount? SelectedAccount => _accountService.GetSelectedAccount();
     public bool CanCreateOfflineAccount
         => !_accountService.RequireMicrosoftAccountForOfflineAccounts
            || Accounts.Any(account => account.Type == AccountType.Microsoft);
+    public bool CanCreateElyByAccount
+        => !_accountService.RequireMicrosoftAccountForElyByAccounts
+           || Accounts.Any(account => account.Type == AccountType.Microsoft);
     public bool ShowOfflineAccountRestriction
         => _accountService.RequireMicrosoftAccountForOfflineAccounts && !CanCreateOfflineAccount;
+    public bool ShowElyByAccountRestriction
+        => _accountService.RequireMicrosoftAccountForElyByAccounts && !CanCreateElyByAccount;
 
     public AccountsPageViewModel(IAccountService accountService, INotificationService notificationService, ILogger<AccountsPageViewModel> logger)
     {
@@ -83,6 +98,56 @@ public partial class AccountsPageViewModel : ObservableObject
             _logger.LogError(ex, "Failed to sign in with Microsoft account.");
             LoadErrorMessage = "Failed to add Microsoft account.";
             _notificationService.Error("SignInError", "Failed to add Microsoft account.", ex: ex);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task AddElyByAccountAsync()
+    {
+        if (!CanCreateElyByAccount)
+        {
+            _notificationService.Warning("ElyByNeedsMicrosoft", "Sign in with a Microsoft account before adding Ely.by accounts.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(ElyByLogin))
+        {
+            _notificationService.Warning("InvalidUsername", "Ely.by username or email cannot be empty.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(ElyByPassword))
+        {
+            _notificationService.Warning("InvalidPassword", "Ely.by password cannot be empty.");
+            return;
+        }
+
+        IsLoading = true;
+        LoadErrorMessage = null;
+        try
+        {
+            await _accountService.SignInElyByAccountAsync(ElyByLogin, ElyByPassword, ElyByTwoFactorCode);
+            _notificationService.Info("AccountAdded", "Ely.by account added successfully!");
+            ElyByLogin = string.Empty;
+            ElyByPassword = string.Empty;
+            ElyByTwoFactorCode = string.Empty;
+            NotifyAccountStateChanged();
+        }
+        catch (ElyByTwoFactorRequiredException ex)
+        {
+            _logger.LogWarning(ex, "Ely.by sign-in requires two-factor authentication.");
+            LoadErrorMessage = "Enter the Ely.by two-factor code and try again.";
+            _notificationService.Warning("TwoFactorRequired", "Enter the Ely.by two-factor code and try again.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to sign in with Ely.by account.");
+            LoadErrorMessage = "Failed to add Ely.by account.";
+            _notificationService.Error("ElyBySignInError", "Failed to add Ely.by account.", ex: ex);
         }
         finally
         {
@@ -171,6 +236,8 @@ public partial class AccountsPageViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(SelectedAccount));
         OnPropertyChanged(nameof(CanCreateOfflineAccount));
+        OnPropertyChanged(nameof(CanCreateElyByAccount));
         OnPropertyChanged(nameof(ShowOfflineAccountRestriction));
+        OnPropertyChanged(nameof(ShowElyByAccountRestriction));
     }
 }

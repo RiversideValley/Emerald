@@ -2,6 +2,9 @@ using System.Linq;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Services;
+using Emerald.CoreX.Services.Auth;
+using Emerald.CoreX.Services.Auth.ElyBy;
+using Emerald.CoreX.Services.Auth.Microsoft;
 using Emerald.CoreX.Tests.Support;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -17,6 +20,14 @@ public sealed class AccountServiceTests
         var service = CreateService(new InMemoryBaseSettingsService());
 
         Assert.True(service.RequireMicrosoftAccountForOfflineAccounts);
+    }
+
+    [Fact]
+    public void RequireMicrosoftAccountForElyByAccounts_IsEnabled()
+    {
+        var service = CreateService(new InMemoryBaseSettingsService());
+
+        Assert.True(service.RequireMicrosoftAccountForElyByAccounts);
     }
 
     [Fact]
@@ -52,6 +63,42 @@ public sealed class AccountServiceTests
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => service.AuthenticateAccountAsync(offline));
 
         Assert.Equal("Offline accounts require at least one Microsoft account.", exception.Message);
+    }
+
+    [Fact]
+    public async Task SignInElyByAccountAsync_WithoutMicrosoftAccount_Throws()
+    {
+        var service = CreateServiceWithEly(new InMemoryBaseSettingsService());
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.SignInElyByAccountAsync("ely@example.com", "password"));
+
+        Assert.Equal("Signing in with Ely.by requires at least one Microsoft account.", exception.Message);
+    }
+
+    [Fact]
+    public void SetSelectedAccount_ElyByWithoutMicrosoftAccount_Throws()
+    {
+        var service = CreateService(new InMemoryBaseSettingsService());
+        var elyBy = new EAccount("ElyAlpha", AccountType.ElyBy, "ely-alpha-uuid", "elyby:ely-alpha-uuid");
+        service.Accounts.Add(elyBy);
+
+        var exception = Assert.Throws<InvalidOperationException>(() => service.SetSelectedAccount(elyBy));
+
+        Assert.Equal("Selecting an Ely.by account requires at least one Microsoft account.", exception.Message);
+        Assert.Null(service.GetSelectedAccount());
+    }
+
+    [Fact]
+    public async Task AuthenticateAccountAsync_ElyByWithoutMicrosoftAccount_Throws()
+    {
+        var service = CreateService(new InMemoryBaseSettingsService());
+        var elyBy = new EAccount("ElyAlpha", AccountType.ElyBy, "ely-alpha-uuid", "elyby:ely-alpha-uuid");
+        service.Accounts.Add(elyBy);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => service.AuthenticateAccountAsync(elyBy));
+
+        Assert.Equal("Ely.by accounts require at least one Microsoft account.", exception.Message);
     }
 
     [Fact]
@@ -173,6 +220,83 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
+    public async Task SignInElyByAccountAsync_AddsStoredAccount_AndSelectsWhenNoSelectionExists()
+    {
+        var baseSettingsService = new InMemoryBaseSettingsService();
+        var elyByClient = new FakeElyByAuthClient
+        {
+            AuthenticateResult = new ElyByAuthSession("ElyAlpha", "ely-alpha-uuid", "ely-access", "ely-client")
+        };
+
+        var service = CreateServiceWithEly(baseSettingsService, elyByClient: elyByClient);
+        AddMicrosoftAccount(service);
+
+        await service.SignInElyByAccountAsync("ely@example.com", "password", "123456");
+
+        var account = Assert.Single(service.Accounts, account => account.Type == AccountType.ElyBy);
+        Assert.Equal("ElyAlpha", account.Name);
+        Assert.Equal("ely-alpha-uuid", account.UUID);
+        Assert.Equal("elyby:ely-alpha-uuid", account.UniqueId);
+        Assert.Equal(AccountProviderIds.ElyBy, account.ProviderId);
+        Assert.Same(account, service.GetSelectedAccount());
+        Assert.Equal([("ely@example.com", "password", "123456")], elyByClient.AuthenticateCalls);
+
+        var storedElyAccounts = baseSettingsService.Peek<List<ElyByStoredAccount>>(SettingsKeys.ElyByAccounts);
+        Assert.NotNull(storedElyAccounts);
+        var stored = Assert.Single(storedElyAccounts!);
+        Assert.Equal("ely-access", stored.AccessToken);
+        Assert.Equal("ely-client", stored.ClientToken);
+    }
+
+    [Fact]
+    public async Task AuthenticateAccountAsync_ElyByRefreshesExpiredToken_AndAddsAuthlibJavaAgent()
+    {
+        var baseSettingsService = new InMemoryBaseSettingsService();
+        baseSettingsService.Set(
+            SettingsKeys.ElyByAccounts,
+            new List<ElyByStoredAccount>
+            {
+                new()
+                {
+                    UniqueId = "elyby:ely-alpha-uuid",
+                    Name = "ElyAlpha",
+                    UUID = "ely-alpha-uuid",
+                    AccessToken = "expired-access",
+                    ClientToken = "ely-client",
+                    LastUsed = DateTime.UtcNow.AddHours(-1)
+                }
+            });
+
+        var elyByClient = new FakeElyByAuthClient
+        {
+            ValidateResult = false,
+            RefreshResult = new ElyByAuthSession("ElyAlpha", "ely-alpha-uuid", "fresh-access", "ely-client")
+        };
+        var authlibInjector = new FakeAuthlibInjectorService();
+        var service = CreateServiceWithEly(baseSettingsService, elyByClient: elyByClient, authlibInjectorService: authlibInjector);
+        await service.InitializeAsync("client-id");
+        await service.LoadAllAccountsAsync();
+        AddMicrosoftAccount(service);
+
+        var account = Assert.Single(service.Accounts, account => account.Type == AccountType.ElyBy);
+        var result = await service.AuthenticateAccountAsync(account);
+
+        Assert.Equal("ElyAlpha", result.Session.Username);
+        Assert.Equal("ely-alpha-uuid", result.Session.UUID);
+        Assert.Equal("fresh-access", result.Session.AccessToken);
+        Assert.Equal("ely-client", result.Session.ClientToken);
+        Assert.Equal("msa", result.Session.UserType);
+        Assert.Equal([("expired-access", "ely-client")], elyByClient.ValidateCalls);
+        Assert.Equal(["elyby:ely-alpha-uuid"], elyByClient.RefreshCalls);
+        Assert.Equal(1, authlibInjector.Calls);
+        Assert.Contains(result.RuntimeOptions.ExtraJvmArguments, argument => argument.Values.Contains("-javaagent:/fake/authlib-injector.jar=ely.by"));
+
+        var storedElyAccounts = baseSettingsService.Peek<List<ElyByStoredAccount>>(SettingsKeys.ElyByAccounts);
+        Assert.NotNull(storedElyAccounts);
+        Assert.Equal("fresh-access", Assert.Single(storedElyAccounts!).AccessToken);
+    }
+
+    [Fact]
     public async Task RemoveAccountAsync_MicrosoftUsesIdentifier_AndReloadsFromBackend()
     {
         var baseSettingsService = new InMemoryBaseSettingsService();
@@ -287,14 +411,30 @@ public sealed class AccountServiceTests
     private static AccountService CreateService(
         InMemoryBaseSettingsService baseSettingsService,
         FakeMicrosoftAccountClient microsoftAccountClient,
-        FakeNotificationService notificationService)
+        FakeNotificationService notificationService,
+        FakeElyByAuthClient? elyByClient = null,
+        FakeAuthlibInjectorService? authlibInjectorService = null)
         => new(
             NullLogger<AccountService>.Instance,
             baseSettingsService,
             new ImmediateUiDispatcher(),
             "/tmp/emerald-tests/cml_accounts.json",
             microsoftAccountClient,
-            notificationService);
+            notificationService,
+            elyByClient,
+            new ElyByAccountStore(baseSettingsService),
+            authlibInjectorService ?? new FakeAuthlibInjectorService());
+
+    private static AccountService CreateServiceWithEly(
+        InMemoryBaseSettingsService baseSettingsService,
+        FakeElyByAuthClient? elyByClient = null,
+        FakeAuthlibInjectorService? authlibInjectorService = null)
+        => CreateService(
+            baseSettingsService,
+            new FakeMicrosoftAccountClient(),
+            new FakeNotificationService(),
+            elyByClient,
+            authlibInjectorService);
 
     private static void AddMicrosoftAccount(AccountService service, string name = "Microsoft")
     {
