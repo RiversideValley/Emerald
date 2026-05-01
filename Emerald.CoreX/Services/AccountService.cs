@@ -15,8 +15,8 @@ namespace Emerald.CoreX.Services;
 
 public sealed partial class AccountService : IAccountService
 {
-    public bool RequireMicrosoftAccountForOfflineAccounts => true;
-    public bool RequireMicrosoftAccountForElyByAccounts => true;
+    public bool RequireMicrosoftAccountForOfflineAccounts => false;
+    public bool RequireMicrosoftAccountForElyByAccounts => false;
 
     private readonly ILogger<AccountService> _logger;
     private readonly IBaseSettingsService _settingsService;
