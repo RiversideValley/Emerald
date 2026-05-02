@@ -224,6 +224,9 @@ public partial class Updates : JSON
 
     [ObservableProperty]
     private bool _includePreReleases;
+
+    [ObservableProperty]
+    private string? _lastShownReleaseNotesVersion;
 }
 public partial class StoreFilter : JSON
 {

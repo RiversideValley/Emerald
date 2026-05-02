@@ -10,6 +10,7 @@ using Emerald.CoreX.Store.Modrinth;
 using Emerald.Helpers;
 using Emerald.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml.Controls;
 using Serilog;
 using Serilog.Sinks.File;
 using Microsoft.UI.Dispatching;
@@ -26,6 +27,16 @@ public partial class App : Application
     private const string ElyByClientId = "emerald1";
     private const string ElyByClientSecret = "_hrxVlIoEWm1sqRlruFevD5v87mYW4EKPdmPWlraQoVP6kOXxJV9Y-qMrcm7Znk4";
     private const string ElyByRedirectUri = "http://127.0.0.1:58135/oauth/elyby/";
+    private const string CurrentReleaseNotes = """
+What's new
+- Emerald now stores Windows app data in the app's local ApplicationData folder.
+- Minecraft instances now use the Instances folder by default.
+- Release notes now appear once after a fresh install or app update.
+
+Notes
+- Existing custom Minecraft paths and saved instances are left where they are.
+- You can still change the Minecraft path from Settings.
+""";
 
     private Services.SettingsService SS;
 
@@ -266,6 +277,7 @@ public partial class App : Application
         MainWindow.Activate();
         MainWindow.Closed += MainWindow_Closed;
         this.Log().LogInformation("Main window activated.");
+        _ = ShowReleaseNotesAtStartupAsync();
         _ = CheckForUpdatesAtStartupAsync();
     }
 
@@ -276,6 +288,78 @@ public partial class App : Application
     {
         this.Log().LogInformation("Main window is closing. Persisting settings.");
         SS.SaveData();
+    }
+
+    private async Task ShowReleaseNotesAtStartupAsync()
+    {
+        try
+        {
+            var currentVersion = DirectResoucres.PackageVersion;
+            if (string.IsNullOrWhiteSpace(currentVersion)
+                || string.Equals(
+                    SS.Settings.App.Updates.LastShownReleaseNotesVersion,
+                    currentVersion,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (MainWindow?.Content is not FrameworkElement root || root.XamlRoot is null)
+            {
+                this.Log().LogWarning("Skipped release notes because the main window XamlRoot was unavailable.");
+                return;
+            }
+
+            await Task.Yield();
+
+            var dialog = CreateReleaseNotesDialog(root);
+            await dialog.ShowAsync();
+
+            SS.Settings.App.Updates.LastShownReleaseNotesVersion = currentVersion;
+            SS.SaveData();
+        }
+        catch (Exception ex)
+        {
+            this.Log().LogWarning(ex, "Failed to show startup release notes.");
+        }
+    }
+
+    private ContentDialog CreateReleaseNotesDialog(FrameworkElement root)
+    {
+        var content = new StackPanel
+        {
+            Spacing = 12,
+            MaxWidth = 720
+        };
+
+        content.Children.Add(new TextBlock
+        {
+            Text = $"{DirectResoucres.PublicVersion} ({DirectResoucres.PackageVersion})",
+            Style = Application.Current.Resources["BodyStrongTextBlockStyle"] as Style,
+            TextWrapping = TextWrapping.Wrap
+        });
+
+        content.Children.Add(new TextBlock
+        {
+            Text = CurrentReleaseNotes,
+            IsTextSelectionEnabled = true,
+            TextWrapping = TextWrapping.Wrap
+        });
+
+        return new ContentDialog
+        {
+            XamlRoot = root.XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            Title = "ReleaseNotes".Localize(),
+            CloseButtonText = "Close".Localize(),
+            DefaultButton = ContentDialogButton.Close,
+            Content = new ScrollViewer
+            {
+                Content = content,
+                Padding = new(12)
+            },
+            RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme
+        };
     }
 
     private async Task CheckForUpdatesAtStartupAsync()
