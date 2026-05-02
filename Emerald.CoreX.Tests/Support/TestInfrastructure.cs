@@ -4,6 +4,9 @@ using CmlLib.Core.Auth;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Services;
+using Emerald.CoreX.Services.Auth.Authlib;
+using Emerald.CoreX.Services.Auth.ElyBy;
+using Emerald.CoreX.Services.Auth.Microsoft;
 using Emerald.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -75,7 +78,7 @@ internal sealed class FakeMicrosoftAccountClient : IMicrosoftAccountClient
     public string? InitializedAccountStorePath { get; private set; }
     public string? DefaultAccountIdentifier { get; set; }
 
-    public Func<FakeMicrosoftAccountClient, Task<MicrosoftInteractiveSignInResult>>? OnInteractiveSignInAsync { get; set; }
+    public Func<FakeMicrosoftAccountClient, CancellationToken, Task<MicrosoftInteractiveSignInResult>>? OnInteractiveSignInAsync { get; set; }
     public Func<string, MSession>? AuthenticateFactory { get; set; }
 
     public Task InitializeAsync(string clientId, string accountStorePath)
@@ -91,14 +94,15 @@ internal sealed class FakeMicrosoftAccountClient : IMicrosoftAccountClient
     public string? GetDefaultAccountIdentifier()
         => DefaultAccountIdentifier;
 
-    public async Task<MicrosoftInteractiveSignInResult> SignInInteractivelyAsync()
+    public async Task<MicrosoftInteractiveSignInResult> SignInInteractivelyAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (OnInteractiveSignInAsync is null)
         {
             return new MicrosoftInteractiveSignInResult(DefaultAccountIdentifier, null, null);
         }
 
-        return await OnInteractiveSignInAsync(this);
+        return await OnInteractiveSignInAsync(this, cancellationToken);
     }
 
     public Task<MSession> AuthenticateAsync(string accountIdentifier)
@@ -122,6 +126,107 @@ internal sealed class FakeMicrosoftAccountClient : IMicrosoftAccountClient
         }
 
         return Task.CompletedTask;
+    }
+}
+
+internal sealed class FakeElyByAuthClient : IElyByAuthClient
+{
+    public ElyByAuthSession AuthenticateResult { get; set; } = new("ElyPlayer", "ely-uuid", "ely-access", "ely-client");
+    public ElyByAuthSession ExchangeOAuthCodeResult { get; set; } = new(
+        "ElyOAuthPlayer",
+        "ely-oauth-uuid",
+        "ely-oauth-access",
+        "ely-oauth-client",
+        "ely-oauth-refresh",
+        DateTimeOffset.UtcNow.AddHours(1),
+        ElyByAuthFlow.OAuth);
+    public ElyByAuthSession RefreshResult { get; set; } = new("ElyPlayer", "ely-uuid", "ely-refreshed", "ely-client");
+    public bool ValidateResult { get; set; } = true;
+
+    public List<(string State, string? LoginHint)> AuthorizationRequestCalls { get; } = [];
+    public List<string> ExchangeOAuthCodeCalls { get; } = [];
+    public List<(string Login, string Password, string? TwoFactorCode)> AuthenticateCalls { get; } = [];
+    public List<(string AccessToken, string ClientToken)> ValidateCalls { get; } = [];
+    public List<string> RefreshCalls { get; } = [];
+    public List<string> InvalidateCalls { get; } = [];
+
+    public ElyByOAuthAuthorizationRequest CreateOAuthAuthorizationRequest(string state, string? loginHint = null)
+    {
+        AuthorizationRequestCalls.Add((state, loginHint));
+        return new ElyByOAuthAuthorizationRequest(
+            new Uri($"https://account.ely.by/oauth2/v1?state={state}"),
+            new Uri("http://127.0.0.1:58135/oauth/elyby/"),
+            state);
+    }
+
+    public Task<ElyByAuthSession> ExchangeOAuthCodeAsync(string code, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ExchangeOAuthCodeCalls.Add(code);
+        return Task.FromResult(ExchangeOAuthCodeResult);
+    }
+
+    public Task<ElyByAuthSession> AuthenticateAsync(
+        string login,
+        string password,
+        string? twoFactorCode = null,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AuthenticateCalls.Add((login, password, twoFactorCode));
+        return Task.FromResult(AuthenticateResult);
+    }
+
+    public Task<bool> ValidateAsync(string accessToken, string clientToken, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidateCalls.Add((accessToken, clientToken));
+        return Task.FromResult(ValidateResult);
+    }
+
+    public Task<ElyByAuthSession> RefreshAsync(ElyByStoredAccount account, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        RefreshCalls.Add(account.UniqueId);
+        return Task.FromResult(RefreshResult);
+    }
+
+    public Task InvalidateAsync(ElyByStoredAccount account, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        InvalidateCalls.Add(account.UniqueId);
+        return Task.CompletedTask;
+    }
+}
+
+internal sealed class FakeElyByOAuthBrowser : IElyByOAuthBrowser
+{
+    public string Code { get; set; } = "ely-oauth-code";
+    public List<ElyByOAuthAuthorizationRequest> Requests { get; } = [];
+    public Func<ElyByOAuthAuthorizationRequest, CancellationToken, Task<ElyByOAuthAuthorizationResult>>? OnAuthorizeAsync { get; set; }
+
+    public Task<ElyByOAuthAuthorizationResult> AuthorizeAsync(
+        ElyByOAuthAuthorizationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        Requests.Add(request);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return OnAuthorizeAsync is not null
+            ? OnAuthorizeAsync(request, cancellationToken)
+            : Task.FromResult(new ElyByOAuthAuthorizationResult(Code));
+    }
+}
+
+internal sealed class FakeAuthlibInjectorService : IAuthlibInjectorService
+{
+    public string JavaAgentArgument { get; set; } = "-javaagent:/fake/authlib-injector.jar=ely.by";
+    public int Calls { get; private set; }
+
+    public Task<string> GetJavaAgentArgumentAsync(CancellationToken cancellationToken = default)
+    {
+        Calls++;
+        return Task.FromResult(JavaAgentArgument);
     }
 }
 

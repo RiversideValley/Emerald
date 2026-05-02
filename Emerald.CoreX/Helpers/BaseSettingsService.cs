@@ -15,12 +15,12 @@ public class BaseSettingsService : IBaseSettingsService
 
     private readonly string _settingsFolder;
 
-    public BaseSettingsService(ILogger<BaseSettingsService> logger)
+    public BaseSettingsService(ILogger<BaseSettingsService> logger, string? settingsFolderPath = null)
     {
         _logger = logger;
 
         // Use the LocalFolder path as the base folder for file-based settings
-        _settingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Emerald", "Settings");
+        _settingsFolder =  settingsFolderPath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Emerald", "Settings");
 
         // Ensure the directory exists immediately
         if (!Directory.Exists(_settingsFolder))

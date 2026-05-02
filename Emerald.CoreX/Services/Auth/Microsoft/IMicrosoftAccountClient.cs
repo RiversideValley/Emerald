@@ -1,6 +1,6 @@
 using CmlLib.Core.Auth;
 
-namespace Emerald.CoreX.Services;
+namespace Emerald.CoreX.Services.Auth.Microsoft;
 
 internal interface IMicrosoftAccountClient
 {
@@ -10,7 +10,7 @@ internal interface IMicrosoftAccountClient
 
     string? GetDefaultAccountIdentifier();
 
-    Task<MicrosoftInteractiveSignInResult> SignInInteractivelyAsync();
+    Task<MicrosoftInteractiveSignInResult> SignInInteractivelyAsync(CancellationToken cancellationToken = default);
 
     Task<MSession> AuthenticateAsync(string accountIdentifier);
 

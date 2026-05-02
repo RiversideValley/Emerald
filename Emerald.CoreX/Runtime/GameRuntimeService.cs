@@ -204,10 +204,13 @@ public sealed class GameRuntimeService : IGameRuntimeService
         try
         {
             _logger.LogDebug("Authenticating launch account for {GameName}.", game.Version.DisplayName);
-            var mcSession = await _accountService.AuthenticateAccountAsync(account);
+            var authenticationResult = await _accountService.AuthenticateAccountAsync(account);
             ThrowIfLaunchCancelled(runtime);
 
-            var process = await game.BuildProcess(game.Version.RealVersion, mcSession);
+            var process = await game.BuildProcess(
+                game.Version.RealVersion,
+                authenticationResult.Session,
+                authenticationResult.RuntimeOptions);
             runtime.Process = process;
 
             _logger.LogDebug(

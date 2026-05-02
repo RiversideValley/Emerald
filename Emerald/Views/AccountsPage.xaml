@@ -28,7 +28,7 @@
           <StackPanel Spacing="4">
             <TextBlock Text="{x:Bind Name}" Style="{StaticResource BodyStrongTextBlockStyle}"/>
             <StackPanel Orientation="Horizontal" Spacing="8">
-              <TextBlock Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind Type}"/>
+              <TextBlock Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind ProviderDisplayName}"/>
             </StackPanel>
             <TextBlock Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}">
               <Run Text="Last used:"/>
@@ -74,20 +74,35 @@
 
       <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
         <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-          <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
           <CommandBar Background="Transparent" DefaultLabelPosition="Right">
-            <AppBarButton Command="{x:Bind ViewModel.AddMicrosoftAccountCommand}" Icon="Contact" Label="{helpers:Localize KeyName=SignInWithMS}"/>
-            <AppBarButton Click="AddOfflineAccount_Click" Icon="AddFriend" Label="{helpers:Localize KeyName=OfflineAccount}" IsEnabled="{x:Bind ViewModel.CanCreateOfflineAccount, Mode=OneWay}"/>
+            <AppBarButton Command="{x:Bind ViewModel.AddMicrosoftAccountCommand}" Icon="Contact" Label="{helpers:Localize KeyName=SignInWithMS}" IsEnabled="{x:Bind ViewModel.CanStartMicrosoftLogin, Mode=OneWay}"/>
+            <AppBarButton Command="{x:Bind ViewModel.AddElyByAccountCommand}" Icon="World" Label="{helpers:Localize KeyName=SignInWithElyBy}" IsEnabled="{x:Bind ViewModel.CanStartElyByLogin, Mode=OneWay}"/>
+            <AppBarButton Click="AddOfflineAccount_Click" Icon="AddFriend" Label="{helpers:Localize KeyName=OfflineAccount}" IsEnabled="{x:Bind ViewModel.CanStartOfflineAccount, Mode=OneWay}"/>
+            <AppBarButton
+              Command="{x:Bind ViewModel.CancelLoginCommand}"
+              Icon="Cancel"
+              Label="{helpers:Localize KeyName=CancelLogin}"
+              Visibility="{x:Bind ViewModel.IsLoginInProgress, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
           </CommandBar>
         </StackPanel>
-        <TextBlock
-          HorizontalAlignment="Right"
-          MaxWidth="420"
-          Opacity="0.85"
-          Style="{StaticResource CaptionTextBlockStyle}"
-          Text="{helpers:Localize KeyName=OfflineAccountNeedsMicrosoftDescription}"
-          TextWrapping="WrapWholeWords"
-          Visibility="{x:Bind ViewModel.ShowOfflineAccountRestriction, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+        <StackPanel Spacing="4" HorizontalAlignment="Right">
+          <TextBlock
+            HorizontalAlignment="Right"
+            MaxWidth="420"
+            Opacity="0.85"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            Text="{helpers:Localize KeyName=ElyByAccountNeedsMicrosoftDescription}"
+            TextWrapping="WrapWholeWords"
+            Visibility="{x:Bind ViewModel.ShowElyByAccountRestriction, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+          <TextBlock
+            HorizontalAlignment="Right"
+            MaxWidth="420"
+            Opacity="0.85"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            Text="{helpers:Localize KeyName=OfflineAccountNeedsMicrosoftDescription}"
+            TextWrapping="WrapWholeWords"
+            Visibility="{x:Bind ViewModel.ShowOfflineAccountRestriction, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+        </StackPanel>
       </StackPanel>
     </Grid>
 
@@ -110,7 +125,12 @@
 
         <StackPanel Spacing="12" HorizontalAlignment="Center" Margin="0,48,0,0" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
           <ProgressRing IsActive="True"/>
-          <TextBlock Text="Loading accounts..."/>
+          <TextBlock Text="{x:Bind ViewModel.LoadingMessage, Mode=OneWay}" TextAlignment="Center"/>
+          <Button
+            HorizontalAlignment="Center"
+            Command="{x:Bind ViewModel.CancelLoginCommand}"
+            Content="{helpers:Localize KeyName=CancelLogin}"
+            Visibility="{x:Bind ViewModel.IsLoginInProgress, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
         </StackPanel>
 
         <ItemsRepeater

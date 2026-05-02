@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Runtime;
 using Emerald.CoreX.Services;
+using Emerald.CoreX.Services.Auth;
 using Microsoft.Extensions.Logging;
 
 namespace Emerald.CoreX;
@@ -252,11 +253,21 @@ public partial class Game : ObservableObject
         }
     }
 
-    public async Task<Process> BuildProcess(string version, CmlLib.Core.Auth.MSession session)
+    public async Task<Process> BuildProcess(
+        string version,
+        CmlLib.Core.Auth.MSession session,
+        AccountRuntimeAuthOptions? runtimeAuthOptions = null)
     {
         _logger.LogInformation("Building process for version: {Version}", version);
         var launchOpt = EffectiveSettings.ToMLaunchOption();
         launchOpt.Session = session;
+
+        if (runtimeAuthOptions?.ExtraJvmArguments.Count > 0)
+        {
+            launchOpt.ExtraJvmArguments = launchOpt.ExtraJvmArguments
+                .Concat(runtimeAuthOptions.ExtraJvmArguments)
+                .ToArray();
+        }
 
         if (EffectiveSettings.UseCustomJava)
         {
