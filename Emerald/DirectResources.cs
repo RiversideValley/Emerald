@@ -46,7 +46,7 @@ public static class DirectResoucres
         get
         {
 #if WINDOWS
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Emerald");
+            return Windows.Storage.ApplicationData.Current.LocalFolder.Path;
 #else
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Emerald");
 #endif

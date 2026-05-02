@@ -23,7 +23,7 @@ public sealed class CoreAddGameTests
         core.AddGame(version);
 
         var game = Assert.Single(core.Games);
-        Assert.Equal("/tmp/emerald-default-folder/EmeraldGames/Survival 1.21.4", game.Path.BasePath);
+        Assert.Equal("/tmp/emerald-default-folder/Instances/Survival 1.21.4", game.Path.BasePath);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public sealed class CoreAddGameTests
         core.AddGame(version, "shared-modpack");
 
         var game = Assert.Single(core.Games);
-        Assert.Equal("/tmp/emerald-custom-folder/EmeraldGames/shared-modpack", game.Path.BasePath);
+        Assert.Equal("/tmp/emerald-custom-folder/Instances/shared-modpack", game.Path.BasePath);
     }
 
     private static Emerald.CoreX.Core CreateCore(string basePath)

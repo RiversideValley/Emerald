@@ -13,6 +13,7 @@ using Emerald.CoreX.Models;
 using Emerald.CoreX.Store.Modrinth;
 using Emerald.CoreX.Helpers;
 using Emerald.Models;
+using System.IO;
 namespace Emerald.Helpers.Settings.JSON;
 
 public class JSON : Models.Model
@@ -55,7 +56,7 @@ public partial class Settings : JSON
         },
         Minecraft = new()
         {
-            Path = MinecraftPath.GetOSDefaultPath(),
+            Path = GetDefaultMinecraftPath(),
            // RAM = DirectResoucres.MaxRAM / 2,
             MCVerionsConfiguration = new(),
             JVM = new(),
@@ -71,6 +72,15 @@ public partial class Settings : JSON
     public DateTime LastSaved { get; set; } = DateTime.Now;
     public Minecraft Minecraft { get; set; } = new();
     public App App { get; set; } = new();
+
+    private static string GetDefaultMinecraftPath()
+    {
+#if WINDOWS
+        return DirectResoucres.LocalDataPath;
+#else
+        return MinecraftPath.GetOSDefaultPath();
+#endif
+    }
 }
 
 public partial class Minecraft : JSON
