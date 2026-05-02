@@ -59,11 +59,8 @@ public partial class App : Application
 
     #region  Services
 
-    
-
     private void ConfigureAuthServices(IServiceCollection services)
     {
-        
         //Ely.By
         services.AddSingleton<CoreX.Services.Auth.ElyBy.ElyByOAuthOptions>(_ =>
             new CoreX.Services.Auth.ElyBy.ElyByOAuthOptions(
@@ -85,8 +82,7 @@ public partial class App : Application
                 provider.GetRequiredService<ILogger<Services.ElyByLoopbackOAuthBrowser>>(),
                 dispatcherQueue);
         });
-        
-        
+
         //authLib
         services.AddSingleton<CoreX.Services.Auth.Authlib.IAuthlibInjectorService>(provider =>
             new CoreX.Services.Auth.Authlib.AuthlibInjectorService(
@@ -158,7 +154,6 @@ public partial class App : Application
 
     private void ConfigureSettingsServices(IServiceCollection services)
     {
-
         //Settings
         services.AddSingleton<Services.SettingsService>();
         services.AddSingleton<Services.IBaseSettingsService, Services.BaseSettingsService>(provider =>
@@ -172,7 +167,6 @@ public partial class App : Application
         services.AddSingleton<CoreX.Runtime.IGameRuntimeSettings, Services.GameRuntimeSettingsAdapter>();
         services.AddSingleton<CoreX.Services.IJavaRuntimeProbe, CoreX.Services.ProcessJavaRuntimeProbe>();
         services.AddSingleton<CoreX.Services.IJavaRuntimeCatalogService, CoreX.Services.JavaRuntimeCatalogService>();
-
     }
 
     private void ConfigureUiServices(IServiceCollection services)
