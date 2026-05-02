@@ -219,6 +219,9 @@
   <data name="ClearAll" xml:space="preserve">
     <value>Clear All</value>
   </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
   <data name="Colorful" xml:space="preserve">
     <value>Colorful</value>
   </data>
@@ -254,6 +257,12 @@
   </data>
   <data name="CreditsDescription" xml:space="preserve">
     <value>Respect...</value>
+  </data>
+  <data name="CreditsDialogIntro" xml:space="preserve">
+    <value>Emerald is powered by these open source projects across the maintained Uno app and CoreX launcher. Source and license links are included for each dependency group used by the app.</value>
+  </data>
+  <data name="CreditsPackages" xml:space="preserve">
+    <value>Packages</value>
   </data>
   <data name="CustomColor" xml:space="preserve">
     <value>Custom color</value>
@@ -1032,6 +1041,12 @@
   </data>
   <data name="SetYourOwn" xml:space="preserve">
     <value>Set Your Own</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="License" xml:space="preserve">
+    <value>License</value>
   </data>
   <data name="UseThisJava" xml:space="preserve">
     <value>Use this Java</value>
