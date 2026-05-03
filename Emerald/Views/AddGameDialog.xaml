@@ -34,7 +34,7 @@
 
     <DataTemplate x:Key="VersionTemplate" x:DataType="corexVer:Version">
       <Border
-        Margin="0,0,0,8"
+        Margin="0,8,0,8"
         Padding="14"
         CornerRadius="12"
         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -147,7 +147,7 @@
 
     <DataTemplate x:Key="ModpackVersionTemplate" x:DataType="modrinth:ItemVersion">
       <Border
-        Margin="0,0,0,8"
+        Margin="0,8,0,8"
         Padding="14"
         CornerRadius="12"
         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -275,7 +275,7 @@
         <RadioButtons
           Grid.Row="1"
           MaxWidth="1000"
-          HorizontalAlignment="Stretch"
+          HorizontalAlignment="Left"
           Margin="0,16,0,12"
           ItemsSource="{x:Bind ViewModel.ReleaseTypes, Mode=OneWay}"
           MaxColumns="4"
@@ -486,10 +486,6 @@
                   DisplayMemberPath="DisplayName"
                   ItemsSource="{x:Bind ViewModel.ModpackSortOptions, Mode=OneWay}"
                   SelectedItem="{x:Bind ViewModel.SelectedModpackSortOption, Mode=TwoWay}" />
-                <Button
-                  Command="{x:Bind ViewModel.SearchModpacksCommand}"
-                  Content="{helpers:Localize KeyName=Search}"
-                  IsEnabled="{x:Bind ViewModel.CanSearchModpacks, Mode=OneWay}" />
               </StackPanel>
             </cn:SettingsCard>
 
