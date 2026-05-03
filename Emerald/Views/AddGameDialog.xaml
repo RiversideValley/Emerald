@@ -11,7 +11,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:modrinth="using:Emerald.CoreX.Store.Modrinth.JSON"
     xmlns:store="using:Emerald.CoreX.Store"
+    FullSizeDesired="True"
+    VerticalAlignment="Stretch"
+    HorizontalAlignment="Stretch"
     xmlns:viewModels="using:Emerald.ViewModels"
+    MaxWidth="4096"
     Margin="12"
     Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
     x:Name="Root"
@@ -19,8 +23,8 @@
 
   <ContentDialog.Resources>
 
-    <x:Double x:Key="ContentDialogMaxWidth">2000</x:Double>
-    <x:Double x:Key="ContentDialogMaxHeight">2000</x:Double>
+    <x:Double x:Key="ContentDialogMaxWidth">4096</x:Double>
+    <x:Double x:Key="ContentDialogMaxHeight">2048</x:Double>
     <conv:BoolToVisibility x:Key="BoolToVis" />
     <conv:BoolToVisibility x:Key="InverseBoolToVis" Reversed="True" />
     <conv:InverseBoolConverter x:Key="InverseBoolConverter" />
@@ -196,7 +200,9 @@
     </DataTemplate>
   </ContentDialog.Resources>
 
-  <Grid HorizontalAlignment="Stretch">
+  <Grid
+    VerticalAlignment="Stretch"
+    HorizontalAlignment="Stretch">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />
       <RowDefinition Height="*" />
@@ -222,6 +228,13 @@
           IsSettingsVisible="False"
           ItemInvoked="AddGameModeNav_ItemInvoked"
           PaneDisplayMode="Top">
+          <NavigationView.Resources>
+            <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
+            <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+            <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
+            <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
+            <Thickness x:Key="NavigationViewTopPaneHeight">40</Thickness>
+          </NavigationView.Resources>
           <NavigationView.MenuItems>
             <NavigationViewItem
               x:Name="NormalModeNavItem"
@@ -261,10 +274,12 @@
 
         <RadioButtons
           Grid.Row="1"
+          MaxWidth="1000"
           HorizontalAlignment="Stretch"
           Margin="0,16,0,12"
           ItemsSource="{x:Bind ViewModel.ReleaseTypes, Mode=OneWay}"
           MaxColumns="4"
+          HorizontalContentAlignment="Stretch"
           SelectedItem="{x:Bind ViewModel.SelectedReleaseTypeFilter, Mode=TwoWay}">
           <RadioButtons.ItemTemplate>
             <DataTemplate>
@@ -322,6 +337,8 @@
           <StackPanel Spacing="12">
             <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{helpers:Localize KeyName=ModLoaderSectionTitle}" />
             <RadioButtons
+              MaxWidth="10000"
+              HorizontalContentAlignment="Stretch"
               ItemsSource="{x:Bind ViewModel.ModLoaderTypes, Mode=OneWay}"
               MaxColumns="3"
               SelectedItem="{x:Bind ViewModel.SelectedModLoaderTypeOption, Mode=TwoWay}"
@@ -384,57 +401,54 @@
             </StackPanel>
           </Border>
 
-          <StackPanel Spacing="12">
-            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{helpers:Localize KeyName=GameIdentitySectionTitle}" />
-            <TextBox
-              Header="{helpers:Localize KeyName=InstanceName}"
-              PlaceholderText="{helpers:Localize KeyName=InstanceNamePlaceholder}"
-              Text="{x:Bind ViewModel.NewGameName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock
-              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-              Style="{StaticResource CaptionTextBlockStyle}"
-              Text="{helpers:Localize KeyName=InstanceNameDescription}"
-              TextWrapping="WrapWholeWords" />
-          </StackPanel>
+            <cn:SettingsCard
+              Header="{helpers:Localize KeyName=GameIdentitySectionTitle}"
+              Description="{helpers:Localize KeyName=InstanceNameDescription}"
+              HeaderIcon="{helpers:FontIcon Glyph=&#xE77B;}">
+              <TextBox
+                Header="{helpers:Localize KeyName=InstanceName}"
+                PlaceholderText="{helpers:Localize KeyName=InstanceNamePlaceholder}"
+                Text="{x:Bind ViewModel.NewGameName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </cn:SettingsCard>
 
           <StackPanel Spacing="12">
+            <cn:SettingsExpander
+              Header="{helpers:Localize KeyName=GameFolderSectionTitle}"
+              Description="{helpers:Localize KeyName=GameFolderNameDescription}"
+              HeaderIcon="{helpers:FontIcon Glyph=&#xE8B7;}">
+              <cn:SettingsExpander.Items>
+                <cn:SettingsCard
+                  Header="{helpers:Localize KeyName=CustomizeGameFolderName}"
+                  Description="{helpers:Localize KeyName=UseGameNameDefault}">
+                  <ToggleSwitch
+                    IsOn="{x:Bind ViewModel.IsCustomFolderNameEnabled, Mode=TwoWay}"
+                    OffContent="{helpers:Localize KeyName=UseGameNameDefault}"
+                    OnContent="{helpers:Localize KeyName=OverrideFolderName}" />
+                </cn:SettingsCard>
+
+                <cn:SettingsCard
+                  Header="{helpers:Localize KeyName=GameFolderName}"
+                  Description="{helpers:Localize KeyName=GameFolderNamePlaceholder}">
+                  <TextBox
+                    Header="{helpers:Localize KeyName=GameFolderName}"
+                    IsEnabled="{x:Bind ViewModel.IsFolderNameReadOnly, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
+                    PlaceholderText="{helpers:Localize KeyName=GameFolderNamePlaceholder}"
+                    Text="{x:Bind ViewModel.NewGameFolderName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                </cn:SettingsCard>
+              </cn:SettingsExpander.Items>
+              </cn:SettingsExpander>
             <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{helpers:Localize KeyName=GameFolderSectionTitle}" />
-            <ToggleSwitch
-              Header="{helpers:Localize KeyName=CustomizeGameFolderName}"
-              IsOn="{x:Bind ViewModel.IsCustomFolderNameEnabled, Mode=TwoWay}"
-              OffContent="{helpers:Localize KeyName=UseGameNameDefault}"
-              OnContent="{helpers:Localize KeyName=OverrideFolderName}" />
-            <TextBox
-              Header="{helpers:Localize KeyName=GameFolderName}"
-              IsEnabled="{x:Bind ViewModel.IsFolderNameReadOnly, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
-              PlaceholderText="{helpers:Localize KeyName=GameFolderNamePlaceholder}"
-              Text="{x:Bind ViewModel.NewGameFolderName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock
-              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-              Style="{StaticResource CaptionTextBlockStyle}"
-              Text="{helpers:Localize KeyName=GameFolderNameDescription}"
-              TextWrapping="WrapWholeWords" />
 
-            <Border
-              Padding="12"
-              CornerRadius="10"
-              Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
-              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-              BorderThickness="1"
-              Visibility="{x:Bind ViewModel.HasFolderValidationMessage, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-              <TextBlock Text="{x:Bind ViewModel.GameFolderValidationMessage, Mode=OneWay}" TextWrapping="WrapWholeWords" />
-            </Border>
 
-            <Border
-              Padding="12"
-              CornerRadius="10"
-              Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
-              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-              BorderThickness="1"
-              Visibility="{x:Bind ViewModel.HasFolderConflictWarning, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-              <TextBlock Text="{x:Bind ViewModel.GameFolderConflictWarningMessage, Mode=OneWay}" TextWrapping="WrapWholeWords" />
-            </Border>
+            <InfoBar Severity="Warning"
+              IsClosable="False"
+                     IsOpen="{x:Bind ViewModel.HasFolderValidationMessage, Mode=OneWay}"
+                     Message="{x:Bind ViewModel.GameFolderValidationMessage, Mode=OneWay}"/>
 
+            <InfoBar Severity="Warning"
+                     IsClosable="False"
+                     IsOpen="{x:Bind ViewModel.HasFolderConflictWarning, Mode=OneWay}"
+                     Message="{x:Bind ViewModel.GameFolderConflictWarningMessage, Mode=OneWay}"/>
             <TextBlock
               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
               Style="{StaticResource CaptionTextBlockStyle}"
@@ -671,7 +685,6 @@
             Description="{helpers:Localize KeyName=InstanceNameDescription}"
             HeaderIcon="{helpers:FontIcon Glyph=&#xE77B;}">
             <TextBox
-              Header="{helpers:Localize KeyName=InstanceName}"
               PlaceholderText="{helpers:Localize KeyName=InstanceNamePlaceholder}"
               Text="{x:Bind ViewModel.NewGameName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
           </cn:SettingsCard>
@@ -742,8 +755,11 @@
     </Grid>
 
     <Border
+      Margin="-36,0,0,-6"
       Grid.Row="2"
-      Padding="20,14,20,20">
+      BorderBrush="{ThemeResource SystemControlBackgroundBaseLowRevealBorderBrush}"
+      Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+      Padding="30,14,20,20">
       <Grid ColumnSpacing="12">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
