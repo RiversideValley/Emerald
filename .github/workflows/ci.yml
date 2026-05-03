@@ -347,15 +347,37 @@ jobs:
             -SkipBundleArchive `
             -CertificatePath $env:EMERALD_SIGNING_CERT_PATH
 
-      - name: Upload CI Windows package artifact
+      - name: Upload CI Windows x64 MSIX artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Emerald-Windows-AppxBundle
-          path: |
-            ${{ github.workspace }}/artifacts/windows/final/*.msixbundle
-            ${{ github.workspace }}/artifacts/windows/final/*.appxbundle
-            ${{ github.workspace }}/artifacts/windows/final/*.msix
-            ${{ github.workspace }}/artifacts/windows/final/*.cer
+          name: Emerald-Windows-MSIX-x64
+          path: ${{ github.workspace }}/artifacts/windows/final/*_x64.msix
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload CI Windows arm64 MSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-Windows-MSIX-arm64
+          path: ${{ github.workspace }}/artifacts/windows/final/*_arm64.msix
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload CI Windows signing certificate artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-Windows-Signing-Certificate
+          path: ${{ github.workspace }}/artifacts/windows/final/*.cer
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload release Windows package transfer artifact
+        if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-Windows-ReleaseDraft-Assets
+          path: ${{ github.workspace }}/artifacts/windows/final/*
+          if-no-files-found: error
           retention-days: 14
 
       - name: Cleanup signing certificate
@@ -503,7 +525,7 @@ jobs:
       - name: Download Windows artifacts
         uses: actions/download-artifact@v4
         with:
-          name: Emerald-Windows-AppxBundle
+          name: Emerald-Windows-ReleaseDraft-Assets
           path: release-assets/windows
 
       - name: Download macOS artifacts
