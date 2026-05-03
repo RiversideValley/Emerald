@@ -932,7 +932,7 @@
     <value>Enter a folder name</value>
   </data>
   <data name="GameFolderNameDescription" xml:space="preserve">
-    <value>This creates or reuses a subfolder inside EmeraldGames.</value>
+    <value>This creates or reuses a subfolder inside Instances.</value>
   </data>
   <data name="GameFolderNameRequired" xml:space="preserve">
     <value>Enter a folder name before creating the game.</value>
