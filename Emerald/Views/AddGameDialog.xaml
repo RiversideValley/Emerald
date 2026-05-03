@@ -17,7 +17,7 @@
     xmlns:viewModels="using:Emerald.ViewModels"
     MaxWidth="4096"
     Margin="12"
-    Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
+    Background="{ThemeResource ContentDialogBackground}"
     x:Name="Root"
     mc:Ignorable="d">
 
