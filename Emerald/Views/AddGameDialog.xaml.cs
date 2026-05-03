@@ -29,4 +29,20 @@ public sealed partial class AddGameDialog : ContentDialog
             Hide();
         }
     }
+
+    private async void DownloadModpack_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.CanDownloadModpack)
+        {
+            Hide();
+            await ViewModel.DownloadModpackAsync();
+        }
+    }
+
+    private void AddGameModeNav_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+    {
+        ViewModel.SelectedAddGameMode = (sender.SelectedItem as NavigationViewItem)?.Tag as string == "Modpacks"
+            ? AddGameMode.Modpacks
+            : AddGameMode.Normal;
+    }
 }

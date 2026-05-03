@@ -868,6 +868,9 @@
   <data name="GettingForgeLoaders" xml:space="preserve">
     <value>Getting Forge Loaders</value>
   </data>
+  <data name="GettingNeoForgeLoaders" xml:space="preserve">
+    <value>Getting NeoForge Loaders</value>
+  </data>
   <data name="GettingQuiltLoaders" xml:space="preserve">
     <value>Getting Quilt Loaders</value>
   </data>
@@ -879,6 +882,33 @@
   </data>
   <data name="AddNewGameDescription" xml:space="preserve">
     <value>Choose a Minecraft version, then shape the instance name, folder, and mod loader setup.</value>
+  </data>
+  <data name="NormalGameMode" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="ModpacksGameMode" xml:space="preserve">
+    <value>Modpacks</value>
+  </data>
+  <data name="BrowseModpacks" xml:space="preserve">
+    <value>Browse modpacks</value>
+  </data>
+  <data name="SearchModpacksPlaceholder" xml:space="preserve">
+    <value>Search Modrinth modpacks...</value>
+  </data>
+  <data name="Categories" xml:space="preserve">
+    <value>Categories</value>
+  </data>
+  <data name="ResolvedModpackRuntime" xml:space="preserve">
+    <value>Resolved runtime</value>
+  </data>
+  <data name="ModpackResults" xml:space="preserve">
+    <value>Modpack results</value>
+  </data>
+  <data name="ModpackVersions" xml:space="preserve">
+    <value>Modpack versions</value>
+  </data>
+  <data name="ModpackVersionsDescription" xml:space="preserve">
+    <value>Choose a version to inspect its Minecraft and loader requirements.</value>
   </data>
   <data name="VersionSelectionStepTitle" xml:space="preserve">
     <value>1. Pick a version</value>
@@ -969,6 +999,9 @@
   </data>
   <data name="ForgeLoaderDescription" xml:space="preserve">
     <value>Broad compatibility with established modpacks.</value>
+  </data>
+  <data name="NeoForgeLoaderDescription" xml:space="preserve">
+    <value>Modern Forge-family loader for newer modpacks.</value>
   </data>
   <data name="QuiltLoaderDescription" xml:space="preserve">
     <value>Modern Fabric-adjacent loader with its own ecosystem.</value>

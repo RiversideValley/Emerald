@@ -6,6 +6,7 @@
   -->
   <ItemGroup>
     <PackageVersion Include="CmlLib.Core.Installer.Forge" Version="1.1.1" />
+    <PackageVersion Include="CmlLib.Core.Installer.NeoForge" Version="4.0.0" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.2.251219" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />

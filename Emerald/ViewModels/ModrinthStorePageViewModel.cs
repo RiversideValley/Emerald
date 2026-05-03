@@ -658,6 +658,7 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
         {
             GameVersionType.Fabric => ["fabric"],
             GameVersionType.Forge => ["forge"],
+            GameVersionType.NeoForge => ["neoforge"],
             GameVersionType.Quilt => ["quilt"],
             GameVersionType.LiteLoader => ["liteloader"],
             GameVersionType.OptiFine => ["optifine"],
@@ -669,6 +670,7 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
     {
         return type switch
         {
+            GameVersionType.NeoForge => "NeoForge",
             GameVersionType.OptiFine => "OptiFine",
             GameVersionType.LiteLoader => "LiteLoader",
             _ => FormatStoreLabel(type.ToString())

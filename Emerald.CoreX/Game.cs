@@ -149,6 +149,17 @@ public partial class Game : ObservableObject
 
     public async Task InstallVersion(bool isOffline = false, bool showFileProgress = false)
     {
+        try
+        {
+            await InstallVersionOrThrow(isOffline, showFileProgress);
+        }
+        catch
+        {
+        }
+    }
+
+    public async Task InstallVersionOrThrow(bool isOffline = false, bool showFileProgress = false)
+    {
         _logger.LogInformation("Starting InstallVersion with isOffline: {IsOffline}, showFileProgress: {ShowFileProgress}", isOffline, showFileProgress);
         CreateMCLauncher(isOffline);
 
@@ -180,7 +191,7 @@ public partial class Game : ObservableObject
                     success: false
                 );
 
-                return;
+                throw new InvalidOperationException($"Version {Version.Type} {Version.ModVersion} {Version.BasedOn} not found.");
             }
             if (isOffline)
             {
@@ -250,6 +261,7 @@ public partial class Game : ObservableObject
         {
             _logger.LogError(ex, "An error occurred during version installation.");
             _notify.Complete(not.Id, false, "Installation Failed", ex);
+            throw;
         }
     }
 

@@ -11,6 +11,7 @@ public enum Type
 {
     Vanilla,
     Forge,
+    NeoForge,
     Fabric,
     Quilt,
     LiteLoader,

@@ -7,6 +7,7 @@ internal static class StoreDisplayFormatter
     private static readonly Dictionary<string, string> SpecialDisplayNames = new(StringComparer.OrdinalIgnoreCase)
     {
         ["datapack"] = "Data Pack",
+        ["modpack"] = "Modpack",
         ["resourcepack"] = "Resource Pack",
         ["game-mechanics"] = "Game Mechanics",
         ["neoforge"] = "NeoForge",
@@ -134,6 +135,7 @@ internal static class StoreDisplayFormatter
             StoreContentType.DataPack => "Data Pack",
             StoreContentType.Shader => "Shader",
             StoreContentType.Plugin => "Plugin",
+            StoreContentType.ModPack => "Modpack",
             _ => contentType.ToString()
         };
     }
