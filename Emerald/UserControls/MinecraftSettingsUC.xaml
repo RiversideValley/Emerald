@@ -87,12 +87,12 @@
               <RepeatButton
                 Padding="5"
                 Click="btnRamPlus_Click"
-                Content="{helpers:FontIcon Glyph=}"
+                Content="{helpers:FontIcon Glyph=&#xE710;}"
                 FontWeight="SemiBold" />
               <RepeatButton
                 Padding="5"
                 Click="btnRamMinus_Click"
-                Content="{helpers:FontIcon Glyph=}"
+                Content="{helpers:FontIcon Glyph=&#xE738;}"
                 FontWeight="SemiBold" />
             </StackPanel>
           </cn:SettingsExpander.Content>

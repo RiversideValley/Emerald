@@ -14,6 +14,8 @@ using Microsoft.UI.Xaml.Controls;
 using Serilog;
 using Serilog.Sinks.File;
 using Microsoft.UI.Dispatching;
+using Uno.Extensions;
+using Uno.Extensions.Hosting;
 using Uno.Resizetizer;
 
 namespace Emerald;
@@ -304,15 +306,10 @@ Notes
                 return;
             }
 
-            if (MainWindow?.Content is not FrameworkElement root || root.XamlRoot is null)
-            {
-                this.Log().LogWarning("Skipped release notes because the main window XamlRoot was unavailable.");
-                return;
-            }
 
             await Task.Yield();
 
-            var dialog = CreateReleaseNotesDialog(root);
+            var dialog = CreateReleaseNotesDialog();
             await dialog.ShowAsync();
 
             SS.Settings.App.Updates.LastShownReleaseNotesVersion = currentVersion;
@@ -324,7 +321,7 @@ Notes
         }
     }
 
-    private ContentDialog CreateReleaseNotesDialog(FrameworkElement root)
+    private ContentDialog CreateReleaseNotesDialog()
     {
         var content = new StackPanel
         {
@@ -346,20 +343,11 @@ Notes
             TextWrapping = TextWrapping.Wrap
         });
 
-        return new ContentDialog
+        return new ScrollViewer
         {
-            XamlRoot = root.XamlRoot,
-            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
-            Title = "ReleaseNotes".Localize(),
-            CloseButtonText = "Close".Localize(),
-            DefaultButton = ContentDialogButton.Close,
-            Content = new ScrollViewer
-            {
-                Content = content,
-                Padding = new(12)
-            },
-            RequestedTheme = (ElementTheme)SS.Settings.App.Appearance.Theme
-        };
+            Content = content,
+            Padding = new(12)
+        }.ToContentDialog("ReleaseNotes".Localize(), "Close".Localize());
     }
 
     private async Task CheckForUpdatesAtStartupAsync()

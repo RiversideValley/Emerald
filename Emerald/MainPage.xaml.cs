@@ -18,6 +18,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 using Windows.UI;
 using Emerald.CoreX.Versions;
+using Uno.Extensions.Toolkit;
 
 namespace Emerald;
 
