@@ -306,7 +306,6 @@ Notes
                 return;
             }
 
-
             await Task.Yield();
 
             var dialog = CreateReleaseNotesDialog();
