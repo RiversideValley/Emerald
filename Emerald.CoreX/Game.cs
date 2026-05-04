@@ -219,7 +219,7 @@ public partial class Game : ObservableObject
                 }
             }
 
-            (string Files, string bytes, double prog) prog = (string.Empty, string.Empty, 0);
+            (string Files, string bytes, double prog, double? progbytes) prog = (string.Empty, string.Empty, 0, null);
 
             void UpdateProg()
             {
@@ -228,6 +228,8 @@ public partial class Game : ObservableObject
                 {
                     msg += " | " + prog.bytes;
                 }
+
+                var realprog = prog.progbytes ?? prog.prog;
 
                 _notify.Update(
                     not.Id,
@@ -250,6 +252,8 @@ public partial class Game : ObservableObject
                 new Progress<ByteProgress>(e =>
                 {
                     prog.bytes = $"{Math.Round((e.ProgressedBytes * Math.Pow(10, -6)), 0)} MB/{Math.Round((e.TotalBytes * Math.Pow(10, -6)), 0)} MB";
+                    prog.prog = Math.Round((double)e.ProgressedBytes / e.TotalBytes * 100, 2);
+                    
                     UpdateProg();
                 }),
                 not.CancellationToken.Value);
