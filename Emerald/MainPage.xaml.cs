@@ -315,7 +315,6 @@ public sealed partial class MainPage : Page
             {
                 ShowTasksFlyout(invokedContainer);
                 MarkTasksAsSeen();
-                RestoreSelectionAfterCompactTasks();
                 return;
             }
 
@@ -369,7 +368,6 @@ public sealed partial class MainPage : Page
                 }
             }
 
-            NavigateToTag("Tasks");
             return;
         }
 
@@ -533,6 +531,7 @@ public sealed partial class MainPage : Page
 
     private void TasksFlyout_Closed(object? sender, object e)
     {
+        RestoreSelectionAfterCompactTasks();
         _isTasksFlyoutOpen = false;
     }
 
