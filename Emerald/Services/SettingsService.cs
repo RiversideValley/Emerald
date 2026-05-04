@@ -93,6 +93,7 @@ public class SettingsService(
         Track(Settings.Minecraft.JVM);
         Track(Settings.App);
         Track(Settings.App.Appearance);
+        Track(Settings.App.Tasks);
         Track(Settings.App.NewsFilter);
         Track(Settings.App.Store.Filter);
         Track(Settings.App.Store.SortOptions);
