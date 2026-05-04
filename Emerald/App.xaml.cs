@@ -501,8 +501,8 @@ Notes
         catch (Exception dialogEx)
         {
             // Dialog itself failed — log both errors properly
-            Debug.WriteLine($"[DIALOG FAILED] {dialogEx}");
-            Debug.WriteLine($"[ORIGINAL ERROR] {ex}");
+            this.Log().LogCritical(ex, $"[DIALOG FAILED] {dialogEx}");
+            Debug.WriteLine($"[DIALOG FAILED] {dialogEx}\n[ORIGINAL ERROR] {ex}");
         }
         finally
         {

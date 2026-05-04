@@ -20,6 +20,7 @@ using Emerald.CoreX.Store.Modrinth.JSON;
 using Emerald.CoreX.Versions;
 using Emerald.Services;
 using Microsoft.Extensions.Logging;
+using Microsoft.UI.Dispatching;
 
 namespace Emerald.ViewModels;
 
@@ -38,6 +39,7 @@ public partial class GamesPageViewModel : ObservableObject
     private readonly IGameRuntimeService _gameRuntimeService;
     private readonly IModpackInstanceCreationService _modpackCreationService;
     private readonly IModrinthStore _modPackStore;
+    private readonly DispatcherQueue _dispatcherQueue;
     private int _modLoaderLoadRequestId;
     private int _modpackDetailsLoadRequestId;
     private int _modpackProbeRequestId;
@@ -339,6 +341,8 @@ public partial class GamesPageViewModel : ObservableObject
         _gameRuntimeService = gameRuntimeService;
         _modpackCreationService = modpackCreationService;
         _modPackStore = stores.First(store => store.ContentType == StoreContentType.ModPack);
+        _dispatcherQueue = App.Current.MainWindow.DispatcherQueue;
+
         Games = _core.Games;
         FilteredGames = new ObservableCollection<Game>(Games);
         AvailableVersions = new ObservableCollection<CoreX.Versions.Version>();
@@ -398,13 +402,13 @@ public partial class GamesPageViewModel : ObservableObject
         ModpackSortOptions.Add(new SearchSortOptionItem(SearchSortOptions.Newest, "Newest"));
         SelectedModpackSortOption = ModpackSortOptions.FirstOrDefault();
 
-        _core.PropertyChanged += (_, _) => this.OnPropertyChanged();
-        _core.VersionsRefreshed += (_, _) => UpdateAvailableVersions();
-        Games.CollectionChanged += (_, _) =>
+        _core.PropertyChanged += (_, _) => _dispatcherQueue.TryEnqueue(() => this.OnPropertyChanged());
+        _core.VersionsRefreshed += (_, _) => _dispatcherQueue.TryEnqueue(UpdateAvailableVersions);
+        Games.CollectionChanged += (_, _) => _dispatcherQueue.TryEnqueue(() =>
         {
             UpdateFilteredGames();
             RefreshFolderState();
-        };
+        });
         AvailableModLoaders.CollectionChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(HasAvailableModLoaders));
@@ -770,19 +774,24 @@ public partial class GamesPageViewModel : ObservableObject
                 var mcPath = path != null ? new MinecraftPath(path) : new();
                 await _core.InitializeAndRefresh(mcPath);
             }
-            UpdateAvailableVersions();
-            UpdateFilteredGames();
+
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                UpdateAvailableVersions();
+                UpdateFilteredGames();
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to initialize GamesPage");
-            _notificationService.Error("InitializationError", "Failed to initialize games page", ex: ex);
+            _logger.LogCritical(ex, "Failed to initialize GamesPage");
+            _dispatcherQueue.TryEnqueue(() =>
+                _notificationService.Error("InitializationError", "Failed to initialize games page", ex: ex));
         }
         finally
         {
             if (!IsDownloadingModpack)
             {
-                IsLoading = false;
+                _dispatcherQueue.TryEnqueue(() => IsLoading = false);
             }
         }
     }
@@ -823,7 +832,7 @@ public partial class GamesPageViewModel : ObservableObject
 
         try
         {
-            IsLoadingModLoaders = true;
+            _dispatcherQueue.TryEnqueue(() => IsLoadingModLoaders = true);
             _logger.LogInformation("Loading mod loaders for {Version} - Type: {Type}", selectedVersion.BasedOn, selectedType);
 
             var installer = GetModLoaderInstaller(selectedType);
@@ -835,38 +844,44 @@ public partial class GamesPageViewModel : ObservableObject
                     return;
                 }
 
-                AvailableModLoaders.Clear();
-                if (loaders.Count > 0)
+                _dispatcherQueue.TryEnqueue(() =>
                 {
-                    AvailableModLoaders.Add(new LoaderInfo
+                    AvailableModLoaders.Clear();
+                    if (loaders.Count > 0)
                     {
-                        Tag = LatestLoaderTag,
-                        Version = "LatestLoaderLabel".Localize(),
-                        Stable = true
-                    });
+                        AvailableModLoaders.Add(new LoaderInfo
+                        {
+                            Tag = LatestLoaderTag,
+                            Version = "LatestLoaderLabel".Localize(),
+                            Stable = true
+                        });
 
-                    foreach (var loader in loaders)
-                    {
-                        AvailableModLoaders.Add(loader);
+                        foreach (var loader in loaders)
+                        {
+                            AvailableModLoaders.Add(loader);
+                        }
+
+                        SelectedModLoader = AvailableModLoaders.FirstOrDefault();
                     }
-
-                    SelectedModLoader = AvailableModLoaders.FirstOrDefault();
-                }
-                else
-                {
-                    SelectedModLoader = null;
-                }
+                    else
+                    {
+                        SelectedModLoader = null;
+                    }
+                });
 
                 _logger.LogInformation(
                     "Loaded {LoaderCount} mod loader option(s) for {Version} using {LoaderType}.",
-                    AvailableModLoaders.Count,
+                    loaders.Count,
                     selectedVersion.BasedOn,
                     selectedType);
             }
             else
             {
-                AvailableModLoaders.Clear();
-                SelectedModLoader = null;
+                _dispatcherQueue.TryEnqueue(() =>
+                {
+                    AvailableModLoaders.Clear();
+                    SelectedModLoader = null;
+                });
                 _logger.LogWarning("No mod loader installer was found for {LoaderType}.", selectedType);
             }
         }
@@ -877,16 +892,19 @@ public partial class GamesPageViewModel : ObservableObject
                 return;
             }
 
-            AvailableModLoaders.Clear();
-            SelectedModLoader = null;
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                AvailableModLoaders.Clear();
+                SelectedModLoader = null;
+                _notificationService.Error("ModLoaderError", "Failed to load mod loaders", ex: ex);
+            });
             _logger.LogError(ex, "Failed to load mod loaders");
-            _notificationService.Error("ModLoaderError", "Failed to load mod loaders", ex: ex);
         }
         finally
         {
             if (requestId == _modLoaderLoadRequestId)
             {
-                IsLoadingModLoaders = false;
+                _dispatcherQueue.TryEnqueue(() => IsLoadingModLoaders = false);
             }
         }
     }
@@ -909,17 +927,20 @@ public partial class GamesPageViewModel : ObservableObject
                 .Select(category => category.Name)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-            ModpackCategoryFilters.Clear();
-            foreach (var category in _modPackStore.Categories
-                         .Select(category => category.name)
-                         .Where(name => !string.IsNullOrWhiteSpace(name))
-                         .Distinct(StringComparer.OrdinalIgnoreCase)
-                         .OrderBy(name => name, StringComparer.OrdinalIgnoreCase))
+            _dispatcherQueue.TryEnqueue(() =>
             {
-                var option = new CategoryFilterOption(category);
-                option.IsSelected = selectedCategories.Contains(category);
-                ModpackCategoryFilters.Add(option);
-            }
+                ModpackCategoryFilters.Clear();
+                foreach (var category in _modPackStore.Categories
+                             .Select(category => category.name)
+                             .Where(name => !string.IsNullOrWhiteSpace(name))
+                             .Distinct(StringComparer.OrdinalIgnoreCase)
+                             .OrderBy(name => name, StringComparer.OrdinalIgnoreCase))
+                {
+                    var option = new CategoryFilterOption(category);
+                    option.IsSelected = selectedCategories.Contains(category);
+                    ModpackCategoryFilters.Add(option);
+                }
+            });
 
             if (ModpackSearchResults.Count == 0)
             {
@@ -929,7 +950,8 @@ public partial class GamesPageViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to initialize modpack browse state.");
-            _notificationService.Error("ModpackBrowseInitFailed", "Failed to load Modrinth modpacks.", ex: ex);
+            _dispatcherQueue.TryEnqueue(() =>
+                _notificationService.Error("ModpackBrowseInitFailed", "Failed to load Modrinth modpacks.", ex: ex));
         }
         finally
         {
@@ -942,8 +964,11 @@ public partial class GamesPageViewModel : ObservableObject
     {
         try
         {
-            IsSearchingModpacks = true;
-            ModpackResultsStatusText = "Searching modpacks...";
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                IsSearchingModpacks = true;
+                ModpackResultsStatusText = "Searching modpacks...";
+            });
 
             var selectedCategories = ModpackCategoryFilters
                 .Where(category => category.IsSelected)
@@ -956,28 +981,37 @@ public partial class GamesPageViewModel : ObservableObject
                 sortOptions: SelectedModpackSortOption?.Value ?? SearchSortOptions.Relevance,
                 categories: selectedCategories.Length == 0 ? null : selectedCategories);
 
-            ModpackSearchResults.Clear();
-            foreach (var hit in response?.Hits ?? [])
+            _dispatcherQueue.TryEnqueue(() =>
             {
-                ModpackSearchResults.Add(hit);
-            }
+                ModpackSearchResults.Clear();
+                foreach (var hit in response?.Hits ?? [])
+                {
+                    ModpackSearchResults.Add(hit);
+                }
 
-            ResetModpackSelection();
-            ModpackResultsStatusText = ModpackSearchResults.Count > 0
-                ? $"{ModpackSearchResults.Count} modpack(s) found."
-                : "No modpacks found.";
+                ResetModpackSelection();
+                ModpackResultsStatusText = ModpackSearchResults.Count > 0
+                    ? $"{ModpackSearchResults.Count} modpack(s) found."
+                    : "No modpacks found.";
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to search Modrinth modpacks.");
-            ModpackResultsStatusText = "Modpack search failed.";
-            _notificationService.Error("ModpackSearchFailed", "Failed to search Modrinth modpacks.", ex: ex);
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                ModpackResultsStatusText = "Modpack search failed.";
+                _notificationService.Error("ModpackSearchFailed", "Failed to search Modrinth modpacks.", ex: ex);
+            });
         }
         finally
         {
-            IsSearchingModpacks = false;
-            SearchModpacksCommand.NotifyCanExecuteChanged();
-            NotifyAddGameWizardStateChanged();
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                IsSearchingModpacks = false;
+                SearchModpacksCommand.NotifyCanExecuteChanged();
+                NotifyAddGameWizardStateChanged();
+            });
         }
     }
 
@@ -985,21 +1019,29 @@ public partial class GamesPageViewModel : ObservableObject
     {
         var requestId = ++_modpackDetailsLoadRequestId;
         _modpackProbeRequestId++;
-        CleanupModpackProbe();
-        SelectedModpackItem = null;
-        SelectedModpackVersion = null;
-        ModpackVersions.Clear();
+
+        _dispatcherQueue.TryEnqueue(() =>
+        {
+            CleanupModpackProbe();
+            SelectedModpackItem = null;
+            SelectedModpackVersion = null;
+            ModpackVersions.Clear();
+        });
 
         if (SelectedModpackSearchResult == null)
         {
-            IsLoadingModpackDetails = false;
-            NotifyAddGameWizardStateChanged();
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                IsLoadingModpackDetails = false;
+                NotifyAddGameWizardStateChanged();
+            });
             return;
         }
 
         try
         {
-            IsLoadingModpackDetails = true;
+            _dispatcherQueue.TryEnqueue(() => IsLoadingModpackDetails = true);
+
             var selectedResult = SelectedModpackSearchResult;
             var item = await _modPackStore.GetItemAsync(selectedResult.ProjectId);
             var versions = await _modPackStore.GetVersionsAsync(selectedResult.ProjectId) ?? [];
@@ -1009,13 +1051,15 @@ public partial class GamesPageViewModel : ObservableObject
                 return;
             }
 
-            SelectedModpackItem = item;
-
-            foreach (var version in versions)
+            _dispatcherQueue.TryEnqueue(() =>
             {
-                ApplyModpackCompatibility(version);
-                ModpackVersions.Add(version);
-            }
+                SelectedModpackItem = item;
+                foreach (var version in versions)
+                {
+                    ApplyModpackCompatibility(version);
+                    ModpackVersions.Add(version);
+                }
+            });
         }
         catch (Exception ex)
         {
@@ -1025,15 +1069,19 @@ public partial class GamesPageViewModel : ObservableObject
             }
 
             _logger.LogError(ex, "Failed to load selected modpack details.");
-            _notificationService.Error("ModpackDetailsFailed", "Failed to load modpack details.", ex: ex);
+            _dispatcherQueue.TryEnqueue(() =>
+                _notificationService.Error("ModpackDetailsFailed", "Failed to load modpack details.", ex: ex));
         }
         finally
         {
             if (requestId == _modpackDetailsLoadRequestId)
             {
-                IsLoadingModpackDetails = false;
-                NotifySelectedModpackStateChanged();
-                NotifyAddGameWizardStateChanged();
+                _dispatcherQueue.TryEnqueue(() =>
+                {
+                    IsLoadingModpackDetails = false;
+                    NotifySelectedModpackStateChanged();
+                    NotifyAddGameWizardStateChanged();
+                });
             }
         }
     }
@@ -1041,17 +1089,23 @@ public partial class GamesPageViewModel : ObservableObject
     private async Task ProbeSelectedModpackVersionAsync()
     {
         var requestId = ++_modpackProbeRequestId;
-        CleanupModpackProbe();
+
+        _dispatcherQueue.TryEnqueue(CleanupModpackProbe);
+
         if (SelectedModpackItem == null || SelectedModpackVersion == null)
         {
-            IsLoadingModpackManifest = false;
-            NotifyAddGameWizardStateChanged();
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                IsLoadingModpackManifest = false;
+                NotifyAddGameWizardStateChanged();
+            });
             return;
         }
 
         try
         {
-            IsLoadingModpackManifest = true;
+            _dispatcherQueue.TryEnqueue(() => IsLoadingModpackManifest = true);
+
             var selectedItem = SelectedModpackItem;
             var selectedVersion = SelectedModpackVersion;
             var probe = await _modpackCreationService.ProbeAsync(selectedVersion);
@@ -1064,27 +1118,30 @@ public partial class GamesPageViewModel : ObservableObject
                 return;
             }
 
-            ModpackProbe = probe;
-
-            _isUpdatingAddGameDefaults = true;
-            try
+            _dispatcherQueue.TryEnqueue(() =>
             {
-                var defaultName = string.IsNullOrWhiteSpace(probe.Manifest.Name)
-                    ? SelectedModpackItem.Title
-                    : probe.Manifest.Name;
+                ModpackProbe = probe;
 
-                NewGameName = defaultName;
-                if (!IsCustomFolderNameEnabled)
+                _isUpdatingAddGameDefaults = true;
+                try
                 {
-                    NewGameFolderName = SanitizeFolderName(defaultName);
-                }
-            }
-            finally
-            {
-                _isUpdatingAddGameDefaults = false;
-            }
+                    var defaultName = string.IsNullOrWhiteSpace(probe.Manifest.Name)
+                        ? SelectedModpackItem.Title
+                        : probe.Manifest.Name;
 
-            RefreshFolderState();
+                    NewGameName = defaultName;
+                    if (!IsCustomFolderNameEnabled)
+                    {
+                        NewGameFolderName = SanitizeFolderName(defaultName);
+                    }
+                }
+                finally
+                {
+                    _isUpdatingAddGameDefaults = false;
+                }
+
+                RefreshFolderState();
+            });
         }
         catch (Exception ex)
         {
@@ -1094,15 +1151,19 @@ public partial class GamesPageViewModel : ObservableObject
             }
 
             _logger.LogError(ex, "Failed to inspect selected modpack version.");
-            _notificationService.Error("ModpackProbeFailed", "Failed to inspect the selected modpack version.", ex: ex);
+            _dispatcherQueue.TryEnqueue(() =>
+                _notificationService.Error("ModpackProbeFailed", "Failed to inspect the selected modpack version.", ex: ex));
         }
         finally
         {
             if (requestId == _modpackProbeRequestId)
             {
-                IsLoadingModpackManifest = false;
-                NotifyAddGameWizardStateChanged();
-                NotifyModpackDownloadStateChanged();
+                _dispatcherQueue.TryEnqueue(() =>
+                {
+                    IsLoadingModpackManifest = false;
+                    NotifyAddGameWizardStateChanged();
+                    NotifyModpackDownloadStateChanged();
+                });
             }
         }
     }
@@ -1117,9 +1178,13 @@ public partial class GamesPageViewModel : ObservableObject
 
         try
         {
-            IsDownloadingModpack = true;
-            IsLoading = true;
-            GamesLoadingMessage = "Downloading modpack...";
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                IsDownloadingModpack = true;
+                IsLoading = true;
+                GamesLoadingMessage = "Downloading modpack...";
+            });
+
             var request = new ModpackInstanceCreationRequest
             {
                 InstanceName = NewGameName.Trim(),
@@ -1130,24 +1195,35 @@ public partial class GamesPageViewModel : ObservableObject
             };
 
             await _modpackCreationService.CreateAsync(request);
-            _notificationService.Info("ModpackCreated", $"Successfully created {NewGameName.Trim()}");
-            CleanupModpackProbe();
+
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                _notificationService.Info("ModpackCreated", $"Successfully created {NewGameName.Trim()}");
+                CleanupModpackProbe();
+            });
+
             return true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create modpack instance.");
-            _notificationService.Error("ModpackCreateFailed", "Failed to create modpack instance.", ex: ex);
-            CleanupModpackProbe();
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                _notificationService.Error("ModpackCreateFailed", "Failed to create modpack instance.", ex: ex);
+                CleanupModpackProbe();
+            });
             return false;
         }
         finally
         {
-            IsDownloadingModpack = false;
-            IsLoading = false;
-            GamesLoadingMessage = "Loading games...";
-            OnPropertyChanged(nameof(CanDownloadModpack));
-            DownloadModpackCommand.NotifyCanExecuteChanged();
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                IsDownloadingModpack = false;
+                IsLoading = false;
+                GamesLoadingMessage = "Loading games...";
+                OnPropertyChanged(nameof(CanDownloadModpack));
+                DownloadModpackCommand.NotifyCanExecuteChanged();
+            });
         }
     }
 
@@ -1206,7 +1282,6 @@ public partial class GamesPageViewModel : ObservableObject
     private async Task CreateGameAsync()
         => await SubmitAddGameAsync();
 
-    // Unchanged methods below...
     [RelayCommand]
     private async Task InstallGameAsync(Game? game)
     {
@@ -1223,7 +1298,8 @@ public partial class GamesPageViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to install game");
-            _notificationService.Error("InstallError", $"Failed to install {game.Version.DisplayName}", ex: ex);
+            _dispatcherQueue.TryEnqueue(() =>
+                _notificationService.Error("InstallError", $"Failed to install {game.Version.DisplayName}", ex: ex));
         }
     }
 
@@ -1242,7 +1318,8 @@ public partial class GamesPageViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to launch game");
-            _notificationService.Error("LaunchError", $"Failed to launch {game.Version.DisplayName}", ex: ex);
+            _dispatcherQueue.TryEnqueue(() =>
+                _notificationService.Error("LaunchError", $"Failed to launch {game.Version.DisplayName}", ex: ex));
         }
     }
 
@@ -1263,7 +1340,8 @@ public partial class GamesPageViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to stop game");
-            _notificationService.Error("StopError", $"Failed to stop {game.Version.DisplayName}", ex: ex);
+            _dispatcherQueue.TryEnqueue(() =>
+                _notificationService.Error("StopError", $"Failed to stop {game.Version.DisplayName}", ex: ex));
         }
     }
 
@@ -1284,7 +1362,8 @@ public partial class GamesPageViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to force stop game");
-            _notificationService.Error("StopError", $"Failed to stop {game.Version.DisplayName}", ex: ex);
+            _dispatcherQueue.TryEnqueue(() =>
+                _notificationService.Error("StopError", $"Failed to stop {game.Version.DisplayName}", ex: ex));
         }
     }
 
@@ -1304,7 +1383,8 @@ public partial class GamesPageViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to remove game");
-            _notificationService.Error("RemoveError", $"Failed to remove {game.Version.DisplayName}", ex: ex);
+            _dispatcherQueue.TryEnqueue(() =>
+                _notificationService.Error("RemoveError", $"Failed to remove {game.Version.DisplayName}", ex: ex));
         }
     }
 
@@ -1324,7 +1404,8 @@ public partial class GamesPageViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to remove game with files");
-            _notificationService.Error("RemoveError", $"Failed to remove {game.Version.DisplayName}", ex: ex);
+            _dispatcherQueue.TryEnqueue(() =>
+                _notificationService.Error("RemoveError", $"Failed to remove {game.Version.DisplayName}", ex: ex));
         }
     }
 
