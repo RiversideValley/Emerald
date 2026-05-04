@@ -34,7 +34,7 @@
 
     <DataTemplate x:Key="VersionTemplate" x:DataType="corexVer:Version">
       <Border
-        Margin="0,8,0,8"
+        Margin="0,6"
         Padding="14"
         CornerRadius="12"
         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -100,7 +100,7 @@
 
     <DataTemplate x:Key="ModpackResultTemplate" x:DataType="modrinth:SearchHit">
       <Border
-        Margin="0,0,0,8"
+        Margin="0,6"
         Padding="14"
         CornerRadius="12"
         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -147,7 +147,7 @@
 
     <DataTemplate x:Key="ModpackVersionTemplate" x:DataType="modrinth:ItemVersion">
       <Border
-        Margin="0,8,0,8"
+        Margin="0,6"
         Padding="14"
         CornerRadius="12"
         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -402,11 +402,10 @@
           </Border>
 
             <cn:SettingsCard
-              Header="{helpers:Localize KeyName=GameIdentitySectionTitle}"
+              Header="{helpers:Localize KeyName=InstanceName}"
               Description="{helpers:Localize KeyName=InstanceNameDescription}"
               HeaderIcon="{helpers:FontIcon Glyph=&#xE77B;}">
               <TextBox
-                Header="{helpers:Localize KeyName=InstanceName}"
                 PlaceholderText="{helpers:Localize KeyName=InstanceNamePlaceholder}"
                 Text="{x:Bind ViewModel.NewGameName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             </cn:SettingsCard>
@@ -437,9 +436,6 @@
                 </cn:SettingsCard>
               </cn:SettingsExpander.Items>
               </cn:SettingsExpander>
-            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{helpers:Localize KeyName=GameFolderSectionTitle}" />
-
-
             <InfoBar Severity="Warning"
               IsClosable="False"
                      IsOpen="{x:Bind ViewModel.HasFolderValidationMessage, Mode=OneWay}"
@@ -449,12 +445,20 @@
                      IsClosable="False"
                      IsOpen="{x:Bind ViewModel.HasFolderConflictWarning, Mode=OneWay}"
                      Message="{x:Bind ViewModel.GameFolderConflictWarningMessage, Mode=OneWay}"/>
-            <TextBlock
-              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-              Style="{StaticResource CaptionTextBlockStyle}"
-              Text="{x:Bind ViewModel.CurrentGameFolderPathPreview, Mode=OneWay}"
-              TextWrapping="WrapWholeWords"
-              Visibility="{x:Bind ViewModel.HasCurrentGameFolderPathPreview, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+
+            <Border
+              Padding="12"
+              CornerRadius="10"
+              Background="{ThemeResource LayerFillColorDefaultBrush}"
+              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+              BorderThickness="1"
+              Visibility="{x:Bind ViewModel.HasCurrentGameFolderPathPreview, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+              <TextBlock
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Text="{x:Bind ViewModel.CurrentGameFolderPathPreview, Mode=OneWay}"
+                TextWrapping="WrapWholeWords" />
+            </Border>
           </StackPanel>
         </StackPanel>
       </ScrollViewer>
@@ -677,7 +681,7 @@
           </cn:SettingsCard>
 
           <cn:SettingsCard
-            Header="{helpers:Localize KeyName=GameIdentitySectionTitle}"
+            Header="{helpers:Localize KeyName=InstanceName}"
             Description="{helpers:Localize KeyName=InstanceNameDescription}"
             HeaderIcon="{helpers:FontIcon Glyph=&#xE77B;}">
             <TextBox

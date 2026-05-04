@@ -3,6 +3,7 @@
        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:skia="http://uno.ui/skia"
+       xmlns:cn="using:CommunityToolkit.WinUI.Controls"
              mc:Ignorable="skia">
 
   <Application.Resources>
@@ -114,7 +115,12 @@
                     </Setter.Value>
                 </Setter>
             </skia:Style>
-
+      <Style TargetType="cn:SettingsExpander">
+        <Setter Property="CornerRadius" Value="12"/>
+      </Style>
+      <Style TargetType="cn:SettingsCard">
+        <Setter Property="CornerRadius" Value="12"/>
+      </Style>
     </ResourceDictionary>
   </Application.Resources>
 

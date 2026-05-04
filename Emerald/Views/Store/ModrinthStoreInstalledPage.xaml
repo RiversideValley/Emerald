@@ -10,7 +10,6 @@
     xmlns:store="using:Emerald.CoreX.Store"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-
   <Page.Resources>
     <conv:BoolToVisibility x:Key="BoolToVis" />
     <conv:BoolToVisibility x:Key="InverseBoolToVis" Reversed="True" />
@@ -51,21 +50,13 @@
             ItemsSource="{Binding ContentTypes}"
             SelectedItem="{Binding SelectedContentTypeOption, Mode=TwoWay}" />
           </cn:SettingsCard>
-        <cn:SettingsCard
-          Header="What you can do here"
-          Description="Tracked installs are safe to remove directly. Untracked files stay read-only until you explicitly force remove them."
-          HeaderIcon="{helpers:FontIcon Glyph=&#xE946;}">
-          <StackPanel Spacing="6">
-            <TextBlock
-              Opacity="0.8"
-              Style="{StaticResource CaptionTextBlockStyle}"
-              Text="Tracked items are files Emerald installed and can safely remove." />
-            <TextBlock
-              Opacity="0.8"
-              Style="{StaticResource CaptionTextBlockStyle}"
-              Text="Untracked items were found on disk and require explicit force remove." />
-          </StackPanel>
-        </cn:SettingsCard>
+        <InfoBar
+          IsOpen="True"
+          Severity="Informational"
+          IsClosable="False"
+          Opacity="0.8"
+          Title="What you can do here"
+          Message="Tracked installs are safe to remove directly. Untracked files stay read-only until you explicitly force remove them."/>
       </StackPanel>
     </ScrollViewer>
 
@@ -94,6 +85,9 @@
 
         <Button
           Grid.Column="2"
+          Background="Transparent"
+          BorderThickness="0"
+          Padding="8"
           VerticalAlignment="Center"
           HorizontalAlignment="Right"
           Command="{Binding RefreshInstalledItemsCommand}"

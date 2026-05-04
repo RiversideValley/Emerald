@@ -11,6 +11,7 @@
     xmlns:helpers="using:Emerald.Helpers"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="using:Emerald.UserControls"
+    IsEnabled="{x:Bind ViewModel.IsLoading.Equals(x:False), Mode=OneWay}"
     mc:Ignorable="d">
 
   <Page.Resources>
