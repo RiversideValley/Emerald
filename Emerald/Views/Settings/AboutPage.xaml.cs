@@ -5,8 +5,10 @@ using Emerald.Helpers;
 using Emerald.Models;
 using Emerald.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Uno.Logging;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.System;
@@ -18,6 +20,156 @@ namespace Emerald.Views.Settings;
 public sealed partial class AboutPage : Page
 {
     private const string NightlyArtifactsFallbackUrl = "https://github.com/RiversideValley/Emerald/actions/workflows/ci.yml?query=branch%3Amain";
+
+    private static readonly IReadOnlyList<DependencyCreditGroup> DependencyCredits =
+    [
+        new(
+            "App platform",
+            [
+                new(
+                    "Microsoft .NET",
+                    ".NET target frameworks, host abstractions, dependency injection, and shared runtime libraries.",
+                    "https://github.com/dotnet/dotnet",
+                    "MIT",
+                    "https://licenses.nuget.org/MIT",
+                    "net10.0, net10.0-windows10.0.26100, net10.0-desktop"),
+                new(
+                    "Uno Platform",
+                    "Cross-platform WinUI app framework, desktop host, Skia renderer, localization, themes, and Lottie support.",
+                    "https://github.com/unoplatform/uno",
+                    "Apache-2.0",
+                    "https://licenses.nuget.org/Apache-2.0",
+                    "Uno.Sdk, Uno.WinUI, Uno.WinUI.Runtime.Skia.*, Uno.WinUI.Lottie"),
+                new(
+                    "Uno Extensions",
+                    "Application builder, hosting, localization, storage, configuration, and logging integration.",
+                    "https://github.com/unoplatform/uno.extensions",
+                    "Apache-2.0",
+                    "https://licenses.nuget.org/Apache-2.0",
+                    "Uno.Extensions.*"),
+                new(
+                    "Uno Toolkit UI",
+                    "Toolkit resources and WinUI-styled controls used by the Uno shell.",
+                    "https://github.com/unoplatform/uno.toolkit.ui",
+                    "Apache-2.0",
+                    "https://licenses.nuget.org/Apache-2.0",
+                    "Uno.Toolkit, Uno.Toolkit.WinUI"),
+                new(
+                    "SkiaSharp",
+                    "Native graphics, Skia-backed rendering, and Skottie animation support pulled in by the desktop renderer.",
+                    "https://github.com/mono/SkiaSharp",
+                    "MIT",
+                    "https://licenses.nuget.org/MIT",
+                    "SkiaSharp, SkiaSharp.Views.Uno.WinUI, SkiaSharp.Skottie")
+            ]),
+        new(
+            "Launcher core",
+            [
+                new(
+                    "CmlLib.Core",
+                    "Minecraft version metadata, file checks, downloads, Java resolution, and launch process construction.",
+                    "https://github.com/CmlLib/CmlLib.Core",
+                    "MIT",
+                    "https://licenses.nuget.org/MIT",
+                    "CmlLib.Core"),
+                new(
+                    "CmlLib.Core.Auth.Microsoft",
+                    "Microsoft account session storage and Minecraft account authentication helpers.",
+                    "https://github.com/CmlLib/CmlLib.Core.Auth.Microsoft",
+                    "MIT",
+                    "https://licenses.nuget.org/MIT",
+                    "CmlLib.Core.Auth.Microsoft"),
+                new(
+                    "CmlLib.Core.Installer.Forge",
+                    "Forge mod loader installation metadata and installer support.",
+                    "https://github.com/CmlLib/CmlLib.Core.Installer.Forge",
+                    "MIT",
+                    "https://licenses.nuget.org/MIT",
+                    "CmlLib.Core.Installer.Forge"),
+                new(
+                    "CmlLib.Core.Commons",
+                    "Shared CmlLib support library resolved by the Minecraft launcher packages.",
+                    "https://github.com/CmlLib/CmlLib.Core.Commons",
+                    "MIT",
+                    "https://licenses.nuget.org/MIT",
+                    "CmlLib.Core.Commons")
+            ]),
+        new(
+            "Accounts and auth",
+            [
+                new(
+                    "XboxAuthNet.Game.Msal",
+                    "Xbox and Microsoft OAuth flow used by the CmlLib Microsoft account client.",
+                    "https://github.com/AlphaBs/XboxAuthNet",
+                    "MIT",
+                    "https://licenses.nuget.org/MIT",
+                    "XboxAuthNet.Game.Msal, XboxAuthNet.Game, XboxAuthNet"),
+                new(
+                    "Microsoft Authentication Library",
+                    "MSAL token acquisition and secure account cache support resolved through XboxAuthNet.",
+                    "https://github.com/AzureAD/microsoft-authentication-library-for-dotnet",
+                    "MIT",
+                    "https://licenses.nuget.org/MIT",
+                    "Microsoft.Identity.Client, Microsoft.Identity.Client.Extensions.Msal")
+            ]),
+        new(
+            "UI and app patterns",
+            [
+                new(
+                    "CommunityToolkit.Mvvm",
+                    "Observable models, relay commands, source generators, and Ioc helpers used across UI and CoreX.",
+                    "https://github.com/CommunityToolkit/dotnet",
+                    "MIT",
+                    "https://licenses.nuget.org/MIT",
+                    "CommunityToolkit.Mvvm"),
+                new(
+                    "Windows Community Toolkit",
+                    "Settings cards, WinUI helpers, sizers, converters, triggers, and supporting controls.",
+                    "https://github.com/CommunityToolkit/Windows",
+                    "MIT",
+                    "https://licenses.nuget.org/MIT",
+                    "CommunityToolkit.WinUI.Controls.*, CommunityToolkit.WinUI.Converters, CommunityToolkit.WinUI.Helpers"),
+                new(
+                    "Microsoft.Windows.CsWin32",
+                    "Win32 interop source generation for platform-specific shell and window behavior.",
+                    "https://github.com/microsoft/CsWin32",
+                    "MIT",
+                    "https://licenses.nuget.org/MIT",
+                    "Microsoft.Windows.CsWin32")
+            ]),
+        new(
+            "Data, web, and logs",
+            [
+                new(
+                    "RestSharp",
+                    "HTTP client used by the Modrinth store integrations.",
+                    "https://github.com/restsharp/RestSharp",
+                    "Apache-2.0",
+                    "https://licenses.nuget.org/Apache-2.0",
+                    "RestSharp"),
+                new(
+                    "Newtonsoft.Json",
+                    "JSON serialization and parsing for launcher data and API payloads.",
+                    "https://github.com/JamesNK/Newtonsoft.Json",
+                    "MIT",
+                    "https://licenses.nuget.org/MIT",
+                    "Newtonsoft.Json"),
+                new(
+                    "Microsoft.Extensions.Logging",
+                    "Structured logging abstractions used by the app, CoreX services, runtime, and notifications.",
+                    "https://github.com/dotnet/dotnet",
+                    "MIT",
+                    "https://licenses.nuget.org/MIT",
+                    "Microsoft.Extensions.Logging, Microsoft.Extensions.Logging.Console"),
+                new(
+                    "Serilog",
+                    "File, console, and debug logging pipeline configured by the Uno host.",
+                    "https://github.com/serilog/serilog",
+                    "Apache-2.0",
+                    "https://licenses.nuget.org/Apache-2.0",
+                    "Serilog, Serilog.Sinks.File, Serilog.Sinks.Console, Serilog.Sinks.Debug")
+            ])
+    ];
 
     private readonly IAppUpdateService _updateService;
     private readonly INotificationService _notifications;
@@ -187,7 +339,115 @@ public sealed partial class AboutPage : Page
     }
 
     private async void Credits_Click(object sender, RoutedEventArgs e)
-        => await MessageBox.Show("Credits".Localize(), "CreditsDescription".Localize(), LocalMessageBoxButtons.Ok);
+        => await ShowCreditsDialogAsync();
+
+    private async Task ShowCreditsDialogAsync()
+    {
+        var content = CreateCreditsContent();
+        var dialog = content.ToContentDialog("Credits".Localize(), "Close".Localize());
+        dialog.Resources["ContentDialogMaxWidth"] = 860d;
+        dialog.Resources["ContentDialogMaxHeight"] = 760d;
+
+        try
+        {
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            this.Log().LogWarning(ex, "Credits dialog failed to open.");
+            await MessageBox.Show("Credits".Localize(), "CreditsDescription".Localize(), LocalMessageBoxButtons.Ok);
+        }
+    }
+
+    private static StackPanel CreateCreditsContent()
+    {
+        var root = new StackPanel
+        {
+            Spacing = 16,
+            MaxWidth = 760
+        };
+
+        root.Children.Add(new TextBlock
+        {
+            Text = "CreditsDialogIntro".Localize(),
+            TextWrapping = TextWrapping.WrapWholeWords
+        });
+
+        foreach (var group in DependencyCredits)
+        {
+            var section = new StackPanel { Spacing = 8 };
+            section.Children.Add(new TextBlock
+            {
+                Text = group.Title,
+                FontSize = 18,
+                FontWeight = FontWeights.SemiBold,
+                TextWrapping = TextWrapping.WrapWholeWords
+            });
+
+            foreach (var credit in group.Credits)
+            {
+                section.Children.Add(CreateCreditCard(credit));
+            }
+
+            root.Children.Add(section);
+        }
+
+        return root;
+    }
+
+    private static Border CreateCreditCard(DependencyCredit credit)
+    {
+        var panel = new StackPanel { Spacing = 8 };
+        panel.Children.Add(new TextBlock
+        {
+            Text = credit.Name,
+            FontWeight = FontWeights.SemiBold,
+            TextWrapping = TextWrapping.WrapWholeWords
+        });
+        panel.Children.Add(new TextBlock
+        {
+            Text = credit.Usage,
+            Foreground = GetThemeBrush("ApplicationSecondaryForegroundThemeBrush"),
+            TextWrapping = TextWrapping.WrapWholeWords
+        });
+        panel.Children.Add(new TextBlock
+        {
+            Text = $"{"CreditsPackages".Localize()}: {credit.Packages}",
+            FontSize = 12,
+            Foreground = GetThemeBrush("ApplicationSecondaryForegroundThemeBrush"),
+            TextWrapping = TextWrapping.WrapWholeWords
+        });
+
+        var links = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8
+        };
+        links.Children.Add(CreateCreditLink("Source".Localize(), credit.SourceUrl));
+        links.Children.Add(CreateCreditLink($"{credit.LicenseName} {"License".Localize()}", credit.LicenseUrl));
+        panel.Children.Add(links);
+
+        return new Border
+        {
+            Padding = new Thickness(12),
+            CornerRadius = new CornerRadius(8),
+            Background = GetThemeBrush("CardBackgroundFillColorDefaultBrush"),
+            BorderBrush = GetThemeBrush("CardStrokeColorDefaultBrush"),
+            BorderThickness = new Thickness(1),
+            Child = panel
+        };
+    }
+
+    private static HyperlinkButton CreateCreditLink(string label, string rawUrl)
+        => new()
+        {
+            Content = label,
+            NavigateUri = new Uri(rawUrl),
+            Padding = new Thickness(0)
+        };
+
+    private static Brush? GetThemeBrush(string key)
+        => Application.Current.Resources[key] as Brush;
 
     private async void CheckUpdates_Click(object sender, RoutedEventArgs e)
         => await CheckForUpdatesAsync();
@@ -241,3 +501,13 @@ public sealed record ChannelOption(AppReleaseChannel Channel, string Label)
 {
     public override string ToString() => Label;
 }
+
+public sealed record DependencyCreditGroup(string Title, IReadOnlyList<DependencyCredit> Credits);
+
+public sealed record DependencyCredit(
+    string Name,
+    string Usage,
+    string SourceUrl,
+    string LicenseName,
+    string LicenseUrl,
+    string Packages);

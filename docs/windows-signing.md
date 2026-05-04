@@ -20,13 +20,15 @@ pwsh ./scripts/windows/publish-windows-msix.ps1 `
   -CertificatePassword $certPassword
 ```
 
-Output archive:
+Output files:
 
-- `artifacts/windows/final/Emerald-Windows-Signed-x64-arm64.zip`
+- `artifacts/windows/final/Emerald-Windows-Signed-x64-arm64.appxbundle`
+- `artifacts/windows/final/Emerald-Windows-Signing.cer`
+- `artifacts/windows/final/Emerald-Windows-Signed-x64-arm64.zip` when archive creation is enabled
 
 ## Trust and install
 
-For sideload install on Windows, import the public cert first:
+For sideload install on Windows, import the public cert first. CI artifacts and draft releases now include the exported `.cer` alongside the Windows package:
 
 ```powershell
 Import-Certificate -FilePath "C:\secrets\EmeraldSigning.cer" -CertStoreLocation "Cert:\LocalMachine\TrustedPeople"

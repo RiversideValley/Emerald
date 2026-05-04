@@ -144,6 +144,24 @@
   <data name="Add" xml:space="preserve">
     <value>Add</value>
   </data>
+  <data name="ElyByPasswordPlaceholder" xml:space="preserve">
+    <value>Enter your Ely.by password</value>
+  </data>
+  <data name="ElyByTwoFactorCode" xml:space="preserve">
+    <value>Two-factor code</value>
+  </data>
+  <data name="ElyByTwoFactorCodePlaceholder" xml:space="preserve">
+    <value>Optional</value>
+  </data>
+  <data name="ElyByUsernameOrEmail" xml:space="preserve">
+    <value>Ely.by username or email</value>
+  </data>
+  <data name="ElyByUsernameOrEmailPlaceholder" xml:space="preserve">
+    <value>Enter your Ely.by username or email</value>
+  </data>
+  <data name="EnterYourDesiredUsername" xml:space="preserve">
+    <value>Enter your desired username</value>
+  </data>
   <data name="AdvancedMinecraftSettings" xml:space="preserve">
     <value>Advanced Settings</value>
   </data>
@@ -164,6 +182,9 @@
   </data>
   <data name="AutoDownloadUpdates" xml:space="preserve">
     <value>Automatically download updates if available</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Password</value>
   </data>
   <data name="OverrideMainSettingsForGame" xml:space="preserve">
     <value>Override main settings for this game</value>
@@ -219,6 +240,9 @@
   <data name="ClearAll" xml:space="preserve">
     <value>Clear All</value>
   </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
   <data name="Colorful" xml:space="preserve">
     <value>Colorful</value>
   </data>
@@ -254,6 +278,12 @@
   </data>
   <data name="CreditsDescription" xml:space="preserve">
     <value>Respect...</value>
+  </data>
+  <data name="CreditsDialogIntro" xml:space="preserve">
+    <value>Emerald is powered by these open source projects across the maintained Uno app and CoreX launcher. Source and license links are included for each dependency group used by the app.</value>
+  </data>
+  <data name="CreditsPackages" xml:space="preserve">
+    <value>Packages</value>
   </data>
   <data name="CustomColor" xml:space="preserve">
     <value>Custom color</value>
@@ -612,6 +642,9 @@
   <data name="OfflineAccountNeedsMicrosoftDescription" xml:space="preserve">
     <value>Offline account creation is unavailable until at least one Microsoft account is added.</value>
   </data>
+  <data name="ElyByAccountNeedsMicrosoftDescription" xml:space="preserve">
+    <value>Ely.by sign-in is unavailable until at least one Microsoft account is added.</value>
+  </data>
   <data name="OfflineMode" xml:space="preserve">
     <value>Offline Mode</value>
   </data>
@@ -702,6 +735,12 @@
   </data>
   <data name="SignInWithMS" xml:space="preserve">
     <value>Sign-in with Microsoft</value>
+  </data>
+  <data name="SignInWithElyBy" xml:space="preserve">
+    <value>Sign in with Ely.by</value>
+  </data>
+  <data name="CancelLogin" xml:space="preserve">
+    <value>Cancel login</value>
   </data>
   <data name="Store" xml:space="preserve">
     <value>Store</value>
@@ -899,7 +938,7 @@
     <value>Enter a folder name</value>
   </data>
   <data name="GameFolderNameDescription" xml:space="preserve">
-    <value>This creates or reuses a subfolder inside EmeraldGames.</value>
+    <value>This creates or reuses a subfolder inside Instances.</value>
   </data>
   <data name="GameFolderNameRequired" xml:space="preserve">
     <value>Enter a folder name before creating the game.</value>
@@ -1038,6 +1077,12 @@
   </data>
   <data name="SetYourOwn" xml:space="preserve">
     <value>Set Your Own</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="License" xml:space="preserve">
+    <value>License</value>
   </data>
   <data name="UseThisJava" xml:space="preserve">
     <value>Use this Java</value>

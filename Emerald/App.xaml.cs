@@ -8,10 +8,14 @@ using Emerald.CoreX.Runtime;
 using Emerald.CoreX.Store;
 using Emerald.CoreX.Store.Modrinth;
 using Emerald.Helpers;
+using Emerald.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml.Controls;
 using Serilog;
 using Serilog.Sinks.File;
 using Microsoft.UI.Dispatching;
+using Uno.Extensions;
+using Uno.Extensions.Hosting;
 using Uno.Resizetizer;
 
 namespace Emerald;
@@ -21,6 +25,21 @@ namespace Emerald;
 /// </summary>
 public partial class App : Application
 {
+    private const string MicrosoftClientId = "dfeccda7-604a-4895-b409-9d35f1679b5d";
+    private const string ElyByClientId = "emerald1";
+    private const string ElyByClientSecret = "_hrxVlIoEWm1sqRlruFevD5v87mYW4EKPdmPWlraQoVP6kOXxJV9Y-qMrcm7Znk4";
+    private const string ElyByRedirectUri = "http://127.0.0.1:58135/oauth/elyby/";
+    private const string CurrentReleaseNotes = """
+What's new
+- Emerald now stores Windows app data in the app's local ApplicationData folder.
+- Minecraft instances now use the Instances folder by default.
+- Release notes now appear once after a fresh install or app update.
+
+Notes
+- Existing custom Minecraft paths and saved instances are left where they are.
+- You can still change the Minecraft path from Settings.
+""";
+
     private Services.SettingsService SS;
 
     /// <summary>
@@ -51,10 +70,86 @@ public partial class App : Application
     public Window? MainWindow { get; private set; }
     protected IHost? Host { get; private set; }
 
-    /// <summary>
-    /// Registers the maintained services and viewmodels used by the active Uno shell.
-    /// </summary>
-    private void ConfigureServices(IServiceCollection services)
+    #region  Services
+
+    private void ConfigureAuthServices(IServiceCollection services)
+    {
+        //Ely.By
+        services.AddSingleton<CoreX.Services.Auth.ElyBy.ElyByOAuthOptions>(_ =>
+            new CoreX.Services.Auth.ElyBy.ElyByOAuthOptions(
+                ElyByClientId,
+                ElyByClientSecret,
+                ElyByRedirectUri));
+        services.AddSingleton<CoreX.Services.Auth.ElyBy.IElyByAuthClient>(provider =>
+            new CoreX.Services.Auth.ElyBy.ElyByAuthClient(
+                provider.GetRequiredService<ILogger<CoreX.Services.Auth.ElyBy.ElyByAuthClient>>(),
+                provider.GetRequiredService<CoreX.Services.Auth.ElyBy.ElyByOAuthOptions>()));
+        services.AddSingleton<CoreX.Services.Auth.ElyBy.IElyByAccountStore, CoreX.Services.Auth.ElyBy.ElyByAccountStore>();
+        services.AddSingleton<CoreX.Services.Auth.ElyBy.IElyByOAuthBrowser>(provider =>
+        {
+            var dispatcherQueue = MainWindow?.DispatcherQueue
+                                  ?? DispatcherQueue.GetForCurrentThread()
+                                  ?? throw new InvalidOperationException("A DispatcherQueue is required for Ely.by browser authentication.");
+
+            return new Services.ElyByLoopbackOAuthBrowser(
+                provider.GetRequiredService<ILogger<Services.ElyByLoopbackOAuthBrowser>>(),
+                dispatcherQueue);
+        });
+
+        //authLib
+        services.AddSingleton<CoreX.Services.Auth.Authlib.IAuthlibInjectorService>(provider =>
+            new CoreX.Services.Auth.Authlib.AuthlibInjectorService(
+                provider.GetRequiredService<ILogger<CoreX.Services.Auth.Authlib.AuthlibInjectorService>>(),
+                Path.Combine(DirectResoucres.LocalDataPath, "authlib-injector")));
+
+        //Accounts
+        services.AddSingleton<CoreX.Services.IAccountService>(provider =>
+        {
+            var dispatcherQueue = MainWindow?.DispatcherQueue
+                                  ?? DispatcherQueue.GetForCurrentThread()
+                                  ?? throw new InvalidOperationException("A DispatcherQueue is required for the account service.");
+
+            return new CoreX.Services.AccountService(
+                provider.GetRequiredService<ILogger<CoreX.Services.AccountService>>(),
+                provider.GetRequiredService<Services.IBaseSettingsService>(),
+                new Services.DispatcherQueueUiDispatcher(dispatcherQueue),
+                Path.Combine(DirectResoucres.LocalDataPath, "accounts", "cml_accounts.json"),
+                notificationService: provider.GetRequiredService<CoreX.Notifications.INotificationService>(),
+                elyByAuthClient: provider.GetRequiredService<CoreX.Services.Auth.ElyBy.IElyByAuthClient>(),
+                elyByAccountStore: provider.GetRequiredService<CoreX.Services.Auth.ElyBy.IElyByAccountStore>(),
+                elyByOAuthBrowser: provider.GetRequiredService<CoreX.Services.Auth.ElyBy.IElyByOAuthBrowser>(),
+                authlibInjectorService: provider.GetRequiredService<CoreX.Services.Auth.Authlib.IAuthlibInjectorService>());
+        });
+    }
+
+    private void ConfigureCoreServices(IServiceCollection services)
+    {
+        services.AddSingleton<CoreX.Core>();
+
+        services.AddSingleton<CoreX.Runtime.IGameRuntimeService>(provider =>
+        {
+            var logger = provider.GetRequiredService<ILogger<GameRuntimeService>>();
+            var notificationService = provider.GetRequiredService<CoreX.Notifications.INotificationService>();
+            var accountService = provider.GetRequiredService<CoreX.Services.IAccountService>();
+            var runtimeSettings = provider.GetRequiredService<CoreX.Runtime.IGameRuntimeSettings>();
+            var dispatcherQueue = MainWindow?.DispatcherQueue
+                                  ?? DispatcherQueue.GetForCurrentThread()
+                                  ?? throw new InvalidOperationException("A DispatcherQueue is required for the game runtime service.");
+
+            return new GameRuntimeService(logger, notificationService, accountService, runtimeSettings, dispatcherQueue);
+        });
+
+        //Mod Loaders
+        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Fabric>();
+        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Forge>();
+        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.LiteLoader>();
+        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Quilt>();
+        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Optifine>();
+
+        services.AddTransient<CoreX.Installers.ModLoaderRouter>();
+    }
+
+    private void ConfigureStoreServices(IServiceCollection services)
     {
         //Stores
         services.AddTransient<ModStore>();
@@ -68,16 +163,27 @@ public partial class App : Application
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ShaderStore>());
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<DataPackStore>());
         services.AddTransient<IGameStoreContentService, GameStoreContentService>();
+    }
 
+    private void ConfigureSettingsServices(IServiceCollection services)
+    {
         //Settings
         services.AddSingleton<Services.SettingsService>();
-        services.AddSingleton<Services.IBaseSettingsService, Services.BaseSettingsService>();
+        services.AddSingleton<Services.IBaseSettingsService, Services.BaseSettingsService>(provider =>
+        {
+            var logger = provider.GetRequiredService<ILogger<Services.BaseSettingsService>>();
+            var path = Path.Combine(DirectResoucres.LocalDataPath, "settings");
+            return new BaseSettingsService(logger, path);
+        });
         services.AddSingleton<Services.IAppUpdateService, Services.AppUpdateService>();
         services.AddSingleton<CoreX.Services.IGlobalGameSettingsService, CoreX.Services.GlobalGameSettingsService>();
         services.AddSingleton<CoreX.Runtime.IGameRuntimeSettings, Services.GameRuntimeSettingsAdapter>();
         services.AddSingleton<CoreX.Services.IJavaRuntimeProbe, CoreX.Services.ProcessJavaRuntimeProbe>();
         services.AddSingleton<CoreX.Services.IJavaRuntimeCatalogService, CoreX.Services.JavaRuntimeCatalogService>();
+    }
 
+    private void ConfigureUiServices(IServiceCollection services)
+    {
         //Notifications
         services.AddSingleton<CoreX.Notifications.INotificationService>(provider =>
         {
@@ -85,40 +191,27 @@ public partial class App : Application
             var inner = new CoreX.Notifications.NotificationService(logger);
             return new DispatchedNotificationService(inner, MainWindow.DispatcherQueue);
         });
-        services.AddTransient<ViewModels.NotificationListViewModel>();
-
-        //Mod Loaders
-        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Fabric>();
-        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Forge>();
-        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.LiteLoader>();
-        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Quilt>();
-        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Optifine>();
-
-        services.AddTransient<CoreX.Installers.ModLoaderRouter>();
-
-        services.AddSingleton<CoreX.Runtime.IGameRuntimeService>(provider =>
-        {
-            var logger = provider.GetRequiredService<ILogger<GameRuntimeService>>();
-            var notificationService = provider.GetRequiredService<CoreX.Notifications.INotificationService>();
-            var accountService = provider.GetRequiredService<CoreX.Services.IAccountService>();
-            var runtimeSettings = provider.GetRequiredService<CoreX.Runtime.IGameRuntimeSettings>();
-            var dispatcherQueue = MainWindow?.DispatcherQueue
-                ?? DispatcherQueue.GetForCurrentThread()
-                ?? throw new InvalidOperationException("A DispatcherQueue is required for the game runtime service.");
-
-            return new GameRuntimeService(logger, notificationService, accountService, runtimeSettings, dispatcherQueue);
-        });
-
-        //Core
-        services.AddSingleton<CoreX.Core>();
-        //Accounts
-        services.AddSingleton<CoreX.Services.IAccountService, CoreX.Services.AccountService>();
 
         //ViewModels
         services.AddTransient<ViewModels.GamesPageViewModel>();
-        services.AddTransient<ViewModels.AccountsPageViewModel>();
+        services.AddTransient<ViewModels.NotificationListViewModel>();
+        services.AddSingleton<ViewModels.AccountsPageViewModel>();
         services.AddTransient<ViewModels.LogsPageViewModel>();
         services.AddTransient<ViewModels.ModrinthStorePageViewModel>();
+    }
+    
+    #endregion
+    
+    /// <summary>
+    /// Registers the maintained services and viewmodels used by the active Uno shell.
+    /// </summary>
+    private void ConfigureServices(IServiceCollection services)
+    {
+        ConfigureCoreServices(services);
+        ConfigureSettingsServices(services);
+        ConfigureAuthServices(services);
+        ConfigureStoreServices(services);
+        ConfigureUiServices(services);
     }
 
     /// <summary>
@@ -159,7 +252,7 @@ public partial class App : Application
         this.Log().LogInformation("Application settings loaded.");
 
         var ac = Ioc.Default.GetService<CoreX.Services.IAccountService>();
-        _ = ac.InitializeAsync("dfeccda7-604a-4895-b409-9d35f1679b5d");
+        _ = ac.InitializeAsync(MicrosoftClientId);
         this.Log().LogInformation("Account service initialization requested.");
 
         // Do not repeat app initialization when the Window already has content,
@@ -186,6 +279,7 @@ public partial class App : Application
         MainWindow.Activate();
         MainWindow.Closed += MainWindow_Closed;
         this.Log().LogInformation("Main window activated.");
+        _ = ShowReleaseNotesAtStartupAsync();
         _ = CheckForUpdatesAtStartupAsync();
     }
 
@@ -196,6 +290,63 @@ public partial class App : Application
     {
         this.Log().LogInformation("Main window is closing. Persisting settings.");
         SS.SaveData();
+    }
+
+    private async Task ShowReleaseNotesAtStartupAsync()
+    {
+        try
+        {
+            var currentVersion = DirectResoucres.PackageVersion;
+            if (string.IsNullOrWhiteSpace(currentVersion)
+                || string.Equals(
+                    SS.Settings.App.Updates.LastShownReleaseNotesVersion,
+                    currentVersion,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            await Task.Yield();
+
+            var dialog = CreateReleaseNotesDialog();
+            await dialog.ShowAsync();
+
+            SS.Settings.App.Updates.LastShownReleaseNotesVersion = currentVersion;
+            SS.SaveData();
+        }
+        catch (Exception ex)
+        {
+            this.Log().LogWarning(ex, "Failed to show startup release notes.");
+        }
+    }
+
+    private ContentDialog CreateReleaseNotesDialog()
+    {
+        var content = new StackPanel
+        {
+            Spacing = 12,
+            MaxWidth = 720
+        };
+
+        content.Children.Add(new TextBlock
+        {
+            Text = $"{DirectResoucres.PublicVersion} ({DirectResoucres.PackageVersion})",
+            Style = Application.Current.Resources["BodyStrongTextBlockStyle"] as Style,
+            TextWrapping = TextWrapping.Wrap
+        });
+
+        content.Children.Add(new TextBlock
+        {
+            Text = CurrentReleaseNotes,
+            IsTextSelectionEnabled = true,
+            TextWrapping = TextWrapping.Wrap
+        });
+
+        return new ScrollViewer
+        {
+            Content = content,
+            Padding = new(12)
+        }.ToContentDialog("ReleaseNotes".Localize(), "Close".Localize());
     }
 
     private async Task CheckForUpdatesAtStartupAsync()

@@ -54,9 +54,9 @@ Legend: `✅` fully supported, `🟡` partially supported, `❌` not yet support
 | Capability | Status | Notes |
 |---|---|---|
 | Microsoft account sign-in | ✅ | --- |
-| Offline account support | ✅ | * |
->  We do not support piracy. You can't use Offline Accounts without logging in with at least one Microsoft Account.  
-> If you wish to bypass it, it's your responsibility, and a toggle which you can change is hardcoded the project. But we will not ship any releases with it.
+| Offline account support | ✅ | *** |
+| [Ely.by](https://ely.by) account support | ✅ | *** |
+> *** We do not encourage you to use other login methods without having a legal copy of Minecraft
 #### Store Support
 | Capability | Status | Notes |
 |---|---|---|
@@ -65,7 +65,7 @@ Legend: `✅` fully supported, `🟡` partially supported, `❌` not yet support
 | Data Packs | ✅ |---|
 | Resource Packs | ✅ |---|
 | Plugins | ✅ |---|
-| Mods | 🟡 |WIP|
+| Modspacks | 🟡 |WIP|
 | Modrinth content browsing/details | 🟡 | Present, Does not exactly match/auto download versions |
 | Modrinth install/remove tracking | 🟡 | Install/remove tracking exists; UX/workflow still evolving. |
 

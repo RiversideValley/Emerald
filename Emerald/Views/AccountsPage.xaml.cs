@@ -13,7 +13,8 @@ namespace Emerald.Views;
 public sealed partial class AccountsPage : Page
 {
     public AccountsPageViewModel ViewModel { get; }
-    private TextBox OfflineUserNameTextBox;
+    private TextBox OfflineUserNameTextBox = null!;
+
     public AccountsPage()
     {
         ViewModel = Ioc.Default.GetService<AccountsPageViewModel>();
@@ -28,12 +29,13 @@ public sealed partial class AccountsPage : Page
             Header = "Username".Localize(),
             PlaceholderText = "EnterYourDesiredUsername".Localize()
         };
+
         await ViewModel.InitializeCommand.ExecuteAsync(null);
     }
 
     private async void AddOfflineAccount_Click(object sender, RoutedEventArgs e)
     {
-        if (!ViewModel.CanCreateOfflineAccount)
+        if (!ViewModel.CanStartOfflineAccount)
         {
             return;
         }

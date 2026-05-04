@@ -61,7 +61,7 @@ public partial class Core(
     IGameRuntimeService runtimeService,
     IGlobalGameSettingsService globalGameSettingsService) : ObservableObject
 {
-    public const string GamesFolderName = "EmeraldGames";
+    public const string GamesFolderName = "Instances";
     public MinecraftLauncher Launcher { get; set; }
 
     public event EventHandler? VersionsRefreshed;

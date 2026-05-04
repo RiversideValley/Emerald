@@ -319,6 +319,7 @@ try {
     $platformSlug = ($Platforms -join "-")
     $bundlePath = Join-Path $bundleOutput "Emerald-Windows-Signed-$platformSlug.msixbundle"
     $appxBundlePath = Join-Path $bundleOutput "Emerald-Windows-Signed-$platformSlug.appxbundle"
+    $publicCertificatePath = Join-Path $bundleOutput "Emerald-Windows-Signing.cer"
     & $makeAppx bundle /o /d $bundleInput /p $bundlePath /bv $Version
 
     if ($LASTEXITCODE -ne 0) {
@@ -356,10 +357,15 @@ try {
     Write-Step "Signed bundle created: $bundlePath"
     Copy-Item -LiteralPath $bundlePath -Destination $appxBundlePath -Force
     Write-Step "Appx-compatible bundle copy created: $appxBundlePath"
+    [System.IO.File]::WriteAllBytes(
+        $publicCertificatePath,
+        $importedCert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert))
+    Write-Step "Public signing certificate exported: $publicCertificatePath"
 
     if ($env:GITHUB_OUTPUT) {
         Add-Content -Path $env:GITHUB_OUTPUT -Value "windows_bundle_path=$bundlePath"
         Add-Content -Path $env:GITHUB_OUTPUT -Value "windows_appxbundle_path=$appxBundlePath"
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "windows_signing_certificate_path=$publicCertificatePath"
         if (-not $SkipBundleArchive) {
             Add-Content -Path $env:GITHUB_OUTPUT -Value "windows_zip_path=$zipPath"
         }
