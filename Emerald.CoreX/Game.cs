@@ -234,7 +234,7 @@ public partial class Game : ObservableObject
                 _notify.Update(
                     not.Id,
                     message: msg,
-                    progress: prog.prog,
+                    progress: realprog,
                     isIndeterminate: false
                 );
             }
@@ -252,7 +252,7 @@ public partial class Game : ObservableObject
                 new Progress<ByteProgress>(e =>
                 {
                     prog.bytes = $"{Math.Round((e.ProgressedBytes * Math.Pow(10, -6)), 0)} MB/{Math.Round((e.TotalBytes * Math.Pow(10, -6)), 0)} MB";
-                    prog.prog = Math.Round((double)e.ProgressedBytes / e.TotalBytes * 100, 2);
+                    prog.progbytes = Math.Round((double)e.ProgressedBytes / e.TotalBytes * 100, 2);
                     
                     UpdateProg();
                 }),
