@@ -380,7 +380,7 @@ public sealed partial class MainPage : Page
     /// <summary>
     /// Navigates the shared frame only when the target page is different or navigation is forced.
     /// </summary>
-    private void NavigateOnce(Type type, object? parameter = null, bool forceNavigate = false)
+    private void NavigateOnce(System.Type type, object? parameter = null, bool forceNavigate = false)
     {
         if (forceNavigate || frame.Content == null || frame.Content.GetType() != type)
         {
