@@ -132,14 +132,15 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
         SortOptions.Add(new SearchSortOptionItem(SearchSortOptions.Updated, "Updated"));
         SortOptions.Add(new SearchSortOptionItem(SearchSortOptions.Newest, "Newest"));
         SelectedSortOption = SortOptions.FirstOrDefault();
-
-        _core.Games.CollectionChanged += (_, _) => SyncGames();
+        
+        _core.Games.CollectionChanged += (_, _) =>
+            App.Current.MainWindow.DispatcherQueue.TryEnqueue(SyncGames);
         SearchResults.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasSearchResults));
         CompatibleVersions.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasCompatibleVersions));
         InstalledItems.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasInstalledItems));
         CategoryFilters.CollectionChanged += CategoryFilters_CollectionChanged;
     }
-
+    
     [RelayCommand]
     private async Task InitializeAsync(object? navigationParameter)
     {
@@ -152,22 +153,21 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
             await _core.InitializeAndRefresh(path);
         }
 
-        SyncGames();
-        SelectGameFromNavigation(navigationParameter as string);
-
-        if (SelectedGame == null)
+        App.Current.MainWindow.DispatcherQueue.TryEnqueue(async () =>
         {
-            SelectedGame = Games.FirstOrDefault();
-        }
+            SyncGames();
+            SelectGameFromNavigation(navigationParameter as string);
 
-        await LoadCategoriesAsync();
-        await RefreshInstalledItemsAsync();
-        _isInitialized = true;
+            if (SelectedGame == null)
+                SelectedGame = Games.FirstOrDefault();
 
-        if (SearchResults.Count == 0 && CanSearch)
-        {
-            await SearchAsync();
-        }
+            await LoadCategoriesAsync();
+            await RefreshInstalledItemsAsync();
+            _isInitialized = true;
+
+            if (SearchResults.Count == 0 && CanSearch)
+                await SearchAsync();
+        });
     }
 
     [RelayCommand(CanExecute = nameof(CanSearch))]
