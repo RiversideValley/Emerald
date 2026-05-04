@@ -153,6 +153,10 @@
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="1"
             CornerRadius="10">
+            <Border.Shadow>
+              <ThemeShadow/>
+            </Border.Shadow>
+
             <Grid ColumnSpacing="10">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="4" />
