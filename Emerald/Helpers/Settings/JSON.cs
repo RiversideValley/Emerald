@@ -44,6 +44,7 @@ public partial class Settings : JSON
         App = new()
         {
             Discord = new(),
+            Tasks = new(),
             Appearance = new()
             {
                 MicaTintColor = (int)Enums.MicaTintColor.NoColor,
@@ -198,6 +199,7 @@ public partial class App : JSON
 {
     public Appearance Appearance { get; set; } = new();
     public Discord Discord { get; set; } = new();
+    public Tasks Tasks { get; set; } = new();
     public NewsFilter NewsFilter { get; set; } = new();
     public Store Store { get; set; } = new();
     public Updates Updates { get; set; } = new();
@@ -228,6 +230,13 @@ public partial class Updates : JSON
     [ObservableProperty]
     private string? _lastShownReleaseNotesVersion;
 }
+
+public partial class Tasks : JSON
+{
+    [ObservableProperty]
+    private bool _compactMode;
+}
+
 public partial class StoreFilter : JSON
 {
     [ObservableProperty]
