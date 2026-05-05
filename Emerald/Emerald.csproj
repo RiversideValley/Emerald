@@ -26,6 +26,12 @@
     <ApplicationPublisher>CN=Riverside Valley</ApplicationPublisher>
     <AppxPackagePublisher Condition="'$(AppxPackagePublisher)' == ''">$(ApplicationPublisher)</AppxPackagePublisher>
     <AppxPackageVersion Condition="'$(AppxPackageVersion)' == ''">$(EmeraldPackageVersion)</AppxPackageVersion>
+
+    <Description>Emerald is a open-source cross-platform Minecraft Launcher made with .NET.</Description>
+  <!-- Other metadata usually required by Snapcraft -->
+  <Authors>Riverside Valley</Authors>
+  <Product>Emerald</Product>
+
     <UnoFeatures>
       Lottie;
       Hosting;
