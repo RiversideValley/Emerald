@@ -452,7 +452,7 @@ jobs:
           path: ${{ github.workspace }}/Emerald-macOS-arm64-app.zip
           retention-days: 14
 
-  publish-linux:
+publish-linux:
     name: Linux x64 and arm64 Snaps
     needs: ci-filter
     if: ${{ needs.ci-filter.outputs.run_linux == 'true' }}
@@ -469,23 +469,26 @@ jobs:
         with:
           job-platform: linux
 
-      - name: Install Snapcraft
+      - name: Install Snapcraft and LXD
         shell: bash
         run: |
           sudo apt-get update
           sudo apt-get install -y snapd
+          sudo snap install lxd
+          sudo lxd init --auto
           sudo snap install snapcraft --classic
+          sudo usermod -aG lxd $USER
 
       - name: Publish Linux x64 Snap
         shell: bash
         run: |
-          dotnet publish ./Emerald/Emerald.csproj \
+          # sg lxd -c ensures the command runs with the newly added lxd group permissions
+          sg lxd -c 'dotnet publish ./Emerald/Emerald.csproj \
             -c Release \
             -f net10.0-desktop \
             -r linux-x64 \
             -p:SelfContained=true \
             -p:PackageFormat=snap \
-            -p:UnoSnapcraftAdditionalParameters=--destructive-mode \
             -p:PublishTrimmed=false \
             -p:PublishSingleFile=false \
             -p:Version="${{ needs.ci-filter.outputs.package_version }}" \
@@ -497,18 +500,17 @@ jobs:
             -p:EmeraldUpdateChannel="${{ needs.ci-filter.outputs.release_channel }}" \
             -p:EmeraldReleaseTag="${{ needs.ci-filter.outputs.release_tag }}" \
             -p:EmeraldCommitSha="${{ github.sha }}" \
-            -p:EmeraldBuildTimestampUtc="${{ needs.ci-filter.outputs.build_timestamp_utc }}"
+            -p:EmeraldBuildTimestampUtc="${{ needs.ci-filter.outputs.build_timestamp_utc }}"'
 
       - name: Publish Linux arm64 Snap
         shell: bash
         run: |
-          dotnet publish ./Emerald/Emerald.csproj \
+          sg lxd -c 'dotnet publish ./Emerald/Emerald.csproj \
             -c Release \
             -f net10.0-desktop \
             -r linux-arm64 \
             -p:SelfContained=true \
             -p:PackageFormat=snap \
-            -p:UnoSnapcraftAdditionalParameters=--destructive-mode \
             -p:PublishTrimmed=false \
             -p:PublishSingleFile=false \
             -p:Version="${{ needs.ci-filter.outputs.package_version }}" \
@@ -520,7 +522,7 @@ jobs:
             -p:EmeraldUpdateChannel="${{ needs.ci-filter.outputs.release_channel }}" \
             -p:EmeraldReleaseTag="${{ needs.ci-filter.outputs.release_tag }}" \
             -p:EmeraldCommitSha="${{ github.sha }}" \
-            -p:EmeraldBuildTimestampUtc="${{ needs.ci-filter.outputs.build_timestamp_utc }}"
+            -p:EmeraldBuildTimestampUtc="${{ needs.ci-filter.outputs.build_timestamp_utc }}"'
 
       - name: Collect Linux Snaps
         shell: bash
