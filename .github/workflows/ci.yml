@@ -498,6 +498,9 @@ jobs:
 
       - name: Publish Linux Snap (${{ matrix.arch }})
         shell: bash
+        env:
+          # Modern Snapcraft equivalent to --destructive-mode
+          SNAPCRAFT_BUILD_ENVIRONMENT: host 
         run: |
           dotnet publish ./Emerald/Emerald.csproj \
             -c Release \
@@ -505,8 +508,8 @@ jobs:
             -r "${{ matrix.runtime }}" \
             -p:SelfContained=true \
             -p:PackageFormat=snap \
-            -p:SnapcraftBuildProvider=none \
-            -p:SnapcraftDestructiveMode=true \
+            -p:UnoSnapBuildProvider=none \
+            -p:UnoSnapcraftAdditionalParameters=--destructive-mode \
             -p:PublishTrimmed=false \
             -p:PublishSingleFile=false \
             -p:Version="${{ needs.ci-filter.outputs.package_version }}" \
