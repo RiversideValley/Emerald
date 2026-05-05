@@ -509,6 +509,10 @@ jobs:
             -r "${{ matrix.runtime }}" \
             -p:SelfContained=true \
             -p:PackageFormat=snap \
+            -p:UnoSnapcraftConfinement=strict \
+            -p:UnoSnapcraftExtensions=gnome \
+            -p:UnoSnapcraftStagePackages="libfreetype6;libfontconfig1" \
+            -p:UnoSnapcraftAdditionalPlugs="opengl;x11;wayland;desktop;desktop-legacy"
             -p:UnoSnapBuildProvider=none \
             -p:UnoSnapcraftAdditionalParameters=--destructive-mode \
             -p:PublishTrimmed=false \
