@@ -488,13 +488,14 @@ jobs:
       # --destructive-mode is required in CI because LXD/Multipass are unavailable
       # on single-use GitHub-hosted runners; it is safe here because the environment
       # is ephemeral and discarded after the job completes.
-      - name: Install Snapcraft
+      - name: Install Snapcraft and Multipass
         shell: bash
         run: |
           sudo apt-get update -y
           sudo apt-get install -y snapd
           sudo snap install core22
           sudo snap install snapcraft --classic
+          sudo snap install multipass
 
       - name: Publish Linux Snap (${{ matrix.arch }})
         shell: bash
