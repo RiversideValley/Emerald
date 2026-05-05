@@ -452,11 +452,24 @@ jobs:
           path: ${{ github.workspace }}/Emerald-macOS-arm64-app.zip
           retention-days: 14
 
+  # Snap packages are built natively on each architecture — Uno Platform does not
+  # support cross-compilation for snap targets as of the current SDK version.
   publish-linux:
-    name: Linux x64 Package
+    name: Linux Snap (${{ matrix.arch }})
     needs: ci-filter
     if: ${{ needs.ci-filter.outputs.run_linux == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-22.04
+            runtime: linux-x64
+          - arch: arm64
+            runner: ubuntu-22.04-arm
+            runtime: linux-arm64
 
     steps:
       - name: Checkout code
@@ -469,17 +482,35 @@ jobs:
         with:
           job-platform: linux
 
-      - name: Publish Linux app
+      # Snapcraft is installed after the base dependencies so that the snap daemon
+      # is ready before we invoke dotnet publish with PackageFormat=snap.
+      # core22 matches the Ubuntu 22.04 runner base used by both matrix legs.
+      # --destructive-mode is required in CI because LXD/Multipass are unavailable
+      # on single-use GitHub-hosted runners; it is safe here because the environment
+      # is ephemeral and discarded after the job completes.
+      - name: Install Snapcraft and Multipass
         shell: bash
         run: |
-          OUTPUT_DIR="$GITHUB_WORKSPACE/artifacts/linux/Emerald-linux-x64"
-          mkdir -p "$OUTPUT_DIR"
+          sudo apt-get update -y
+          sudo apt-get install -y snapd
+          sudo snap install core22
+          sudo snap install snapcraft --classic
+          sudo snap install multipass
 
+      - name: Publish Linux Snap (${{ matrix.arch }})
+        shell: bash
+        env:
+          # Modern Snapcraft equivalent to --destructive-mode
+          SNAPCRAFT_BUILD_ENVIRONMENT: host 
+        run: |
           dotnet publish ./Emerald/Emerald.csproj \
             -c Release \
             -f net10.0-desktop \
-            -r linux-x64 \
+            -r "${{ matrix.runtime }}" \
             -p:SelfContained=true \
+            -p:PackageFormat=snap \
+            -p:UnoSnapBuildProvider=none \
+            -p:UnoSnapcraftAdditionalParameters=--destructive-mode \
             -p:PublishTrimmed=false \
             -p:PublishSingleFile=false \
             -p:Version="${{ needs.ci-filter.outputs.package_version }}" \
@@ -491,20 +522,40 @@ jobs:
             -p:EmeraldUpdateChannel="${{ needs.ci-filter.outputs.release_channel }}" \
             -p:EmeraldReleaseTag="${{ needs.ci-filter.outputs.release_tag }}" \
             -p:EmeraldCommitSha="${{ github.sha }}" \
-            -p:EmeraldBuildTimestampUtc="${{ needs.ci-filter.outputs.build_timestamp_utc }}" \
-            -o "$OUTPUT_DIR"
+            -p:EmeraldBuildTimestampUtc="${{ needs.ci-filter.outputs.build_timestamp_utc }}"
 
-      - name: Archive Linux package
+      - name: Locate and stage snap artifact
+        id: locate
         shell: bash
         run: |
-          ARCHIVE_PATH="$GITHUB_WORKSPACE/Emerald-linux-x64.tar.gz"
-          tar -czf "$ARCHIVE_PATH" -C "$GITHUB_WORKSPACE/artifacts/linux" "Emerald-linux-x64"
+          # Uno places the .snap in the publish output folder; find it regardless
+          # of the exact versioned filename that snapcraft generates.
+          SNAP_FILE="$(find . -name '*.snap' -not -path '*/.git/*' -type f | head -n 1)"
+          if [ -z "$SNAP_FILE" ]; then
+            echo "No .snap file found after publish"
+            exit 1
+          fi
+          echo "Found snap: $SNAP_FILE"
 
-      - name: Upload artifact
+          STAGED="$GITHUB_WORKSPACE/Emerald-linux-${{ matrix.arch }}.snap"
+          cp "$SNAP_FILE" "$STAGED"
+          echo "snap_path=$STAGED" >> "$GITHUB_OUTPUT"
+
+      - name: Upload CI Linux Snap artifact (${{ matrix.arch }})
         uses: actions/upload-artifact@v4
         with:
-          name: Emerald-linux-x64
-          path: ${{ github.workspace }}/Emerald-linux-x64.tar.gz
+          name: Emerald-linux-${{ matrix.arch }}-snap
+          path: ${{ steps.locate.outputs.snap_path }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload release Linux Snap transfer artifact (${{ matrix.arch }})
+        if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-${{ matrix.arch }}-ReleaseDraft-Snap
+          path: ${{ steps.locate.outputs.snap_path }}
+          if-no-files-found: error
           retention-days: 14
 
   draft-release:
@@ -534,10 +585,16 @@ jobs:
           name: Emerald-macOS-arm64-app
           path: release-assets/macos
 
-      - name: Download Linux artifacts
+      - name: Download Linux x64 Snap artifact
         uses: actions/download-artifact@v4
         with:
-          name: Emerald-linux-x64
+          name: Emerald-linux-x64-ReleaseDraft-Snap
+          path: release-assets/linux
+
+      - name: Download Linux arm64 Snap artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Emerald-linux-arm64-ReleaseDraft-Snap
           path: release-assets/linux
 
       - name: Build release metadata files

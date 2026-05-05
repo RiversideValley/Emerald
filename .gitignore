@@ -409,3 +409,6 @@ Emerald.App/MsalClientID.txt
 Emerald/.DS_Store
 .DS_Store
 /.agents
+Emerald.CoreX.Tests/Emerald.CoreX.Tests.csproj.lscache
+Emerald.CoreX/Emerald.CoreX.csproj.lscache
+Emerald/Emerald.csproj.lscache
