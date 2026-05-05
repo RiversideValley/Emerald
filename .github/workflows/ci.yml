@@ -452,7 +452,7 @@ jobs:
           path: ${{ github.workspace }}/Emerald-macOS-arm64-app.zip
           retention-days: 14
 
-publish-linux:
+  publish-linux:
     name: Linux x64 and arm64 Snaps
     needs: ci-filter
     if: ${{ needs.ci-filter.outputs.run_linux == 'true' }}
