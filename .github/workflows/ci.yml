@@ -505,7 +505,8 @@ jobs:
             -r "${{ matrix.runtime }}" \
             -p:SelfContained=true \
             -p:PackageFormat=snap \
-            -p:UnoSnapcraftAdditionalParameters=--destructive-mode \
+            -p:SnapcraftBuildProvider=none \
+            -p:SnapcraftDestructiveMode=true \
             -p:PublishTrimmed=false \
             -p:PublishSingleFile=false \
             -p:Version="${{ needs.ci-filter.outputs.package_version }}" \
