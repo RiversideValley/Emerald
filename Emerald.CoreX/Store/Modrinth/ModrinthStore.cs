@@ -42,6 +42,7 @@ public abstract class ModrinthStore : IModrinthStore
     {
         _client = new RestClient("https://api.modrinth.com/v2/");
         _client.AddDefaultHeader("Accept", "application/json");
+        _client.AddDefaultHeader("User-Agent", "Emerald/1.0 (Modrinth integration)");
         MCPath = path;
         _logger = logger;
         _projectType = projectType;

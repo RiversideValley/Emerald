@@ -142,6 +142,53 @@ public static class Extensions
 
         return sb.ToString();
     }
+    
+    /// <summary>
+    /// Stretches the dialog's BackgroundElement to fill the host window.
+    /// Call before ShowAsync().
+    /// </summary>
+    public static void StretchToWindow(this ContentDialog dialog)
+    {
+        dialog.HorizontalAlignment = HorizontalAlignment.Stretch;
+        dialog.VerticalAlignment   = VerticalAlignment.Stretch;
+
+        dialog.Loaded += OnLoaded;
+    }
+
+    private static void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        var dialog = (ContentDialog)sender;
+        dialog.Loaded -= OnLoaded;
+
+        var bg = FindDescendantByName(dialog, "BackgroundElement") as FrameworkElement;
+        if (bg != null)
+        {
+            bg.HorizontalAlignment = HorizontalAlignment.Stretch;
+            bg.MaxWidth            = double.PositiveInfinity;
+            // Optional — remove corner radius for a truly flat full-screen feel
+            // if (bg is Border b) b.CornerRadius = new CornerRadius(0);
+        }
+
+        // DialogSpace grid inside BackgroundElement
+        var space = FindDescendantByName(dialog, "DialogSpace") as FrameworkElement;
+        if (space != null)
+            space.HorizontalAlignment = HorizontalAlignment.Stretch;
+    }
+
+    private static DependencyObject? FindDescendantByName(DependencyObject parent, string name)
+    {
+        int count = VisualTreeHelper.GetChildrenCount(parent);
+        for (int i = 0; i < count; i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is FrameworkElement fe && fe.Name == name)
+                return child;
+
+            var result = FindDescendantByName(child, name);
+            if (result != null) return result;
+        }
+        return null;
+    }
 
     //public static string Localize(this Core.Localized resourceKey) =>
     //     resourceKey.ToString().Localize();

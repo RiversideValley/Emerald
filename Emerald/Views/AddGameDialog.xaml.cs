@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.DependencyInjection;
+using Emerald.Helpers;
 using Emerald.Services;
 using Emerald.ViewModels;
 using Microsoft.UI.Xaml;
@@ -16,6 +17,7 @@ public sealed partial class AddGameDialog : ContentDialog
         DataContext = ViewModel;
         InitializeComponent();
         Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style;
+        this.StretchToWindow();
         RequestedTheme = (ElementTheme)Ioc.Default.GetService<SettingsService>().Settings.App.Appearance.Theme;
     }
 
@@ -28,5 +30,21 @@ public sealed partial class AddGameDialog : ContentDialog
         {
             Hide();
         }
+    }
+
+    private async void DownloadModpack_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.CanDownloadModpack)
+        {
+            Hide();
+            await ViewModel.DownloadModpackAsync();
+        }
+    }
+
+    private void AddGameModeNav_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+    {
+        ViewModel.SelectedAddGameMode = (sender.SelectedItem as NavigationViewItem)?.Tag as string == "Modpacks"
+            ? AddGameMode.Modpacks
+            : AddGameMode.Normal;
     }
 }

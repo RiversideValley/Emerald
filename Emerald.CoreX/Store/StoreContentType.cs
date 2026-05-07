@@ -6,5 +6,6 @@ public enum StoreContentType
     ResourcePack,
     DataPack,
     Shader,
-    Plugin
+    Plugin,
+    ModPack
 }

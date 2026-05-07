@@ -149,6 +149,17 @@ public partial class Game : ObservableObject
 
     public async Task InstallVersion(bool isOffline = false, bool showFileProgress = false)
     {
+        try
+        {
+            await InstallVersionOrThrow(isOffline, showFileProgress);
+        }
+        catch
+        {
+        }
+    }
+
+    public async Task InstallVersionOrThrow(bool isOffline = false, bool showFileProgress = false)
+    {
         _logger.LogInformation("Starting InstallVersion with isOffline: {IsOffline}, showFileProgress: {ShowFileProgress}", isOffline, showFileProgress);
         CreateMCLauncher(isOffline);
 
@@ -180,7 +191,7 @@ public partial class Game : ObservableObject
                     success: false
                 );
 
-                return;
+                throw new InvalidOperationException($"Version {Version.Type} {Version.ModVersion} {Version.BasedOn} not found.");
             }
             if (isOffline)
             {
@@ -208,7 +219,7 @@ public partial class Game : ObservableObject
                 }
             }
 
-            (string Files, string bytes, double prog) prog = (string.Empty, string.Empty, 0);
+            (string Files, string bytes, double prog, double? progbytes) prog = (string.Empty, string.Empty, 0, null);
 
             void UpdateProg()
             {
@@ -218,10 +229,12 @@ public partial class Game : ObservableObject
                     msg += " | " + prog.bytes;
                 }
 
+                var realprog = prog.progbytes ?? prog.prog;
+
                 _notify.Update(
                     not.Id,
                     message: msg,
-                    progress: prog.prog,
+                    progress: realprog,
                     isIndeterminate: false
                 );
             }
@@ -239,6 +252,8 @@ public partial class Game : ObservableObject
                 new Progress<ByteProgress>(e =>
                 {
                     prog.bytes = $"{Math.Round((e.ProgressedBytes * Math.Pow(10, -6)), 0)} MB/{Math.Round((e.TotalBytes * Math.Pow(10, -6)), 0)} MB";
+                    prog.progbytes = Math.Round((double)e.ProgressedBytes / e.TotalBytes * 100, 2);
+                    
                     UpdateProg();
                 }),
                 not.CancellationToken.Value);
@@ -250,6 +265,7 @@ public partial class Game : ObservableObject
         {
             _logger.LogError(ex, "An error occurred during version installation.");
             _notify.Complete(not.Id, false, "Installation Failed", ex);
+            throw;
         }
     }
 

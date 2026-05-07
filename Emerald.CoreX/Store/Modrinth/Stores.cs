@@ -68,3 +68,16 @@ public sealed class DataPackStore : ModrinthStore
     {
     }
 }
+
+public sealed class ModPackStore : ModrinthStore
+{
+    public ModPackStore(MinecraftPath path, ILogger<ModPackStore> logger)
+        : base(path, logger, "modpack", "modpacks", StoreContentType.ModPack)
+    {
+    }
+
+    public ModPackStore(ILogger<ModPackStore> logger)
+        : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
+    {
+    }
+}

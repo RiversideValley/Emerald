@@ -50,4 +50,10 @@
     <PackageReference Include="RestSharp" />
     <PackageReference Include="XboxAuthNet.Game.Msal" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="CmlLib.Core.Installer.NeoForge">
+      <HintPath>NeoForge\CmlLib.Core.Installer.NeoForge.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>

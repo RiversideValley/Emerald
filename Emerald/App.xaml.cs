@@ -142,6 +142,7 @@ Notes
         //Mod Loaders
         services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Fabric>();
         services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Forge>();
+        services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.NeoForge>();
         services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.LiteLoader>();
         services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Quilt>();
         services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Optifine>();
@@ -157,12 +158,17 @@ Notes
         services.AddTransient<ResourcePackStore>();
         services.AddTransient<ShaderStore>();
         services.AddTransient<DataPackStore>();
+        services.AddTransient<ModPackStore>();
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ModStore>());
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<PluginStore>());
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ResourcePackStore>());
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ShaderStore>());
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<DataPackStore>());
+        services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ModPackStore>());
         services.AddTransient<IGameStoreContentService, GameStoreContentService>();
+        services.AddTransient<CoreX.Modpacks.IMrPackReader, CoreX.Modpacks.MrPackReader>();
+        services.AddTransient<CoreX.Modpacks.IMrPackFileInstaller, CoreX.Modpacks.MrPackFileInstaller>();
+        services.AddTransient<CoreX.Modpacks.IModpackInstanceCreationService, CoreX.Modpacks.ModpackInstanceCreationService>();
     }
 
     private void ConfigureSettingsServices(IServiceCollection services)
@@ -193,7 +199,7 @@ Notes
         });
 
         //ViewModels
-        services.AddTransient<ViewModels.GamesPageViewModel>();
+        services.AddSingleton<ViewModels.GamesPageViewModel>();
         services.AddTransient<ViewModels.NotificationListViewModel>();
         services.AddSingleton<ViewModels.AccountsPageViewModel>();
         services.AddTransient<ViewModels.LogsPageViewModel>();
@@ -495,8 +501,8 @@ Notes
         catch (Exception dialogEx)
         {
             // Dialog itself failed — log both errors properly
-            Debug.WriteLine($"[DIALOG FAILED] {dialogEx}");
-            Debug.WriteLine($"[ORIGINAL ERROR] {ex}");
+            this.Log().LogCritical(ex, $"[DIALOG FAILED] {dialogEx}");
+            Debug.WriteLine($"[DIALOG FAILED] {dialogEx}\n[ORIGINAL ERROR] {ex}");
         }
         finally
         {

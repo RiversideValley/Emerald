@@ -63,6 +63,7 @@ public partial class Core(
 {
     public const string GamesFolderName = "Instances";
     public MinecraftLauncher Launcher { get; set; }
+    public IGlobalGameSettingsService GlobalGameSettingsService => globalGameSettingsService;
 
     public event EventHandler? VersionsRefreshed;
 
@@ -220,59 +221,77 @@ public partial class Core(
     /// <param name="version">The version of the game to be installed. Must exist in the collection of games.</param>
     /// <param name="showFileprog">Specifies whether to display file progress during installation.</param>
     /// <returns>A task that represents the asynchronous operation of installing the game version.</returns>
-public async Task InstallGame(Game game, bool showFileprog = false)
+    public async Task InstallGame(Game game, bool showFileprog = false)
     {
-        var version = game.Version;
-
         try
         {
-            _logger.LogInformation("Installing game {version}", version.BasedOn);
-
-            if(game == null)
-            {
-                _logger.LogWarning("Game {version} not found", version.BasedOn);
-                throw new NullReferenceException($"Game {version.BasedOn} not found");
-            }
-
-            await game.InstallVersion(
-                isOffline: IsOfflineMode,
-                showFileProgress: showFileprog
-            );
-            
-            SaveGames();
+            await InstallGameOrThrow(game, showFileprog);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning("Failed to install game {version}: {ex}", version.BasedOn, ex.Message);
-            _notify.Error("GameInstallError", ex.Message, ex:ex);
+            _logger.LogWarning("Failed to install game {version}: {ex}", game?.Version.BasedOn, ex.Message);
+            _notify.Error("GameInstallError", ex.Message, ex: ex);
         }
     }
+
+    public async Task InstallGameOrThrow(Game game, bool showFileprog = false)
+    {
+        if (game == null)
+        {
+            throw new ArgumentNullException(nameof(game));
+        }
+
+        var version = game.Version;
+        _logger.LogInformation("Installing game {version}", version.BasedOn);
+
+        await game.InstallVersionOrThrow(
+            isOffline: IsOfflineMode,
+            showFileProgress: showFileprog
+        );
+
+        SaveGames();
+    }
+
+    public Game CreateGame(Versions.Version version, string? folderName = null)
+    {
+        _logger.LogInformation("Adding game {version}", version.BasedOn);
+
+        if (BasePath == null)
+        {
+            throw new InvalidOperationException("Cannot add a game before the base path is initialized.");
+        }
+
+        var resolvedFolderName = string.IsNullOrWhiteSpace(folderName)
+            ? version.DisplayName
+            : folderName.Trim();
+        var path = Path.Combine(BasePath.BasePath, GamesFolderName, resolvedFolderName);
+
+        var game = new Game(new(path), version, globalGameSettingsService: globalGameSettingsService);
+
+        Games.Add(game);
+        try
+        {
+            SaveGames();
+        }
+        catch
+        {
+            Games.Remove(game);
+            throw;
+        }
+
+        _notify.Info(
+            "AddedGame",
+            $"{version.DisplayName} based on {version.BasedOn} {version.Type}"
+        );
+
+        return game;
+    }
+
     public void AddGame(Versions.Version version, string? folderName = null)
     {
         try
         {
-            _logger.LogInformation("Adding game {version}", version.BasedOn);
-
-            if (BasePath == null)
-            {
-                throw new InvalidOperationException("Cannot add a game before the base path is initialized.");
-            }
-
-            var resolvedFolderName = string.IsNullOrWhiteSpace(folderName)
-                ? version.DisplayName
-                : folderName.Trim();
-            var path = Path.Combine(BasePath.BasePath, GamesFolderName, resolvedFolderName);
-
-            var game = new Game(new(path), version, globalGameSettingsService: globalGameSettingsService);
-
-
-            Games.Add(game);
-            SaveGames();
-
-            var not = _notify.Info(
-                "AddedGame",
-                $"{version.DisplayName} based on {version.BasedOn} {version.Type}"
-            );
+            CreateGame(version, folderName);
         }
         catch (Exception ex)
         {

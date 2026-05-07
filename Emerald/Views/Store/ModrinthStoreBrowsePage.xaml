@@ -20,26 +20,20 @@
 
   <Grid Margin="24,0,24,24" ColumnSpacing="16">
     <Grid.ColumnDefinitions>
-      <ColumnDefinition MinWidth="320" MaxWidth="400" />
+      <ColumnDefinition MinWidth="320" MaxWidth="450" />
       <ColumnDefinition />
     </Grid.ColumnDefinitions>
 
-    <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+    <ScrollViewer Padding="0,0,16,0" Grid.Column="0" VerticalScrollBarVisibility="Auto">
       <StackPanel Spacing="12">
-        <cn:SettingsCard
-          Header="Search"
-          Description="Search updates live as you type or change filters."
-          HeaderIcon="{helpers:FontIcon Glyph=&#xE721;}">
-          <StackPanel Spacing="8">
-            <TextBox
+        <Border Padding="16" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+            <AutoSuggestBox
+              BorderThickness="0,0,0,1"
+              Background="Transparent"
+              QueryIcon="{helpers:FontIcon Glyph=&#xE721;}"
               PlaceholderText="Search Modrinth projects..."
               Text="{Binding SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock
-              Opacity="0.72"
-              Style="{StaticResource CaptionTextBlockStyle}"
-              Text="Results refresh automatically." />
-          </StackPanel>
-        </cn:SettingsCard>
+        </Border>
 
         <cn:SettingsExpander
           Header="Context"
@@ -104,7 +98,7 @@
 
     <cn:GridSplitter
       Grid.Column="1"
-      Width="16"
+      Width="12"
       HorizontalAlignment="Left"
       ResizeBehavior="BasedOnAlignment"
       ResizeDirection="Auto" />

@@ -324,6 +324,7 @@ public sealed class GameStoreContentService : IGameStoreContentService
             StoreContentType.DataPack => ["datapack"],
             StoreContentType.Shader => game.Version.Type == GameVersionType.OptiFine ? ["optifine"] : ["vanilla"],
             StoreContentType.Plugin => PluginStrictLoaders,
+            StoreContentType.ModPack => [],
             _ => []
         };
     }
@@ -334,6 +335,7 @@ public sealed class GameStoreContentService : IGameStoreContentService
         {
             GameVersionType.Fabric => ["fabric"],
             GameVersionType.Forge => ["forge"],
+            GameVersionType.NeoForge => ["neoforge"],
             GameVersionType.Quilt => ["quilt"],
             GameVersionType.LiteLoader => ["liteloader"],
             GameVersionType.OptiFine => ["optifine"],
