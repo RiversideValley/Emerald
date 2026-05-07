@@ -16,8 +16,8 @@ Emerald is a cross-platform Minecraft launcher built with Uno Platform and C#.
     <td><img width="560"alt="windows"  src="https://github.com/user-attachments/assets/af406e42-5330-4f03-8ddb-139c0115222f" /></td>
   </tr>
   <tr>
-    <td><img width="560"alt="macos" src="https://github.com/user-attachments/assets/bf4c5eb0-557f-4b63-bbb2-2b97d3a705de" /></td>
-    <td><img width="560"alt="macos" src="https://github.com/user-attachments/assets/3c0d223c-20db-4f0f-bbf1-9bdc11479e4b" /></td>
+    <td><img width="560"alt="macos" src="https://github.com/user-attachments/assets/f11f80ba-69e2-4c0a-90c8-4f57973a9fd3" /></td>
+    <td><img width="560"alt="macos" src="https://github.com/user-attachments/assets/a4422d48-c95e-4923-996c-ba0839b764f2" /></td>
   </tr>
 </table>
 
@@ -30,33 +30,30 @@ Legend: `✅` fully supported, `🟡` partially supported, `❌` not yet support
 |---|---|---|
 | Multi-instance Minecraft profiles | ✅ | Multiple game profiles are persisted and managed. |
 | Custom profile folder names | ✅ | You can add more than one game into the same folder. |
-| Version selection | ✅ | Supports all versions provided by Mojang |
+| Version selection | ✅ | Supports all versions provided by Mojang. |
 | Global Minecraft settings | ✅ | File-backed global settings with autosave behavior. |
 | Per-game settings overrides | ✅ | Profile-level override model is implemented. |
+
 #### Mod Loaders  
 | Capability | Status | Notes |
 |---|---|---|
 | Vanilla | ✅ | Supported in launcher flow. |
 | Fabric | ✅ | Routed via installer pipeline. |
 | Forge | ✅ | Routed via installer pipeline. |
+| NeoForge | ✅ | Routed via installer pipeline. |
 | Quilt | ✅ | Routed via installer pipeline. |
-| OptiFine | 🟡 | Routed via installer pipeline. WIP |
+| OptiFine | 🟡 | Routed via installer pipeline. WIP. |
 | LiteLoader | ✅ | Routed via installer pipeline. |
-#### Runtime Info
-| Capability | Status | Notes |
-|---|---|---|
-| Download Minecraft | ✅ | Downloads through offical Mojang servers, hash check available. |
-| Launch Minecraft | ✅ | --- |
-| Stop / force stop running game | ✅ |---|
-| Runtime session tracking | ✅ | Tracks state, PID, timestamps, and run status. |
-| Live game logs | ✅ | Captures runtime output with a rich UI |
+
 #### Sign-in Methods
 | Capability | Status | Notes |
 |---|---|---|
 | Microsoft account sign-in | ✅ | --- |
 | Offline account support | ✅ | *** |
 | [Ely.by](https://ely.by) account support | ✅ | *** |
-> *** We do not encourage you to use other login methods without having a legal copy of Minecraft
+
+> *** We do not encourage you to use other login methods without having a legal copy of Minecraft.
+
 #### Store Support
 | Capability | Status | Notes |
 |---|---|---|
@@ -65,30 +62,43 @@ Legend: `✅` fully supported, `🟡` partially supported, `❌` not yet support
 | Data Packs | ✅ |---|
 | Resource Packs | ✅ |---|
 | Plugins | ✅ |---|
-| Modspacks | 🟡 |WIP|
-| Modrinth content browsing/details | 🟡 | Present, Does not exactly match/auto download versions |
+| Modpacks | ✅ | Full support for Modrinth .mrpack files. |
+| Modrinth content browsing/details | 🟡 | Present, Does not exactly match/auto download versions. |
 | Modrinth install/remove tracking | 🟡 | Install/remove tracking exists; UX/workflow still evolving. |
 
 ## Releases
 
-Emerald is currently in its cross-platform Uno transition phase.
-
-### Nightly Builds (GitHub Actions)
-
-Nightly preview builds are distributed through GitHub Actions CI artifacts.
-
-1. Open [CI Build & Artifacts](https://github.com/RiversideValley/Emerald/actions/workflows/ci.yml).
-2. Select a recent successful run on `main`.
-3. Download the artifact for your platform:
-   - `Emerald-Windows-Signed-x64-arm64`
-   - `Emerald-macOS-arm64-app`
-   - `Emerald-linux-x64`
+Emerald is available for Windows, macOS, and Linux. 
 
 ### Stable Releases
+You can download the latest stable release from [GitHub Releases](https://github.com/RiversideValley/Emerald/releases). See the Installation instructions below for platform-specific setup.
 
-Stable releases for the new cross-platform version will be available soon.
+### Nightly Builds (GitHub Actions)
+Nightly preview builds are distributed through GitHub Actions CI artifacts.
+1. Open [CI Build & Artifacts](https://github.com/RiversideValley/Emerald/actions/workflows/ci.yml).
+2. Select a recent successful run on `main`.
+3. Download the artifact for your platform.
 
-In the meantime, you can use nightly CI artifacts for the latest changes, or older tagged releases from [GitHub Releases](https://github.com/RiversideValley/Emerald/releases).
+## Installation
+
+### Windows
+Emerald is distributed as a signed MSIX package. If this is your **first time** installing Emerald, you **must** trust the signing certificate:
+1. Download the `.cer` certificate file from the release assets.
+2. Right-click the `.cer` file and select **Install Certificate**.
+3. Choose **Local Machine**, place it in **Trusted People** (If installation didnt work then try **Trusted Root Certification Authorities** ), and confirm.
+4. Once trusted, you can download and run the `.appinstaller` file for automatic updates, or download the offline `.msix`/`.appxbundle` for your specific architecture.
+
+### macOS
+The macOS build is currently **not notarized**. Gatekeeper will block it by default. To run Emerald, you must remove the quarantine attribute for every new binary you download. Open Terminal and run:
+```bash
+xattr -cr /path/to/Emerald.app
+```
+### Linux
+Emerald is distributed as a Snap package (x86_64 and ~~arm64~~). Currently, the .snap file needs to be installed in classic dangerous mode. Run the following command in your terminal:
+Bash
+```
+sudo snap install ./emerald_*.snap --dangerous --classic
+```
 
 ## Building From Source
 
