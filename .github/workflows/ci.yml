@@ -519,7 +519,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          APPIMAGE_FILE="$(find . -maxdepth 2 -name '*.AppImage' -type f | head -n 1)"
+          APPIMAGE_FILE="$(find "$GITHUB_WORKSPACE" -maxdepth 1 -name '*.AppImage' -type f -print -quit)"
           if [ -z "$APPIMAGE_FILE" ]; then
             echo "No AppImage file found after appimage-builder completed"
             exit 1
@@ -617,7 +617,11 @@ jobs:
         run: |
           # Uno places the .snap in the publish output folder; find it regardless
           # of the exact versioned filename that snapcraft generates.
-          SNAP_FILE="$(find . -name '*.snap' -not -path '*/.git/*' -type f | head -n 1)"
+          SNAP_FILE="$(find "$GITHUB_WORKSPACE" \
+            \( -path "$GITHUB_WORKSPACE/.git" \
+              -o -path "$GITHUB_WORKSPACE/AppDir" \
+              -o -path "$GITHUB_WORKSPACE/appimage-build" \) -prune \
+            -o -name '*.snap' -type f -print -quit)"
           if [ -z "$SNAP_FILE" ]; then
             echo "No .snap file found after publish"
             exit 1
