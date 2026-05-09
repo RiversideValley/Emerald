@@ -495,15 +495,24 @@ jobs:
           test -x "$GITHUB_WORKSPACE/AppDir/usr/lib/emerald/Emerald"
           test -x "$GITHUB_WORKSPACE/AppDir/usr/bin/emerald"
           test -f "$GITHUB_WORKSPACE/AppDir/usr/share/applications/emerald.desktop"
+          test -f "$GITHUB_WORKSPACE/AppDir/usr/share/applications/com.riversidevalley.Emerald.desktop"
           test -f "$GITHUB_WORKSPACE/AppDir/usr/share/icons/hicolor/256x256/apps/emerald.png"
 
       - name: Build Linux AppImage
-        uses: AppImageCrafters/build-appimage-action@master
+        shell: bash
         env:
           EMERALD_PACKAGE_VERSION: ${{ needs.ci-filter.outputs.package_version }}
           EMERALD_APPIMAGE_NAME: Emerald-linux-x86_64.AppImage
-        with:
-          recipe: scripts/linux/AppImageBuilder.x64.yml
+        run: |
+          set -euo pipefail
+
+          docker run --rm \
+            -e "EMERALD_PACKAGE_VERSION=$EMERALD_PACKAGE_VERSION" \
+            -e "EMERALD_APPIMAGE_NAME=$EMERALD_APPIMAGE_NAME" \
+            -v "$GITHUB_WORKSPACE:/github/workspace" \
+            -w /github/workspace \
+            appimagecrafters/appimage-builder:1.1.0 \
+            bash -lc 'apt-get update && apt-get install -y squashfs-tools && appimage-builder --recipe=scripts/linux/AppImageBuilder.x64.yml --skip-test'
 
       - name: Stage and validate Linux AppImage
         shell: bash

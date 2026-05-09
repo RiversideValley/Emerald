@@ -81,6 +81,7 @@ fi
 install -dm755 "$APPDIR/usr/lib/emerald" "$APPDIR/usr/bin" "$APPDIR/usr/share/applications" "$APPDIR/usr/share/icons/hicolor/256x256/apps"
 cp -a "$PUBLISH_DIR/." "$APPDIR/usr/lib/emerald/"
 install -m644 "$INSTALL_ROOT/usr/share/applications/emerald.desktop" "$APPDIR/usr/share/applications/emerald.desktop"
+install -m644 "$INSTALL_ROOT/usr/share/applications/emerald.desktop" "$APPDIR/usr/share/applications/com.riversidevalley.Emerald.desktop"
 install -m644 "$INSTALL_ROOT/usr/share/icons/hicolor/256x256/apps/emerald.png" "$APPDIR/usr/share/icons/hicolor/256x256/apps/emerald.png"
 
 cat > "$APPDIR/usr/bin/emerald" <<'EOF'
