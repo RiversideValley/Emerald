@@ -11,6 +11,7 @@ using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Services;
+using Emerald.CoreX.Store;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.ApplicationModel.DataTransfer;
@@ -24,8 +25,12 @@ public sealed partial class MinecraftSettingsUC : UserControl
 {
     private bool _isUpdatingOverrideControls;
     private bool _isSyncingCustomJavaToggle;
+    private bool _isInitializingSharedStoreLinkMode;
+    private bool _isHandlingSharedStoreMigration;
     private CancellationTokenSource? _javaRefreshCts;
     private GameSettings? _subscribedGameSettings;
+    private SharedStoreLinkModeOption? _selectedSharedStoreLinkModeOption;
+    private readonly Dictionary<string, bool> _sharedStoreToggleSnapshot = new(StringComparer.Ordinal);
 
     public bool ShowMainSettings
     {
@@ -57,6 +62,42 @@ public sealed partial class MinecraftSettingsUC : UserControl
     public Services.SettingsService SS { get; }
 
     public ObservableCollection<JavaRuntimeOptionViewModel> JavaRuntimeOptions { get; } = new();
+
+    public ObservableCollection<SharedStoreLinkModeOption> SharedStoreLinkModeOptions { get; } = new();
+
+    public bool IsWindowsLinkModeVisible => OperatingSystem.IsWindows();
+
+    public SharedStoreLinkModeOption? SelectedSharedStoreLinkModeOption
+    {
+        get => _selectedSharedStoreLinkModeOption;
+        set
+        {
+            if (ReferenceEquals(_selectedSharedStoreLinkModeOption, value))
+            {
+                return;
+            }
+
+            _selectedSharedStoreLinkModeOption = value;
+            if (_isInitializingSharedStoreLinkMode || value == null)
+            {
+                return;
+            }
+
+            var settingsService = Ioc.Default.GetService<IStoreSharedContentSettingsService>();
+            if (settingsService == null)
+            {
+                return;
+            }
+
+            settingsService.Settings.WindowsLinkMode = value.Value;
+            settingsService.Save();
+
+            if (OperatingSystem.IsWindows() && value.Value == StoreLinkMode.SymbolicLink)
+            {
+                _ = ShowWindowsSymlinkWarningAsync();
+            }
+        }
+    }
 
     public bool IsRefreshingJavaPaths { get; private set; }
 
@@ -129,9 +170,45 @@ public sealed partial class MinecraftSettingsUC : UserControl
     {
         InitializeComponent();
         SS = Ioc.Default.GetService<Services.SettingsService>();
+        InitializeSharedStoreLinkModeOptions();
         Loaded += MinecraftSettingsUC_Loaded;
         Unloaded += MinecraftSettingsUC_Unloaded;
         UpdateOverrideState();
+    }
+
+    private void InitializeSharedStoreLinkModeOptions()
+    {
+        SharedStoreLinkModeOptions.Clear();
+        SharedStoreLinkModeOptions.Add(new SharedStoreLinkModeOption(StoreLinkMode.HardLink, "Hard link"));
+        SharedStoreLinkModeOptions.Add(new SharedStoreLinkModeOption(StoreLinkMode.SymbolicLink, "Symbolic link"));
+        SharedStoreLinkModeOptions.Add(new SharedStoreLinkModeOption(StoreLinkMode.Copy, "Copy"));
+
+        var settingsService = Ioc.Default.GetService<IStoreSharedContentSettingsService>();
+        var selectedMode = settingsService?.Settings.WindowsLinkMode ?? StoreLinkMode.HardLink;
+
+        _isInitializingSharedStoreLinkMode = true;
+        SelectedSharedStoreLinkModeOption = SharedStoreLinkModeOptions.FirstOrDefault(option => option.Value == selectedMode)
+                                            ?? SharedStoreLinkModeOptions.FirstOrDefault();
+        _isInitializingSharedStoreLinkMode = false;
+    }
+
+    private async Task ShowWindowsSymlinkWarningAsync()
+    {
+        if (XamlRoot == null)
+        {
+            return;
+        }
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = "Windows symbolic links",
+            Content = "Symbolic links may require Developer Mode or administrator permission on Windows. If linking fails, Emerald will fall back to copying the file.",
+            CloseButtonText = "OK",
+            DefaultButton = ContentDialogButton.Close
+        };
+
+        await dialog.ShowAsync();
     }
 
     private async Task PickMinecraftFolderAsync()
@@ -243,6 +320,7 @@ public sealed partial class MinecraftSettingsUC : UserControl
             newSettings.PropertyChanged += GameSettings_PropertyChanged;
         }
 
+        CaptureSharedStoreToggleSnapshot(newSettings);
         UpdateJavaSelectionState();
         Bindings.Update();
     }
@@ -527,6 +605,215 @@ public sealed partial class MinecraftSettingsUC : UserControl
         Bindings.Update();
     }
 
+    private void CaptureSharedStoreToggleSnapshot(GameSettings? settings)
+    {
+        _sharedStoreToggleSnapshot.Clear();
+        if (settings == null)
+        {
+            return;
+        }
+
+        foreach (var propertyName in SharedStoreToggleProperties)
+        {
+            _sharedStoreToggleSnapshot[propertyName] = GetSharedStoreToggleValue(settings, propertyName);
+        }
+    }
+
+    private static readonly string[] SharedStoreToggleProperties =
+    [
+        nameof(GameSettings.UseSharedStoreModsPath),
+        nameof(GameSettings.UseSharedStoreResourcePacksPath),
+        nameof(GameSettings.UseSharedStoreDataPacksPath),
+        nameof(GameSettings.UseSharedStoreShaderPacksPath),
+        nameof(GameSettings.UseSharedStorePluginsPath)
+    ];
+
+    private static bool IsSharedStoreToggleProperty(string? propertyName)
+        => propertyName != null && SharedStoreToggleProperties.Contains(propertyName);
+
+    private static bool GetSharedStoreToggleValue(GameSettings settings, string propertyName)
+        => propertyName switch
+        {
+            nameof(GameSettings.UseSharedStoreModsPath) => settings.UseSharedStoreModsPath,
+            nameof(GameSettings.UseSharedStoreResourcePacksPath) => settings.UseSharedStoreResourcePacksPath,
+            nameof(GameSettings.UseSharedStoreDataPacksPath) => settings.UseSharedStoreDataPacksPath,
+            nameof(GameSettings.UseSharedStoreShaderPacksPath) => settings.UseSharedStoreShaderPacksPath,
+            nameof(GameSettings.UseSharedStorePluginsPath) => settings.UseSharedStorePluginsPath,
+            _ => false
+        };
+
+    private static (StoreContentType ContentType, string InstallFolderName, string DisplayName) ResolveSharedStoreToggle(string propertyName)
+        => propertyName switch
+        {
+            nameof(GameSettings.UseSharedStoreModsPath) => (StoreContentType.Mod, "mods", "mods"),
+            nameof(GameSettings.UseSharedStoreResourcePacksPath) => (StoreContentType.ResourcePack, "resourcepacks", "resource packs"),
+            nameof(GameSettings.UseSharedStoreDataPacksPath) => (StoreContentType.DataPack, "datapacks", "data packs"),
+            nameof(GameSettings.UseSharedStoreShaderPacksPath) => (StoreContentType.Shader, "shaderpacks", "shader packs"),
+            nameof(GameSettings.UseSharedStorePluginsPath) => (StoreContentType.Plugin, "plugins", "plugins"),
+            _ => throw new ArgumentOutOfRangeException(nameof(propertyName), propertyName, null)
+        };
+
+    private async Task HandleSharedStoreToggleMigrationAsync(string propertyName, bool enabled)
+    {
+        if (_isHandlingSharedStoreMigration)
+        {
+            return;
+        }
+
+        var sharedContentService = Ioc.Default.GetService<IStoreSharedContentService>();
+        var core = Ioc.Default.GetService<CoreX.Core>();
+        if (sharedContentService == null || core == null)
+        {
+            return;
+        }
+
+        var affectedGames = GetAffectedSharedStoreGames(core).ToArray();
+        if (affectedGames.Length == 0)
+        {
+            return;
+        }
+
+        var (contentType, installFolderName, displayName) = ResolveSharedStoreToggle(propertyName);
+        var plans = new List<StoreSharedContentMigrationPlan>();
+        foreach (var game in affectedGames)
+        {
+            plans.Add(await sharedContentService.CreateMigrationPlanAsync(
+                game,
+                contentType,
+                enabled,
+                installFolderName));
+        }
+
+        var summary = sharedContentService.SummarizeMigrationPlans(plans);
+        if (!summary.HasWork)
+        {
+            return;
+        }
+
+        _isHandlingSharedStoreMigration = true;
+        try
+        {
+            var action = enabled
+                ? await ShowEnableSharedStoreMigrationDialogAsync(displayName, summary)
+                : await ShowDisableSharedStoreMigrationDialogAsync(displayName, summary);
+
+            foreach (var plan in plans)
+            {
+                await sharedContentService.ApplyMigrationAsync(plan, action);
+            }
+
+            Ioc.Default.GetService<CoreX.Core>()?.SaveGames();
+        }
+        finally
+        {
+            _isHandlingSharedStoreMigration = false;
+        }
+    }
+
+    private IEnumerable<Game> GetAffectedSharedStoreGames(CoreX.Core core)
+    {
+        if (!ShowMainSettings && Game != null)
+        {
+            yield return Game;
+            yield break;
+        }
+
+        foreach (var game in core.Games.Where(game => !game.UsesCustomGameSettings))
+        {
+            yield return game;
+        }
+    }
+
+    private async Task<StoreSharedContentMigrationAction> ShowEnableSharedStoreMigrationDialogAsync(
+        string displayName,
+        StoreSharedContentMigrationSummary summary)
+    {
+        if (XamlRoot == null)
+        {
+            return StoreSharedContentMigrationAction.OnlyFutureInstalls;
+        }
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = $"Enable shared {displayName}?",
+            Content = BuildMigrationSummaryText(summary),
+            PrimaryButtonText = "Convert tracked files",
+            SecondaryButtonText = "Convert all compatible files",
+            CloseButtonText = "Only future installs",
+            DefaultButton = ContentDialogButton.Close
+        };
+
+        var result = await dialog.ShowAsync();
+        return result switch
+        {
+            ContentDialogResult.Primary => StoreSharedContentMigrationAction.ConvertTrackedFiles,
+            ContentDialogResult.Secondary => StoreSharedContentMigrationAction.ConvertAllCompatibleFiles,
+            _ => StoreSharedContentMigrationAction.OnlyFutureInstalls
+        };
+    }
+
+    private async Task<StoreSharedContentMigrationAction> ShowDisableSharedStoreMigrationDialogAsync(
+        string displayName,
+        StoreSharedContentMigrationSummary summary)
+    {
+        if (XamlRoot == null)
+        {
+            return StoreSharedContentMigrationAction.LeaveExistingLinks;
+        }
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = $"Disable shared {displayName}?",
+            Content = BuildMigrationSummaryText(summary),
+            PrimaryButtonText = "Materialize files",
+            SecondaryButtonText = "Remove shared installs",
+            CloseButtonText = "Leave existing links",
+            DefaultButton = ContentDialogButton.Close
+        };
+
+        var result = await dialog.ShowAsync();
+        return result switch
+        {
+            ContentDialogResult.Primary => StoreSharedContentMigrationAction.MaterializeFiles,
+            ContentDialogResult.Secondary => StoreSharedContentMigrationAction.RemoveSharedInstalls,
+            _ => StoreSharedContentMigrationAction.LeaveExistingLinks
+        };
+    }
+
+    private static string BuildMigrationSummaryText(StoreSharedContentMigrationSummary summary)
+    {
+        var lines = new List<string>();
+        if (summary.TrackedConvertibleCount > 0)
+        {
+            lines.Add($"{summary.TrackedConvertibleCount} tracked file(s) can be converted safely.");
+        }
+
+        if (summary.SharedInstallCount > 0)
+        {
+            lines.Add($"{summary.SharedInstallCount} shared install(s) already exist.");
+        }
+
+        if (summary.UntrackedFileCount > 0)
+        {
+            lines.Add($"{summary.UntrackedFileCount} untracked/manual file(s) were found.");
+        }
+
+        if (summary.HashMismatchCount > 0)
+        {
+            lines.Add($"{summary.HashMismatchCount} tracked file(s) appear modified or lack a usable Modrinth hash.");
+        }
+
+        if (summary.BrokenOrMissingCount > 0)
+        {
+            lines.Add($"{summary.BrokenOrMissingCount} broken or missing shared file(s) need repair.");
+        }
+
+        lines.Add("Emerald will not change untracked, modified, or broken files unless you choose an option that includes them.");
+        return string.Join(Environment.NewLine, lines);
+    }
+
     private void GameSettings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(CoreX.Models.GameSettings.MaximumRamMb))
@@ -538,6 +825,28 @@ public sealed partial class MinecraftSettingsUC : UserControl
         if (e.PropertyName == nameof(GameSettings.SharedMinecraftFoldersStatus))
         {
             Bindings.Update();
+            return;
+        }
+
+        if (e.PropertyName == nameof(GameSettings.SharedStoreFoldersStatus))
+        {
+            Bindings.Update();
+            return;
+        }
+
+        if (IsSharedStoreToggleProperty(e.PropertyName) && GameSettings != null)
+        {
+            var propertyName = e.PropertyName!;
+            var newValue = GetSharedStoreToggleValue(GameSettings, propertyName);
+            var hadOldValue = _sharedStoreToggleSnapshot.TryGetValue(propertyName, out var oldValue);
+            _sharedStoreToggleSnapshot[propertyName] = newValue;
+            Bindings.Update();
+
+            if (hadOldValue && oldValue != newValue)
+            {
+                _ = HandleSharedStoreToggleMigrationAsync(propertyName, newValue);
+            }
+
             return;
         }
 
@@ -608,4 +917,11 @@ public sealed partial class MinecraftSettingsUC : UserControl
             SS.Settings.Minecraft.SavedJavaPaths.Remove(match);
         }
     }
+}
+
+public sealed class SharedStoreLinkModeOption(StoreLinkMode value, string displayName)
+{
+    public StoreLinkMode Value { get; } = value;
+
+    public string DisplayName { get; } = displayName;
 }

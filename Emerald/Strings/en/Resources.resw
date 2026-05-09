@@ -384,6 +384,63 @@
   <data name="GodFoldersVersionsShort" xml:space="preserve">
     <value>Versions</value>
   </data>
+  <data name="StoreGodFolders" xml:space="preserve">
+    <value>Modrinth God folders</value>
+  </data>
+  <data name="StoreGodFoldersDescription" xml:space="preserve">
+    <value>Share selected Modrinth content folders through the main Minecraft path.</value>
+  </data>
+  <data name="StoreGodFoldersMods" xml:space="preserve">
+    <value>Mods folder</value>
+  </data>
+  <data name="StoreGodFoldersModsDescription" xml:space="preserve">
+    <value>Cache Modrinth mods by hash and link them into instances.</value>
+  </data>
+  <data name="StoreGodFoldersModsShort" xml:space="preserve">
+    <value>Mods</value>
+  </data>
+  <data name="StoreGodFoldersResourcePacks" xml:space="preserve">
+    <value>Resource packs folder</value>
+  </data>
+  <data name="StoreGodFoldersResourcePacksDescription" xml:space="preserve">
+    <value>Cache Modrinth resource packs by hash and link them into instances.</value>
+  </data>
+  <data name="StoreGodFoldersResourcePacksShort" xml:space="preserve">
+    <value>Resource packs</value>
+  </data>
+  <data name="StoreGodFoldersDataPacks" xml:space="preserve">
+    <value>Data packs folder</value>
+  </data>
+  <data name="StoreGodFoldersDataPacksDescription" xml:space="preserve">
+    <value>Cache Modrinth data packs by hash and link them into instances.</value>
+  </data>
+  <data name="StoreGodFoldersDataPacksShort" xml:space="preserve">
+    <value>Data packs</value>
+  </data>
+  <data name="StoreGodFoldersShaderPacks" xml:space="preserve">
+    <value>Shader packs folder</value>
+  </data>
+  <data name="StoreGodFoldersShaderPacksDescription" xml:space="preserve">
+    <value>Cache Modrinth shaders by hash and link them into instances.</value>
+  </data>
+  <data name="StoreGodFoldersShaderPacksShort" xml:space="preserve">
+    <value>Shaders</value>
+  </data>
+  <data name="StoreGodFoldersPlugins" xml:space="preserve">
+    <value>Plugins folder</value>
+  </data>
+  <data name="StoreGodFoldersPluginsDescription" xml:space="preserve">
+    <value>Cache Modrinth plugins by hash and link them into instances.</value>
+  </data>
+  <data name="StoreGodFoldersPluginsShort" xml:space="preserve">
+    <value>Plugins</value>
+  </data>
+  <data name="StoreGodFoldersWindowsLinkMode" xml:space="preserve">
+    <value>Windows link mode</value>
+  </data>
+  <data name="StoreGodFoldersWindowsLinkModeDescription" xml:space="preserve">
+    <value>Choose how shared Modrinth files are placed into instances on Windows.</value>
+  </data>
   <data name="Duplicate" xml:space="preserve">
     <value>Duplicate</value>
   </data>

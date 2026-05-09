@@ -13,6 +13,7 @@ using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
 using Emerald.CoreX.Services;
+using Emerald.CoreX.Store;
 using Emerald.CoreX.Store.Modrinth.JSON;
 using Emerald.CoreX.Tests.Support;
 using Emerald.Services;
@@ -145,6 +146,78 @@ public sealed class MrPackTests
         Assert.Equal("client", await File.ReadAllTextAsync(Path.Combine(instancePath, "config", "app.cfg")));
         Assert.False(File.Exists(Path.Combine(instancePath, "config", "server.cfg")));
         Assert.DoesNotContain(handler.Requests, uri => uri.ToString().EndsWith("server.jar", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task InstallAsync_UsesSharedCacheForSupportedContentFolders_AndCopiesOverrides()
+    {
+        using var temp = new TemporaryDirectory();
+        var modBytes = Encoding.UTF8.GetBytes("mod");
+        var shaderBytes = Encoding.UTF8.GetBytes("shader");
+        var manifest = CreateManifest(files:
+        [
+            CreateFile("mods/shared.jar", "https://example.test/shared.jar", modBytes, "required"),
+            CreateFile("shaderpacks/shared.zip", "https://example.test/shared-shader.zip", shaderBytes, "required")
+        ]);
+        var path = WriteMrPack(temp.Path, CreateMrPackBytes(manifest, new Dictionary<string, string>
+        {
+            ["overrides/config/app.cfg"] = "override"
+        }));
+        var handler = new TestHttpMessageHandler(request =>
+        {
+            var url = request.RequestUri!.ToString();
+            if (url.EndsWith("shared.jar", StringComparison.Ordinal))
+            {
+                return Bytes(modBytes);
+            }
+
+            if (url.EndsWith("shared-shader.zip", StringComparison.Ordinal))
+            {
+                return Bytes(shaderBytes);
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.NotFound);
+        });
+        var settings = new InMemoryBaseSettingsService();
+        var sharedSettings = new StoreSharedContentSettingsService(
+            settings,
+            NullLogger<StoreSharedContentSettingsService>.Instance);
+        sharedSettings.Settings.UnixLinkMode = StoreLinkMode.Copy;
+        sharedSettings.Settings.WindowsLinkMode = StoreLinkMode.Copy;
+        var sharedContent = new StoreSharedContentService(
+            settings,
+            new FakeStoreFileLinkService(),
+            sharedSettings,
+            NullLogger<StoreSharedContentService>.Instance);
+        var installer = new MrPackFileInstaller(
+            new MrPackReader(),
+            settings,
+            sharedContent,
+            NullLogger<MrPackFileInstaller>.Instance,
+            new HttpClient(handler));
+        var globalSettings = new TestGlobalGameSettingsService();
+        globalSettings.Settings.UseSharedStoreModsPath = true;
+        globalSettings.Settings.UseSharedStoreShaderPacksPath = true;
+        var instancePath = Path.Combine(temp.Path, "instance");
+        var game = new Game(
+            new MinecraftPath(instancePath),
+            new Versions.Version
+            {
+                DisplayName = "Pack",
+                BasedOn = "1.21.4",
+                ReleaseType = "modpack"
+            },
+            sharedMinecraftBasePath: temp.Path,
+            globalGameSettingsService: globalSettings);
+
+        await installer.InstallAsync(path, instancePath, game, temp.Path);
+
+        Assert.Equal("mod", await File.ReadAllTextAsync(Path.Combine(instancePath, "mods", "shared.jar")));
+        Assert.Equal("shader", await File.ReadAllTextAsync(Path.Combine(instancePath, "shaderpacks", "shared.zip")));
+        Assert.Equal("override", await File.ReadAllTextAsync(Path.Combine(instancePath, "config", "app.cfg")));
+        Assert.True(File.Exists(Path.Combine(temp.Path, "mods", $"{CreateHashes(modBytes)["sha1"]}.jar")));
+        Assert.True(File.Exists(Path.Combine(temp.Path, "shaderpacks", $"{CreateHashes(shaderBytes)["sha1"]}.zip")));
+        Assert.Equal(2, settings.Peek<StoreInstallRecord[]>(SettingsKeys.StoreInstalledItems)?.Length ?? 0);
     }
 
     [Fact]
@@ -311,10 +384,25 @@ public sealed class MrPackTests
     }
 
     private static MrPackFileInstaller CreateFileInstaller(TestHttpMessageHandler handler)
-        => new(
+    {
+        var settings = new InMemoryBaseSettingsService();
+        var sharedSettings = new StoreSharedContentSettingsService(
+            settings,
+            NullLogger<StoreSharedContentSettingsService>.Instance);
+        sharedSettings.Settings.UnixLinkMode = StoreLinkMode.Copy;
+        sharedSettings.Settings.WindowsLinkMode = StoreLinkMode.Copy;
+
+        return new MrPackFileInstaller(
             new MrPackReader(),
+            settings,
+            new StoreSharedContentService(
+                settings,
+                new FakeStoreFileLinkService(),
+                sharedSettings,
+                NullLogger<StoreSharedContentService>.Instance),
             NullLogger<MrPackFileInstaller>.Instance,
             new HttpClient(handler));
+    }
 
     private static TestCreationService CreateCreationService(
         string basePath,
@@ -494,6 +582,9 @@ public sealed class MrPackTests
         public async Task InstallAsync(
             string mrPackPath,
             string instancePath,
+            Game? game = null,
+            string? sharedBasePath = null,
+            string? recordGamePath = null,
             IProgress<double>? progress = null,
             CancellationToken cancellationToken = default)
         {
@@ -506,6 +597,25 @@ public sealed class MrPackTests
                 throw new InvalidOperationException("file install failed");
             }
         }
+    }
+
+    private sealed class FakeStoreFileLinkService : IStoreFileLinkService
+    {
+        public StoreLinkCreationResult CreateLinkOrCopy(string sourcePath, string targetPath, StoreLinkMode preferredMode)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
+            File.Copy(sourcePath, targetPath, overwrite: true);
+            return new StoreLinkCreationResult { LinkKind = StoreLinkKind.Copy };
+        }
+
+        public StoreLinkCreationResult ReplaceWithLinkOrCopy(string sourcePath, string targetPath, StoreLinkMode preferredMode)
+            => CreateLinkOrCopy(sourcePath, targetPath, preferredMode);
+
+        public bool AreOnSameRoot(string sourcePath, string targetPath) => true;
+
+        public bool IsSymbolicLink(string path) => false;
+
+        public string? GetSymbolicLinkTarget(string path) => null;
     }
 
     private sealed class TestHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> responseFactory)

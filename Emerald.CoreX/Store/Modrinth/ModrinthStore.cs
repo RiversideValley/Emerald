@@ -233,6 +233,13 @@ public abstract class ModrinthStore : IModrinthStore
         IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
         var filePath = Path.Combine(MCPath.BasePath, _installFolderName, file.Filename);
-        await _fileDownloader.DownloadFileAsync(file.Url, filePath, file.Hashes, progress, cancellationToken);
+        await DownloadItemToPathAsync(file, filePath, progress, cancellationToken);
     }
+
+    public virtual Task DownloadItemToPathAsync(
+        ItemFile file,
+        string filePath,
+        IProgress<double>? progress = null,
+        CancellationToken cancellationToken = default)
+        => _fileDownloader.DownloadFileAsync(file.Url, filePath, file.Hashes, progress, cancellationToken);
 }

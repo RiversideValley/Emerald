@@ -165,6 +165,9 @@ Notes
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ShaderStore>());
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<DataPackStore>());
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ModPackStore>());
+        services.AddSingleton<IStoreFileLinkService, StoreFileLinkService>();
+        services.AddSingleton<IStoreSharedContentSettingsService, StoreSharedContentSettingsService>();
+        services.AddSingleton<IStoreSharedContentService, StoreSharedContentService>();
         services.AddTransient<IGameStoreContentService, GameStoreContentService>();
         services.AddTransient<CoreX.Modpacks.IMrPackReader, CoreX.Modpacks.MrPackReader>();
         services.AddTransient<CoreX.Modpacks.IMrPackFileInstaller, CoreX.Modpacks.MrPackFileInstaller>();

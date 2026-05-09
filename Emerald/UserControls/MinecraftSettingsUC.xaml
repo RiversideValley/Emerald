@@ -113,6 +113,66 @@
           </cn:SettingsExpander.Items>
         </cn:SettingsExpander>
         <cn:SettingsExpander
+          Header="{helpers:Localize KeyName=StoreGodFolders}"
+          Description="{helpers:Localize KeyName=StoreGodFoldersDescription}"
+          HeaderIcon="{helpers:FontIcon Glyph=}">
+          <cn:SettingsExpander.Content>
+            <TextBlock
+              Text="{x:Bind GameSettings.SharedStoreFoldersStatus, Mode=OneWay}" />
+          </cn:SettingsExpander.Content>
+          <cn:SettingsExpander.Items>
+            <cn:SettingsCard
+              Header="{helpers:Localize KeyName=StoreGodFoldersMods}"
+              Description="{helpers:Localize KeyName=StoreGodFoldersModsDescription}">
+              <ToggleSwitch
+                IsOn="{x:Bind GameSettings.UseSharedStoreModsPath, Mode=TwoWay}"
+                OffContent="{helpers:Localize KeyName=No}"
+                OnContent="{helpers:Localize KeyName=Yes}" />
+            </cn:SettingsCard>
+            <cn:SettingsCard
+              Header="{helpers:Localize KeyName=StoreGodFoldersResourcePacks}"
+              Description="{helpers:Localize KeyName=StoreGodFoldersResourcePacksDescription}">
+              <ToggleSwitch
+                IsOn="{x:Bind GameSettings.UseSharedStoreResourcePacksPath, Mode=TwoWay}"
+                OffContent="{helpers:Localize KeyName=No}"
+                OnContent="{helpers:Localize KeyName=Yes}" />
+            </cn:SettingsCard>
+            <cn:SettingsCard
+              Header="{helpers:Localize KeyName=StoreGodFoldersDataPacks}"
+              Description="{helpers:Localize KeyName=StoreGodFoldersDataPacksDescription}">
+              <ToggleSwitch
+                IsOn="{x:Bind GameSettings.UseSharedStoreDataPacksPath, Mode=TwoWay}"
+                OffContent="{helpers:Localize KeyName=No}"
+                OnContent="{helpers:Localize KeyName=Yes}" />
+            </cn:SettingsCard>
+            <cn:SettingsCard
+              Header="{helpers:Localize KeyName=StoreGodFoldersShaderPacks}"
+              Description="{helpers:Localize KeyName=StoreGodFoldersShaderPacksDescription}">
+              <ToggleSwitch
+                IsOn="{x:Bind GameSettings.UseSharedStoreShaderPacksPath, Mode=TwoWay}"
+                OffContent="{helpers:Localize KeyName=No}"
+                OnContent="{helpers:Localize KeyName=Yes}" />
+            </cn:SettingsCard>
+            <cn:SettingsCard
+              Header="{helpers:Localize KeyName=StoreGodFoldersPlugins}"
+              Description="{helpers:Localize KeyName=StoreGodFoldersPluginsDescription}">
+              <ToggleSwitch
+                IsOn="{x:Bind GameSettings.UseSharedStorePluginsPath, Mode=TwoWay}"
+                OffContent="{helpers:Localize KeyName=No}"
+                OnContent="{helpers:Localize KeyName=Yes}" />
+            </cn:SettingsCard>
+            <cn:SettingsCard
+              Header="{helpers:Localize KeyName=StoreGodFoldersWindowsLinkMode}"
+              Description="{helpers:Localize KeyName=StoreGodFoldersWindowsLinkModeDescription}"
+              Visibility="{x:Bind IsWindowsLinkModeVisible, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+              <ComboBox
+                DisplayMemberPath="DisplayName"
+                ItemsSource="{x:Bind SharedStoreLinkModeOptions}"
+                SelectedItem="{x:Bind SelectedSharedStoreLinkModeOption, Mode=TwoWay}" />
+            </cn:SettingsCard>
+          </cn:SettingsExpander.Items>
+        </cn:SettingsExpander>
+        <cn:SettingsExpander
           HeaderIcon="{helpers:FontIcon Glyph=}"
           Header="{helpers:Localize KeyName=RAM}"
           Description="{helpers:Localize KeyName=RAMDescription}">

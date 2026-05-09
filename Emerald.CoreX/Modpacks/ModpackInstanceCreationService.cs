@@ -178,7 +178,14 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
                 progress?.Report(scaled);
                 _notificationService.Update(notification.Id, progress: scaled);
             });
-            await _fileInstaller.InstallAsync(probe.MrPackPath, stagingGame.Path.BasePath, fileProgress, cancellationToken);
+            await _fileInstaller.InstallAsync(
+                probe.MrPackPath,
+                stagingGame.Path.BasePath,
+                stagingGame,
+                _core.BasePath.BasePath,
+                finalPath,
+                fileProgress,
+                cancellationToken);
 
             _notificationService.Update(notification.Id, message: "Finalizing instance...", progress: 96);
             Directory.Move(stagingPath, finalPath);

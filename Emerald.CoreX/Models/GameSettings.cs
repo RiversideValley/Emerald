@@ -11,6 +11,7 @@ using Emerald.CoreX.Helpers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Runtime.Serialization;
 using System.Collections.Specialized;
+using Emerald.CoreX.Store;
 namespace Emerald.CoreX.Models;
 public partial class GameSettings : ObservableObject
 {
@@ -96,6 +97,31 @@ public partial class GameSettings : ObservableObject
     [NotifyPropertyChangedFor(nameof(SharedMinecraftFoldersStatus))]
     [ObservableProperty]
     private bool _useSharedVersionsPath;
+
+    [NotifyPropertyChangedFor(nameof(UsesSharedStoreFolders))]
+    [NotifyPropertyChangedFor(nameof(SharedStoreFoldersStatus))]
+    [ObservableProperty]
+    private bool _useSharedStoreModsPath;
+
+    [NotifyPropertyChangedFor(nameof(UsesSharedStoreFolders))]
+    [NotifyPropertyChangedFor(nameof(SharedStoreFoldersStatus))]
+    [ObservableProperty]
+    private bool _useSharedStoreResourcePacksPath;
+
+    [NotifyPropertyChangedFor(nameof(UsesSharedStoreFolders))]
+    [NotifyPropertyChangedFor(nameof(SharedStoreFoldersStatus))]
+    [ObservableProperty]
+    private bool _useSharedStoreDataPacksPath;
+
+    [NotifyPropertyChangedFor(nameof(UsesSharedStoreFolders))]
+    [NotifyPropertyChangedFor(nameof(SharedStoreFoldersStatus))]
+    [ObservableProperty]
+    private bool _useSharedStoreShaderPacksPath;
+
+    [NotifyPropertyChangedFor(nameof(UsesSharedStoreFolders))]
+    [NotifyPropertyChangedFor(nameof(SharedStoreFoldersStatus))]
+    [ObservableProperty]
+    private bool _useSharedStorePluginsPath;
     
     public ObservableCollection<string> JVMArgs { get; set; } = new();
 
@@ -144,6 +170,65 @@ public partial class GameSettings : ObservableObject
             return string.Join(", ", folders);
         }
     }
+
+    [JsonIgnore]
+    public bool UsesSharedStoreFolders
+        => UseSharedStoreModsPath
+           || UseSharedStoreResourcePacksPath
+           || UseSharedStoreDataPacksPath
+           || UseSharedStoreShaderPacksPath
+           || UseSharedStorePluginsPath;
+
+    [JsonIgnore]
+    public string SharedStoreFoldersStatus
+    {
+        get
+        {
+            if (!UsesSharedStoreFolders)
+            {
+                return "GodFoldersOffStatus".Localize();
+            }
+
+            var folders = new List<string>();
+            if (UseSharedStoreModsPath)
+            {
+                folders.Add("StoreGodFoldersModsShort".Localize());
+            }
+
+            if (UseSharedStoreResourcePacksPath)
+            {
+                folders.Add("StoreGodFoldersResourcePacksShort".Localize());
+            }
+
+            if (UseSharedStoreDataPacksPath)
+            {
+                folders.Add("StoreGodFoldersDataPacksShort".Localize());
+            }
+
+            if (UseSharedStoreShaderPacksPath)
+            {
+                folders.Add("StoreGodFoldersShaderPacksShort".Localize());
+            }
+
+            if (UseSharedStorePluginsPath)
+            {
+                folders.Add("StoreGodFoldersPluginsShort".Localize());
+            }
+
+            return string.Join(", ", folders);
+        }
+    }
+
+    public bool IsSharedStoreContentEnabled(StoreContentType contentType)
+        => contentType switch
+        {
+            StoreContentType.Mod => UseSharedStoreModsPath,
+            StoreContentType.ResourcePack => UseSharedStoreResourcePacksPath,
+            StoreContentType.DataPack => UseSharedStoreDataPacksPath,
+            StoreContentType.Shader => UseSharedStoreShaderPacksPath,
+            StoreContentType.Plugin => UseSharedStorePluginsPath,
+            _ => false
+        };
 
     public MLaunchOption ToMLaunchOption()
     {
@@ -225,7 +310,12 @@ public partial class GameSettings : ObservableObject
             UseSharedAssetsPath = UseSharedAssetsPath,
             UseSharedLibrariesPath = UseSharedLibrariesPath,
             UseSharedRuntimePath = UseSharedRuntimePath,
-            UseSharedVersionsPath = UseSharedVersionsPath
+            UseSharedVersionsPath = UseSharedVersionsPath,
+            UseSharedStoreModsPath = UseSharedStoreModsPath,
+            UseSharedStoreResourcePacksPath = UseSharedStoreResourcePacksPath,
+            UseSharedStoreDataPacksPath = UseSharedStoreDataPacksPath,
+            UseSharedStoreShaderPacksPath = UseSharedStoreShaderPacksPath,
+            UseSharedStorePluginsPath = UseSharedStorePluginsPath
         };
 
         foreach (var arg in JVMArgs)

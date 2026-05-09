@@ -15,4 +15,6 @@ public static class SettingsKeys
     public const string SelectedMinecraftAccount = "SelectedMinecraftAccount";
     public const string ElyByAccounts = "ElyByAccounts";
     public const string StoreInstalledItems = "StoreInstalledItems";
+    public const string StoreSharedContentManifest = "StoreSharedContentManifest";
+    public const string StoreSharedContentSettings = "StoreSharedContentSettings";
 }
