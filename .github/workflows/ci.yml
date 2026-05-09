@@ -494,8 +494,8 @@ jobs:
 
           test -x "$GITHUB_WORKSPACE/AppDir/usr/lib/emerald/Emerald"
           test -x "$GITHUB_WORKSPACE/AppDir/usr/bin/emerald"
-          test -f "$GITHUB_WORKSPACE/AppDir/emerald.desktop"
-          test -f "$GITHUB_WORKSPACE/AppDir/emerald.png"
+          test -f "$GITHUB_WORKSPACE/AppDir/usr/share/applications/emerald.desktop"
+          test -f "$GITHUB_WORKSPACE/AppDir/usr/share/icons/hicolor/256x256/apps/emerald.png"
 
       - name: Build Linux AppImage
         uses: AppImageCrafters/build-appimage-action@master

@@ -82,9 +82,6 @@ install -dm755 "$APPDIR/usr/lib/emerald" "$APPDIR/usr/bin" "$APPDIR/usr/share/ap
 cp -a "$PUBLISH_DIR/." "$APPDIR/usr/lib/emerald/"
 install -m644 "$INSTALL_ROOT/usr/share/applications/emerald.desktop" "$APPDIR/usr/share/applications/emerald.desktop"
 install -m644 "$INSTALL_ROOT/usr/share/icons/hicolor/256x256/apps/emerald.png" "$APPDIR/usr/share/icons/hicolor/256x256/apps/emerald.png"
-ln -sf "usr/share/applications/emerald.desktop" "$APPDIR/emerald.desktop"
-ln -sf "usr/share/icons/hicolor/256x256/apps/emerald.png" "$APPDIR/emerald.png"
-ln -sf "emerald.png" "$APPDIR/.DirIcon"
 
 cat > "$APPDIR/usr/bin/emerald" <<'EOF'
 #!/usr/bin/env sh
@@ -93,10 +90,3 @@ export LD_LIBRARY_PATH="$APPDIR/usr/lib/emerald${LD_LIBRARY_PATH:+:$LD_LIBRARY_P
 exec "$APPDIR/usr/lib/emerald/Emerald" "$@"
 EOF
 chmod 755 "$APPDIR/usr/bin/emerald"
-
-cat > "$APPDIR/AppRun" <<'EOF'
-#!/usr/bin/env sh
-HERE="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-exec "$HERE/usr/bin/emerald" "$@"
-EOF
-chmod 755 "$APPDIR/AppRun"
