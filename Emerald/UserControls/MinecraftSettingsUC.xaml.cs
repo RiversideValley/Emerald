@@ -535,6 +535,19 @@ public sealed partial class MinecraftSettingsUC : UserControl
             return;
         }
 
+        if (e.PropertyName == nameof(GameSettings.SharedMinecraftFoldersStatus))
+        {
+            Bindings.Update();
+            return;
+        }
+
+        if (e.PropertyName == nameof(GameSettings.UseSharedRuntimePath))
+        {
+            _ = RefreshJavaOptionsAsync();
+            Bindings.Update();
+            return;
+        }
+
         if (e.PropertyName == nameof(GameSettings.JavaPath) || e.PropertyName == nameof(GameSettings.UseCustomJava))
         {
             UpdateJavaSelectionState();
@@ -551,9 +564,20 @@ public sealed partial class MinecraftSettingsUC : UserControl
             OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
 
     private string? GetCurrentMinecraftRootPath()
-        => ShowMainSettings
-            ? SS.Settings.Minecraft.Path
-            : Game?.Path.BasePath ?? SS.Settings.Minecraft.Path;
+    {
+        if (ShowMainSettings)
+        {
+            return SS.Settings.Minecraft.Path;
+        }
+
+        if (Game?.EffectiveSettings.UseSharedRuntimePath == true
+            && !string.IsNullOrWhiteSpace(Game.SharedMinecraftBasePath))
+        {
+            return Game.SharedMinecraftBasePath;
+        }
+
+        return Game?.Path.BasePath ?? SS.Settings.Minecraft.Path;
+    }
 
     private IJavaRuntimeCatalogService JavaCatalog()
         => Ioc.Default.GetService<IJavaRuntimeCatalogService>()

@@ -70,6 +70,49 @@
         Spacing="16">
         <StackPanel Spacing="4">
         <cn:SettingsExpander
+          Header="{helpers:Localize KeyName=GodFolders}"
+          Description="{helpers:Localize KeyName=GodFoldersDescription}"
+          HeaderIcon="{helpers:FontIcon Glyph=}">
+          <cn:SettingsExpander.Content>
+            <TextBlock
+              Text="{x:Bind GameSettings.SharedMinecraftFoldersStatus, Mode=OneWay}" />
+          </cn:SettingsExpander.Content>
+          <cn:SettingsExpander.Items>
+            <cn:SettingsCard
+              Header="{helpers:Localize KeyName=GodFoldersAssets}"
+              Description="{helpers:Localize KeyName=GodFoldersAssetsDescription}">
+              <ToggleSwitch
+                IsOn="{x:Bind GameSettings.UseSharedAssetsPath, Mode=TwoWay}"
+                OffContent="{helpers:Localize KeyName=No}"
+                OnContent="{helpers:Localize KeyName=Yes}" />
+            </cn:SettingsCard>
+            <cn:SettingsCard
+              Header="{helpers:Localize KeyName=GodFoldersLibraries}"
+              Description="{helpers:Localize KeyName=GodFoldersLibrariesDescription}">
+              <ToggleSwitch
+                IsOn="{x:Bind GameSettings.UseSharedLibrariesPath, Mode=TwoWay}"
+                OffContent="{helpers:Localize KeyName=No}"
+                OnContent="{helpers:Localize KeyName=Yes}" />
+            </cn:SettingsCard>
+            <cn:SettingsCard
+              Header="{helpers:Localize KeyName=GodFoldersRuntime}"
+              Description="{helpers:Localize KeyName=GodFoldersRuntimeDescription}">
+              <ToggleSwitch
+                IsOn="{x:Bind GameSettings.UseSharedRuntimePath, Mode=TwoWay}"
+                OffContent="{helpers:Localize KeyName=No}"
+                OnContent="{helpers:Localize KeyName=Yes}" />
+            </cn:SettingsCard>
+            <cn:SettingsCard
+              Header="{helpers:Localize KeyName=GodFoldersVersions}"
+              Description="{helpers:Localize KeyName=GodFoldersVersionsDescription}">
+              <ToggleSwitch
+                IsOn="{x:Bind GameSettings.UseSharedVersionsPath, Mode=TwoWay}"
+                OffContent="{helpers:Localize KeyName=No}"
+                OnContent="{helpers:Localize KeyName=Yes}" />
+            </cn:SettingsCard>
+          </cn:SettingsExpander.Items>
+        </cn:SettingsExpander>
+        <cn:SettingsExpander
           HeaderIcon="{helpers:FontIcon Glyph=}"
           Header="{helpers:Localize KeyName=RAM}"
           Description="{helpers:Localize KeyName=RAMDescription}">

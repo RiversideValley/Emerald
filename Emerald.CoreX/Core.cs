@@ -27,12 +27,13 @@ public sealed class SavedGame
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Models.GameSettings? GameOptions { get; set; }
 
-    public Game ToGame(IGlobalGameSettingsService globalGameSettingsService)
+    public Game ToGame(IGlobalGameSettingsService globalGameSettingsService, string? sharedMinecraftBasePath = null)
         => new(
             new MinecraftPath(Path),
             Version,
             UsesCustomGameSettings || GameOptions != null,
             CustomGameSettings ?? GameOptions,
+            sharedMinecraftBasePath,
             globalGameSettingsService);
 
     public static SavedGame FromGame(Game game)
@@ -113,7 +114,7 @@ public partial class Core(
         {
             try
             {
-                Games.Add(sg.ToGame(globalGameSettingsService));
+                Games.Add(sg.ToGame(globalGameSettingsService, collection.BasePath));
             }
             catch (Exception ex)
             {
@@ -266,7 +267,7 @@ public partial class Core(
             : folderName.Trim();
         var path = Path.Combine(BasePath.BasePath, GamesFolderName, resolvedFolderName);
 
-        var game = new Game(new(path), version, globalGameSettingsService: globalGameSettingsService);
+        var game = new Game(new(path), version, sharedMinecraftBasePath: BasePath.BasePath, globalGameSettingsService: globalGameSettingsService);
 
         Games.Add(game);
         try

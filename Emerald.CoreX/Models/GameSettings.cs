@@ -76,12 +76,74 @@ public partial class GameSettings : ObservableObject
 
     [ObservableProperty]
     private string? _JavaPath;
+
+    [NotifyPropertyChangedFor(nameof(UsesSharedMinecraftFolders))]
+    [NotifyPropertyChangedFor(nameof(SharedMinecraftFoldersStatus))]
+    [ObservableProperty]
+    private bool _useSharedAssetsPath;
+
+    [NotifyPropertyChangedFor(nameof(UsesSharedMinecraftFolders))]
+    [NotifyPropertyChangedFor(nameof(SharedMinecraftFoldersStatus))]
+    [ObservableProperty]
+    private bool _useSharedLibrariesPath;
+
+    [NotifyPropertyChangedFor(nameof(UsesSharedMinecraftFolders))]
+    [NotifyPropertyChangedFor(nameof(SharedMinecraftFoldersStatus))]
+    [ObservableProperty]
+    private bool _useSharedRuntimePath;
+
+    [NotifyPropertyChangedFor(nameof(UsesSharedMinecraftFolders))]
+    [NotifyPropertyChangedFor(nameof(SharedMinecraftFoldersStatus))]
+    [ObservableProperty]
+    private bool _useSharedVersionsPath;
     
     public ObservableCollection<string> JVMArgs { get; set; } = new();
 
     [JsonIgnore]
     public string ScreenSizeStatus =>
         FullScreen ? "FullScreen".Localize() : ((ScreenWidth > 0 && ScreenHeight > 0) ? $"{ScreenWidth} × {ScreenHeight}" : "Default".Localize());
+
+    [JsonIgnore]
+    public bool UsesSharedMinecraftFolders
+        => UseSharedAssetsPath
+           || UseSharedLibrariesPath
+           || UseSharedRuntimePath
+           || UseSharedVersionsPath;
+
+    [JsonIgnore]
+    public string SharedMinecraftFoldersStatus
+    {
+        get
+        {
+            if (!UsesSharedMinecraftFolders)
+            {
+                return "GodFoldersOffStatus".Localize();
+            }
+
+            var folders = new List<string>();
+            if (UseSharedAssetsPath)
+            {
+                folders.Add("GodFoldersAssetsShort".Localize());
+            }
+
+            if (UseSharedLibrariesPath)
+            {
+                folders.Add("GodFoldersLibrariesShort".Localize());
+            }
+
+            if (UseSharedRuntimePath)
+            {
+                folders.Add("GodFoldersRuntimeShort".Localize());
+            }
+
+            if (UseSharedVersionsPath)
+            {
+                folders.Add("GodFoldersVersionsShort".Localize());
+            }
+
+            return string.Join(", ", folders);
+        }
+    }
 
     public MLaunchOption ToMLaunchOption()
     {
@@ -159,7 +221,11 @@ public partial class GameSettings : ObservableObject
             AssetsCheck = AssetsCheck,
             IsAdmin = IsAdmin,
             UseCustomJava = UseCustomJava,
-            JavaPath = JavaPath
+            JavaPath = JavaPath,
+            UseSharedAssetsPath = UseSharedAssetsPath,
+            UseSharedLibrariesPath = UseSharedLibrariesPath,
+            UseSharedRuntimePath = UseSharedRuntimePath,
+            UseSharedVersionsPath = UseSharedVersionsPath
         };
 
         foreach (var arg in JVMArgs)

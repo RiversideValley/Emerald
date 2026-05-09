@@ -339,6 +339,51 @@
   <data name="DownloadSettingsDescription" xml:space="preserve">
     <value>Optional. Recommended to turn these on</value>
   </data>
+  <data name="GodFolders" xml:space="preserve">
+    <value>God folders</value>
+  </data>
+  <data name="GodFoldersDescription" xml:space="preserve">
+    <value>Share selected Minecraft download folders with the main Minecraft path instead of this instance folder.</value>
+  </data>
+  <data name="GodFoldersOffStatus" xml:space="preserve">
+    <value>Using instance folders</value>
+  </data>
+  <data name="GodFoldersAssets" xml:space="preserve">
+    <value>Assets folder</value>
+  </data>
+  <data name="GodFoldersAssetsDescription" xml:space="preserve">
+    <value>Use the main Minecraft path for assets and legacy resources.</value>
+  </data>
+  <data name="GodFoldersAssetsShort" xml:space="preserve">
+    <value>Assets</value>
+  </data>
+  <data name="GodFoldersLibraries" xml:space="preserve">
+    <value>Libraries folder</value>
+  </data>
+  <data name="GodFoldersLibrariesDescription" xml:space="preserve">
+    <value>Use the main Minecraft path for downloaded libraries.</value>
+  </data>
+  <data name="GodFoldersLibrariesShort" xml:space="preserve">
+    <value>Libraries</value>
+  </data>
+  <data name="GodFoldersRuntime" xml:space="preserve">
+    <value>Runtime folder</value>
+  </data>
+  <data name="GodFoldersRuntimeDescription" xml:space="preserve">
+    <value>Use the main Minecraft path for CmlLib-managed Java runtimes.</value>
+  </data>
+  <data name="GodFoldersRuntimeShort" xml:space="preserve">
+    <value>Runtime</value>
+  </data>
+  <data name="GodFoldersVersions" xml:space="preserve">
+    <value>Versions folder</value>
+  </data>
+  <data name="GodFoldersVersionsDescription" xml:space="preserve">
+    <value>Use the main Minecraft path for version metadata and jars.</value>
+  </data>
+  <data name="GodFoldersVersionsShort" xml:space="preserve">
+    <value>Versions</value>
+  </data>
   <data name="Duplicate" xml:space="preserve">
     <value>Duplicate</value>
   </data>
