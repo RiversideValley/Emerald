@@ -657,60 +657,6 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Upload release Linux Snap transfer artifact
-        if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: Emerald-linux-x64-ReleaseDraft-Snap
-          path: ${{ steps.locate.outputs.snap_path }}
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Upload release Linux tar transfer artifact
-        if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: Emerald-linux-x64-ReleaseDraft-Tar
-          path: ${{ github.workspace }}/artifacts/linux/final/Emerald-linux-x64.tar.gz
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Upload release Linux AppImage transfer artifact
-        if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: Emerald-linux-x64-ReleaseDraft-AppImage
-          path: ${{ github.workspace }}/artifacts/linux/final/Emerald-linux-x86_64.AppImage
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Upload release Linux Debian transfer artifact
-        if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: Emerald-linux-x64-ReleaseDraft-Deb
-          path: ${{ github.workspace }}/artifacts/linux/final/emerald_${{ needs.ci-filter.outputs.package_version }}_amd64.deb
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Upload release Linux Arch transfer artifact
-        if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: Emerald-linux-x64-ReleaseDraft-Arch
-          path: ${{ github.workspace }}/artifacts/linux/final/emerald-${{ needs.ci-filter.outputs.package_version }}-1-x86_64.pkg.tar.zst
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Upload release Linux AUR recipe transfer artifact
-        if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: Emerald-linux-x64-ReleaseDraft-AUR-Recipe
-          path: ${{ github.workspace }}/artifacts/linux/final/emerald-aur-recipe.tar.gz
-          if-no-files-found: error
-          retention-days: 14
-
   draft-release:
     name: Draft GitHub Release
     needs: [ci-filter, publish-windows, publish-macos, publish-linux]
@@ -741,37 +687,37 @@ jobs:
       - name: Download Linux x64 Snap artifact
         uses: actions/download-artifact@v4
         with:
-          name: Emerald-linux-x64-ReleaseDraft-Snap
+          name: Emerald-linux-x64-snap
           path: release-assets/linux
 
       - name: Download Linux x64 tar artifact
         uses: actions/download-artifact@v4
         with:
-          name: Emerald-linux-x64-ReleaseDraft-Tar
+          name: Emerald-linux-x64-tar
           path: release-assets/linux
 
       - name: Download Linux x64 AppImage artifact
         uses: actions/download-artifact@v4
         with:
-          name: Emerald-linux-x64-ReleaseDraft-AppImage
+          name: Emerald-linux-x64-appimage
           path: release-assets/linux
 
       - name: Download Linux x64 Debian artifact
         uses: actions/download-artifact@v4
         with:
-          name: Emerald-linux-x64-ReleaseDraft-Deb
+          name: Emerald-linux-x64-deb
           path: release-assets/linux
 
       - name: Download Linux x64 Arch artifact
         uses: actions/download-artifact@v4
         with:
-          name: Emerald-linux-x64-ReleaseDraft-Arch
+          name: Emerald-linux-x64-arch
           path: release-assets/linux
 
       - name: Download Linux x64 AUR recipe artifact
         uses: actions/download-artifact@v4
         with:
-          name: Emerald-linux-x64-ReleaseDraft-AUR-Recipe
+          name: Emerald-linux-x64-aur-recipe
           path: release-assets/linux
 
       - name: Build release metadata files
