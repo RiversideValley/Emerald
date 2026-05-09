@@ -487,6 +487,16 @@ jobs:
           PACKAGE_VERSION: ${{ needs.ci-filter.outputs.package_version }}
         run: scripts/linux/build-deb.sh
 
+      - name: Verify Linux AppDir staging
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -x "$GITHUB_WORKSPACE/AppDir/usr/lib/emerald/Emerald"
+          test -x "$GITHUB_WORKSPACE/AppDir/usr/bin/emerald"
+          test -f "$GITHUB_WORKSPACE/AppDir/emerald.desktop"
+          test -f "$GITHUB_WORKSPACE/AppDir/emerald.png"
+
       - name: Build Linux AppImage
         uses: AppImageCrafters/build-appimage-action@master
         env:

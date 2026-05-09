@@ -1,13 +1,13 @@
 version: 1
 
 AppDir:
-  path: ./artifacts/linux/appimage/AppDir
+  path: ./AppDir
   app_info:
     id: com.riversidevalley.Emerald
     name: Emerald
     icon: emerald
     version: !ENV ${EMERALD_PACKAGE_VERSION}
-    exec: usr/bin/emerald
+    exec: usr/lib/emerald/Emerald
     exec_args: $@
   runtime:
     env:
@@ -40,6 +40,11 @@ AppDir:
       - usr/share/doc/*/changelog.*
       - usr/share/doc/*/NEWS.*
       - usr/share/doc/*/TODO.*
+      - usr/bin/kernel-install
+      - usr/lib/kernel
+      - usr/share/bug
+      - lib/systemd
+      - etc/init.d
 
 AppImage:
   arch: x86_64
