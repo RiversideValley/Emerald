@@ -452,24 +452,12 @@ jobs:
           path: ${{ github.workspace }}/Emerald-macOS-arm64-app.zip
           retention-days: 14
 
-  # Snap packages are built natively on each architecture — Uno Platform does not
-  # support cross-compilation for snap targets as of the current SDK version.
   publish-linux:
-    name: Linux Snap (${{ matrix.arch }})
+    name: Linux x64 Packages
     needs: ci-filter
     if: ${{ needs.ci-filter.outputs.run_linux == 'true' }}
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-22.04
     timeout-minutes: 60
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: x64
-            runner: ubuntu-22.04
-            runtime: linux-x64
-          - arch: arm64
-            runner: ubuntu-22.04-arm
-            runtime: linux-arm64
 
     steps:
       - name: Checkout code
@@ -482,9 +470,89 @@ jobs:
         with:
           job-platform: linux
 
+      - name: Publish Linux x64 app and stage shared package files
+        shell: bash
+        env:
+          PACKAGE_VERSION: ${{ needs.ci-filter.outputs.package_version }}
+          PUBLIC_VERSION: ${{ needs.ci-filter.outputs.public_version }}
+          UPDATE_CHANNEL: ${{ needs.ci-filter.outputs.release_channel }}
+          RELEASE_TAG: ${{ needs.ci-filter.outputs.release_tag }}
+          COMMIT_SHA: ${{ github.sha }}
+          BUILD_TIMESTAMP_UTC: ${{ needs.ci-filter.outputs.build_timestamp_utc }}
+        run: scripts/linux/publish-linux-x64.sh
+
+      - name: Build Linux Debian package
+        shell: bash
+        env:
+          PACKAGE_VERSION: ${{ needs.ci-filter.outputs.package_version }}
+        run: scripts/linux/build-deb.sh
+
+      - name: Build Linux AppImage
+        uses: AppImageCrafters/build-appimage-action@master
+        env:
+          EMERALD_PACKAGE_VERSION: ${{ needs.ci-filter.outputs.package_version }}
+          EMERALD_APPIMAGE_NAME: Emerald-linux-x86_64.AppImage
+        with:
+          recipe: scripts/linux/AppImageBuilder.x64.yml
+
+      - name: Stage and validate Linux AppImage
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          APPIMAGE_FILE="$(find . -maxdepth 2 -name '*.AppImage' -type f | head -n 1)"
+          if [ -z "$APPIMAGE_FILE" ]; then
+            echo "No AppImage file found after appimage-builder completed"
+            exit 1
+          fi
+
+          STAGED="$GITHUB_WORKSPACE/artifacts/linux/final/Emerald-linux-x86_64.AppImage"
+          cp "$APPIMAGE_FILE" "$STAGED"
+          chmod +x "$STAGED"
+          "$STAGED" --appimage-extract >/dev/null
+          rm -rf squashfs-root
+
+      - name: Prepare Linux Arch package recipe
+        shell: bash
+        env:
+          PACKAGE_VERSION: ${{ needs.ci-filter.outputs.package_version }}
+        run: scripts/linux/prepare-arch-package.sh
+
+      - name: Build Linux Arch package
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace/artifacts/linux/arch/pkgbuild \
+            archlinux:base-devel \
+            bash -lc '
+              set -euo pipefail
+              useradd -m builder
+              chown -R builder:builder /workspace/artifacts/linux/arch
+              su builder -c "cd /workspace/artifacts/linux/arch/pkgbuild && makepkg --printsrcinfo > .SRCINFO && makepkg --packagelist && makepkg --nodeps --cleanbuild --force"
+            '
+
+      - name: Stage Linux Arch artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          PKGBUILD_DIR="$GITHUB_WORKSPACE/artifacts/linux/arch/pkgbuild"
+          FINAL_DIR="$GITHUB_WORKSPACE/artifacts/linux/final"
+          PKG_FILE="$(find "$PKGBUILD_DIR" -maxdepth 1 -name '*.pkg.tar.zst' -type f | head -n 1)"
+          if [ -z "$PKG_FILE" ]; then
+            echo "No Arch package file found after makepkg completed"
+            exit 1
+          fi
+
+          cp "$PKG_FILE" "$FINAL_DIR/emerald-${{ needs.ci-filter.outputs.package_version }}-1-x86_64.pkg.tar.zst"
+          tar -czf "$FINAL_DIR/emerald-aur-recipe.tar.gz" -C "$PKGBUILD_DIR" PKGBUILD .SRCINFO
+
       # Snapcraft is installed after the base dependencies so that the snap daemon
       # is ready before we invoke dotnet publish with PackageFormat=snap.
-      # core22 matches the Ubuntu 22.04 runner base used by both matrix legs.
+      # core22 matches the Ubuntu 22.04 runner base.
       # --destructive-mode is required in CI because LXD/Multipass are unavailable
       # on single-use GitHub-hosted runners; it is safe here because the environment
       # is ephemeral and discarded after the job completes.
@@ -497,16 +565,16 @@ jobs:
           sudo snap install snapcraft --classic
           sudo snap install multipass
 
-      - name: Publish Linux Snap (${{ matrix.arch }})
+      - name: Publish Linux Snap
         shell: bash
         env:
           # Modern Snapcraft equivalent to --destructive-mode
-          SNAPCRAFT_BUILD_ENVIRONMENT: host 
+          SNAPCRAFT_BUILD_ENVIRONMENT: host
         run: |
           dotnet publish ./Emerald/Emerald.csproj \
             -c Release \
             -f net10.0-desktop \
-            -r "${{ matrix.runtime }}" \
+            -r linux-x64 \
             -p:SelfContained=true \
             -p:PackageFormat=snap \
             -p:UnoSnapBuildProvider=none \
@@ -537,24 +605,109 @@ jobs:
           fi
           echo "Found snap: $SNAP_FILE"
 
-          STAGED="$GITHUB_WORKSPACE/Emerald-linux-${{ matrix.arch }}.snap"
+          STAGED="$GITHUB_WORKSPACE/artifacts/linux/final/Emerald-linux-x64.snap"
           cp "$SNAP_FILE" "$STAGED"
           echo "snap_path=$STAGED" >> "$GITHUB_OUTPUT"
 
-      - name: Upload CI Linux Snap artifact (${{ matrix.arch }})
+      - name: Upload CI Linux Snap artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Emerald-linux-${{ matrix.arch }}-snap
+          name: Emerald-linux-x64-snap
           path: ${{ steps.locate.outputs.snap_path }}
           if-no-files-found: error
           retention-days: 14
 
-      - name: Upload release Linux Snap transfer artifact (${{ matrix.arch }})
+      - name: Upload CI Linux tar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-x64-tar
+          path: ${{ github.workspace }}/artifacts/linux/final/Emerald-linux-x64.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload CI Linux AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-x64-appimage
+          path: ${{ github.workspace }}/artifacts/linux/final/Emerald-linux-x86_64.AppImage
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload CI Linux Debian artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-x64-deb
+          path: ${{ github.workspace }}/artifacts/linux/final/emerald_${{ needs.ci-filter.outputs.package_version }}_amd64.deb
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload CI Linux Arch artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-x64-arch
+          path: ${{ github.workspace }}/artifacts/linux/final/emerald-${{ needs.ci-filter.outputs.package_version }}-1-x86_64.pkg.tar.zst
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload CI Linux AUR recipe artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-x64-aur-recipe
+          path: ${{ github.workspace }}/artifacts/linux/final/emerald-aur-recipe.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload release Linux Snap transfer artifact
         if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: Emerald-linux-${{ matrix.arch }}-ReleaseDraft-Snap
+          name: Emerald-linux-x64-ReleaseDraft-Snap
           path: ${{ steps.locate.outputs.snap_path }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload release Linux tar transfer artifact
+        if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-x64-ReleaseDraft-Tar
+          path: ${{ github.workspace }}/artifacts/linux/final/Emerald-linux-x64.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload release Linux AppImage transfer artifact
+        if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-x64-ReleaseDraft-AppImage
+          path: ${{ github.workspace }}/artifacts/linux/final/Emerald-linux-x86_64.AppImage
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload release Linux Debian transfer artifact
+        if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-x64-ReleaseDraft-Deb
+          path: ${{ github.workspace }}/artifacts/linux/final/emerald_${{ needs.ci-filter.outputs.package_version }}_amd64.deb
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload release Linux Arch transfer artifact
+        if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-x64-ReleaseDraft-Arch
+          path: ${{ github.workspace }}/artifacts/linux/final/emerald-${{ needs.ci-filter.outputs.package_version }}-1-x86_64.pkg.tar.zst
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload release Linux AUR recipe transfer artifact
+        if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-x64-ReleaseDraft-AUR-Recipe
+          path: ${{ github.workspace }}/artifacts/linux/final/emerald-aur-recipe.tar.gz
           if-no-files-found: error
           retention-days: 14
 
@@ -591,10 +744,34 @@ jobs:
           name: Emerald-linux-x64-ReleaseDraft-Snap
           path: release-assets/linux
 
-      - name: Download Linux arm64 Snap artifact
+      - name: Download Linux x64 tar artifact
         uses: actions/download-artifact@v4
         with:
-          name: Emerald-linux-arm64-ReleaseDraft-Snap
+          name: Emerald-linux-x64-ReleaseDraft-Tar
+          path: release-assets/linux
+
+      - name: Download Linux x64 AppImage artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Emerald-linux-x64-ReleaseDraft-AppImage
+          path: release-assets/linux
+
+      - name: Download Linux x64 Debian artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Emerald-linux-x64-ReleaseDraft-Deb
+          path: release-assets/linux
+
+      - name: Download Linux x64 Arch artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Emerald-linux-x64-ReleaseDraft-Arch
+          path: release-assets/linux
+
+      - name: Download Linux x64 AUR recipe artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Emerald-linux-x64-ReleaseDraft-AUR-Recipe
           path: release-assets/linux
 
       - name: Build release metadata files
