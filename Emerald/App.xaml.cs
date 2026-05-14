@@ -148,6 +148,10 @@ Notes
         services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Optifine>();
 
         services.AddTransient<CoreX.Installers.ModLoaderRouter>();
+        
+        // Options.txt
+        services.AddTransient<CoreX.GameOptions.IMinecraftOptionsService,
+            CoreX.GameOptions.MinecraftOptionsService>();
     }
 
     private void ConfigureStoreServices(IServiceCollection services)
@@ -204,6 +208,7 @@ Notes
         services.AddSingleton<ViewModels.AccountsPageViewModel>();
         services.AddTransient<ViewModels.LogsPageViewModel>();
         services.AddTransient<ViewModels.ModrinthStorePageViewModel>();
+        services.AddTransient<ViewModels.GameOptionsViewModel>();
     }
     
     #endregion
