@@ -197,84 +197,16 @@ public sealed class GameStoreContentService : IGameStoreContentService
         var normalizedRoot = StorePath.Normalize(contentRoot);
 
         var records = _records.GetAll().ToList();
-        var staleRecords = records
-            .Where(record =>
-                _records.IsForGameAndType(record, game.Path.BasePath, contentType)
-                && !StorePath.IsInsideRoot(record.FilePath, normalizedRoot))
-            .ToList();
+        await RemoveStaleRecordsAsync(game, contentType, normalizedRoot, records, cancellationToken);
 
-        if (staleRecords.Count > 0)
-        {
-            records.RemoveAll(record => staleRecords.Any(stale => stale.Id == record.Id));
-            _records.Save(records);
-
-            foreach (var staleRecord in staleRecords)
-            {
-                await _sharedContentService.RemoveReferenceAsync(staleRecord, deleteInstanceFile: false, cancellationToken);
-            }
-        }
-
-        var trackedRecords = records
-            .Where(record =>
-                _records.IsForGameAndType(record, game.Path.BasePath, contentType)
-                && StorePath.IsInsideRoot(record.FilePath, normalizedRoot))
-            .ToList();
-
+        var trackedRecords = GetTrackedRecords(game, contentType, normalizedRoot, records);
         var trackedByPath = trackedRecords.ToDictionary(
             record => StorePath.Normalize(record.FilePath),
             record => record,
             StringComparer.OrdinalIgnoreCase);
-
         var installed = new List<InstalledStoreItem>();
-        foreach (var record in trackedRecords)
-        {
-            var isDirectory = Directory.Exists(record.FilePath);
-            long? size = null;
-            var existsOnDisk = File.Exists(record.FilePath) || Directory.Exists(record.FilePath);
-            if (!isDirectory && File.Exists(record.FilePath))
-            {
-                size = new FileInfo(record.FilePath).Length;
-            }
-
-            installed.Add(ToInstalledItem(
-                record,
-                isDirectory,
-                size,
-                _sharedContentService.GetHealth(record),
-                existsOnDisk));
-        }
-
-        if (Directory.Exists(contentRoot))
-        {
-            foreach (var entryPath in Directory.EnumerateFileSystemEntries(contentRoot, "*", SearchOption.TopDirectoryOnly))
-            {
-                var normalizedEntry = StorePath.Normalize(entryPath);
-                if (trackedByPath.ContainsKey(normalizedEntry))
-                {
-                    continue;
-                }
-
-                var isDirectory = Directory.Exists(entryPath);
-                long? size = null;
-                if (!isDirectory && File.Exists(entryPath))
-                {
-                    size = new FileInfo(entryPath).Length;
-                }
-
-                installed.Add(new InstalledStoreItem
-                {
-                    ContentType = contentType,
-                    GamePath = game.Path.BasePath,
-                    DisplayName = Path.GetFileName(entryPath),
-                    FileName = Path.GetFileName(entryPath),
-                    FilePath = entryPath,
-                    IsTracked = false,
-                    IsDirectory = isDirectory,
-                    FileSizeBytes = size,
-                    Health = StoreSharedContentHealth.Untracked
-                });
-            }
-        }
+        AddTrackedItems(installed, trackedRecords);
+        AddUntrackedItems(installed, game, contentType, contentRoot, trackedByPath);
 
         var ordered = installed
             .OrderByDescending(item => item.IsTracked)
@@ -282,6 +214,115 @@ public sealed class GameStoreContentService : IGameStoreContentService
             .ToArray();
 
         return ordered;
+    }
+
+    private async Task RemoveStaleRecordsAsync(
+        Game game,
+        StoreContentType contentType,
+        string normalizedRoot,
+        List<StoreInstallRecord> records,
+        CancellationToken cancellationToken)
+    {
+        var staleRecords = records
+            .Where(record =>
+                _records.IsForGameAndType(record, game.Path.BasePath, contentType)
+                && !StorePath.IsInsideRoot(record.FilePath, normalizedRoot))
+            .ToList();
+
+        if (staleRecords.Count == 0)
+        {
+            return;
+        }
+
+        records.RemoveAll(record => staleRecords.Any(stale => stale.Id == record.Id));
+        _records.Save(records);
+
+        foreach (var staleRecord in staleRecords)
+        {
+            await _sharedContentService.RemoveReferenceAsync(staleRecord, deleteInstanceFile: false, cancellationToken);
+        }
+    }
+
+    private IReadOnlyList<StoreInstallRecord> GetTrackedRecords(
+        Game game,
+        StoreContentType contentType,
+        string normalizedRoot,
+        IEnumerable<StoreInstallRecord> records)
+        => records
+            .Where(record =>
+                _records.IsForGameAndType(record, game.Path.BasePath, contentType)
+                && StorePath.IsInsideRoot(record.FilePath, normalizedRoot))
+            .ToArray();
+
+    private void AddTrackedItems(
+        ICollection<InstalledStoreItem> installed,
+        IEnumerable<StoreInstallRecord> trackedRecords)
+    {
+        foreach (var record in trackedRecords)
+        {
+            installed.Add(ToTrackedInstalledItem(record));
+        }
+    }
+
+    private InstalledStoreItem ToTrackedInstalledItem(StoreInstallRecord record)
+    {
+        var isDirectory = Directory.Exists(record.FilePath);
+        var existsOnDisk = File.Exists(record.FilePath) || Directory.Exists(record.FilePath);
+        var size = !isDirectory && File.Exists(record.FilePath)
+            ? new FileInfo(record.FilePath).Length
+            : (long?)null;
+
+        return ToInstalledItem(
+            record,
+            isDirectory,
+            size,
+            _sharedContentService.GetHealth(record),
+            existsOnDisk);
+    }
+
+    private static void AddUntrackedItems(
+        ICollection<InstalledStoreItem> installed,
+        Game game,
+        StoreContentType contentType,
+        string contentRoot,
+        IReadOnlyDictionary<string, StoreInstallRecord> trackedByPath)
+    {
+        if (!Directory.Exists(contentRoot))
+        {
+            return;
+        }
+
+        foreach (var entryPath in Directory.EnumerateFileSystemEntries(contentRoot, "*", SearchOption.TopDirectoryOnly))
+        {
+            if (!trackedByPath.ContainsKey(StorePath.Normalize(entryPath)))
+            {
+                installed.Add(CreateUntrackedItem(game, contentType, entryPath));
+            }
+        }
+    }
+
+    private static InstalledStoreItem CreateUntrackedItem(
+        Game game,
+        StoreContentType contentType,
+        string entryPath)
+    {
+        var isDirectory = Directory.Exists(entryPath);
+        var size = !isDirectory && File.Exists(entryPath)
+            ? new FileInfo(entryPath).Length
+            : (long?)null;
+
+        return new InstalledStoreItem
+        {
+            ContentType = contentType,
+            GamePath = game.Path.BasePath,
+            DisplayName = Path.GetFileName(entryPath),
+            FileName = Path.GetFileName(entryPath),
+            FilePath = entryPath,
+            IsTracked = false,
+            IsDirectory = isDirectory,
+            FileSizeBytes = size,
+            Health = StoreSharedContentHealth.Untracked
+        };
     }
 
     public async Task<bool> RemoveAsync(

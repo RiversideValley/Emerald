@@ -32,7 +32,6 @@ public sealed class GameStoreContentServiceTests
         Assert.Equal("resourcepacks", new ResourcePackStore(path, NullLogger<ResourcePackStore>.Instance).InstallFolderName);
         Assert.Equal("datapacks", new DataPackStore(path, NullLogger<DataPackStore>.Instance).InstallFolderName);
         Assert.Equal("shaderpacks", new ShaderStore(path, NullLogger<ShaderStore>.Instance).InstallFolderName);
-        Assert.Equal("plugins", new PluginStore(path, NullLogger<PluginStore>.Instance).InstallFolderName);
         Assert.Equal("modpacks", new ModPackStore(path, NullLogger<ModPackStore>.Instance).InstallFolderName);
         Assert.Equal(StoreContentType.ModPack, new ModPackStore(path, NullLogger<ModPackStore>.Instance).ContentType);
     }

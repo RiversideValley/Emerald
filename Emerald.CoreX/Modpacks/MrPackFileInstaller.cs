@@ -359,5 +359,4 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
 
         return !string.IsNullOrWhiteSpace(installFolderName);
     }
-
 }

@@ -737,10 +737,10 @@ public sealed partial class MinecraftSettingsUC : UserControl
         {
             XamlRoot = XamlRoot,
             Title = $"Enable shared {displayName}?",
-            Content = BuildMigrationSummaryText(summary),
-            PrimaryButtonText = "Convert tracked files",
-            SecondaryButtonText = "Convert all compatible files",
-            CloseButtonText = "Only future installs",
+            Content = BuildEnableMigrationDialogText(summary),
+            PrimaryButtonText = "Convert tracked",
+            SecondaryButtonText = "Convert all",
+            CloseButtonText = "Future only",
             DefaultButton = ContentDialogButton.Close
         };
 
@@ -766,10 +766,10 @@ public sealed partial class MinecraftSettingsUC : UserControl
         {
             XamlRoot = XamlRoot,
             Title = $"Disable shared {displayName}?",
-            Content = BuildMigrationSummaryText(summary),
-            PrimaryButtonText = "Materialize files",
-            SecondaryButtonText = "Remove shared installs",
-            CloseButtonText = "Leave existing links",
+            Content = BuildDisableMigrationDialogText(summary),
+            PrimaryButtonText = "Make copies",
+            SecondaryButtonText = "Remove",
+            CloseButtonText = "Keep links",
             DefaultButton = ContentDialogButton.Close
         };
 
@@ -780,6 +780,30 @@ public sealed partial class MinecraftSettingsUC : UserControl
             ContentDialogResult.Secondary => StoreSharedContentMigrationAction.RemoveSharedInstalls,
             _ => StoreSharedContentMigrationAction.LeaveExistingLinks
         };
+    }
+
+    private static string BuildEnableMigrationDialogText(StoreSharedContentMigrationSummary summary)
+    {
+        var text = BuildMigrationSummaryText(summary);
+        return string.Join(
+            Environment.NewLine,
+            text,
+            "",
+            "Convert tracked: move only files Emerald already tracks.",
+            "Convert all: also import compatible manual files.",
+            "Future only: leave existing files alone.");
+    }
+
+    private static string BuildDisableMigrationDialogText(StoreSharedContentMigrationSummary summary)
+    {
+        var text = BuildMigrationSummaryText(summary);
+        return string.Join(
+            Environment.NewLine,
+            text,
+            "",
+            "Make copies: replace links with normal files.",
+            "Remove: delete shared installs from instances.",
+            "Keep links: leave current links as-is.");
     }
 
     private static string BuildMigrationSummaryText(StoreSharedContentMigrationSummary summary)

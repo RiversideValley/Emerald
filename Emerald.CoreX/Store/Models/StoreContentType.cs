@@ -2,10 +2,10 @@ namespace Emerald.CoreX.Store;
 
 public enum StoreContentType
 {
-    Mod,
-    ResourcePack,
-    DataPack,
-    Shader,
-    Plugin,
-    ModPack
+    Mod = 0,
+    ResourcePack = 1,
+    DataPack = 2,
+    Shader = 3,
+    Plugin = 4,
+    ModPack = 5
 }
