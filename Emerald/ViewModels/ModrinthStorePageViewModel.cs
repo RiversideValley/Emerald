@@ -123,7 +123,6 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
         ContentTypes.Add(new StoreContentTypeOption(StoreContentType.ResourcePack, "Resource Packs"));
         ContentTypes.Add(new StoreContentTypeOption(StoreContentType.DataPack, "Data Packs"));
         ContentTypes.Add(new StoreContentTypeOption(StoreContentType.Shader, "Shaders"));
-        ContentTypes.Add(new StoreContentTypeOption(StoreContentType.Plugin, "Plugins"));
         SelectedContentTypeOption = ContentTypes.FirstOrDefault();
 
         SortOptions.Add(new SearchSortOptionItem(SearchSortOptions.Relevance, "Relevance"));

@@ -32,7 +32,7 @@ public abstract class ModrinthStore : IModrinthStore
     /// </summary>
     /// <param name="path">The Minecraft path.</param>
     /// <param name="logger">The logger instance.</param>
-    /// <param name="projectType">The type of project (e.g., mod, plugin, resourcepack).</param>
+    /// <param name="projectType">The type of project (e.g., mod, resourcepack).</param>
     protected ModrinthStore(
         MinecraftPath path,
         ILogger logger,
@@ -67,7 +67,7 @@ public abstract class ModrinthStore : IModrinthStore
             {
                 var all = JsonSerializer.Deserialize<List<Category>>(response.Content);
 
-                var categoryProjectType = _projectType is "plugin" or "datapack"
+                var categoryProjectType = _projectType is "datapack"
                     ? "mod"
                     : _projectType;
 

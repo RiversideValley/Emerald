@@ -353,7 +353,6 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
             "resourcepacks" => (StoreContentType.ResourcePack, "resourcepacks"),
             "datapacks" => (StoreContentType.DataPack, "datapacks"),
             "shaderpacks" => (StoreContentType.Shader, "shaderpacks"),
-            "plugins" => (StoreContentType.Plugin, "plugins"),
             _ => (StoreContentType.ModPack, string.Empty)
         };
 

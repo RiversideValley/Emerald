@@ -154,13 +154,11 @@ Notes
     {
         //Stores
         services.AddTransient<ModStore>();
-        services.AddTransient<PluginStore>();
         services.AddTransient<ResourcePackStore>();
         services.AddTransient<ShaderStore>();
         services.AddTransient<DataPackStore>();
         services.AddTransient<ModPackStore>();
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ModStore>());
-        services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<PluginStore>());
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ResourcePackStore>());
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ShaderStore>());
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<DataPackStore>());

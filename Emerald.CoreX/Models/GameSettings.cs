@@ -117,11 +117,6 @@ public partial class GameSettings : ObservableObject
     [NotifyPropertyChangedFor(nameof(SharedStoreFoldersStatus))]
     [ObservableProperty]
     private bool _useSharedStoreShaderPacksPath;
-
-    [NotifyPropertyChangedFor(nameof(UsesSharedStoreFolders))]
-    [NotifyPropertyChangedFor(nameof(SharedStoreFoldersStatus))]
-    [ObservableProperty]
-    private bool _useSharedStorePluginsPath;
     
     public ObservableCollection<string> JVMArgs { get; set; } = new();
 
@@ -176,8 +171,7 @@ public partial class GameSettings : ObservableObject
         => UseSharedStoreModsPath
            || UseSharedStoreResourcePacksPath
            || UseSharedStoreDataPacksPath
-           || UseSharedStoreShaderPacksPath
-           || UseSharedStorePluginsPath;
+           || UseSharedStoreShaderPacksPath;
 
     [JsonIgnore]
     public string SharedStoreFoldersStatus
@@ -210,11 +204,6 @@ public partial class GameSettings : ObservableObject
                 folders.Add("StoreGodFoldersShaderPacksShort".Localize());
             }
 
-            if (UseSharedStorePluginsPath)
-            {
-                folders.Add("StoreGodFoldersPluginsShort".Localize());
-            }
-
             return string.Join(", ", folders);
         }
     }
@@ -226,7 +215,6 @@ public partial class GameSettings : ObservableObject
             StoreContentType.ResourcePack => UseSharedStoreResourcePacksPath,
             StoreContentType.DataPack => UseSharedStoreDataPacksPath,
             StoreContentType.Shader => UseSharedStoreShaderPacksPath,
-            StoreContentType.Plugin => UseSharedStorePluginsPath,
             _ => false
         };
 
@@ -314,8 +302,7 @@ public partial class GameSettings : ObservableObject
             UseSharedStoreModsPath = UseSharedStoreModsPath,
             UseSharedStoreResourcePacksPath = UseSharedStoreResourcePacksPath,
             UseSharedStoreDataPacksPath = UseSharedStoreDataPacksPath,
-            UseSharedStoreShaderPacksPath = UseSharedStoreShaderPacksPath,
-            UseSharedStorePluginsPath = UseSharedStorePluginsPath
+            UseSharedStoreShaderPacksPath = UseSharedStoreShaderPacksPath
         };
 
         foreach (var arg in JVMArgs)
@@ -353,7 +340,6 @@ public partial class GameSettings : ObservableObject
         UseSharedStoreResourcePacksPath = source.UseSharedStoreResourcePacksPath;
         UseSharedStoreDataPacksPath = source.UseSharedStoreDataPacksPath;
         UseSharedStoreShaderPacksPath = source.UseSharedStoreShaderPacksPath;
-        UseSharedStorePluginsPath = source.UseSharedStorePluginsPath;
 
         JVMArgs.Clear();
         foreach (var arg in source.JVMArgs)

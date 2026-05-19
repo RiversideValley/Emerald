@@ -8,20 +8,6 @@ namespace Emerald.CoreX.Store;
 
 public sealed class GameStoreContentService : IGameStoreContentService
 {
-    private static readonly string[] PluginStrictLoaders =
-    [
-        "paper",
-        "spigot",
-        "bukkit",
-        "purpur",
-        "folia",
-        "sponge",
-        "velocity",
-        "waterfall",
-        "bungeecord",
-        "geyser"
-    ];
-
     private readonly IStoreInstallRecordRepository _records;
     private readonly IGameRuntimeService _runtimeService;
     private readonly IStoreSharedContentService _sharedContentService;
@@ -384,7 +370,6 @@ public sealed class GameStoreContentService : IGameStoreContentService
             StoreContentType.ResourcePack => [],
             StoreContentType.DataPack => ["datapack"],
             StoreContentType.Shader => game.Version.Type == GameVersionType.OptiFine ? ["optifine"] : ["vanilla"],
-            StoreContentType.Plugin => PluginStrictLoaders,
             StoreContentType.ModPack => [],
             _ => []
         };

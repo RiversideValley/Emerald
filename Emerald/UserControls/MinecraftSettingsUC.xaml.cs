@@ -624,8 +624,7 @@ public sealed partial class MinecraftSettingsUC : UserControl
         nameof(GameSettings.UseSharedStoreModsPath),
         nameof(GameSettings.UseSharedStoreResourcePacksPath),
         nameof(GameSettings.UseSharedStoreDataPacksPath),
-        nameof(GameSettings.UseSharedStoreShaderPacksPath),
-        nameof(GameSettings.UseSharedStorePluginsPath)
+        nameof(GameSettings.UseSharedStoreShaderPacksPath)
     ];
 
     private static bool IsSharedStoreToggleProperty(string? propertyName)
@@ -638,7 +637,6 @@ public sealed partial class MinecraftSettingsUC : UserControl
             nameof(GameSettings.UseSharedStoreResourcePacksPath) => settings.UseSharedStoreResourcePacksPath,
             nameof(GameSettings.UseSharedStoreDataPacksPath) => settings.UseSharedStoreDataPacksPath,
             nameof(GameSettings.UseSharedStoreShaderPacksPath) => settings.UseSharedStoreShaderPacksPath,
-            nameof(GameSettings.UseSharedStorePluginsPath) => settings.UseSharedStorePluginsPath,
             _ => false
         };
 
@@ -649,7 +647,6 @@ public sealed partial class MinecraftSettingsUC : UserControl
             nameof(GameSettings.UseSharedStoreResourcePacksPath) => (StoreContentType.ResourcePack, "resourcepacks", "resource packs"),
             nameof(GameSettings.UseSharedStoreDataPacksPath) => (StoreContentType.DataPack, "datapacks", "data packs"),
             nameof(GameSettings.UseSharedStoreShaderPacksPath) => (StoreContentType.Shader, "shaderpacks", "shader packs"),
-            nameof(GameSettings.UseSharedStorePluginsPath) => (StoreContentType.Plugin, "plugins", "plugins"),
             _ => throw new ArgumentOutOfRangeException(nameof(propertyName), propertyName, null)
         };
 

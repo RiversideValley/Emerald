@@ -426,15 +426,6 @@
   <data name="StoreGodFoldersShaderPacksShort" xml:space="preserve">
     <value>Shaders</value>
   </data>
-  <data name="StoreGodFoldersPlugins" xml:space="preserve">
-    <value>Plugins folder</value>
-  </data>
-  <data name="StoreGodFoldersPluginsDescription" xml:space="preserve">
-    <value>Cache Modrinth plugins by hash and link them into instances.</value>
-  </data>
-  <data name="StoreGodFoldersPluginsShort" xml:space="preserve">
-    <value>Plugins</value>
-  </data>
   <data name="StoreGodFoldersWindowsLinkMode" xml:space="preserve">
     <value>Windows link mode</value>
   </data>
