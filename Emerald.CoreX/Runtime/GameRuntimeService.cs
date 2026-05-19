@@ -1,9 +1,11 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
+using CmlLib.Core.Auth;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Services;
+using Emerald.CoreX.Services.Auth;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
 
@@ -204,8 +206,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
         try
         {
-            _logger.LogDebug("Authenticating launch account for {GameName}.", game.Version.DisplayName);
-            var authenticationResult = await _accountService.AuthenticateAccountAsync(account);
+            var authenticationResult = await AuthenticateForLaunchAsync(game, account);
             ThrowIfLaunchCancelled(runtime);
 
             var process = await game.BuildProcess(
@@ -279,6 +280,22 @@ public sealed class GameRuntimeService : IGameRuntimeService
             _notificationService.Error("LaunchError", $"Failed to launch {game.Version.DisplayName}", ex: ex);
             return runtime.Session;
         }
+    }
+
+    private async Task<GameAuthenticationResult> AuthenticateForLaunchAsync(Game game, EAccount account)
+    {
+        if (game.IsOfflineMode)
+        {
+            _logger.LogInformation(
+                "Using offline launch session for {GameName} with selected account '{AccountName}' ({AccountType}).",
+                game.Version.DisplayName,
+                account.Name,
+                account.Type);
+            return new GameAuthenticationResult(MSession.CreateOfflineSession(account.Name));
+        }
+
+        _logger.LogDebug("Authenticating launch account for {GameName}.", game.Version.DisplayName);
+        return await _accountService.AuthenticateAccountAsync(account);
     }
 
     /// <summary>

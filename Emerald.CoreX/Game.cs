@@ -31,6 +31,8 @@ public partial class Game : ObservableObject
 
     public string? SharedMinecraftBasePath => _sharedMinecraftBasePath;
 
+    public bool IsOfflineMode => _launcherOfflineMode;
+
     [ObservableProperty]
     private bool _usesCustomGameSettings;
 

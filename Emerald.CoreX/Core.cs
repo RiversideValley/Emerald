@@ -244,7 +244,7 @@ public partial class Core(
         }
         catch (HttpRequestException)
         {
-            IsOfflineMode = false;
+            IsOfflineMode = true;
             _notify.Complete(not.Id, true,"OfflineMode");
         }
         catch (Exception ex)
