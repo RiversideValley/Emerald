@@ -190,21 +190,23 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
     {
         if (record.LinkKind == StoreLinkKind.None || string.IsNullOrWhiteSpace(record.GodFolderHash))
         {
-            return File.Exists(record.FilePath) || Directory.Exists(record.FilePath)
-                ? StoreSharedContentHealth.Ok
-                : StoreSharedContentHealth.MissingInstanceFile;
+            return GetDirectInstallHealth(record);
         }
 
-        var targetExists = File.Exists(record.FilePath);
-        var targetIsSymlink = StorePath.IsReparsePoint(record.FilePath);
-        if (!targetExists && targetIsSymlink)
-        {
-            return StoreSharedContentHealth.BrokenLink;
-        }
+        return GetSharedInstallHealth(record);
+    }
 
-        if (!targetExists)
+    private static StoreSharedContentHealth GetDirectInstallHealth(StoreInstallRecord record)
+        => File.Exists(record.FilePath) || Directory.Exists(record.FilePath)
+            ? StoreSharedContentHealth.Ok
+            : StoreSharedContentHealth.MissingInstanceFile;
+
+    private static StoreSharedContentHealth GetSharedInstallHealth(StoreInstallRecord record)
+    {
+        var targetHealth = GetSharedTargetHealth(record.FilePath);
+        if (targetHealth != StoreSharedContentHealth.Ok)
         {
-            return StoreSharedContentHealth.MissingInstanceFile;
+            return targetHealth;
         }
 
         if (string.IsNullOrWhiteSpace(record.SharedFilePath) || !File.Exists(record.SharedFilePath))
@@ -212,23 +214,40 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
             return StoreSharedContentHealth.MissingSharedFile;
         }
 
-        if (!string.IsNullOrWhiteSpace(record.Sha1))
+        return HasHashMismatch(record)
+            ? StoreSharedContentHealth.HashMismatch
+            : StoreSharedContentHealth.Ok;
+    }
+
+    private static StoreSharedContentHealth GetSharedTargetHealth(string filePath)
+    {
+        var targetExists = File.Exists(filePath);
+        if (!targetExists && StorePath.IsReparsePoint(filePath))
         {
-            try
-            {
-                var actual = FileHash.ComputeSha1(record.FilePath);
-                if (!actual.Equals(record.Sha1, StringComparison.OrdinalIgnoreCase))
-                {
-                    return StoreSharedContentHealth.HashMismatch;
-                }
-            }
-            catch
-            {
-                return StoreSharedContentHealth.HashMismatch;
-            }
+            return StoreSharedContentHealth.BrokenLink;
         }
 
-        return StoreSharedContentHealth.Ok;
+        return targetExists
+            ? StoreSharedContentHealth.Ok
+            : StoreSharedContentHealth.MissingInstanceFile;
+    }
+
+    private static bool HasHashMismatch(StoreInstallRecord record)
+    {
+        if (string.IsNullOrWhiteSpace(record.Sha1))
+        {
+            return false;
+        }
+
+        try
+        {
+            var actual = FileHash.ComputeSha1(record.FilePath);
+            return !actual.Equals(record.Sha1, StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return true;
+        }
     }
 
     public Task RemoveReferenceAsync(StoreInstallRecord record, bool deleteInstanceFile, CancellationToken cancellationToken = default)
