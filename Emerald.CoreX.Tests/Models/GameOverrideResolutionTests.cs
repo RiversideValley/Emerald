@@ -92,6 +92,10 @@ public sealed class GameOverrideResolutionTests
         public GameSettings CloneCurrent()
             => Settings.Clone();
 
+        public void LoadForBasePath(string basePath)
+        {
+        }
+
         public void Save()
         {
         }

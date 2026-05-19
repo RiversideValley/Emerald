@@ -99,6 +99,10 @@ public sealed class SplitMinecraftPathTests
         public GameSettings CloneCurrent()
             => Settings.Clone();
 
+        public void LoadForBasePath(string basePath)
+        {
+        }
+
         public void Save()
         {
         }

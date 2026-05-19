@@ -103,7 +103,7 @@ public sealed class GameStoreContentServiceTests
         var baseSettings = new InMemoryBaseSettingsService();
         var runtime = new FakeRuntimeService();
         var fakeStore = new FakeModrinthStore(StoreContentType.Mod, "mods");
-        var service = CreateService(baseSettings, runtime, fakeStore);
+        var service = CreateService(baseSettings, runtime, fakeStore, out InMemoryMinecraftBaseSettingsService minecraftBaseSettings);
 
         using var temp = new TemporaryDirectory();
         var firstGame = CreateGame(
@@ -130,7 +130,7 @@ public sealed class GameStoreContentServiceTests
         Assert.True(File.Exists(first.SharedFilePath));
         Assert.Equal(first.SharedFilePath, second.SharedFilePath);
 
-        var records = baseSettings.Peek<StoreInstallRecord[]>(SettingsKeys.StoreInstalledItems) ?? [];
+        var records = minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ?? [];
         Assert.Equal(2, records.Count(record => record.SharedFilePath == first.SharedFilePath));
     }
 
@@ -140,7 +140,7 @@ public sealed class GameStoreContentServiceTests
         var baseSettings = new InMemoryBaseSettingsService();
         var runtime = new FakeRuntimeService();
         var fakeStore = new FakeModrinthStore(StoreContentType.Mod, "mods");
-        var service = CreateService(baseSettings, runtime, fakeStore);
+        var service = CreateService(baseSettings, runtime, fakeStore, out InMemoryMinecraftBaseSettingsService minecraftBaseSettings);
 
         using var temp = new TemporaryDirectory();
         var firstGame = CreateGame(
@@ -165,12 +165,12 @@ public sealed class GameStoreContentServiceTests
         Assert.True(await service.RemoveAsync(firstGame, StoreContentType.Mod, first));
         Assert.True(File.Exists(sharedPath));
         Assert.Single(
-            baseSettings.Peek<StoreInstallRecord[]>(SettingsKeys.StoreInstalledItems) ?? [],
+            minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ?? [],
             record => record.SharedFilePath == sharedPath);
 
         Assert.True(await service.RemoveAsync(secondGame, StoreContentType.Mod, second));
         Assert.False(File.Exists(sharedPath));
-        Assert.Empty(baseSettings.Peek<StoreInstallRecord[]>(SettingsKeys.StoreInstalledItems) ?? []);
+        Assert.Empty(minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ?? []);
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public sealed class GameStoreContentServiceTests
         var baseSettings = new InMemoryBaseSettingsService();
         var runtime = new FakeRuntimeService();
         var fakeStore = new FakeModrinthStore(StoreContentType.Mod, "mods");
-        var service = CreateService(baseSettings, runtime, fakeStore, out var sharedContent);
+        var service = CreateService(baseSettings, runtime, fakeStore, out var sharedContent, out InMemoryMinecraftBaseSettingsService minecraftBaseSettings);
 
         using var temp = new TemporaryDirectory();
         var game = CreateGame(
@@ -197,7 +197,7 @@ public sealed class GameStoreContentServiceTests
         Assert.Equal(1, plan.TrackedConvertibleCount);
 
         var summary = await sharedContent.ApplyMigrationAsync(plan, StoreSharedContentMigrationAction.ConvertTrackedFiles);
-        var record = Assert.Single(baseSettings.Peek<StoreInstallRecord[]>(SettingsKeys.StoreInstalledItems) ?? []);
+        var record = Assert.Single(minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ?? []);
 
         Assert.Equal(1, summary.ChangedCount);
         Assert.Equal(StoreLinkKind.Copy, record.LinkKind);
@@ -210,7 +210,7 @@ public sealed class GameStoreContentServiceTests
         var baseSettings = new InMemoryBaseSettingsService();
         var runtime = new FakeRuntimeService();
         var fakeStore = new FakeModrinthStore(StoreContentType.Mod, "mods");
-        var service = CreateService(baseSettings, runtime, fakeStore, out var sharedContent);
+        var service = CreateService(baseSettings, runtime, fakeStore, out var sharedContent, out InMemoryMinecraftBaseSettingsService minecraftBaseSettings);
 
         using var temp = new TemporaryDirectory();
         var game = CreateGame(
@@ -229,7 +229,7 @@ public sealed class GameStoreContentServiceTests
         Assert.Equal(1, plan.SharedInstallCount);
 
         await sharedContent.ApplyMigrationAsync(plan, StoreSharedContentMigrationAction.MaterializeFiles);
-        var record = Assert.Single(baseSettings.Peek<StoreInstallRecord[]>(SettingsKeys.StoreInstalledItems) ?? []);
+        var record = Assert.Single(minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ?? []);
 
         Assert.Equal(StoreLinkKind.None, record.LinkKind);
         Assert.Null(record.GodFolderHash);
@@ -243,7 +243,7 @@ public sealed class GameStoreContentServiceTests
         var baseSettings = new InMemoryBaseSettingsService();
         var runtime = new FakeRuntimeService();
         var fakeStore = new FakeModrinthStore(StoreContentType.Mod, "mods");
-        _ = CreateService(baseSettings, runtime, fakeStore, out var sharedContent);
+        _ = CreateService(baseSettings, runtime, fakeStore, out var sharedContent, out InMemoryMinecraftBaseSettingsService minecraftBaseSettings);
 
         using var temp = new TemporaryDirectory();
         var game = CreateGame(
@@ -260,7 +260,7 @@ public sealed class GameStoreContentServiceTests
         Assert.Equal(1, plan.UntrackedFileCount);
 
         await sharedContent.ApplyMigrationAsync(plan, StoreSharedContentMigrationAction.ConvertAllCompatibleFiles);
-        var record = Assert.Single(baseSettings.Peek<StoreInstallRecord[]>(SettingsKeys.StoreInstalledItems) ?? []);
+        var record = Assert.Single(minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ?? []);
 
         Assert.Equal("manual.jar", record.FileName);
         Assert.Equal(StoreLinkKind.Copy, record.LinkKind);
@@ -327,27 +327,45 @@ public sealed class GameStoreContentServiceTests
         InMemoryBaseSettingsService settings,
         FakeRuntimeService runtime,
         params IModrinthStore[] stores)
-        => CreateService(settings, runtime, stores, out _);
+        => CreateService(settings, runtime, stores, out _, out _);
+
+    private static GameStoreContentService CreateService(
+        InMemoryBaseSettingsService settings,
+        FakeRuntimeService runtime,
+        IModrinthStore store,
+        out InMemoryMinecraftBaseSettingsService minecraftBaseSettings)
+        => CreateService(settings, runtime, [store], out _, out minecraftBaseSettings);
 
     private static GameStoreContentService CreateService(
         InMemoryBaseSettingsService settings,
         FakeRuntimeService runtime,
         IModrinthStore store,
         out IStoreSharedContentService sharedContentService)
-        => CreateService(settings, runtime, [store], out sharedContentService);
+        => CreateService(settings, runtime, [store], out sharedContentService, out _);
+
+    private static GameStoreContentService CreateService(
+        InMemoryBaseSettingsService settings,
+        FakeRuntimeService runtime,
+        IModrinthStore store,
+        out IStoreSharedContentService sharedContentService,
+        out InMemoryMinecraftBaseSettingsService minecraftBaseSettings)
+        => CreateService(settings, runtime, [store], out sharedContentService, out minecraftBaseSettings);
 
     private static GameStoreContentService CreateService(
         InMemoryBaseSettingsService settings,
         FakeRuntimeService runtime,
         IModrinthStore[] stores,
-        out IStoreSharedContentService sharedContentService)
+        out IStoreSharedContentService sharedContentService,
+        out InMemoryMinecraftBaseSettingsService minecraftBaseSettings)
     {
+        minecraftBaseSettings = new InMemoryMinecraftBaseSettingsService();
         var sharedSettings = new StoreSharedContentSettingsService(
             settings,
+            minecraftBaseSettings,
             NullLogger<StoreSharedContentSettingsService>.Instance);
         sharedSettings.Settings.UnixLinkMode = StoreLinkMode.Copy;
         sharedSettings.Settings.WindowsLinkMode = StoreLinkMode.Copy;
-        var records = new StoreInstallRecordRepository(settings);
+        var records = new StoreInstallRecordRepository(settings, minecraftBaseSettings);
         sharedContentService = new StoreSharedContentService(
             records,
             new FakeStoreFileLinkService(),
@@ -370,6 +388,7 @@ public sealed class GameStoreContentServiceTests
     {
         var globalSettings = new GlobalGameSettingsService(
             new InMemoryBaseSettingsService(),
+            new InMemoryMinecraftBaseSettingsService(),
             NullLogger<GlobalGameSettingsService>.Instance);
         configureSettings?.Invoke(globalSettings.Settings);
 

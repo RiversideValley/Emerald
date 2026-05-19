@@ -179,12 +179,14 @@ public sealed class MrPackTests
             return new HttpResponseMessage(HttpStatusCode.NotFound);
         });
         var settings = new InMemoryBaseSettingsService();
+        var minecraftBaseSettings = new InMemoryMinecraftBaseSettingsService();
         var sharedSettings = new StoreSharedContentSettingsService(
             settings,
+            minecraftBaseSettings,
             NullLogger<StoreSharedContentSettingsService>.Instance);
         sharedSettings.Settings.UnixLinkMode = StoreLinkMode.Copy;
         sharedSettings.Settings.WindowsLinkMode = StoreLinkMode.Copy;
-        var records = new StoreInstallRecordRepository(settings);
+        var records = new StoreInstallRecordRepository(settings, minecraftBaseSettings);
         var sharedContent = new StoreSharedContentService(
             records,
             new FakeStoreFileLinkService(),
@@ -217,7 +219,7 @@ public sealed class MrPackTests
         Assert.Equal("override", await File.ReadAllTextAsync(Path.Combine(instancePath, "config", "app.cfg")));
         Assert.True(File.Exists(Path.Combine(temp.Path, "mods", $"{CreateHashes(modBytes)["sha1"]}.jar")));
         Assert.True(File.Exists(Path.Combine(temp.Path, "shaderpacks", $"{CreateHashes(shaderBytes)["sha1"]}.zip")));
-        Assert.Equal(2, settings.Peek<StoreInstallRecord[]>(SettingsKeys.StoreInstalledItems)?.Length ?? 0);
+        Assert.Equal(2, minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems)?.Length ?? 0);
     }
 
     [Fact]
@@ -332,9 +334,9 @@ public sealed class MrPackTests
         Assert.Equal("21.1.1", game.Version.ModVersion);
         Assert.Single(service.Core.Games);
         Assert.True(File.Exists(Path.Combine(temp.Path, LauncherCore.GamesFolderName, "modded-pack", "modpack.ok")));
-        var saved = settings.Peek<SavedGameCollection[]>(SettingsKeys.SavedGames);
+        var saved = service.MinecraftBaseSettings.Peek<SavedGame[]>(temp.Path, SettingsKeys.SavedGames);
         Assert.NotNull(saved);
-        Assert.Single(saved![0].Games);
+        Assert.Single(saved!);
     }
 
     [Fact]
@@ -386,12 +388,14 @@ public sealed class MrPackTests
     private static MrPackFileInstaller CreateFileInstaller(TestHttpMessageHandler handler)
     {
         var settings = new InMemoryBaseSettingsService();
+        var minecraftBaseSettings = new InMemoryMinecraftBaseSettingsService();
         var sharedSettings = new StoreSharedContentSettingsService(
             settings,
+            minecraftBaseSettings,
             NullLogger<StoreSharedContentSettingsService>.Instance);
         sharedSettings.Settings.UnixLinkMode = StoreLinkMode.Copy;
         sharedSettings.Settings.WindowsLinkMode = StoreLinkMode.Copy;
-        var records = new StoreInstallRecordRepository(settings);
+        var records = new StoreInstallRecordRepository(settings, minecraftBaseSettings);
 
         return new MrPackFileInstaller(
             new MrPackReader(),
@@ -410,32 +414,41 @@ public sealed class MrPackTests
         IMrPackFileInstaller? fileInstaller = null,
         HttpClient? httpClient = null)
     {
-        var core = CreateCore(basePath, settings ?? new InMemoryBaseSettingsService());
+        var coreSettings = CreateCore(basePath, settings ?? new InMemoryBaseSettingsService());
         var service = new ModpackInstanceCreationService(
-            core,
+            coreSettings.Core,
             new MrPackReader(),
             fileInstaller ?? new FakeMrPackFileInstaller(),
             new FakeNotificationService(),
             NullLogger<ModpackInstanceCreationService>.Instance,
             httpClient ?? new HttpClient(new TestHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.NotFound))));
 
-        return new TestCreationService(core, service);
+        return new TestCreationService(coreSettings.Core, service, coreSettings.MinecraftBaseSettings);
     }
 
-    private static LauncherCore CreateCore(string basePath, InMemoryBaseSettingsService settings)
+    private static TestCoreSettings CreateCore(string basePath, InMemoryBaseSettingsService settings)
     {
+        var minecraftBaseSettings = new InMemoryMinecraftBaseSettingsService();
+        var storeRecords = new StoreInstallRecordRepository(settings, minecraftBaseSettings);
+        var sharedStoreSettings = new StoreSharedContentSettingsService(
+            settings,
+            minecraftBaseSettings,
+            NullLogger<StoreSharedContentSettingsService>.Instance);
         var core = new LauncherCore(
             NullLogger<LauncherCore>.Instance,
             new FakeNotificationService(),
             settings,
+            minecraftBaseSettings,
             new TestGameRuntimeService(),
-            new TestGlobalGameSettingsService());
+            new TestGlobalGameSettingsService(),
+            storeRecords,
+            sharedStoreSettings);
 
         typeof(LauncherCore)
             .GetProperty("BasePath", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!
             .SetValue(core, new MinecraftPath(basePath));
 
-        return core;
+        return new TestCoreSettings(core, minecraftBaseSettings);
     }
 
     private static ModpackInstanceCreationRequest CreateRequest(
@@ -566,7 +579,14 @@ public sealed class MrPackTests
             Content = new ByteArrayContent(bytes)
         };
 
-    private sealed record TestCreationService(LauncherCore Core, ModpackInstanceCreationService Service)
+    private sealed record TestCoreSettings(
+        LauncherCore Core,
+        InMemoryMinecraftBaseSettingsService MinecraftBaseSettings);
+
+    private sealed record TestCreationService(
+        LauncherCore Core,
+        ModpackInstanceCreationService Service,
+        InMemoryMinecraftBaseSettingsService MinecraftBaseSettings)
     {
         public Task<ModpackProbeResult> ProbeAsync(ItemVersion version)
             => Service.ProbeAsync(version);
@@ -638,6 +658,10 @@ public sealed class MrPackTests
 
         public GameSettings CloneCurrent()
             => Settings.Clone();
+
+        public void LoadForBasePath(string basePath)
+        {
+        }
 
         public void Save()
         {
