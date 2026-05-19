@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Store;
 using Emerald.CoreX.Store.Modrinth.JSON;
-using Emerald.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Emerald.CoreX.Modpacks;
@@ -25,29 +24,29 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
 {
     private static readonly string[] ClientOverridePrefixes = ["overrides/", "client-overrides/"];
     private readonly IMrPackReader _reader;
-    private readonly IBaseSettingsService _baseSettingsService;
+    private readonly IStoreInstallRecordRepository _records;
     private readonly IStoreSharedContentService _sharedContentService;
     private readonly ILogger<MrPackFileInstaller> _logger;
     private readonly HttpClient _httpClient;
 
     public MrPackFileInstaller(
         IMrPackReader reader,
-        IBaseSettingsService baseSettingsService,
+        IStoreInstallRecordRepository records,
         IStoreSharedContentService sharedContentService,
         ILogger<MrPackFileInstaller> logger)
-        : this(reader, baseSettingsService, sharedContentService, logger, CreateDefaultHttpClient())
+        : this(reader, records, sharedContentService, logger, CreateDefaultHttpClient())
     {
     }
 
     public MrPackFileInstaller(
         IMrPackReader reader,
-        IBaseSettingsService baseSettingsService,
+        IStoreInstallRecordRepository records,
         IStoreSharedContentService sharedContentService,
         ILogger<MrPackFileInstaller> logger,
         HttpClient httpClient)
     {
         _reader = reader;
-        _baseSettingsService = baseSettingsService;
+        _records = records;
         _sharedContentService = sharedContentService;
         _logger = logger;
         _httpClient = httpClient;
@@ -194,7 +193,7 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
     {
         if (file.Hashes.TryGetValue("sha1", out var sha1))
         {
-            var actualSha1 = await ComputeHashAsync(SHA1.Create(), filePath, cancellationToken);
+            var actualSha1 = await FileHash.ComputeSha1Async(filePath, cancellationToken);
             if (!actualSha1.Equals(sha1, StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException($"SHA-1 mismatch for '{file.Path}'.");
@@ -203,24 +202,11 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
 
         if (file.Hashes.TryGetValue("sha512", out var sha512))
         {
-            var actualSha512 = await ComputeHashAsync(SHA512.Create(), filePath, cancellationToken);
+            var actualSha512 = await FileHash.ComputeHashAsync(SHA512.Create(), filePath, cancellationToken);
             if (!actualSha512.Equals(sha512, StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException($"SHA-512 mismatch for '{file.Path}'.");
             }
-        }
-    }
-
-    private static async Task<string> ComputeHashAsync(
-        HashAlgorithm algorithm,
-        string filePath,
-        CancellationToken cancellationToken)
-    {
-        using (algorithm)
-        {
-            await using var stream = File.OpenRead(filePath);
-            var hash = await algorithm.ComputeHashAsync(stream, cancellationToken);
-            return Convert.ToHexString(hash).ToLowerInvariant();
         }
     }
 
@@ -296,20 +282,21 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
             return;
         }
 
-        var records = LoadRecords().ToList();
-        var normalizedDestination = NormalizePath(recordFilePath);
-        var existing = records
-            .Where(record =>
-                record.ContentType == contentType
-                && string.Equals(NormalizePath(record.FilePath), normalizedDestination, StringComparison.OrdinalIgnoreCase))
+        var records = _records.GetAll().ToList();
+        var existing = _records
+            .FindByFilePath(contentType, recordFilePath, instancePath)
             .ToArray();
 
-        foreach (var existingRecord in existing)
-        {
-            _sharedContentService.RemoveReferenceAsync(existingRecord, deleteInstanceFile: false).GetAwaiter().GetResult();
-        }
-
         records.RemoveAll(record => existing.Any(removed => removed.Id == record.Id));
+        if (existing.Length > 0)
+        {
+            _records.Save(records);
+
+            foreach (var existingRecord in existing)
+            {
+                _sharedContentService.RemoveReferenceAsync(existingRecord, deleteInstanceFile: false).GetAwaiter().GetResult();
+            }
+        }
 
         var installRecord = new StoreInstallRecord
         {
@@ -324,8 +311,8 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
             FilePath = recordFilePath,
             Sha1 = installResult.Sha1 ?? file.Hashes.GetValueOrDefault("sha1"),
             Sha512 = installResult.Sha512 ?? file.Hashes.GetValueOrDefault("sha512"),
-            GodFolderHash = installResult.Sha1,
-            HashAlgorithm = "sha1",
+            GodFolderHash = string.IsNullOrWhiteSpace(installResult.SharedFilePath) ? null : installResult.Sha1,
+            HashAlgorithm = string.IsNullOrWhiteSpace(installResult.SharedFilePath) ? null : "sha1",
             SharedFilePath = installResult.SharedFilePath,
             LinkKind = installResult.LinkKind,
             DownloadUrl = file.Downloads.FirstOrDefault(),
@@ -333,8 +320,7 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
         };
 
         records.Add(installRecord);
-        SaveRecords(records);
-        _sharedContentService.AddOrUpdateManifestReference(sharedBasePath, installFolderName, installRecord);
+        _records.Save(records);
     }
 
     private static ItemFile ToItemFile(MrPackFile file, string fileName)
@@ -373,12 +359,4 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
         return !string.IsNullOrWhiteSpace(installFolderName);
     }
 
-    private StoreInstallRecord[] LoadRecords()
-        => _baseSettingsService.Get(SettingsKeys.StoreInstalledItems, Array.Empty<StoreInstallRecord>());
-
-    private void SaveRecords(IEnumerable<StoreInstallRecord> records)
-        => _baseSettingsService.Set(SettingsKeys.StoreInstalledItems, records.ToArray());
-
-    private static string NormalizePath(string path)
-        => Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 }

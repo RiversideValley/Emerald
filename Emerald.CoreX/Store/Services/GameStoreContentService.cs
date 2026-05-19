@@ -1,9 +1,6 @@
-using System.Collections.ObjectModel;
-using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Runtime;
 using Emerald.CoreX.Store.Modrinth;
 using Emerald.CoreX.Store.Modrinth.JSON;
-using Emerald.Services;
 using Microsoft.Extensions.Logging;
 using GameVersionType = Emerald.CoreX.Versions.Type;
 
@@ -25,20 +22,20 @@ public sealed class GameStoreContentService : IGameStoreContentService
         "geyser"
     ];
 
-    private readonly IBaseSettingsService _baseSettingsService;
+    private readonly IStoreInstallRecordRepository _records;
     private readonly IGameRuntimeService _runtimeService;
     private readonly IStoreSharedContentService _sharedContentService;
     private readonly ILogger<GameStoreContentService> _logger;
     private readonly Dictionary<StoreContentType, IModrinthStore> _stores;
 
     public GameStoreContentService(
-        IBaseSettingsService baseSettingsService,
+        IStoreInstallRecordRepository records,
         IGameRuntimeService runtimeService,
         IStoreSharedContentService sharedContentService,
         IEnumerable<IModrinthStore> stores,
         ILogger<GameStoreContentService> logger)
     {
-        _baseSettingsService = baseSettingsService;
+        _records = records;
         _runtimeService = runtimeService;
         _sharedContentService = sharedContentService;
         _logger = logger;
@@ -122,20 +119,21 @@ public sealed class GameStoreContentService : IGameStoreContentService
             game.Path.BasePath);
 
         var targetPath = Path.Combine(game.Path.BasePath, store.InstallFolderName, file.Filename);
-        var records = LoadRecords().ToList();
-        var existingRecords = records
-            .Where(existing =>
-            existing.ContentType == contentType
-            && string.Equals(NormalizePath(existing.GamePath), NormalizePath(game.Path.BasePath), StringComparison.OrdinalIgnoreCase)
-            && string.Equals(NormalizePath(existing.FilePath), NormalizePath(targetPath), StringComparison.OrdinalIgnoreCase))
+        var records = _records.GetAll().ToList();
+        var existingRecords = _records
+            .FindByFilePath(contentType, targetPath, game.Path.BasePath)
             .ToArray();
+
+        records.RemoveAll(existing => existingRecords.Any(removed => removed.Id == existing.Id));
+        if (existingRecords.Length > 0)
+        {
+            _records.Save(records);
+        }
 
         foreach (var existing in existingRecords)
         {
             await _sharedContentService.RemoveReferenceAsync(existing, deleteInstanceFile: true, cancellationToken);
         }
-
-        records.RemoveAll(existing => existingRecords.Any(removed => removed.Id == existing.Id));
 
         var installResult = await _sharedContentService.InstallAsync(new StoreSharedInstallRequest
         {
@@ -175,23 +173,17 @@ public sealed class GameStoreContentService : IGameStoreContentService
         };
 
         records.Add(record);
-        SaveRecords(records);
-
-        if (!string.IsNullOrWhiteSpace(record.GodFolderHash)
-            && !string.IsNullOrWhiteSpace(game.SharedMinecraftBasePath))
-        {
-            _sharedContentService.AddOrUpdateManifestReference(game.SharedMinecraftBasePath, store.InstallFolderName, record);
-        }
+        _records.Save(records);
 
         return ToInstalledItem(
             record,
             isDirectory: false,
-            fileSizeBytes: installResult.FileSizeBytes ?? GetFileSize(targetPath),
+            fileSizeBytes: installResult.FileSizeBytes ?? StorePath.GetFileSize(targetPath),
             health: _sharedContentService.GetHealth(record),
             existsOnDisk: File.Exists(targetPath));
     }
 
-    public Task<IReadOnlyList<InstalledStoreItem>> GetInstalledItemsAsync(
+    public async Task<IReadOnlyList<InstalledStoreItem>> GetInstalledItemsAsync(
         Game game,
         StoreContentType contentType,
         CancellationToken cancellationToken = default)
@@ -200,32 +192,34 @@ public sealed class GameStoreContentService : IGameStoreContentService
 
         var store = GetStore(contentType);
         var contentRoot = Path.Combine(game.Path.BasePath, store.InstallFolderName);
-        var normalizedGamePath = NormalizePath(game.Path.BasePath);
-        var normalizedRoot = NormalizePath(contentRoot);
+        var normalizedRoot = StorePath.Normalize(contentRoot);
 
-        var records = LoadRecords().ToList();
+        var records = _records.GetAll().ToList();
         var staleRecords = records
             .Where(record =>
-                record.ContentType == contentType
-                && string.Equals(NormalizePath(record.GamePath), normalizedGamePath, StringComparison.OrdinalIgnoreCase)
-                && !IsPathInsideRoot(record.FilePath, normalizedRoot))
+                _records.IsForGameAndType(record, game.Path.BasePath, contentType)
+                && !StorePath.IsInsideRoot(record.FilePath, normalizedRoot))
             .ToList();
 
         if (staleRecords.Count > 0)
         {
             records.RemoveAll(record => staleRecords.Any(stale => stale.Id == record.Id));
-            SaveRecords(records);
+            _records.Save(records);
+
+            foreach (var staleRecord in staleRecords)
+            {
+                await _sharedContentService.RemoveReferenceAsync(staleRecord, deleteInstanceFile: false, cancellationToken);
+            }
         }
 
         var trackedRecords = records
             .Where(record =>
-                record.ContentType == contentType
-                && string.Equals(NormalizePath(record.GamePath), normalizedGamePath, StringComparison.OrdinalIgnoreCase)
-                && IsPathInsideRoot(record.FilePath, normalizedRoot))
+                _records.IsForGameAndType(record, game.Path.BasePath, contentType)
+                && StorePath.IsInsideRoot(record.FilePath, normalizedRoot))
             .ToList();
 
         var trackedByPath = trackedRecords.ToDictionary(
-            record => NormalizePath(record.FilePath),
+            record => StorePath.Normalize(record.FilePath),
             record => record,
             StringComparer.OrdinalIgnoreCase);
 
@@ -252,7 +246,7 @@ public sealed class GameStoreContentService : IGameStoreContentService
         {
             foreach (var entryPath in Directory.EnumerateFileSystemEntries(contentRoot, "*", SearchOption.TopDirectoryOnly))
             {
-                var normalizedEntry = NormalizePath(entryPath);
+                var normalizedEntry = StorePath.Normalize(entryPath);
                 if (trackedByPath.ContainsKey(normalizedEntry))
                 {
                     continue;
@@ -285,7 +279,7 @@ public sealed class GameStoreContentService : IGameStoreContentService
             .ThenBy(item => item.DisplayName, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        return Task.FromResult<IReadOnlyList<InstalledStoreItem>>(ordered);
+        return ordered;
     }
 
     public async Task<bool> RemoveAsync(
@@ -307,16 +301,16 @@ public sealed class GameStoreContentService : IGameStoreContentService
         }
 
         var store = GetStore(contentType);
-        var contentRoot = NormalizePath(Path.Combine(game.Path.BasePath, store.InstallFolderName));
-        var targetPath = NormalizePath(item.FilePath);
-        if (!IsPathInsideRoot(targetPath, contentRoot))
+        var contentRoot = StorePath.Normalize(Path.Combine(game.Path.BasePath, store.InstallFolderName));
+        var targetPath = StorePath.Normalize(item.FilePath);
+        if (!StorePath.IsInsideRoot(targetPath, contentRoot))
         {
             _logger.LogWarning("Refusing to remove path outside of store content root. Root: {Root}. Path: {Path}", contentRoot, targetPath);
             return false;
         }
 
         var removedFromDisk = false;
-        if (File.Exists(targetPath) || IsReparsePoint(targetPath))
+        if (File.Exists(targetPath) || StorePath.IsReparsePoint(targetPath))
         {
             File.Delete(targetPath);
             removedFromDisk = true;
@@ -327,24 +321,21 @@ public sealed class GameStoreContentService : IGameStoreContentService
             removedFromDisk = true;
         }
 
-        var records = LoadRecords().ToList();
-        var removedRecords = records
-            .Where(record =>
-            record.ContentType == contentType
-            && string.Equals(NormalizePath(record.GamePath), NormalizePath(game.Path.BasePath), StringComparison.OrdinalIgnoreCase)
-            && string.Equals(NormalizePath(record.FilePath), targetPath, StringComparison.OrdinalIgnoreCase))
+        var records = _records.GetAll().ToList();
+        var removedRecords = _records
+            .FindByFilePath(contentType, targetPath, game.Path.BasePath)
             .ToArray();
-
-        foreach (var removedRecord in removedRecords)
-        {
-            await _sharedContentService.RemoveReferenceAsync(removedRecord, deleteInstanceFile: false, cancellationToken);
-        }
 
         var removedTracked = records.RemoveAll(record => removedRecords.Any(removed => removed.Id == record.Id)) > 0;
 
         if (removedTracked)
         {
-            SaveRecords(records);
+            _records.Save(records);
+
+            foreach (var removedRecord in removedRecords)
+            {
+                await _sharedContentService.RemoveReferenceAsync(removedRecord, deleteInstanceFile: false, cancellationToken);
+            }
         }
 
         _logger.LogInformation(
@@ -402,12 +393,6 @@ public sealed class GameStoreContentService : IGameStoreContentService
         };
     }
 
-    private StoreInstallRecord[] LoadRecords()
-        => _baseSettingsService.Get(SettingsKeys.StoreInstalledItems, Array.Empty<StoreInstallRecord>());
-
-    private void SaveRecords(IEnumerable<StoreInstallRecord> records)
-        => _baseSettingsService.Set(SettingsKeys.StoreInstalledItems, records.ToArray());
-
     private static InstalledStoreItem ToInstalledItem(
         StoreInstallRecord record,
         bool isDirectory,
@@ -441,34 +426,4 @@ public sealed class GameStoreContentService : IGameStoreContentService
         };
     }
 
-    private static long? GetFileSize(string filePath)
-        => File.Exists(filePath) ? new FileInfo(filePath).Length : null;
-
-    private static bool IsReparsePoint(string path)
-    {
-        try
-        {
-            return File.GetAttributes(path).HasFlag(System.IO.FileAttributes.ReparsePoint);
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private static bool IsPathInsideRoot(string path, string root)
-    {
-        var normalizedPath = NormalizePath(path);
-        var normalizedRoot = NormalizePath(root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        if (string.Equals(normalizedPath, normalizedRoot, StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        var rootWithSeparator = normalizedRoot + Path.DirectorySeparatorChar;
-        return normalizedPath.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static string NormalizePath(string path)
-        => Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 }

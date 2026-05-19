@@ -184,14 +184,14 @@ public sealed class MrPackTests
             NullLogger<StoreSharedContentSettingsService>.Instance);
         sharedSettings.Settings.UnixLinkMode = StoreLinkMode.Copy;
         sharedSettings.Settings.WindowsLinkMode = StoreLinkMode.Copy;
+        var records = new StoreInstallRecordRepository(settings);
         var sharedContent = new StoreSharedContentService(
-            settings,
+            records,
             new FakeStoreFileLinkService(),
-            sharedSettings,
-            NullLogger<StoreSharedContentService>.Instance);
+            sharedSettings);
         var installer = new MrPackFileInstaller(
             new MrPackReader(),
-            settings,
+            records,
             sharedContent,
             NullLogger<MrPackFileInstaller>.Instance,
             new HttpClient(handler));
@@ -391,15 +391,15 @@ public sealed class MrPackTests
             NullLogger<StoreSharedContentSettingsService>.Instance);
         sharedSettings.Settings.UnixLinkMode = StoreLinkMode.Copy;
         sharedSettings.Settings.WindowsLinkMode = StoreLinkMode.Copy;
+        var records = new StoreInstallRecordRepository(settings);
 
         return new MrPackFileInstaller(
             new MrPackReader(),
-            settings,
+            records,
             new StoreSharedContentService(
-                settings,
+                records,
                 new FakeStoreFileLinkService(),
-                sharedSettings,
-                NullLogger<StoreSharedContentService>.Instance),
+                sharedSettings),
             NullLogger<MrPackFileInstaller>.Instance,
             new HttpClient(handler));
     }

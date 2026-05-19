@@ -129,10 +129,9 @@ public sealed class GameStoreContentServiceTests
         Assert.Equal(StoreLinkKind.Copy, second.LinkKind);
         Assert.True(File.Exists(first.SharedFilePath));
         Assert.Equal(first.SharedFilePath, second.SharedFilePath);
-        Assert.Equal(2, (baseSettings.Peek<StoreSharedContentManifestEntry[]>(SettingsKeys.StoreSharedContentManifest) ?? [])
-            .Single()
-            .References
-            .Count);
+
+        var records = baseSettings.Peek<StoreInstallRecord[]>(SettingsKeys.StoreInstalledItems) ?? [];
+        Assert.Equal(2, records.Count(record => record.SharedFilePath == first.SharedFilePath));
     }
 
     [Fact]
@@ -165,13 +164,13 @@ public sealed class GameStoreContentServiceTests
 
         Assert.True(await service.RemoveAsync(firstGame, StoreContentType.Mod, first));
         Assert.True(File.Exists(sharedPath));
-        Assert.Single((baseSettings.Peek<StoreSharedContentManifestEntry[]>(SettingsKeys.StoreSharedContentManifest) ?? [])
-            .Single()
-            .References);
+        Assert.Single(
+            baseSettings.Peek<StoreInstallRecord[]>(SettingsKeys.StoreInstalledItems) ?? [],
+            record => record.SharedFilePath == sharedPath);
 
         Assert.True(await service.RemoveAsync(secondGame, StoreContentType.Mod, second));
         Assert.False(File.Exists(sharedPath));
-        Assert.Empty(baseSettings.Peek<StoreSharedContentManifestEntry[]>(SettingsKeys.StoreSharedContentManifest) ?? []);
+        Assert.Empty(baseSettings.Peek<StoreInstallRecord[]>(SettingsKeys.StoreInstalledItems) ?? []);
     }
 
     [Fact]
@@ -236,7 +235,6 @@ public sealed class GameStoreContentServiceTests
         Assert.Null(record.GodFolderHash);
         Assert.Null(record.SharedFilePath);
         Assert.True(File.Exists(installed.FilePath));
-        Assert.Empty(baseSettings.Peek<StoreSharedContentManifestEntry[]>(SettingsKeys.StoreSharedContentManifest) ?? []);
     }
 
     [Fact]
@@ -349,14 +347,14 @@ public sealed class GameStoreContentServiceTests
             NullLogger<StoreSharedContentSettingsService>.Instance);
         sharedSettings.Settings.UnixLinkMode = StoreLinkMode.Copy;
         sharedSettings.Settings.WindowsLinkMode = StoreLinkMode.Copy;
+        var records = new StoreInstallRecordRepository(settings);
         sharedContentService = new StoreSharedContentService(
-            settings,
+            records,
             new FakeStoreFileLinkService(),
-            sharedSettings,
-            NullLogger<StoreSharedContentService>.Instance);
+            sharedSettings);
 
         return new GameStoreContentService(
-            settings,
+            records,
             runtime,
             sharedContentService,
             stores,

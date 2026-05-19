@@ -90,48 +90,6 @@ public sealed class StoreSharedInstallResult
     public long? FileSizeBytes { get; init; }
 }
 
-public sealed class StoreSharedContentManifestEntry
-{
-    public string Id { get; set; } = Guid.NewGuid().ToString("N");
-
-    public StoreContentType ContentType { get; set; }
-
-    public string BasePath { get; set; } = string.Empty;
-
-    public string InstallFolderName { get; set; } = string.Empty;
-
-    public string HashAlgorithm { get; set; } = "sha1";
-
-    public string Hash { get; set; } = string.Empty;
-
-    public string FileName { get; set; } = string.Empty;
-
-    public string SharedFilePath { get; set; } = string.Empty;
-
-    public long? FileSizeBytes { get; set; }
-
-    public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
-
-    public List<StoreSharedContentReference> References { get; set; } = [];
-}
-
-public sealed class StoreSharedContentReference
-{
-    public string InstallRecordId { get; set; } = string.Empty;
-
-    public string GamePath { get; set; } = string.Empty;
-
-    public string FilePath { get; set; } = string.Empty;
-
-    public string FileName { get; set; } = string.Empty;
-
-    public string ProjectId { get; set; } = string.Empty;
-
-    public string VersionId { get; set; } = string.Empty;
-
-    public DateTimeOffset AddedAtUtc { get; set; } = DateTimeOffset.UtcNow;
-}
-
 public sealed class StoreSharedContentMigrationPlan
 {
     public required Game Game { get; init; }
