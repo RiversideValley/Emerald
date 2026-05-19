@@ -74,7 +74,8 @@ public partial class Core(
 
     public bool IsRunning { get; set; } = false;
     public MinecraftPath? BasePath { get; private set; } = null;
-    public bool IsOfflineMode { get; private set; } = false;
+    [ObservableProperty]
+    private bool _isOfflineMode = false;
 
     public readonly ObservableCollection<Versions.Version> VanillaVersions = new();
 
@@ -242,10 +243,11 @@ public partial class Core(
             IsOfflineMode = false;
             _notify.Complete(not.Id, true);
         }
-        catch (HttpRequestException)
+        catch (HttpRequestException ex)
         {
-            IsOfflineMode = false;
-            _notify.Complete(not.Id, true,"OfflineMode");
+            _logger.LogWarning(ex, "Failed to load vanilla Minecraft versions; continuing in offline mode.");
+            IsOfflineMode = true;
+            _notify.Complete(not.Id, true, "OfflineMode");
         }
         catch (Exception ex)
         {

@@ -30,6 +30,7 @@ public partial class Game : ObservableObject
     public MinecraftPath Path { get; private set; }
 
     public string? SharedMinecraftBasePath => _sharedMinecraftBasePath;
+    public bool IsLauncherOfflineMode => _launcherOfflineMode;
 
     [ObservableProperty]
     private bool _usesCustomGameSettings;
@@ -313,6 +314,12 @@ public partial class Game : ObservableObject
                 validation.NormalizedPath,
                 validation.Version);
         }
+
+        _logger.LogDebug(
+            "Verifying launch files for {Version} before building the process. OfflineMode: {OfflineMode}.",
+            version,
+            _launcherOfflineMode);
+        await Launcher.InstallAsync(version);
 
         _logger.LogDebug("Preparing launch options for {Version}. FullScreen: {FullScreen}. DockName: {DockName}.", version, EffectiveSettings.FullScreen, EffectiveSettings.DockName);
         return await Launcher.BuildProcessAsync(version, launchOpt);
