@@ -187,7 +187,13 @@ public partial class Game : ObservableObject
 
         try
         {
-            string? ver = await Ioc.Default.GetService<Installers.ModLoaderRouter>().RouteAndInitializeAsync(Path, Version);
+            var modLoaderRouter = Ioc.Default.GetService<Installers.ModLoaderRouter>()
+                ?? throw new InvalidOperationException("Mod loader router service is not available.");
+            string? ver = await modLoaderRouter.RouteAndInitializeAsync(
+                Path,
+                Version,
+                online: !isOffline,
+                installedVersion: Version.RealVersion);
             _logger.LogInformation("Version initialization completed. Version: {Version}", ver);
 
             if (ver == null)
@@ -205,28 +211,14 @@ public partial class Game : ObservableObject
             if (isOffline)
             {
                 _logger.LogDebug("Validating version {Version} against the local offline manifest cache.", ver);
-                var vers = await Launcher.GetAllVersionsAsync();
-                var mver = vers.Where(x => x.Name == ver).First();
-                if (mver == null)
+                if (!await IsVersionAvailableLocallyAsync(ver))
                 {
                     _logger.LogWarning("Version {Version} not found in offline mode. Can't proceed installation.", ver);
-                    throw new NullReferenceException($"Version {ver} not found in offline mode. Can't proceed installation.");
+                    throw new InvalidOperationException($"Version {ver} not found in offline mode. Can't proceed installation.");
                 }
             }
 
             Version.RealVersion = ver;
-
-            if (isOffline)
-            {
-                _logger.LogDebug("Rechecking offline version {Version} before install.", ver);
-                var vers = await Launcher.GetAllVersionsAsync();
-                var mver = vers.Where(x => x.Name == ver).First();
-                if (mver == null)
-                {
-                    _logger.LogWarning("Version {Version} not found in offline mode. Can't proceed installation.", ver);
-                    throw new NullReferenceException($"Version {ver} not found in offline mode. Can't proceed installation.");
-                }
-            }
 
             (string Files, string bytes, double prog, double? progbytes) prog = (string.Empty, string.Empty, 0, null);
 
@@ -276,6 +268,12 @@ public partial class Game : ObservableObject
             _notify.Complete(not.Id, false, "Installation Failed", ex);
             throw;
         }
+    }
+
+    private async Task<bool> IsVersionAvailableLocallyAsync(string version)
+    {
+        var versions = await Launcher.GetAllVersionsAsync();
+        return versions.Any(candidate => string.Equals(candidate.Name, version, StringComparison.Ordinal));
     }
 
     public async Task<Process> BuildProcess(
