@@ -65,6 +65,28 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
+    public async Task AuthenticateLaunchAccountAsync_OfflineFallback_CreatesOfflineAccountFromSelectedAccountName()
+    {
+        var baseSettingsService = new InMemoryBaseSettingsService();
+        var microsoftClient = new FakeMicrosoftAccountClient();
+        var service = CreateService(baseSettingsService, microsoftClient);
+        var microsoft = new EAccount("Alpha", AccountType.Microsoft, "alpha-uuid", "ms-alpha");
+        service.Accounts.Add(microsoft);
+        service.SetSelectedAccount(microsoft);
+
+        var result = await service.AuthenticateLaunchAccountAsync(microsoft, useOfflineFallback: true);
+
+        Assert.Equal("Alpha", result.Session.Username);
+        Assert.Empty(microsoftClient.AuthenticatedIdentifiers);
+        var offline = Assert.Single(service.Accounts, account => account.Type == AccountType.Offline && account.Name == "Alpha");
+        Assert.NotEqual(microsoft.UniqueId, offline.UniqueId);
+
+        var storedAccounts = baseSettingsService.Peek<List<EAccount>>(SettingsKeys.MinecraftAccounts);
+        Assert.NotNull(storedAccounts);
+        Assert.Contains(storedAccounts!, account => account.Type == AccountType.Offline && account.Name == "Alpha");
+    }
+
+    [Fact]
     public async Task SignInElyByAccountAsync_WithoutMicrosoftAccount_UsesBrowserOAuth()
     {
         var baseSettingsService = new InMemoryBaseSettingsService();

@@ -265,7 +265,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
         ActiveSessionRuntime runtime)
     {
         _logger.LogDebug("Authenticating launch account for {GameName}.", game.Version.DisplayName);
-        var authenticationResult = await _accountService.AuthenticateAccountAsync(account);
+        var authenticationResult = await _accountService.AuthenticateLaunchAccountAsync(
+            account,
+            game.IsLauncherOfflineMode);
         ThrowIfLaunchCancelled(runtime);
 
         var process = await game.BuildProcess(
