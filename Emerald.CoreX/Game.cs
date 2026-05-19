@@ -168,6 +168,7 @@ public partial class Game : ObservableObject
 
     public async Task InstallVersionOrThrow(bool isOffline = false, bool showFileProgress = false)
     {
+        EnsureMinecraftBasePathExists();
         _logger.LogInformation("Starting InstallVersion with isOffline: {IsOffline}, showFileProgress: {ShowFileProgress}", isOffline, showFileProgress);
         CreateMCLauncher(isOffline);
 
@@ -186,10 +187,8 @@ public partial class Game : ObservableObject
 
         try
         {
-            string? ver = await Ioc.Default.GetService<Installers.ModLoaderRouter>().RouteAndInitializeAsync(Path, Version);
-            _logger.LogInformation("Version initialization completed. Version: {Version}", ver);
-
-            if (ver == null)
+            var ver = await ResolveInstallVersionAsync(isOffline);
+            if (string.IsNullOrWhiteSpace(ver))
             {
                 _logger.LogWarning("Version {VersionType} {ModVersion} {BasedOn} not found.", Version.Type, Version.ModVersion, Version.BasedOn);
 
@@ -200,31 +199,6 @@ public partial class Game : ObservableObject
                 );
 
                 throw new InvalidOperationException($"Version {Version.Type} {Version.ModVersion} {Version.BasedOn} not found.");
-            }
-            if (isOffline)
-            {
-                _logger.LogDebug("Validating version {Version} against the local offline manifest cache.", ver);
-                var vers = await Launcher.GetAllVersionsAsync();
-                var mver = vers.Where(x => x.Name == ver).First();
-                if (mver == null)
-                {
-                    _logger.LogWarning("Version {Version} not found in offline mode. Can't proceed installation.", ver);
-                    throw new NullReferenceException($"Version {ver} not found in offline mode. Can't proceed installation.");
-                }
-            }
-
-            Version.RealVersion = ver;
-
-            if (isOffline)
-            {
-                _logger.LogDebug("Rechecking offline version {Version} before install.", ver);
-                var vers = await Launcher.GetAllVersionsAsync();
-                var mver = vers.Where(x => x.Name == ver).First();
-                if (mver == null)
-                {
-                    _logger.LogWarning("Version {Version} not found in offline mode. Can't proceed installation.", ver);
-                    throw new NullReferenceException($"Version {ver} not found in offline mode. Can't proceed installation.");
-                }
             }
 
             (string Files, string bytes, double prog, double? progbytes) prog = (string.Empty, string.Empty, 0, null);
@@ -266,6 +240,7 @@ public partial class Game : ObservableObject
                 }),
                 not.CancellationToken.Value);
 
+            Version.RealVersion = ver;
             _logger.LogInformation("Version {VersionType} {VersionDisplayName} installation completed successfully.", Version.Type, Version.DisplayName);
             _notify.Complete(not.Id, true, $"Finished downloading/verifying {Version.Type} version {Version.DisplayName}");
         }
@@ -277,13 +252,167 @@ public partial class Game : ObservableObject
         }
     }
 
+    private void EnsureMinecraftBasePathExists()
+    {
+        Directory.CreateDirectory(Path.BasePath);
+    }
+
+    private async Task<string?> ResolveInstallVersionAsync(bool isOffline)
+    {
+        if (isOffline)
+        {
+            var existingOfflineVersion = await ResolveExistingOfflineVersionAsync(null);
+            if (!string.IsNullOrWhiteSpace(existingOfflineVersion))
+            {
+                _logger.LogInformation("Using existing offline version {Version}.", existingOfflineVersion);
+                return existingOfflineVersion;
+            }
+        }
+
+        var router = Ioc.Default.GetService<Installers.ModLoaderRouter>()
+            ?? throw new InvalidOperationException("Mod loader router service is not available.");
+        var routedVersion = await router.RouteAndInitializeAsync(Path, Version, online: !isOffline);
+        _logger.LogInformation("Version initialization completed. Version: {Version}", routedVersion);
+
+        if (!isOffline)
+        {
+            return string.IsNullOrWhiteSpace(routedVersion) ? null : routedVersion;
+        }
+
+        var offlineVersion = await ResolveExistingOfflineVersionAsync(routedVersion);
+        if (string.IsNullOrWhiteSpace(offlineVersion))
+        {
+            _logger.LogWarning(
+                "Version {VersionType} {ModVersion} {BasedOn} was not found in the local offline manifest cache. RoutedVersion: {RoutedVersion}. SavedRealVersion: {RealVersion}.",
+                Version.Type,
+                Version.ModVersion,
+                Version.BasedOn,
+                routedVersion,
+                Version.RealVersion);
+        }
+
+        return offlineVersion;
+    }
+
+    private async Task<string?> ResolveExistingOfflineVersionAsync(string? routedVersion)
+    {
+        _logger.LogDebug("Validating version candidates against the local offline manifest cache.");
+        var installedVersions = await Launcher.GetAllVersionsAsync();
+        return ResolveOfflineInstalledVersionName(
+            installedVersions.Select(version => version.Name),
+            Version,
+            routedVersion);
+    }
+
+    internal static string? ResolveOfflineInstalledVersionName(
+        IEnumerable<string> installedVersionNames,
+        Versions.Version version,
+        string? routedVersion)
+    {
+        var installed = installedVersionNames
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        foreach (var candidate in GetExactVersionCandidates(version, routedVersion))
+        {
+            var exact = installed.FirstOrDefault(name =>
+                string.Equals(name, candidate, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(exact))
+            {
+                return exact;
+            }
+        }
+
+        if (version.Type == Versions.Type.Vanilla)
+        {
+            return null;
+        }
+
+        var inferredMatches = installed
+            .Where(name => IsLikelyInstalledLoaderVersion(name, version))
+            .ToArray();
+
+        return inferredMatches.Length == 1 ? inferredMatches[0] : null;
+    }
+
+    private static IEnumerable<string> GetExactVersionCandidates(
+        Versions.Version version,
+        string? routedVersion)
+    {
+        if (!string.IsNullOrWhiteSpace(version.RealVersion))
+        {
+            yield return version.RealVersion;
+        }
+
+        if (!string.IsNullOrWhiteSpace(routedVersion))
+        {
+            yield return routedVersion;
+        }
+
+        if (version.Type == Versions.Type.Vanilla && !string.IsNullOrWhiteSpace(version.BasedOn))
+        {
+            yield return version.BasedOn;
+        }
+    }
+
+    private static bool IsLikelyInstalledLoaderVersion(string installedVersionName, Versions.Version version)
+    {
+        if (string.IsNullOrWhiteSpace(version.BasedOn)
+            || !ContainsIgnoreCase(installedVersionName, version.BasedOn)
+            || !GetLoaderTokens(version.Type).Any(token => ContainsIgnoreCase(installedVersionName, token)))
+        {
+            return false;
+        }
+
+        return string.IsNullOrWhiteSpace(version.ModVersion)
+               || ContainsIgnoreCase(installedVersionName, version.ModVersion);
+    }
+
+    private static string[] GetLoaderTokens(Versions.Type type)
+        => type switch
+        {
+            Versions.Type.Fabric => ["fabric"],
+            Versions.Type.Forge => ["forge"],
+            Versions.Type.NeoForge => ["neoforge", "neo-forge"],
+            Versions.Type.Quilt => ["quilt"],
+            Versions.Type.LiteLoader => ["liteloader", "lite-loader"],
+            Versions.Type.OptiFine => ["optifine", "opti-fine"],
+            _ => []
+        };
+
+    private static bool ContainsIgnoreCase(string value, string expected)
+        => value.Contains(expected, StringComparison.OrdinalIgnoreCase);
+
+    public async Task<string?> ResolveLaunchVersionAsync(string? preferredVersion = null)
+    {
+        EnsureMinecraftBasePathExists();
+        CreateMCLauncher(_launcherOfflineMode);
+
+        var resolvedVersion = _launcherOfflineMode
+            ? await ResolveExistingOfflineVersionAsync(preferredVersion)
+            : ResolveOnlineLaunchVersion(preferredVersion);
+
+        if (!string.IsNullOrWhiteSpace(resolvedVersion))
+        {
+            Version.RealVersion = resolvedVersion;
+        }
+
+        return resolvedVersion;
+    }
+
     public async Task<Process> BuildProcess(
-        string version,
+        string? version,
         CmlLib.Core.Auth.MSession session,
         AccountRuntimeAuthOptions? runtimeAuthOptions = null)
     {
-        _logger.LogInformation("Building process for version: {Version}", version);
-        CreateMCLauncher(_launcherOfflineMode);
+        var launchVersion = await ResolveLaunchVersionAsync(version);
+        if (string.IsNullOrWhiteSpace(launchVersion))
+        {
+            throw new InvalidOperationException($"Install or update {Version.DisplayName} before launching.");
+        }
+
+        _logger.LogInformation("Building process for version: {Version}", launchVersion);
         var launchOpt = EffectiveSettings.ToMLaunchOption();
         launchOpt.Session = session;
 
@@ -309,13 +438,30 @@ public partial class Game : ObservableObject
 
             _logger.LogDebug(
                 "Using custom Java runtime for {Version}. JavaPath: {JavaPath}. VersionInfo: {VersionInfo}.",
-                version,
+                launchVersion,
                 validation.NormalizedPath,
                 validation.Version);
         }
 
-        _logger.LogDebug("Preparing launch options for {Version}. FullScreen: {FullScreen}. DockName: {DockName}.", version, EffectiveSettings.FullScreen, EffectiveSettings.DockName);
-        return await Launcher.BuildProcessAsync(version, launchOpt);
+        _logger.LogDebug("Preparing launch options for {Version}. FullScreen: {FullScreen}. DockName: {DockName}.", launchVersion, EffectiveSettings.FullScreen, EffectiveSettings.DockName);
+        return await Launcher.BuildProcessAsync(launchVersion, launchOpt);
+    }
+
+    private string? ResolveOnlineLaunchVersion(string? preferredVersion)
+    {
+        if (!string.IsNullOrWhiteSpace(preferredVersion))
+        {
+            return preferredVersion;
+        }
+
+        if (!string.IsNullOrWhiteSpace(Version.RealVersion))
+        {
+            return Version.RealVersion;
+        }
+
+        return Version.Type == Versions.Type.Vanilla && !string.IsNullOrWhiteSpace(Version.BasedOn)
+            ? Version.BasedOn
+            : null;
     }
 
     partial void OnUsesCustomGameSettingsChanged(bool value)

@@ -16,12 +16,12 @@ public class ModLoaderRouter
        Installers = Ioc.Default.GetServices<IModLoaderInstaller>();
     }
 
-    public async Task<string?> RouteAndInitializeAsync(MinecraftPath path, Versions.Version version)
+    public async Task<string?> RouteAndInitializeAsync(MinecraftPath path, Versions.Version version, bool online = true)
     {
 
         if (version.Type == Versions.Type.Vanilla)
             return version.BasedOn;
 
-       return await Installers.First(x=> x.Type == version.Type).InstallAsync(path, version.BasedOn, version.ModVersion);
+       return await Installers.First(x=> x.Type == version.Type).InstallAsync(path, version.BasedOn, version.ModVersion, online);
     }
 }

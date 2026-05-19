@@ -126,7 +126,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
             game.Version.DisplayName,
             game.Path.BasePath);
 
-        if (string.IsNullOrWhiteSpace(game.Version.RealVersion))
+        var launchVersion = await game.ResolveLaunchVersionAsync(game.Version.RealVersion);
+        if (string.IsNullOrWhiteSpace(launchVersion))
         {
             _logger.LogWarning(
                 "Skipping launch for {GameName} because no installed runtime version is available.",
@@ -208,7 +209,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
             ThrowIfLaunchCancelled(runtime);
 
             var process = await game.BuildProcess(
-                game.Version.RealVersion,
+                launchVersion,
                 authenticationResult.Session,
                 authenticationResult.RuntimeOptions);
             runtime.Process = process;
