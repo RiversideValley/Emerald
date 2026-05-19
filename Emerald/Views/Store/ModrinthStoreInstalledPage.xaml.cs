@@ -29,6 +29,35 @@ public sealed partial class ModrinthStoreInstalledPage : Page
         }
     }
 
+    private async void RepairTracked_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not InstalledStoreItem item || ViewModel == null)
+        {
+            return;
+        }
+
+        var confirmDialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = "Repair shared item?",
+            Content = $"Emerald can redownload \"{item.DisplayName}\" or remove its broken link and tracking reference.",
+            PrimaryButtonText = "Redownload",
+            SecondaryButtonText = "Remove Reference",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary
+        };
+
+        var result = await confirmDialog.ShowAsync();
+        if (result == ContentDialogResult.Primary)
+        {
+            await ViewModel.RepairTrackedCommand.ExecuteAsync(item);
+        }
+        else if (result == ContentDialogResult.Secondary)
+        {
+            await ViewModel.RemoveTrackedCommand.ExecuteAsync(item);
+        }
+    }
+
     private async void ForceRemove_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is not InstalledStoreItem item || ViewModel == null)

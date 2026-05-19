@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.ComponentModel;
 using CmlLib.Core;
 using CmlLib.Core.Installers;
 using CmlLib.Core.ProcessBuilder;
@@ -18,11 +19,17 @@ public partial class Game : ObservableObject
     private readonly ILogger _logger;
     private readonly Notifications.INotificationService _notify;
     private readonly IGlobalGameSettingsService _globalGameSettingsService;
+    private readonly string _instanceBasePath;
+    private readonly string? _sharedMinecraftBasePath;
+    private bool _launcherOfflineMode;
+    private Models.GameSettings? _subscribedCustomGameSettings;
 
     private MinecraftLauncher Launcher { get; set; }
 
     public Versions.Version Version { get; set; } = new();
-    public MinecraftPath Path { get; set; }
+    public MinecraftPath Path { get; private set; }
+
+    public string? SharedMinecraftBasePath => _sharedMinecraftBasePath;
 
     [ObservableProperty]
     private bool _usesCustomGameSettings;
@@ -86,29 +93,28 @@ public partial class Game : ObservableObject
         Versions.Version version,
         bool usesCustomGameSettings = false,
         Models.GameSettings? customGameSettings = null,
+        string? sharedMinecraftBasePath = null,
         IGlobalGameSettingsService? globalGameSettingsService = null)
     {
-        _notify = Ioc.Default.GetService<Notifications.INotificationService>();
+        _notify = Ioc.Default.GetService<Notifications.INotificationService>()
+            ?? throw new InvalidOperationException("Notification service is required before creating games.");
         _logger = this.Log();
         _globalGameSettingsService = globalGameSettingsService
             ?? Ioc.Default.GetService<IGlobalGameSettingsService>()
             ?? throw new InvalidOperationException("Global game settings service is required before creating games.");
+        _instanceBasePath = path.BasePath;
+        _sharedMinecraftBasePath = sharedMinecraftBasePath;
 
         Launcher = new MinecraftLauncher();
-        Path = path;
         Version = version;
-        UsesCustomGameSettings = usesCustomGameSettings;
-        CustomGameSettings = usesCustomGameSettings
+        _usesCustomGameSettings = usesCustomGameSettings;
+        _customGameSettings = usesCustomGameSettings
             ? customGameSettings?.Clone() ?? _globalGameSettingsService.CloneCurrent()
             : null;
+        AttachCustomGameSettings(_customGameSettings);
+        Path = CreateConfiguredMinecraftPath();
 
-        _globalGameSettingsService.Settings.PropertyChanged += (_, _) =>
-        {
-            if (!UsesCustomGameSettings)
-            {
-                NotifyEffectiveSettingsChanged();
-            }
-        };
+        _globalGameSettingsService.Settings.PropertyChanged += GlobalSettings_PropertyChanged;
 
         _logger.LogInformation("Game instance created with path: {Path}. UsesCustomGameSettings: {UsesCustomGameSettings}", path, usesCustomGameSettings);
     }
@@ -131,6 +137,8 @@ public partial class Game : ObservableObject
 
     public void CreateMCLauncher(bool isOffline)
     {
+        _launcherOfflineMode = isOffline;
+        RefreshMinecraftPath();
         _logger.LogDebug("Creating Minecraft launcher. OfflineMode: {IsOffline}.", isOffline);
         var param = MinecraftLauncherParameters.CreateDefault(Path);
 
@@ -275,6 +283,7 @@ public partial class Game : ObservableObject
         AccountRuntimeAuthOptions? runtimeAuthOptions = null)
     {
         _logger.LogInformation("Building process for version: {Version}", version);
+        CreateMCLauncher(_launcherOfflineMode);
         var launchOpt = EffectiveSettings.ToMLaunchOption();
         launchOpt.Session = session;
 
@@ -324,11 +333,95 @@ public partial class Game : ObservableObject
     }
 
     partial void OnCustomGameSettingsChanged(Models.GameSettings? value)
-        => NotifyEffectiveSettingsChanged();
+    {
+        AttachCustomGameSettings(value);
+        NotifyEffectiveSettingsChanged();
+    }
 
     private void NotifyEffectiveSettingsChanged()
     {
+        RefreshMinecraftPath();
         OnPropertyChanged(nameof(EffectiveSettings));
         OnPropertyChanged(nameof(Options));
+    }
+
+    private void GlobalSettings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (!UsesCustomGameSettings)
+        {
+            NotifyEffectiveSettingsChanged();
+        }
+    }
+
+    private void CustomGameSettings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (UsesCustomGameSettings)
+        {
+            NotifyEffectiveSettingsChanged();
+        }
+    }
+
+    private void AttachCustomGameSettings(Models.GameSettings? settings)
+    {
+        if (_subscribedCustomGameSettings != null)
+        {
+            _subscribedCustomGameSettings.PropertyChanged -= CustomGameSettings_PropertyChanged;
+        }
+
+        _subscribedCustomGameSettings = settings;
+
+        if (settings != null)
+        {
+            settings.PropertyChanged -= CustomGameSettings_PropertyChanged;
+            settings.PropertyChanged += CustomGameSettings_PropertyChanged;
+        }
+    }
+
+    private MinecraftPath CreateConfiguredMinecraftPath()
+    {
+        var effectiveSettings = EffectiveSettings;
+        if (string.IsNullOrWhiteSpace(_sharedMinecraftBasePath) || !effectiveSettings.UsesSharedMinecraftFolders)
+        {
+            return new MinecraftPath(_instanceBasePath);
+        }
+
+        return new SplitMinecraftPath(
+            _sharedMinecraftBasePath,
+            _instanceBasePath,
+            effectiveSettings.UseSharedAssetsPath,
+            effectiveSettings.UseSharedLibrariesPath,
+            effectiveSettings.UseSharedRuntimePath,
+            effectiveSettings.UseSharedVersionsPath);
+    }
+
+    private void RefreshMinecraftPath()
+    {
+        var nextPath = CreateConfiguredMinecraftPath();
+        if (MinecraftPathsEqual(Path, nextPath))
+        {
+            return;
+        }
+
+        Path = nextPath;
+        OnPropertyChanged(nameof(Path));
+    }
+
+    private static bool MinecraftPathsEqual(MinecraftPath? left, MinecraftPath? right)
+    {
+        if (left == null || right == null)
+        {
+            return left == right;
+        }
+
+        var comparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+
+        return string.Equals(left.BasePath, right.BasePath, comparison)
+               && string.Equals(left.Assets, right.Assets, comparison)
+               && string.Equals(left.Resource, right.Resource, comparison)
+               && string.Equals(left.Library, right.Library, comparison)
+               && string.Equals(left.Runtime, right.Runtime, comparison)
+               && string.Equals(left.Versions, right.Versions, comparison);
     }
 }

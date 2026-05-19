@@ -121,9 +121,7 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
 
         ContentTypes.Add(new StoreContentTypeOption(StoreContentType.Mod, "Mods"));
         ContentTypes.Add(new StoreContentTypeOption(StoreContentType.ResourcePack, "Resource Packs"));
-        ContentTypes.Add(new StoreContentTypeOption(StoreContentType.DataPack, "Data Packs"));
         ContentTypes.Add(new StoreContentTypeOption(StoreContentType.Shader, "Shaders"));
-        ContentTypes.Add(new StoreContentTypeOption(StoreContentType.Plugin, "Plugins"));
         SelectedContentTypeOption = ContentTypes.FirstOrDefault();
 
         SortOptions.Add(new SearchSortOptionItem(SearchSortOptions.Relevance, "Relevance"));
@@ -342,6 +340,52 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
         {
             _logger.LogError(ex, "Failed to remove tracked store item.");
             _notificationService.Error("StoreItemRemoveFailed", $"Failed to remove {item.DisplayName}.", ex: ex);
+        }
+
+        await RefreshInstalledItemsAsync();
+    }
+
+    [RelayCommand]
+    private async Task RepairTrackedAsync(InstalledStoreItem? item)
+    {
+        if (item == null || SelectedGame == null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(item.ProjectId) || string.IsNullOrWhiteSpace(item.VersionId))
+        {
+            _notificationService.Warning("StoreItemRepairUnavailable", $"Cannot redownload {item.DisplayName} because project metadata is missing.");
+            return;
+        }
+
+        try
+        {
+            var store = ResolveStore(item.ContentType);
+            store.MCPath = SelectedGame.Path;
+            var project = await store.GetItemAsync(item.ProjectId);
+            var versions = await store.GetVersionsAsync(item.ProjectId) ?? [];
+            var version = versions.FirstOrDefault(version =>
+                string.Equals(version.ID, item.VersionId, StringComparison.OrdinalIgnoreCase));
+
+            if (project == null || version == null)
+            {
+                _notificationService.Warning("StoreItemRepairUnavailable", $"Could not find the original Modrinth version for {item.DisplayName}.");
+                return;
+            }
+
+            await _gameStoreContentService.InstallAsync(
+                SelectedGame,
+                item.ContentType,
+                project,
+                version);
+
+            _notificationService.Info("StoreItemRepaired", $"Repaired {item.DisplayName}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to repair store item.");
+            _notificationService.Error("StoreItemRepairFailed", $"Failed to repair {item.DisplayName}.", ex: ex);
         }
 
         await RefreshInstalledItemsAsync();

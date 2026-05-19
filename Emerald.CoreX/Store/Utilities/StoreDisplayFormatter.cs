@@ -134,7 +134,6 @@ internal static class StoreDisplayFormatter
             StoreContentType.ResourcePack => "Resource Pack",
             StoreContentType.DataPack => "Data Pack",
             StoreContentType.Shader => "Shader",
-            StoreContentType.Plugin => "Plugin",
             StoreContentType.ModPack => "Modpack",
             _ => contentType.ToString()
         };

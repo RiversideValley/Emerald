@@ -38,7 +38,7 @@ public sealed class InMemoryBaseSettingsService : IBaseSettingsService
 
     public int SetCount { get; private set; }
 
-    public void Set<T>(string key, T value)
+    public void Set<T>(string key, T value, string? headerComment = null)
     {
         _values[key] = value;
         SetCount++;
@@ -49,10 +49,65 @@ public sealed class InMemoryBaseSettingsService : IBaseSettingsService
             ? typedValue
             : defaultVal;
 
+    public bool Exists(string key)
+        => _values.ContainsKey(key);
+
+    public void Delete(string key)
+        => _values.TryRemove(key, out _);
+
     public T? Peek<T>(string key)
         => _values.TryGetValue(key, out var value) && value is T typedValue
             ? typedValue
             : default;
+}
+
+public sealed class InMemoryMinecraftBaseSettingsService : IMinecraftBaseSettingsService
+{
+    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, object?>> _values = new();
+
+    public string? CurrentBasePath { get; private set; }
+
+    public bool IsInitialized => !string.IsNullOrWhiteSpace(CurrentBasePath);
+
+    public void UseBasePath(string basePath)
+    {
+        CurrentBasePath = basePath;
+        _values.GetOrAdd(basePath, _ => new ConcurrentDictionary<string, object?>());
+    }
+
+    public T Get<T>(string key, T defaultVal)
+    {
+        var values = CurrentValues;
+        return values.TryGetValue(key, out var value) && value is T typedValue
+            ? typedValue
+            : defaultVal;
+    }
+
+    public void Set<T>(string key, T value)
+        => CurrentValues[key] = value;
+
+    public bool Exists(string key)
+        => IsInitialized && CurrentValues.ContainsKey(key);
+
+    public void Delete(string key)
+    {
+        if (IsInitialized)
+        {
+            CurrentValues.TryRemove(key, out _);
+        }
+    }
+
+    public T? Peek<T>(string basePath, string key)
+        => _values.TryGetValue(basePath, out var values)
+           && values.TryGetValue(key, out var value)
+           && value is T typedValue
+            ? typedValue
+            : default;
+
+    private ConcurrentDictionary<string, object?> CurrentValues
+        => IsInitialized && CurrentBasePath != null
+            ? _values.GetOrAdd(CurrentBasePath, _ => new ConcurrentDictionary<string, object?>())
+            : throw new InvalidOperationException("Minecraft base settings are not initialized.");
 }
 
 internal sealed class ImmediateUiDispatcher : IUiDispatcher

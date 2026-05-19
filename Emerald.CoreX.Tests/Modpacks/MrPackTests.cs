@@ -13,6 +13,7 @@ using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
 using Emerald.CoreX.Services;
+using Emerald.CoreX.Store;
 using Emerald.CoreX.Store.Modrinth.JSON;
 using Emerald.CoreX.Tests.Support;
 using Emerald.Services;
@@ -148,6 +149,80 @@ public sealed class MrPackTests
     }
 
     [Fact]
+    public async Task InstallAsync_UsesSharedCacheForSupportedContentFolders_AndCopiesOverrides()
+    {
+        using var temp = new TemporaryDirectory();
+        var modBytes = Encoding.UTF8.GetBytes("mod");
+        var shaderBytes = Encoding.UTF8.GetBytes("shader");
+        var manifest = CreateManifest(files:
+        [
+            CreateFile("mods/shared.jar", "https://example.test/shared.jar", modBytes, "required"),
+            CreateFile("shaderpacks/shared.zip", "https://example.test/shared-shader.zip", shaderBytes, "required")
+        ]);
+        var path = WriteMrPack(temp.Path, CreateMrPackBytes(manifest, new Dictionary<string, string>
+        {
+            ["overrides/config/app.cfg"] = "override"
+        }));
+        var handler = new TestHttpMessageHandler(request =>
+        {
+            var url = request.RequestUri!.ToString();
+            if (url.EndsWith("shared.jar", StringComparison.Ordinal))
+            {
+                return Bytes(modBytes);
+            }
+
+            if (url.EndsWith("shared-shader.zip", StringComparison.Ordinal))
+            {
+                return Bytes(shaderBytes);
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.NotFound);
+        });
+        var settings = new InMemoryBaseSettingsService();
+        var minecraftBaseSettings = new InMemoryMinecraftBaseSettingsService();
+        var sharedSettings = new StoreSharedContentSettingsService(
+            settings,
+            minecraftBaseSettings,
+            NullLogger<StoreSharedContentSettingsService>.Instance);
+        sharedSettings.Settings.UnixLinkMode = StoreLinkMode.Copy;
+        sharedSettings.Settings.WindowsLinkMode = StoreLinkMode.Copy;
+        var records = new StoreInstallRecordRepository(settings, minecraftBaseSettings);
+        var sharedContent = new StoreSharedContentService(
+            records,
+            new FakeStoreFileLinkService(),
+            sharedSettings);
+        var installer = new MrPackFileInstaller(
+            new MrPackReader(),
+            records,
+            sharedContent,
+            NullLogger<MrPackFileInstaller>.Instance,
+            new HttpClient(handler));
+        var globalSettings = new TestGlobalGameSettingsService();
+        globalSettings.Settings.UseSharedStoreModsPath = true;
+        globalSettings.Settings.UseSharedStoreShaderPacksPath = true;
+        var instancePath = Path.Combine(temp.Path, "instance");
+        var game = new Game(
+            new MinecraftPath(instancePath),
+            new Versions.Version
+            {
+                DisplayName = "Pack",
+                BasedOn = "1.21.4",
+                ReleaseType = "modpack"
+            },
+            sharedMinecraftBasePath: temp.Path,
+            globalGameSettingsService: globalSettings);
+
+        await installer.InstallAsync(path, instancePath, game, temp.Path);
+
+        Assert.Equal("mod", await File.ReadAllTextAsync(Path.Combine(instancePath, "mods", "shared.jar")));
+        Assert.Equal("shader", await File.ReadAllTextAsync(Path.Combine(instancePath, "shaderpacks", "shared.zip")));
+        Assert.Equal("override", await File.ReadAllTextAsync(Path.Combine(instancePath, "config", "app.cfg")));
+        Assert.True(File.Exists(Path.Combine(temp.Path, "mods", $"{CreateHashes(modBytes)["sha1"]}.jar")));
+        Assert.True(File.Exists(Path.Combine(temp.Path, "shaderpacks", $"{CreateHashes(shaderBytes)["sha1"]}.zip")));
+        Assert.Equal(2, minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems)?.Length ?? 0);
+    }
+
+    [Fact]
     public async Task InstallAsync_Fails_WhenAllDownloadsFail()
     {
         using var temp = new TemporaryDirectory();
@@ -259,9 +334,9 @@ public sealed class MrPackTests
         Assert.Equal("21.1.1", game.Version.ModVersion);
         Assert.Single(service.Core.Games);
         Assert.True(File.Exists(Path.Combine(temp.Path, LauncherCore.GamesFolderName, "modded-pack", "modpack.ok")));
-        var saved = settings.Peek<SavedGameCollection[]>(SettingsKeys.SavedGames);
+        var saved = service.MinecraftBaseSettings.Peek<SavedGame[]>(temp.Path, SettingsKeys.SavedGames);
         Assert.NotNull(saved);
-        Assert.Single(saved![0].Games);
+        Assert.Single(saved!);
     }
 
     [Fact]
@@ -311,10 +386,27 @@ public sealed class MrPackTests
     }
 
     private static MrPackFileInstaller CreateFileInstaller(TestHttpMessageHandler handler)
-        => new(
+    {
+        var settings = new InMemoryBaseSettingsService();
+        var minecraftBaseSettings = new InMemoryMinecraftBaseSettingsService();
+        var sharedSettings = new StoreSharedContentSettingsService(
+            settings,
+            minecraftBaseSettings,
+            NullLogger<StoreSharedContentSettingsService>.Instance);
+        sharedSettings.Settings.UnixLinkMode = StoreLinkMode.Copy;
+        sharedSettings.Settings.WindowsLinkMode = StoreLinkMode.Copy;
+        var records = new StoreInstallRecordRepository(settings, minecraftBaseSettings);
+
+        return new MrPackFileInstaller(
             new MrPackReader(),
+            records,
+            new StoreSharedContentService(
+                records,
+                new FakeStoreFileLinkService(),
+                sharedSettings),
             NullLogger<MrPackFileInstaller>.Instance,
             new HttpClient(handler));
+    }
 
     private static TestCreationService CreateCreationService(
         string basePath,
@@ -322,32 +414,41 @@ public sealed class MrPackTests
         IMrPackFileInstaller? fileInstaller = null,
         HttpClient? httpClient = null)
     {
-        var core = CreateCore(basePath, settings ?? new InMemoryBaseSettingsService());
+        var coreSettings = CreateCore(basePath, settings ?? new InMemoryBaseSettingsService());
         var service = new ModpackInstanceCreationService(
-            core,
+            coreSettings.Core,
             new MrPackReader(),
             fileInstaller ?? new FakeMrPackFileInstaller(),
             new FakeNotificationService(),
             NullLogger<ModpackInstanceCreationService>.Instance,
             httpClient ?? new HttpClient(new TestHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.NotFound))));
 
-        return new TestCreationService(core, service);
+        return new TestCreationService(coreSettings.Core, service, coreSettings.MinecraftBaseSettings);
     }
 
-    private static LauncherCore CreateCore(string basePath, InMemoryBaseSettingsService settings)
+    private static TestCoreSettings CreateCore(string basePath, InMemoryBaseSettingsService settings)
     {
+        var minecraftBaseSettings = new InMemoryMinecraftBaseSettingsService();
+        var storeRecords = new StoreInstallRecordRepository(settings, minecraftBaseSettings);
+        var sharedStoreSettings = new StoreSharedContentSettingsService(
+            settings,
+            minecraftBaseSettings,
+            NullLogger<StoreSharedContentSettingsService>.Instance);
         var core = new LauncherCore(
             NullLogger<LauncherCore>.Instance,
             new FakeNotificationService(),
             settings,
+            minecraftBaseSettings,
             new TestGameRuntimeService(),
-            new TestGlobalGameSettingsService());
+            new TestGlobalGameSettingsService(),
+            storeRecords,
+            sharedStoreSettings);
 
         typeof(LauncherCore)
             .GetProperty("BasePath", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!
             .SetValue(core, new MinecraftPath(basePath));
 
-        return core;
+        return new TestCoreSettings(core, minecraftBaseSettings);
     }
 
     private static ModpackInstanceCreationRequest CreateRequest(
@@ -478,7 +579,14 @@ public sealed class MrPackTests
             Content = new ByteArrayContent(bytes)
         };
 
-    private sealed record TestCreationService(LauncherCore Core, ModpackInstanceCreationService Service)
+    private sealed record TestCoreSettings(
+        LauncherCore Core,
+        InMemoryMinecraftBaseSettingsService MinecraftBaseSettings);
+
+    private sealed record TestCreationService(
+        LauncherCore Core,
+        ModpackInstanceCreationService Service,
+        InMemoryMinecraftBaseSettingsService MinecraftBaseSettings)
     {
         public Task<ModpackProbeResult> ProbeAsync(ItemVersion version)
             => Service.ProbeAsync(version);
@@ -494,6 +602,9 @@ public sealed class MrPackTests
         public async Task InstallAsync(
             string mrPackPath,
             string instancePath,
+            Game? game = null,
+            string? sharedBasePath = null,
+            string? recordGamePath = null,
             IProgress<double>? progress = null,
             CancellationToken cancellationToken = default)
         {
@@ -506,6 +617,25 @@ public sealed class MrPackTests
                 throw new InvalidOperationException("file install failed");
             }
         }
+    }
+
+    private sealed class FakeStoreFileLinkService : IStoreFileLinkService
+    {
+        public StoreLinkCreationResult CreateLinkOrCopy(string sourcePath, string targetPath, StoreLinkMode preferredMode)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
+            File.Copy(sourcePath, targetPath, overwrite: true);
+            return new StoreLinkCreationResult { LinkKind = StoreLinkKind.Copy };
+        }
+
+        public StoreLinkCreationResult ReplaceWithLinkOrCopy(string sourcePath, string targetPath, StoreLinkMode preferredMode)
+            => CreateLinkOrCopy(sourcePath, targetPath, preferredMode);
+
+        public bool AreOnSameRoot(string sourcePath, string targetPath) => true;
+
+        public bool IsSymbolicLink(string path) => false;
+
+        public string? GetSymbolicLinkTarget(string path) => null;
     }
 
     private sealed class TestHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> responseFactory)
@@ -528,6 +658,10 @@ public sealed class MrPackTests
 
         public GameSettings CloneCurrent()
             => Settings.Clone();
+
+        public void LoadForBasePath(string basePath)
+        {
+        }
 
         public void Save()
         {
