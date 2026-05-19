@@ -121,7 +121,6 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
 
         ContentTypes.Add(new StoreContentTypeOption(StoreContentType.Mod, "Mods"));
         ContentTypes.Add(new StoreContentTypeOption(StoreContentType.ResourcePack, "Resource Packs"));
-        ContentTypes.Add(new StoreContentTypeOption(StoreContentType.DataPack, "Data Packs"));
         ContentTypes.Add(new StoreContentTypeOption(StoreContentType.Shader, "Shaders"));
         SelectedContentTypeOption = ContentTypes.FirstOrDefault();
 

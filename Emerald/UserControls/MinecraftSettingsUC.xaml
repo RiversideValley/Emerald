@@ -138,14 +138,6 @@
                 OnContent="{helpers:Localize KeyName=Yes}" />
             </cn:SettingsCard>
             <cn:SettingsCard
-              Header="{helpers:Localize KeyName=StoreGodFoldersDataPacks}"
-              Description="{helpers:Localize KeyName=StoreGodFoldersDataPacksDescription}">
-              <ToggleSwitch
-                IsOn="{x:Bind GameSettings.UseSharedStoreDataPacksPath, Mode=TwoWay}"
-                OffContent="{helpers:Localize KeyName=No}"
-                OnContent="{helpers:Localize KeyName=Yes}" />
-            </cn:SettingsCard>
-            <cn:SettingsCard
               Header="{helpers:Localize KeyName=StoreGodFoldersShaderPacks}"
               Description="{helpers:Localize KeyName=StoreGodFoldersShaderPacksDescription}">
               <ToggleSwitch

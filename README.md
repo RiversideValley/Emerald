@@ -59,7 +59,6 @@ Legend: `✅` fully supported, `🟡` partially supported, `❌` not yet support
 |---|---|---|
 | Mods | ✅ |---|
 | Shaders | ✅ |---|
-| Data Packs | ✅ |---|
 | Resource Packs | ✅ |---|
 | Modpacks | ✅ | Full support for Modrinth .mrpack files. |
 | Modrinth content browsing/details | 🟡 | Present, Does not exactly match/auto download versions. |
