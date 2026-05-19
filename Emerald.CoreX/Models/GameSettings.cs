@@ -326,6 +326,42 @@ public partial class GameSettings : ObservableObject
         return clone;
     }
 
+    public void ApplyFrom(GameSettings source)
+    {
+        MaximumRamMb = source.MaximumRamMb;
+        MinimumRamMb = source.MinimumRamMb;
+        DockName = source.DockName;
+        IsDemo = source.IsDemo;
+        ScreenWidth = source.ScreenWidth;
+        ScreenHeight = source.ScreenHeight;
+        FullScreen = source.FullScreen;
+        QuickPlayPath = source.QuickPlayPath;
+        QuickPlaySingleplayer = source.QuickPlaySingleplayer;
+        QuickPlayRealms = source.QuickPlayRealms;
+        ServerIp = source.ServerIp;
+        ServerPort = source.ServerPort;
+        HashCheck = source.HashCheck;
+        AssetsCheck = source.AssetsCheck;
+        IsAdmin = source.IsAdmin;
+        UseCustomJava = source.UseCustomJava;
+        JavaPath = source.JavaPath;
+        UseSharedAssetsPath = source.UseSharedAssetsPath;
+        UseSharedLibrariesPath = source.UseSharedLibrariesPath;
+        UseSharedRuntimePath = source.UseSharedRuntimePath;
+        UseSharedVersionsPath = source.UseSharedVersionsPath;
+        UseSharedStoreModsPath = source.UseSharedStoreModsPath;
+        UseSharedStoreResourcePacksPath = source.UseSharedStoreResourcePacksPath;
+        UseSharedStoreDataPacksPath = source.UseSharedStoreDataPacksPath;
+        UseSharedStoreShaderPacksPath = source.UseSharedStoreShaderPacksPath;
+        UseSharedStorePluginsPath = source.UseSharedStorePluginsPath;
+
+        JVMArgs.Clear();
+        foreach (var arg in source.JVMArgs)
+        {
+            JVMArgs.Add(arg);
+        }
+    }
+
     public static GameSettings Resolve(GameSettings globalSettings, bool usesCustomGameSettings, GameSettings? customGameSettings)
         => usesCustomGameSettings && customGameSettings != null
             ? customGameSettings

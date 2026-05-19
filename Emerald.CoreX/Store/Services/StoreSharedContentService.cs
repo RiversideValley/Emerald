@@ -64,6 +64,7 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
         request.CancellationToken.ThrowIfCancellationRequested();
 
         var sharedBasePath = ResolveSharedBasePath(request);
+        PrepareBaseScopedServices(request.Game, sharedBasePath);
         var settings = request.EffectiveSettingsOverride ?? request.Game.EffectiveSettings;
         var hashes = new ExpectedHashes(
             FileHash.Normalize(request.File.Hashes?.Sha1),
@@ -255,6 +256,7 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        PrepareBaseScopedServices(game);
 
         var plan = new StoreSharedContentMigrationPlan
         {
@@ -370,6 +372,7 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        PrepareBaseScopedServices(plan.Game);
 
         var summary = new StoreSharedContentMigrationSummary();
         summary.Add(plan);
@@ -507,6 +510,18 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
         }
 
         return summary;
+    }
+
+    private void PrepareBaseScopedServices(Game game, string? sharedBasePathOverride = null)
+    {
+        var sharedBasePath = ResolveSharedBasePath(game, sharedBasePathOverride);
+        if (string.IsNullOrWhiteSpace(sharedBasePath))
+        {
+            return;
+        }
+
+        _records.LoadForBasePath(sharedBasePath);
+        _settingsService.LoadForBasePath(sharedBasePath);
     }
 
     private void ConvertRecordToShared(Game game, string installFolderName, StoreInstallRecord record, string sha1)

@@ -185,6 +185,7 @@ Notes
             var path = Path.Combine(DirectResoucres.LocalDataPath, "settings");
             return new BaseSettingsService(logger, path);
         });
+        services.AddSingleton<CoreX.Services.IMinecraftBaseSettingsService, CoreX.Services.MinecraftBaseSettingsService>();
         services.AddSingleton<Services.IAppUpdateService, Services.AppUpdateService>();
         services.AddSingleton<CoreX.Services.IGlobalGameSettingsService, CoreX.Services.GlobalGameSettingsService>();
         services.AddSingleton<CoreX.Runtime.IGameRuntimeSettings, Services.GameRuntimeSettingsAdapter>();

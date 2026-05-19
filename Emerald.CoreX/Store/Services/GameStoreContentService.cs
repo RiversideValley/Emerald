@@ -102,6 +102,7 @@ public sealed class GameStoreContentService : IGameStoreContentService
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureGameIsNotRunning(game);
+        PrepareBaseScopedStore(game);
 
         var store = GetStore(contentType);
         store.MCPath = game.Path;
@@ -189,6 +190,7 @@ public sealed class GameStoreContentService : IGameStoreContentService
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        PrepareBaseScopedStore(game);
 
         var store = GetStore(contentType);
         var contentRoot = Path.Combine(game.Path.BasePath, store.InstallFolderName);
@@ -291,6 +293,7 @@ public sealed class GameStoreContentService : IGameStoreContentService
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureGameIsNotRunning(game);
+        PrepareBaseScopedStore(game);
 
         if (!item.IsTracked && !forceUntracked)
         {
@@ -362,6 +365,14 @@ public sealed class GameStoreContentService : IGameStoreContentService
         if (_runtimeService.TryGetActiveSession(game) != null)
         {
             throw new InvalidOperationException("Stop the game before managing store content for this instance.");
+        }
+    }
+
+    private void PrepareBaseScopedStore(Game game)
+    {
+        if (!string.IsNullOrWhiteSpace(game.SharedMinecraftBasePath))
+        {
+            _records.LoadForBasePath(game.SharedMinecraftBasePath);
         }
     }
 

@@ -8,5 +8,7 @@ public interface IGlobalGameSettingsService
 
     GameSettings CloneCurrent();
 
+    void LoadForBasePath(string basePath);
+
     void Save();
 }

@@ -10,6 +10,7 @@ using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
 using Emerald.CoreX.Services;
+using Emerald.CoreX.Store;
 using Emerald.Services;
 using Microsoft.Extensions.Logging;
 namespace Emerald.CoreX;
@@ -59,8 +60,11 @@ public partial class Core(
     ILogger<Core> _logger,
     INotificationService _notify,
     IBaseSettingsService settingsService,
+    IMinecraftBaseSettingsService minecraftBaseSettingsService,
     IGameRuntimeService runtimeService,
-    IGlobalGameSettingsService globalGameSettingsService) : ObservableObject
+    IGlobalGameSettingsService globalGameSettingsService,
+    IStoreInstallRecordRepository storeInstallRecordRepository,
+    IStoreSharedContentSettingsService storeSharedContentSettingsService) : ObservableObject
 {
     public const string GamesFolderName = "Instances";
     public MinecraftLauncher Launcher { get; set; }
@@ -84,8 +88,6 @@ public partial class Core(
 
     public Models.GameSettings GameOptions => globalGameSettingsService.Settings;
 
-    private SavedGameCollection[] SavedgamesWithPaths = [];
-
     public void LoadGames()
     {
         if (BasePath == null)
@@ -101,20 +103,20 @@ public partial class Core(
             Directory.CreateDirectory(gamesFolder);
         }
 
-        SavedgamesWithPaths = settingsService.Get<SavedGameCollection[]>(SettingsKeys.SavedGames, []);
-
-        var collection = SavedgamesWithPaths.FirstOrDefault(x => x.BasePath == BasePath.BasePath);
-        if (collection == null)
+        PrepareBaseScopedServices();
+        var savedGames = LoadOrMigrateSavedGames();
+        Games.Clear();
+        if (savedGames.Length == 0)
         {
             _logger.LogInformation("Saved games paths does not contain any games");
             return;
         }
-        Games.Clear();
-        foreach (var sg in collection.Games)
+
+        foreach (var sg in savedGames)
         {
             try
             {
-                Games.Add(sg.ToGame(globalGameSettingsService, collection.BasePath));
+                Games.Add(sg.ToGame(globalGameSettingsService, BasePath.BasePath));
             }
             catch (Exception ex)
             {
@@ -135,16 +137,8 @@ public partial class Core(
 
         try
         {
-            var list = SavedgamesWithPaths.ToList();
-            list.RemoveAll(x => x.BasePath == BasePath.BasePath);
-            list.Add(new SavedGameCollection
-            {
-                BasePath = BasePath.BasePath,
-                Games = toSave
-            });
-
-            SavedgamesWithPaths = list.ToArray();
-            settingsService.Set(SettingsKeys.SavedGames, SavedgamesWithPaths);
+            PrepareBaseScopedServices();
+            minecraftBaseSettingsService.Set(SettingsKeys.SavedGames, toSave);
 
             _logger.LogInformation("Saved {count} games", toSave.Length);
         }
@@ -153,6 +147,60 @@ public partial class Core(
             _logger.LogError(ex, "Failed to save games");
             throw;
         }
+    }
+
+    private void PrepareBaseScopedServices()
+    {
+        if (BasePath == null)
+        {
+            throw new InvalidOperationException("Cannot initialize base-scoped settings, BasePath is not set");
+        }
+
+        minecraftBaseSettingsService.UseBasePath(BasePath.BasePath);
+        globalGameSettingsService.LoadForBasePath(BasePath.BasePath);
+        storeInstallRecordRepository.LoadForBasePath(BasePath.BasePath);
+        storeSharedContentSettingsService.LoadForBasePath(BasePath.BasePath);
+    }
+
+    private SavedGame[] LoadOrMigrateSavedGames()
+    {
+        if (BasePath == null)
+        {
+            throw new InvalidOperationException("Cannot load games, BasePath is not set");
+        }
+
+        if (minecraftBaseSettingsService.Exists(SettingsKeys.SavedGames))
+        {
+            return minecraftBaseSettingsService.Get<SavedGame[]>(SettingsKeys.SavedGames, []);
+        }
+
+        if (settingsService.Exists(SettingsKeys.SavedGames))
+        {
+            var savedCollections = settingsService.Get<SavedGameCollection[]>(SettingsKeys.SavedGames, []);
+            var collection = savedCollections.FirstOrDefault(existing =>
+                PathsEqual(existing.BasePath, BasePath.BasePath));
+
+            if (collection != null)
+            {
+                minecraftBaseSettingsService.Set(SettingsKeys.SavedGames, collection.Games);
+
+                var remaining = savedCollections
+                    .Where(existing => !PathsEqual(existing.BasePath, BasePath.BasePath))
+                    .ToArray();
+                if (remaining.Length == 0)
+                {
+                    settingsService.Delete(SettingsKeys.SavedGames);
+                }
+                else
+                {
+                    settingsService.Set(SettingsKeys.SavedGames, remaining);
+                }
+
+                return collection.Games;
+            }
+        }
+
+        return minecraftBaseSettingsService.Get<SavedGame[]>(SettingsKeys.SavedGames, []);
     }
 
     /// <summary>
@@ -182,7 +230,8 @@ public partial class Core(
                 Launcher = new MinecraftLauncher(basePath);
                 BasePath = basePath;
             }
-            
+
+            PrepareBaseScopedServices();
             LoadGames();
             Initialized = true;
 
@@ -347,4 +396,10 @@ public partial class Core(
             );
         }
     }
+
+    private static bool PathsEqual(string left, string right)
+        => string.Equals(
+            Path.GetFullPath(left).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+            Path.GetFullPath(right).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+            OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
 }

@@ -282,6 +282,7 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
             return;
         }
 
+        _records.LoadForBasePath(sharedBasePath);
         var records = _records.GetAll().ToList();
         var existing = _records
             .FindByFilePath(contentType, recordFilePath, instancePath)
