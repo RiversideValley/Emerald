@@ -741,6 +741,9 @@
   <data name="OfflineMode" xml:space="preserve">
     <value>Offline Mode</value>
   </data>
+  <data name="OfflineModeDescription" xml:space="preserve">
+    <value>Emerald is using local Minecraft metadata. Installed games can still launch, but adding or repairing versions may need internet access.</value>
+  </data>
   <data name="Options" xml:space="preserve">
     <value>Options</value>
   </data>

@@ -288,6 +288,8 @@ public partial class GamesPageViewModel : ObservableObject
 
     public bool ShowNoGamesMessage => !IsLoading && FilteredGames.Count == 0;
 
+    public bool IsOfflineMode => _core.IsOfflineMode;
+
     public bool HasModpackProbe => ModpackProbe != null;
 
     public string ModpackMinecraftVersion => ModpackProbe?.MinecraftVersion ?? string.Empty;
@@ -402,7 +404,14 @@ public partial class GamesPageViewModel : ObservableObject
         ModpackSortOptions.Add(new SearchSortOptionItem(SearchSortOptions.Newest, "Newest"));
         SelectedModpackSortOption = ModpackSortOptions.FirstOrDefault();
 
-        _core.PropertyChanged += (_, _) => _dispatcherQueue.TryEnqueue(() => this.OnPropertyChanged());
+        _core.PropertyChanged += (_, e) => _dispatcherQueue.TryEnqueue(() =>
+        {
+            this.OnPropertyChanged();
+            if (e.PropertyName == nameof(Core.IsOfflineMode))
+            {
+                OnPropertyChanged(nameof(IsOfflineMode));
+            }
+        });
         _core.VersionsRefreshed += (_, _) => _dispatcherQueue.TryEnqueue(UpdateAvailableVersions);
         Games.CollectionChanged += (_, _) => _dispatcherQueue.TryEnqueue(() =>
         {
