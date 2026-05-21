@@ -83,6 +83,9 @@ public static class WindowManager
     /// <exception cref="NullReferenceException"/>
     public static void SetTitleBar(Window window, UIElement AppTitleBar)
     {
+        if(OperatingSystem.IsLinux())
+            return;
+        
             Logger.LogDebug("Applying custom title bar configuration.");
             var titleBar = window.AppWindow.TitleBar;
             titleBar.ExtendsContentIntoTitleBar = true;

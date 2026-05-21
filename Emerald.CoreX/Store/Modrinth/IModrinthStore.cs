@@ -55,5 +55,6 @@ public interface IModrinthStore
     /// <param name="cancellationToken">Optional. A token to monitor for cancellation requests while the operation is in progress.</param>
     /// <returns>A task that represents the asynchronous operation of downloading the item.</returns>
     public Task DownloadItemAsync(ItemFile file, IProgress<double>? progress = null, CancellationToken cancellationToken = default);
+    public Task DownloadItemToPathAsync(ItemFile file, string filePath, IProgress<double>? progress = null, CancellationToken cancellationToken = default);
     public Category[] Categories { get; }
 }

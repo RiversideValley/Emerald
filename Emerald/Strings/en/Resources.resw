@@ -339,6 +339,99 @@
   <data name="DownloadSettingsDescription" xml:space="preserve">
     <value>Optional. Recommended to turn these on</value>
   </data>
+  <data name="GodFolders" xml:space="preserve">
+    <value>God folders</value>
+  </data>
+  <data name="GodFoldersDescription" xml:space="preserve">
+    <value>Share selected Minecraft download folders with the main Minecraft path instead of this instance folder.</value>
+  </data>
+  <data name="GodFoldersOffStatus" xml:space="preserve">
+    <value>Using instance folders</value>
+  </data>
+  <data name="GodFoldersAssets" xml:space="preserve">
+    <value>Assets folder</value>
+  </data>
+  <data name="GodFoldersAssetsDescription" xml:space="preserve">
+    <value>Use the main Minecraft path for assets and legacy resources.</value>
+  </data>
+  <data name="GodFoldersAssetsShort" xml:space="preserve">
+    <value>Assets</value>
+  </data>
+  <data name="GodFoldersLibraries" xml:space="preserve">
+    <value>Libraries folder</value>
+  </data>
+  <data name="GodFoldersLibrariesDescription" xml:space="preserve">
+    <value>Use the main Minecraft path for downloaded libraries.</value>
+  </data>
+  <data name="GodFoldersLibrariesShort" xml:space="preserve">
+    <value>Libraries</value>
+  </data>
+  <data name="GodFoldersRuntime" xml:space="preserve">
+    <value>Runtime folder</value>
+  </data>
+  <data name="GodFoldersRuntimeDescription" xml:space="preserve">
+    <value>Use the main Minecraft path for CmlLib-managed Java runtimes.</value>
+  </data>
+  <data name="GodFoldersRuntimeShort" xml:space="preserve">
+    <value>Runtime</value>
+  </data>
+  <data name="GodFoldersVersions" xml:space="preserve">
+    <value>Versions folder</value>
+  </data>
+  <data name="GodFoldersVersionsDescription" xml:space="preserve">
+    <value>Use the main Minecraft path for version metadata and jars.</value>
+  </data>
+  <data name="GodFoldersVersionsShort" xml:space="preserve">
+    <value>Versions</value>
+  </data>
+  <data name="StoreGodFolders" xml:space="preserve">
+    <value>Modrinth God folders</value>
+  </data>
+  <data name="StoreGodFoldersDescription" xml:space="preserve">
+    <value>Share selected Modrinth content folders through the main Minecraft path.</value>
+  </data>
+  <data name="StoreGodFoldersMods" xml:space="preserve">
+    <value>Mods folder</value>
+  </data>
+  <data name="StoreGodFoldersModsDescription" xml:space="preserve">
+    <value>Cache Modrinth mods by hash and link them into instances.</value>
+  </data>
+  <data name="StoreGodFoldersModsShort" xml:space="preserve">
+    <value>Mods</value>
+  </data>
+  <data name="StoreGodFoldersResourcePacks" xml:space="preserve">
+    <value>Resource packs folder</value>
+  </data>
+  <data name="StoreGodFoldersResourcePacksDescription" xml:space="preserve">
+    <value>Cache Modrinth resource packs by hash and link them into instances.</value>
+  </data>
+  <data name="StoreGodFoldersResourcePacksShort" xml:space="preserve">
+    <value>Resource packs</value>
+  </data>
+  <data name="StoreGodFoldersDataPacks" xml:space="preserve">
+    <value>Data packs folder</value>
+  </data>
+  <data name="StoreGodFoldersDataPacksDescription" xml:space="preserve">
+    <value>Cache Modrinth data packs by hash and link them into instances.</value>
+  </data>
+  <data name="StoreGodFoldersDataPacksShort" xml:space="preserve">
+    <value>Data packs</value>
+  </data>
+  <data name="StoreGodFoldersShaderPacks" xml:space="preserve">
+    <value>Shader packs folder</value>
+  </data>
+  <data name="StoreGodFoldersShaderPacksDescription" xml:space="preserve">
+    <value>Cache Modrinth shaders by hash and link them into instances.</value>
+  </data>
+  <data name="StoreGodFoldersShaderPacksShort" xml:space="preserve">
+    <value>Shaders</value>
+  </data>
+  <data name="StoreGodFoldersWindowsLinkMode" xml:space="preserve">
+    <value>Windows link mode</value>
+  </data>
+  <data name="StoreGodFoldersWindowsLinkModeDescription" xml:space="preserve">
+    <value>Choose how shared Modrinth files are placed into instances on Windows.</value>
+  </data>
   <data name="Duplicate" xml:space="preserve">
     <value>Duplicate</value>
   </data>

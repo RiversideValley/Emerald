@@ -154,17 +154,19 @@ Notes
     {
         //Stores
         services.AddTransient<ModStore>();
-        services.AddTransient<PluginStore>();
         services.AddTransient<ResourcePackStore>();
         services.AddTransient<ShaderStore>();
         services.AddTransient<DataPackStore>();
         services.AddTransient<ModPackStore>();
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ModStore>());
-        services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<PluginStore>());
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ResourcePackStore>());
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ShaderStore>());
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<DataPackStore>());
         services.AddTransient<IModrinthStore>(provider => provider.GetRequiredService<ModPackStore>());
+        services.AddSingleton<IStoreFileLinkService, StoreFileLinkService>();
+        services.AddSingleton<IStoreInstallRecordRepository, StoreInstallRecordRepository>();
+        services.AddSingleton<IStoreSharedContentSettingsService, StoreSharedContentSettingsService>();
+        services.AddSingleton<IStoreSharedContentService, StoreSharedContentService>();
         services.AddTransient<IGameStoreContentService, GameStoreContentService>();
         services.AddTransient<CoreX.Modpacks.IMrPackReader, CoreX.Modpacks.MrPackReader>();
         services.AddTransient<CoreX.Modpacks.IMrPackFileInstaller, CoreX.Modpacks.MrPackFileInstaller>();
@@ -181,6 +183,7 @@ Notes
             var path = Path.Combine(DirectResoucres.LocalDataPath, "settings");
             return new BaseSettingsService(logger, path);
         });
+        services.AddSingleton<CoreX.Services.IMinecraftBaseSettingsService, CoreX.Services.MinecraftBaseSettingsService>();
         services.AddSingleton<Services.IAppUpdateService, Services.AppUpdateService>();
         services.AddSingleton<CoreX.Services.IGlobalGameSettingsService, CoreX.Services.GlobalGameSettingsService>();
         services.AddSingleton<CoreX.Runtime.IGameRuntimeSettings, Services.GameRuntimeSettingsAdapter>();

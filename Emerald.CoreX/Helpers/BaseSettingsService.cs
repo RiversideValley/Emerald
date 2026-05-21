@@ -1,23 +1,27 @@
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using System;
-using System.IO;
 
 namespace Emerald.Services;
 
 public class BaseSettingsService : IBaseSettingsService
 {
     private readonly ILogger<BaseSettingsService> _logger;
+    private readonly string? _defaultHeaderComment;
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
-        WriteIndented = true
+        WriteIndented = true,
+        ReadCommentHandling = JsonCommentHandling.Skip
     };
 
     private readonly string _settingsFolder;
 
-    public BaseSettingsService(ILogger<BaseSettingsService> logger, string? settingsFolderPath = null)
+    public BaseSettingsService(
+        ILogger<BaseSettingsService> logger,
+        string? settingsFolderPath = null,
+        string? defaultHeaderComment = null)
     {
         _logger = logger;
+        _defaultHeaderComment = defaultHeaderComment;
 
         // Use the LocalFolder path as the base folder for file-based settings
         _settingsFolder =  settingsFolderPath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Emerald", "Settings");
@@ -29,11 +33,11 @@ public class BaseSettingsService : IBaseSettingsService
         }
     }
 
-    public void Set<T>(string key, T value)
+    public void Set<T>(string key, T value, string? headerComment = null)
     {
         try
         {
-            SaveToFile(key, value);
+            SaveToFile(key, value, headerComment ?? _defaultHeaderComment);
         }
         catch (Exception ex)
         {
@@ -65,16 +69,40 @@ public class BaseSettingsService : IBaseSettingsService
         }
     }
 
-    private void SaveToFile<T>(string key, T value)
+    public bool Exists(string key)
+        => File.Exists(GetFilePath(key));
+
+    public void Delete(string key)
     {
-        string filePath = Path.Combine(_settingsFolder, $"{key}.json");
-        string json = JsonSerializer.Serialize(value, _jsonOptions);
+        try
+        {
+            var filePath = GetFilePath(key);
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting key '{Key}' from file.", key);
+        }
+    }
+
+    private void SaveToFile<T>(string key, T value, string? headerComment)
+    {
+        var filePath = GetFilePath(key);
+        var json = JsonSerializer.Serialize(value, _jsonOptions);
+        if (!string.IsNullOrWhiteSpace(headerComment))
+        {
+            json = $"{FormatHeaderComment(headerComment)}{Environment.NewLine}{json}";
+        }
+
         File.WriteAllText(filePath, json);
     }
 
     private T LoadFromFile<T>(string key, T defaultVal)
     {
-        string filePath = Path.Combine(_settingsFolder, $"{key}.json");
+        var filePath = GetFilePath(key);
 
         if (!File.Exists(filePath))
         {
@@ -86,12 +114,23 @@ public class BaseSettingsService : IBaseSettingsService
         try
         {
             string json = File.ReadAllText(filePath);
-            return JsonSerializer.Deserialize<T>(json) ?? defaultVal;
+            return JsonSerializer.Deserialize<T>(json, _jsonOptions) ?? defaultVal;
         }
         catch (JsonException jsonEx)
         {
             _logger.LogError(jsonEx, "Corrupted JSON for key '{Key}'. Returning default.", key);
             return defaultVal;
         }
+    }
+
+    private string GetFilePath(string key)
+        => Path.Combine(_settingsFolder, $"{key}.json");
+
+    private static string FormatHeaderComment(string headerComment)
+    {
+        var trimmed = headerComment.TrimEnd();
+        return trimmed.StartsWith("//", StringComparison.Ordinal)
+            ? trimmed
+            : $"// {trimmed}";
     }
 }
