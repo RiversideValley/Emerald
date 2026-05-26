@@ -23,10 +23,14 @@ namespace Emerald.ApiHost;
 
 public class Program
 {
+    private static CancellationTokenSource? _loginCts;
+    private static Task<bool>? _loginTask;
+    static IResult RequireInitialized(Core c)
+        => c.Initialized ? null! : Results.StatusCode(503);
     public static void Main(string[] args)
     {
         var basePath = "";
-        var port = 58135;
+        var port = 58136;
         string? socketPath = null;
 
         for (int i = 0; i < args.Length; i++)
@@ -85,8 +89,10 @@ public class Program
         });
 
         ConfigureServices(builder.Services, basePath);
-
+        
         var app = builder.Build();
+
+        CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.ConfigureServices(app.Services);
 
         ConfigureApp(app, basePath);
 
@@ -95,8 +101,8 @@ public class Program
 
     private static void ConfigureServices(IServiceCollection services, string basePath)
     {
-        // 1. Thread Dispatcher
-        services.AddSingleton<IUiDispatcher, InlineUiDispatcher>();
+        // 1. Thread Dispatcher//
+        services.AddSingleton<IUiDispatcher, ThreadSafeUiDispatcher>();
 
         // 2. Settings Providers
         services.AddSingleton<IBaseSettingsService, BaseSettingsService>(provider =>
@@ -241,7 +247,16 @@ public class Program
         });
 
         // --- API ROUTES ---
-
+        
+        app.MapGet("/api/status", (Core c) => Results.Ok(new
+        {
+            Initialized = c.Initialized,
+            IsRefreshing = c.IsRefreshing,
+            IsOfflineMode = c.IsOfflineMode,
+            GamesCount = c.Games.Count,
+            VanillaVersionsCount = c.VanillaVersions.Count
+        }));
+        
         // 1. Accounts Endpoints
         app.MapGet("/api/accounts", (IAccountService ac) =>
             ac.Accounts.Select(a => new
@@ -288,10 +303,75 @@ public class Program
             await ac.RemoveAccountAsync(account);
             return Results.Ok(new { Message = "Account removed successfully." });
         });
+        
+
+        app.MapPost("/api/accounts/login/microsoft/start", (IAccountService ac) =>
+        {
+            _loginCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+            _loginTask = Task.Run(async () =>
+            {
+                await ac.SignInMicrosoftAccountAsync(_loginCts.Token);
+                return true;
+            }, _loginCts.Token);
+
+            return Results.Accepted();
+        });
+
+        app.MapGet("/api/accounts/login/microsoft/status", async (IAccountService ac) =>
+        {
+            if (_loginTask == null) return Results.NotFound(new { Status = "no_login_in_progress" });
+            if (!_loginTask.IsCompleted) return Results.Ok(new { Status = "pending" });
+            if (_loginTask.IsFaulted) return Results.BadRequest(new { Status = "failed", Error = _loginTask.Exception?.InnerException?.Message });
+
+            var selected = ac.GetSelectedAccount();
+            return Results.Ok(new { Status = "completed", Username = selected?.Name, Identifier = selected?.UniqueId });
+        });
+
+        app.MapPost("/api/accounts/login/microsoft/cancel", () =>
+        {
+            _loginCts?.Cancel();
+            return Results.Ok(new { Message = "Login cancelled." });
+        });
+
+        app.MapPost("/api/accounts/login/elyby/browser", async (IAccountService ac, ILogger<Program> logger) =>
+        {
+            try
+            {
+                await ac.SignInElyByAccountAsync();
+                var selected = ac.GetSelectedAccount();
+                return Results.Ok(new { Message = "Ely.by sign-in completed.", Username = selected?.Name });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Ely.by browser sign-in failed");
+                return Results.Problem(ex.Message);
+            }
+        });
+
+        app.MapPost("/api/accounts/login/elyby/password", async (
+            string login, string password, string? twoFactorCode,
+            IAccountService ac, ILogger<Program> logger) =>
+        {
+            try
+            {
+                await ac.SignInElyByAccountAsync(login, password, twoFactorCode);
+                var selected = ac.GetSelectedAccount();
+                return Results.Ok(new { Message = "Ely.by sign-in completed.", Username = selected?.Name });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Ely.by password sign-in failed");
+                return Results.Problem(ex.Message);
+            }
+        });
 
         // 2. Games/Instances Endpoints
         app.MapGet("/api/games", (Core c) =>
-            c.Games.Select(g => new
+        {
+            if (!c.Initialized)
+                return Results.StatusCode(503);
+
+            return Results.Ok(c.Games.Select(g => new
             {
                 g.Path.BasePath,
                 g.Version.DisplayName,
@@ -300,25 +380,34 @@ public class Program
                 UsesCustomSettings = g.UsesCustomGameSettings,
                 RunState = g.RunState.ToString()
             }));
+        });
 
         app.MapPost("/api/games", (CreateGameRequest req, Core c) =>
         {
             if (string.IsNullOrWhiteSpace(req.DisplayName) || string.IsNullOrWhiteSpace(req.BasedOn))
                 return Results.BadRequest(new { Error = "DisplayName and BasedOn are required." });
 
+            var loaderType = Enum.TryParse<Emerald.CoreX.Versions.Type>(req.LoaderType, ignoreCase: true, out var parsed)
+                ? parsed
+                : Emerald.CoreX.Versions.Type.Vanilla;
+
             var version = new Emerald.CoreX.Versions.Version
             {
                 DisplayName = req.DisplayName,
                 BasedOn = req.BasedOn,
+                Type = loaderType,
+                ModVersion = req.ModVersion,
                 ReleaseType = "release",
                 ReleaseTime = DateTime.UtcNow
             };
+
             var game = c.CreateGame(version, req.FolderName);
             return Results.Ok(new
             {
-                Message = "Instance created successfully.",
+                Message = "Instance created.",
                 BasePath = game.Path.BasePath,
-                DisplayName = game.Version.DisplayName
+                DisplayName = game.Version.DisplayName,
+                LoaderType = game.Version.Type.ToString()
             });
         });
 
@@ -338,12 +427,51 @@ public class Program
                 v.Type,
                 v.ReleaseTime
             }));
+        
+        app.MapGet("/api/versions/loaders", async (
+            string mcVersion, string loaderType,
+            ModLoaderRouter router) =>
+        {
+            if (!Enum.TryParse<Emerald.CoreX.Versions.Type>(loaderType, ignoreCase: true, out var type)
+                || type == Emerald.CoreX.Versions.Type.Vanilla)
+                return Results.BadRequest(new { Error = "Provide a valid mod loader type." });
 
-        // 3. Launch & Stop Endpoints
-        app.MapPost("/api/games/launch", (string basePath, IGameRuntimeService runtime, Core c, IAccountService ac, ILogger<Program> logger) =>
+            var installer = router.Installers.FirstOrDefault(i => i.Type == type);
+            if (installer == null)
+                return Results.BadRequest(new { Error = $"No installer registered for '{loaderType}'." });
+
+            var versions = await installer.GetVersionsAsync(mcVersion);
+            return Results.Ok(versions.Select(v => new { v.Version, v.Stable, v.Tag }));
+        });
+
+        // 3. Install, Launch & Stop Endpoints
+        app.MapPost("/api/games/install", async (string basePath, bool showFileProgress, Core c, ILogger<Program> logger) =>
         {
             var game = c.Games.FirstOrDefault(g => g.Path.BasePath == basePath);
+            if (game == null)
+                return Results.NotFound(new { Error = $"Game instance '{basePath}' not found." });
+
+            try
+            {
+                await c.InstallGameOrThrow(game, showFileProgress);
+                return Results.Ok(new { Message = $"Installed {game.Version.DisplayName} successfully." });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Install failed for {Name}", game.Version.DisplayName);
+                return Results.Problem(ex.Message);
+            }
+        });
+        app.MapPost("/api/games/launch", (string basePath, IGameRuntimeService runtime, Core c, IAccountService ac, ILogger<Program> logger) =>
+        {
+            
+            var game = c.Games.FirstOrDefault(g => g.Path.BasePath == basePath);
             if (game == null) return Results.NotFound(new { Error = $"Game instance at path '{basePath}' not found." });
+ 
+            if (string.IsNullOrWhiteSpace(game.Version.RealVersion))
+                return Results.BadRequest(new { 
+                    Error = $"{game.Version.DisplayName} has not been installed yet. Call /api/games/install first." 
+                });
             
             var account = ac.GetSelectedAccount();
             if (account == null) return Results.BadRequest(new { Error = "No account selected. Please select or create an account first." });
@@ -418,13 +546,111 @@ public class Program
             gs.Save();
             return Results.Ok(new { Message = "Global settings updated successfully.", Settings = current });
         });
+        
+        app.MapGet("/api/games/settings", (string basePath, Core c) =>
+        {
+            var game = c.Games.FirstOrDefault(g => g.Path.BasePath == basePath);
+            if (game == null) return Results.NotFound();
+            return Results.Ok(new
+            {
+                UsesCustomSettings = game.UsesCustomGameSettings,
+                Settings = game.EffectiveSettings
+            });
+        });
+
+        app.MapPut("/api/games/settings", async (string basePath, HttpContext context, Core c) =>
+        {
+            var game = c.Games.FirstOrDefault(g => g.Path.BasePath == basePath);
+            if (game == null) return Results.NotFound();
+
+            using var reader = new StreamReader(context.Request.Body);
+            var body = await reader.ReadToEndAsync();
+            var incoming = JsonSerializer.Deserialize<GameSettings>(body);
+            if (incoming == null) return Results.BadRequest();
+
+            game.UsesCustomGameSettings = true;
+            game.GetEditableSettings().ApplyFrom(incoming);
+            c.SaveGames();
+            return Results.Ok(new { Message = "Game settings updated." });
+        });
+
+        app.MapDelete("/api/games/settings", (string basePath, Core c) =>
+        {
+            var game = c.Games.FirstOrDefault(g => g.Path.BasePath == basePath);
+            if (game == null) return Results.NotFound();
+            game.UsesCustomGameSettings = false;
+            c.SaveGames();
+            return Results.Ok(new { Message = "Game reset to global settings." });
+        });
+        
+        //5. Logs and notifications through REST
+        app.MapGet("/api/games/sessions/{gamePath}/logs", (
+            string gamePath, int? page, int? pageSize, string? level,
+            IGameRuntimeService runtime) =>
+        {
+            var session = runtime.FindLatestSession(gamePath);
+            if (session == null) return Results.NotFound();
+
+            var entries = session.Entries.AsEnumerable();
+            if (!string.IsNullOrEmpty(level) && level != "All")
+                entries = entries.Where(e => e.LevelText.Equals(level, StringComparison.OrdinalIgnoreCase));
+
+            var size = Math.Min(pageSize ?? 100, 500);
+            var p = Math.Max(page ?? 1, 1);
+            var paged = entries.Skip((p - 1) * size).Take(size);
+
+            return Results.Ok(new
+            {
+                GamePath = session.GamePath,
+                TotalEntries = session.Entries.Count,
+                Page = p,
+                PageSize = size,
+                Entries = paged.Select(e => new
+                {
+                    e.Timestamp,
+                    Level = e.LevelText,
+                    Source = e.Source.ToString(),
+                    e.Message,
+                    e.DetailsText,
+                    e.ThreadName,
+                    e.LoggerName
+                })
+            });
+        });
+        app.MapGet("/api/notifications", (INotificationService ns) =>
+            ns.ActiveNotifications.Select(n => new
+            {
+                n.Id, n.Title, n.Message,
+                Type = n.Type.ToString(),
+                n.Progress, n.IsIndeterminate,
+                n.IsCompleted, n.IsCancellable,
+                n.Timestamp
+            }));
+
+        app.MapPost("/api/notifications/{id}/cancel", (string id, INotificationService ns) =>
+        {
+            ns.Cancel(id);
+            return Results.Ok();
+        });
+
+        app.MapDelete("/api/notifications/{id}", (string id, INotificationService ns) =>
+        {
+            ns.RemoveNotification(id);
+            return Results.Ok();
+        });
+        
     }
 }
 
 // --- ADAPTER / DUMMY MODELS FOR HEADLESS CONSOLE RUNTIME ---
 
-public record CreateGameRequest(string DisplayName, string BasedOn, string? FolderName);
-
+public record CreateGameRequest(
+    string DisplayName,
+    string BasedOn,
+    string? FolderName,
+    string? LoaderType,   // "Vanilla", "Fabric", "Forge", "NeoForge", "Quilt", etc.
+    string? ModVersion    // null = latest
+);
 public class HeadlessGameRuntimeSettings : IGameRuntimeSettings
 {
     public bool IsLogCaptureEnabled => true; // Enable log capture so we stream stdin/stdout logs over websockets
