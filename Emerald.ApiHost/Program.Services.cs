@@ -15,7 +15,6 @@ namespace Emerald.ApiHost;
 
 public partial class Program
 {
-
     const string ElyByClientId = "emerald1";
     const string ElyByClientSecret = "_hrxVlIoEWm1sqRlruFevD5v87mYW4EKPdmPWlraQoVP6kOXxJV9Y-qMrcm7Znk4";
     const string ElyByRedirectUri = "http://127.0.0.1:58135/oauth/elyby/";

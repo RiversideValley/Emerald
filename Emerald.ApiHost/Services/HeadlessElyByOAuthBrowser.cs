@@ -192,7 +192,7 @@ internal sealed class HeadlessElyByOAuthBrowser(
     private static string ToListenerPrefix(Uri redirectUri)
     {
         var prefix = redirectUri.GetLeftPart(UriPartial.Path);
-        return prefix.EndsWith("/", StringComparison.Ordinal) ? prefix : prefix + "/";
+        return prefix.EndsWith('/') ? prefix : prefix + "/";
     }
 
     private static bool IsExpectedCallback(Uri expectedRedirectUri, Uri? actualUri)
@@ -210,7 +210,7 @@ internal sealed class HeadlessElyByOAuthBrowser(
     }
 
     private static string NormalizePath(string path)
-        => path.EndsWith("/", StringComparison.Ordinal) ? path : path + "/";
+        => path.EndsWith('/') ? path : path + "/";
 
     private static async Task WriteHtmlResponseAsync(
         HttpListenerResponse response,
