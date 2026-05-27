@@ -136,7 +136,7 @@ Notes
                                   ?? DispatcherQueue.GetForCurrentThread()
                                   ?? throw new InvalidOperationException("A DispatcherQueue is required for the game runtime service.");
 
-            return new GameRuntimeService(logger, notificationService, accountService, runtimeSettings, dispatcherQueue);
+            return new GameRuntimeService(logger, notificationService, accountService, runtimeSettings, new Services.DispatcherQueueUiDispatcher(dispatcherQueue));
         });
 
         //Mod Loaders
