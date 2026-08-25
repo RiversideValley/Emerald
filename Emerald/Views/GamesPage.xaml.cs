@@ -103,34 +103,24 @@ public sealed partial class GamesPage : Page
         }
     }
 
-    private void InstallGame_Click(object sender, RoutedEventArgs e)
+    private async void InstallGame_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is Game game)
         {
-            Task.Run(() => ViewModel.InstallGameCommand.ExecuteAsync(game));
+            await ViewModel.InstallGameCommand.ExecuteAsync(game);
         }
     }
 
     private async void VerifyGame_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not MenuFlyoutItem { Tag: Game game }) return;
-        var core = Ioc.Default.GetRequiredService<Core>();
-        var notifications = Ioc.Default.GetRequiredService<CoreX.Notifications.INotificationService>();
-        var report = await core.VerifyGameAsync(game, IntegrityCheckLevel.Full);
-        if (report.CanLaunch)
-            notifications.Info("VerificationComplete", $"Verified {game.Version.DisplayName}: {report.CheckedFiles} files checked.");
-        else
-            notifications.Warning("VerificationFailed", $"{game.Version.DisplayName} needs repair: {report.Issues.Count} issue(s).");
+        await ViewModel.VerifyGameCommand.ExecuteAsync(game);
     }
 
     private async void RepairGame_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not MenuFlyoutItem { Tag: Game game }) return;
-        var core = Ioc.Default.GetRequiredService<Core>();
-        var notifications = Ioc.Default.GetRequiredService<CoreX.Notifications.INotificationService>();
-        var result = await core.RepairGameAsync(game);
-        if (result.Success) notifications.Info("RepairComplete", $"Repaired {game.Version.DisplayName}.");
-        else notifications.Warning("RepairFailed", result.FailureReason ?? $"Could not repair {game.Version.DisplayName}.");
+        await ViewModel.RepairGameCommand.ExecuteAsync(game);
     }
 
     private async void LaunchGame_Click(object sender, RoutedEventArgs e)

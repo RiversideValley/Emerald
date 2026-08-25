@@ -1,10 +1,12 @@
 using System.Net;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Collections.ObjectModel;
 using CmlLib.Core;
 using CmlLib.Core.Files;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Installation;
+using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Services;
 using Emerald.CoreX.Tests.Support;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -67,6 +69,48 @@ public sealed class InstanceInstallationServiceTests
         Directory.Delete(root, true);
     }
 
+    [Fact]
+    public async Task Install_FallbackVerificationFailure_CompletesProgressAndReportsFailedState()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "emerald-install-tests", Guid.NewGuid().ToString("N"));
+        var path = new MinecraftPath(root);
+        const string versionName = "malformed-version";
+        var versionDirectory = Path.Combine(path.Versions, versionName);
+        Directory.CreateDirectory(versionDirectory);
+        await File.WriteAllTextAsync(Path.Combine(versionDirectory, versionName + ".json"), "{");
+
+        var game = new Game(path, new Emerald.CoreX.Versions.Version
+        {
+            DisplayName = "Malformed",
+            BasedOn = versionName,
+            RealVersion = versionName,
+            ReleaseType = "release"
+        }, globalGameSettingsService: new TestGlobalGameSettingsService());
+        var notifications = new RecordingNotificationService();
+        using var network = new NetworkCapabilityService(new HttpClient(new OfflineHttpHandler()));
+        var service = new InstanceInstallationService(
+            NullLogger<InstanceInstallationService>.Instance,
+            new InstallationStateStore(),
+            network,
+            new ImmediateUiDispatcher(),
+            notifications);
+
+        try
+        {
+            var result = await service.InstallAsync(game);
+
+            Assert.False(result.Success);
+            Assert.Equal(InstanceInstallationState.Failed, result.State);
+            Assert.Equal(InstanceInstallationState.Failed, game.InstallationState);
+            Assert.Contains(result.Integrity!.Issues, issue => issue.Code == "post-failure-verification-failed");
+            Assert.Equal(1, notifications.CompletionCount);
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, true);
+        }
+    }
+
     private static InstanceInstallationService CreateService(INetworkCapabilityService network)
         => new(NullLogger<InstanceInstallationService>.Instance, new InstallationStateStore(), network);
 
@@ -84,6 +128,29 @@ public sealed class InstanceInstallationServiceTests
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(content) });
+    }
+
+    private sealed class OfflineHttpHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            => throw new HttpRequestException("offline");
+    }
+
+    private sealed class RecordingNotificationService : INotificationService
+    {
+        public ObservableCollection<Notification> ActiveNotifications { get; } = [];
+        public int CompletionCount { get; private set; }
+
+        public (string Id, CancellationToken? CancellationToken) Create(string title, string message = null!, double progress = 0, bool isIndeterminate = false, bool isCancellable = false)
+            => ("install", null);
+
+        public void Update(string? id = null, string? title = null, string? message = null, double? progress = null, bool? isIndeterminate = null) { }
+        public void Complete(string id, bool success, string message = null!, Exception ex = null!) => CompletionCount++;
+        public string Warning(string title, string message, TimeSpan? duration = null) => "warning";
+        public string Info(string title, string message, TimeSpan? duration = null) => "info";
+        public string Error(string title, string message, TimeSpan? duration = null, Exception? ex = null) => "error";
+        public void RemoveNotification(string id) { }
+        public void Cancel(string id) { }
     }
 
     private sealed class LocalGameFixture : IDisposable

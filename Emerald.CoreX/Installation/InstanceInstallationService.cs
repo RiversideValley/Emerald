@@ -1,5 +1,9 @@
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
+using CmlLib.Core;
+using CmlLib.Core.Installers;
+using Emerald.CoreX.Notifications;
+using Emerald.CoreX.Services;
 using Emerald.CoreX.Installers;
 using Microsoft.Extensions.Logging;
 
@@ -10,6 +14,7 @@ public interface IInstanceInstallationService
     Task<InstanceInstallResult> InstallAsync(Game game, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default);
     Task<InstanceInstallResult> RepairAsync(Game game, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default);
     Task<InstanceIntegrityReport> VerifyAsync(Game game, IntegrityCheckLevel level, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default);
+    Task<InstanceIntegrityReport?> VerifyWhenIdleAsync(Game game, IntegrityCheckLevel level, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default);
     Task<LaunchReadinessResult> PrepareLaunchAsync(Game game, CancellationToken cancellationToken = default);
 }
 
@@ -20,24 +25,49 @@ public interface IInstanceInstallationService
 public sealed class InstanceInstallationService(
     ILogger<InstanceInstallationService> logger,
     IInstallationStateStore stateStore,
-    INetworkCapabilityService network) : IInstanceInstallationService
+    INetworkCapabilityService network,
+    IUiDispatcher? uiDispatcher = null,
+    INotificationService? notifications = null) : IInstanceInstallationService
 {
     // A shared gate is keyed by the normalized instance path because callers can
     // reach this service through the UI, API, startup audit, and launch preflight.
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> Gates = new(StringComparer.OrdinalIgnoreCase);
 
+    private IUiDispatcher UiDispatcher => uiDispatcher ?? new InlineUiDispatcher();
+
     public Task<InstanceInstallResult> InstallAsync(Game game, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
-        => InstallOrRepairAsync(game, false, progress, cancellationToken);
+        => Task.Run(() => InstallOrRepairAsync(game, false, progress, cancellationToken), cancellationToken);
 
     public Task<InstanceInstallResult> RepairAsync(Game game, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
-        => InstallOrRepairAsync(game, true, progress, cancellationToken);
+        => Task.Run(() => InstallOrRepairAsync(game, true, progress, cancellationToken), cancellationToken);
 
     public async Task<InstanceIntegrityReport> VerifyAsync(Game game, IntegrityCheckLevel level, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
+        => await Task.Run(() => VerifyWithGateAsync(game, level, progress, cancellationToken), cancellationToken);
+
+    public async Task<InstanceIntegrityReport?> VerifyWhenIdleAsync(Game game, IntegrityCheckLevel level, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
+        => await Task.Run(() => TryVerifyWhenIdleAsync(game, level, progress, cancellationToken), cancellationToken);
+
+    private async Task<InstanceIntegrityReport> VerifyWithGateAsync(Game game, IntegrityCheckLevel level, IProgress<InstallationProgress>? progress, CancellationToken cancellationToken)
     {
         var gate = Gates.GetOrAdd(Path.GetFullPath(game.Path.BasePath), _ => new SemaphoreSlim(1, 1));
         await gate.WaitAsync(cancellationToken);
         try { return await VerifyCoreAsync(game, level, progress, cancellationToken); }
         finally { gate.Release(); }
+    }
+
+    private async Task<InstanceIntegrityReport?> TryVerifyWhenIdleAsync(Game game, IntegrityCheckLevel level, IProgress<InstallationProgress>? progress, CancellationToken cancellationToken)
+    {
+        if (game.HasActiveSession) return null;
+        var gate = Gates.GetOrAdd(Path.GetFullPath(game.Path.BasePath), _ => new SemaphoreSlim(1, 1));
+        if (!gate.Wait(0)) return null;
+        try
+        {
+            return await VerifyCoreAsync(game, level, progress, cancellationToken);
+        }
+        finally
+        {
+            gate.Release();
+        }
     }
 
     public async Task<LaunchReadinessResult> PrepareLaunchAsync(Game game, CancellationToken cancellationToken = default)
@@ -53,58 +83,138 @@ public sealed class InstanceInstallationService(
         await gate.WaitAsync(cancellationToken);
         // Keep the old receipt until the entire operation and post-install audit
         // succeed. It remains useful if a repair/download is interrupted.
-        var previous = await stateStore.ReadAsync(game, cancellationToken);
+        InstanceInstallReceipt? previous = null;
+        InstallationProgressReporter? reporter = null;
+        InstallationProgress? terminalProgress = null;
+        var terminalSuccess = false;
+        string? terminalMessage = null;
+        Exception? terminalException = null;
         try
         {
+            previous = await stateStore.ReadAsync(game, cancellationToken);
             if (game.HasActiveSession)
                 return new(false, game.InstallationState, game.Version.RealVersion, null, "Stop the running game before installing or repairing it.");
 
-            game.InstallationState = InstanceInstallationState.Installing;
-            progress?.Report(new(repair ? "Repairing" : "Installing", game.Version.DisplayName, 0, 1));
+            var operationName = repair ? "Repairing" : "Installing";
+            await SetStateAsync(game, InstanceInstallationState.Installing);
+            reporter = new InstallationProgressReporter(
+                UiDispatcher,
+                notifications,
+                progress,
+                operationName,
+                $"{operationName} {game.Version.DisplayName}");
 
-            var capability = await network.ProbeAsync(NetworkCapability.MinecraftMetadata, cancellationToken);
+            using var operationCancellation = reporter.NotificationCancellationToken is { } notificationToken
+                ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, notificationToken)
+                : CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var token = operationCancellation.Token;
+            reporter.Report(new(operationName, game.Version.DisplayName, 0, 1));
+
+            var capability = await network.ProbeAsync(NetworkCapability.MinecraftMetadata, token);
             if (capability.State is NetworkAvailabilityState.Unavailable or NetworkAvailabilityState.Degraded)
                 throw new InvalidOperationException("Minecraft metadata service is not currently available.");
 
-            await game.InstallVersionOrThrow(isOffline: false, showFileProgress: true);
+            var fileProgress = new ActionProgress<InstallerProgressChangedEventArgs>(eventArgs =>
+                reporter.Report(new("Downloading", eventArgs.Name, eventArgs.ProgressedTasks, eventArgs.TotalTasks)));
+            var byteProgress = new ActionProgress<ByteProgress>(eventArgs =>
+                reporter.Report(new(
+                    "Downloading",
+                    null,
+                    0,
+                    0,
+                    eventArgs.ProgressedBytes,
+                    eventArgs.TotalBytes)));
+
+            await game.InstallVersionOrThrow(
+                isOffline: false,
+                showFileProgress: true,
+                fileProgress,
+                byteProgress,
+                token);
             network.ReportSuccess(NetworkCapability.MinecraftFiles);
 
             // CmlLib has finished producing local metadata. Emerald now derives
             // its own deterministic manifest and proves it is launchable before
             // committing a new receipt.
-            var receipt = await LocalInstanceManifest.BuildAsync(game, cancellationToken)
+            var receipt = await LocalInstanceManifest.BuildAsync(game, token)
                 ?? throw new InvalidOperationException("Installation did not produce readable local version metadata.");
             receipt.SuccessfulInstallAt = previous?.SuccessfulInstallAt ?? DateTimeOffset.UtcNow;
             receipt.SuccessfulRepairAt = repair ? DateTimeOffset.UtcNow : previous?.SuccessfulRepairAt;
-            var report = await VerifyReceiptAsync(game, receipt, IntegrityCheckLevel.Full, progress, cancellationToken);
+            var report = await VerifyReceiptAsync(game, receipt, IntegrityCheckLevel.Full, reporter, token);
             if (!report.CanLaunch) throw new InvalidOperationException("Post-install verification found launch-critical damage.");
             receipt.FullVerificationAt = report.VerifiedAt;
-            await stateStore.WriteAsync(game, receipt, cancellationToken);
-            Apply(game, report);
+            await stateStore.WriteAsync(game, receipt, token);
+            await ApplyAsync(game, report);
+            terminalProgress = new("Complete", game.Version.DisplayName, report.CheckedFiles, report.CheckedFiles);
+            terminalSuccess = true;
+            terminalMessage = $"Finished {operationName.ToLowerInvariant()} {game.Version.DisplayName}";
             return new(true, report.State, receipt.ResolvedVersion, report);
+        }
+        catch (OperationCanceledException)
+        {
+            terminalProgress = new("Canceled", game.Version.DisplayName, 0, 0);
+            terminalMessage = $"Canceled {repair.ToString().ToLowerInvariant()} of {game.Version.DisplayName}";
+            throw;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             logger.LogError(ex, "{Operation} failed for {Game}", repair ? "Repair" : "Install", game.Version.DisplayName);
             // Re-evaluate what is actually on disk instead of blindly marking the
             // instance failed; the previous installation may still be healthy.
-            var report = await VerifyCoreAsync(game, IntegrityCheckLevel.Quick, null, CancellationToken.None);
-            if (previous == null && !report.CanLaunch) game.InstallationState = InstanceInstallationState.Failed;
+            InstanceIntegrityReport report;
+            try
+            {
+                report = await VerifyCoreAsync(game, IntegrityCheckLevel.Quick, null, CancellationToken.None);
+            }
+            catch (Exception verificationException)
+            {
+                logger.LogError(verificationException, "Local fallback verification failed for {Game}", game.Version.DisplayName);
+                report = new InstanceIntegrityReport(
+                    IntegrityCheckLevel.Quick,
+                    InstanceInstallationState.Failed,
+                    [new IntegrityIssue(
+                        "post-failure-verification-failed",
+                        $"Installation failed and local verification could not complete: {verificationException.Message}",
+                        IntegritySeverity.Critical)],
+                    DateTimeOffset.UtcNow,
+                    0,
+                    0);
+                await ApplyAsync(game, report);
+            }
+
+            if (previous == null && !report.CanLaunch && report.State != InstanceInstallationState.Failed)
+                await SetStateAsync(game, InstanceInstallationState.Failed);
+
+            terminalProgress = new("Failed", game.Version.DisplayName, report.CheckedFiles, report.CheckedFiles);
+            terminalMessage = ex.Message;
+            terminalException = ex;
             return new(false, game.InstallationState, game.Version.RealVersion, report, ex.Message);
         }
-        finally { gate.Release(); }
+        finally
+        {
+            if (reporter != null)
+            {
+                await reporter.CompleteAsync(
+                    terminalProgress ?? new("Failed", game.Version.DisplayName, 0, 0),
+                    terminalSuccess,
+                    terminalMessage ?? $"{(repair ? "Repair" : "Installation")} did not complete.",
+                    terminalException);
+            }
+
+            gate.Release();
+        }
     }
 
     private async Task<InstanceIntegrityReport> VerifyCoreAsync(Game game, IntegrityCheckLevel level, IProgress<InstallationProgress>? progress, CancellationToken cancellationToken)
     {
-        game.InstallationState = InstanceInstallationState.Verifying;
+        await SetStateAsync(game, InstanceInstallationState.Verifying);
         InstanceInstallReceipt? receipt;
         try { receipt = await stateStore.ReadAsync(game, cancellationToken); }
         catch (Exception ex)
         {
             var invalid = new InstanceIntegrityReport(level, InstanceInstallationState.NeedsRepair,
                 [new("receipt-invalid", $"Installation receipt is unreadable: {ex.Message}", IntegritySeverity.Critical)], DateTimeOffset.UtcNow, 0, 0);
-            Apply(game, invalid); return invalid;
+            await ApplyAsync(game, invalid); return invalid;
         }
 
         // Receipt-less instances predate this subsystem. Build their expected
@@ -115,7 +225,7 @@ public sealed class InstanceInstallationService(
         {
             var missing = new InstanceIntegrityReport(level, InstanceInstallationState.NotInstalled,
                 [new("not-installed", "No completed local installation was found.", IntegritySeverity.Critical)], DateTimeOffset.UtcNow, 0, 0);
-            Apply(game, missing); return missing;
+            await ApplyAsync(game, missing); return missing;
         }
 
         var effectiveLevel = migrating ? IntegrityCheckLevel.Full : level;
@@ -131,7 +241,7 @@ public sealed class InstanceInstallationService(
             receipt.FullVerificationAt = report.VerifiedAt;
             await stateStore.WriteAsync(game, receipt, cancellationToken);
         }
-        Apply(game, report);
+        await ApplyAsync(game, report);
         return report;
     }
 
@@ -190,10 +300,19 @@ public sealed class InstanceInstallationService(
         return new(level, state, issues, DateTimeOffset.UtcNow, checkedFiles, hashedFiles);
     }
 
-    private static void Apply(Game game, InstanceIntegrityReport report)
+    private Task SetStateAsync(Game game, InstanceInstallationState state)
+        => UiDispatcher.InvokeAsync(() => game.InstallationState = state);
+
+    private Task ApplyAsync(Game game, InstanceIntegrityReport report)
+        => UiDispatcher.InvokeAsync(() =>
+        {
+            game.InstallationState = report.State;
+            game.LastVerifiedAt = report.VerifiedAt;
+            game.IntegrityIssues = report.Issues;
+        });
+
+    private sealed class ActionProgress<T>(Action<T> action) : IProgress<T>
     {
-        game.InstallationState = report.State;
-        game.LastVerifiedAt = report.VerifiedAt;
-        game.IntegrityIssues = report.Issues;
+        public void Report(T value) => action(value);
     }
 }

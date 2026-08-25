@@ -70,6 +70,26 @@ public partial class Core(
     INetworkCapabilityService? networkCapabilityService = null) : ObservableObject
 {
     private bool _networkSubscribed;
+    private readonly object _refreshGate = new();
+    private Task? _refreshTask;
+    private readonly object _auditGate = new();
+    private readonly Queue<InstallationAuditWorkItem> _pendingAudits = new();
+    private readonly Dictionary<Game, InstallationAuditWorkItem> _auditsByGame = new();
+    private readonly HashSet<InstallationAuditWorkItem> _activeAudits = new();
+    private bool _auditWorkerRunning;
+    private int _gamesGeneration;
+
+    /// <summary>
+    /// Tracks a local audit without relying on the UI-bound <see cref="Games"/> collection.
+    /// The cancellation source is owned by the queue and is disposed once this item is discarded.
+    /// </summary>
+    private sealed class InstallationAuditWorkItem(Game game, int generation)
+    {
+        public Game Game { get; } = game;
+        public int Generation { get; } = generation;
+        public IntegrityCheckLevel CheckLevel { get; set; } = IntegrityCheckLevel.Quick;
+        public CancellationTokenSource Cancellation { get; } = new();
+    }
     public const string GamesFolderName = "Instances";
     public MinecraftLauncher Launcher { get; set; }
     public IGlobalGameSettingsService GlobalGameSettingsService => globalGameSettingsService;
@@ -110,6 +130,12 @@ public partial class Core(
 
         PrepareBaseScopedServices();
         var savedGames = LoadOrMigrateSavedGames();
+        var generation = Interlocked.Increment(ref _gamesGeneration);
+        lock (_auditGate)
+        {
+            CancelAllInstallationAuditsLocked();
+        }
+
         Games.Clear();
         if (savedGames.Length == 0)
         {
@@ -123,7 +149,7 @@ public partial class Core(
             {
                 var game = sg.ToGame(globalGameSettingsService, BasePath.BasePath);
                 Games.Add(game);
-                _ = InitializeInstallationStateAsync(game);
+                QueueInstallationAudit(game, generation);
             }
             catch (Exception ex)
             {
@@ -215,7 +241,20 @@ public partial class Core(
     /// </summary>
     /// <param name="basePath">The base path for Minecraft files. If null, initialization will require a previously set path.</param>
     /// <returns>A task that represents the asynchronous operation of initialization and refreshing Minecraft versions.</returns>
-    public async Task InitializeAndRefresh(MinecraftPath? basePath = null)
+    public Task InitializeAndRefresh(MinecraftPath? basePath = null)
+    {
+        lock (_refreshGate)
+        {
+            // A refresh clears and rebuilds UI-bound collections. Sharing the in-flight task
+            // keeps repeated Refresh clicks and background callers from doing that concurrently.
+            if (_refreshTask is { IsCompleted: false }) return _refreshTask;
+
+            _refreshTask = InitializeAndRefreshCoreAsync(basePath);
+            return _refreshTask;
+        }
+    }
+
+    private async Task InitializeAndRefreshCoreAsync(MinecraftPath? basePath)
     {
         var not = _notify.Create(
             "InitializingCore",
@@ -399,6 +438,7 @@ public partial class Core(
                 return;
             }
 
+            CancelInstallationAudit(game);
             Games.Remove(game);
             SaveGames();
 
@@ -434,31 +474,213 @@ public partial class Core(
     private void NetworkCapabilityService_Changed(object? sender, NetworkCapabilitySnapshot snapshot)
     {
         if (snapshot.Capability != NetworkCapability.MinecraftMetadata) return;
-        IsOfflineMode = snapshot.State == NetworkAvailabilityState.Unavailable;
+        // Checking is a transient probe state. Keep the last terminal result so
+        // recovery polling cannot make the Home page flicker online/offline.
+        if (snapshot.State == NetworkAvailabilityState.Checking) return;
+        IsOfflineMode = snapshot.EffectiveState == NetworkAvailabilityState.Unavailable;
     }
 
-    private async Task InitializeInstallationStateAsync(Game game)
+    private void QueueInstallationAudit(Game game, int generation)
     {
         var installer = installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstanceInstallationService>();
         if (installer == null) return;
+
+        var startWorker = false;
+        lock (_auditGate)
+        {
+            CancelInstallationAuditLocked(game);
+
+            var item = new InstallationAuditWorkItem(game, generation);
+            _auditsByGame[game] = item;
+            _pendingAudits.Enqueue(item);
+            if (!_auditWorkerRunning)
+            {
+                _auditWorkerRunning = true;
+                startWorker = true;
+            }
+        }
+
+        if (startWorker) _ = Task.Run(ProcessInstallationAuditsAsync);
+    }
+
+    /// <summary>
+    /// Runs migration and stale full audits after catalog refresh has completed. Queue state is
+    /// deliberately separate from <see cref="Games"/>, because that collection belongs to the UI thread.
+    /// </summary>
+    private async Task ProcessInstallationAuditsAsync()
+    {
+        var installer = installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstanceInstallationService>();
+        if (installer == null)
+        {
+            lock (_auditGate) _auditWorkerRunning = false;
+            return;
+        }
+
         try
         {
-            var report = await installer.VerifyAsync(game, IntegrityCheckLevel.Quick);
-            var store = CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstallationStateStore>();
-            var receipt = store == null ? null : await store.ReadAsync(game);
-            if (report.CanLaunch
-                && receipt?.FullVerificationAt is DateTimeOffset verified
-                && DateTimeOffset.UtcNow - verified > TimeSpan.FromDays(7)
-                && !game.HasActiveSession)
+            while (true)
             {
-                await installer.VerifyAsync(game, IntegrityCheckLevel.Full);
+                // The page is interactive once catalog refresh has finished. Unlike a fixed delay,
+                // this also behaves correctly when remote metadata is slow.
+                while (IsRefreshing)
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(100));
+                }
+
+                var item = TakeNextInstallationAudit();
+                if (item == null) break;
+
+                var requeued = false;
+                try
+                {
+                    var result = await installer.VerifyWhenIdleAsync(
+                        item.Game,
+                        item.CheckLevel,
+                        cancellationToken: item.Cancellation.Token);
+                    if (result == null)
+                    {
+                        // A user operation or game session owns this instance. Give the other
+                        // instances a turn, then retry this audit instead of silently losing it.
+                        requeued = RequeueInstallationAudit(item);
+                        if (requeued) await Task.Delay(TimeSpan.FromSeconds(1));
+                        continue;
+                    }
+
+                    if (item.CheckLevel == IntegrityCheckLevel.Quick)
+                    {
+                        var store = CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstallationStateStore>();
+                        var receipt = store == null ? null : await store.ReadAsync(item.Game, item.Cancellation.Token);
+                        if (result.CanLaunch
+                            && receipt?.FullVerificationAt is DateTimeOffset verified
+                            && DateTimeOffset.UtcNow - verified > TimeSpan.FromDays(7))
+                        {
+                            item.CheckLevel = IntegrityCheckLevel.Full;
+                            requeued = RequeueInstallationAudit(item);
+                        }
+                    }
+                }
+                catch (OperationCanceledException) when (item.Cancellation.IsCancellationRequested)
+                {
+                    // A reload or removal invalidated this work item.
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Background installation audit failed for {game}.", item.Game.Version.DisplayName);
+                }
+                finally
+                {
+                    if (!requeued) CompleteInstallationAudit(item);
+                }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Could not initialize installation state for {Game}", game.Version.DisplayName);
+            _logger.LogWarning(ex, "Background installation audit queue stopped unexpectedly.");
+        }
+        finally
+        {
+            lock (_auditGate)
+            {
+                _auditWorkerRunning = false;
+                if (_pendingAudits.Count > 0)
+                {
+                    _auditWorkerRunning = true;
+                    _ = Task.Run(ProcessInstallationAuditsAsync);
+                }
+            }
         }
     }
+
+    private InstallationAuditWorkItem? TakeNextInstallationAudit()
+    {
+        lock (_auditGate)
+        {
+            while (_pendingAudits.TryDequeue(out var item))
+            {
+                if (!IsCurrentInstallationAuditLocked(item))
+                {
+                    item.Cancellation.Dispose();
+                    continue;
+                }
+
+                _activeAudits.Add(item);
+                return item;
+            }
+
+            return null;
+        }
+    }
+
+    private bool RequeueInstallationAudit(InstallationAuditWorkItem item)
+    {
+        lock (_auditGate)
+        {
+            _activeAudits.Remove(item);
+            if (!IsCurrentInstallationAuditLocked(item))
+            {
+                return false;
+            }
+
+            _pendingAudits.Enqueue(item);
+            return true;
+        }
+    }
+
+    private void CompleteInstallationAudit(InstallationAuditWorkItem item)
+    {
+        lock (_auditGate)
+        {
+            _activeAudits.Remove(item);
+            if (_auditsByGame.TryGetValue(item.Game, out var current) && ReferenceEquals(current, item))
+            {
+                _auditsByGame.Remove(item.Game);
+            }
+        }
+
+        item.Cancellation.Dispose();
+    }
+
+    private void CancelInstallationAudit(Game game)
+    {
+        lock (_auditGate)
+        {
+            CancelInstallationAuditLocked(game);
+        }
+    }
+
+    private void CancelInstallationAuditLocked(Game game)
+    {
+        if (_auditsByGame.Remove(game, out var item))
+        {
+            item.Cancellation.Cancel();
+        }
+    }
+
+    private void CancelAllInstallationAuditsLocked()
+    {
+        var queued = _pendingAudits.ToArray();
+        var queuedSet = queued.ToHashSet();
+        _pendingAudits.Clear();
+
+        foreach (var item in queued)
+        {
+            item.Cancellation.Cancel();
+            item.Cancellation.Dispose();
+        }
+
+        foreach (var item in _auditsByGame.Values.Where(item => !queuedSet.Contains(item)))
+        {
+            item.Cancellation.Cancel();
+        }
+
+        _auditsByGame.Clear();
+    }
+
+    private bool IsCurrentInstallationAuditLocked(InstallationAuditWorkItem item)
+        => item.Generation == Volatile.Read(ref _gamesGeneration)
+            && !item.Cancellation.IsCancellationRequested
+            && _auditsByGame.TryGetValue(item.Game, out var current)
+            && ReferenceEquals(current, item);
 
     private static bool PathsEqual(string left, string right)
         => string.Equals(

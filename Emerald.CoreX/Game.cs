@@ -17,6 +17,7 @@ namespace Emerald.CoreX;
 
 public partial class Game : ObservableObject
 {
+    private const int MaxVisibleIntegrityIssues = 20;
     private readonly ILogger _logger;
     private readonly Notifications.INotificationService _notify;
     private readonly IGlobalGameSettingsService _globalGameSettingsService;
@@ -68,6 +69,7 @@ public partial class Game : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(InstallationStatusText))]
     [NotifyPropertyChangedFor(nameof(CanLaunch))]
+    [NotifyPropertyChangedFor(nameof(CanModify))]
     private InstanceInstallationState _installationState = InstanceInstallationState.Unknown;
 
     [ObservableProperty]
@@ -75,13 +77,30 @@ public partial class Game : ObservableObject
     private DateTimeOffset? _lastVerifiedAt;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasIntegrityIssues))]
+    [NotifyPropertyChangedFor(nameof(IntegrityIssueCount))]
     private IReadOnlyList<IntegrityIssue> _integrityIssues = [];
+
+    [ObservableProperty]
+    private IReadOnlyList<IntegrityIssue> _visibleIntegrityIssues = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasRemainingIntegrityIssues))]
+    private int _remainingIntegrityIssueCount;
+
+    public bool HasIntegrityIssues => IntegrityIssues.Count > 0;
+
+    public int IntegrityIssueCount => IntegrityIssues.Count;
+
+    public bool HasRemainingIntegrityIssues => RemainingIntegrityIssueCount > 0;
 
     public bool CanLaunch => !HasActiveSession && InstallationState is not InstanceInstallationState.Installing and not InstanceInstallationState.Verifying;
 
     public bool CanStop => HasActiveSession;
 
-    public bool CanModify => !HasActiveSession;
+    public bool CanModify => !HasActiveSession
+        && InstallationState is not InstanceInstallationState.Installing
+        and not InstanceInstallationState.Verifying;
 
     public string InstallationStatusText => InstallationState switch
     {
@@ -94,6 +113,17 @@ public partial class Game : ObservableObject
         InstanceInstallationState.Failed => "Installation failed",
         _ => "Installation unknown"
     };
+
+    partial void OnIntegrityIssuesChanged(IReadOnlyList<IntegrityIssue> value)
+    {
+        // Keep the full report for APIs and logs, while ensuring a damaged asset tree cannot
+        // create thousands of XAML elements on the Games page.
+        VisibleIntegrityIssues = value
+            .OrderByDescending(issue => issue.Severity == IntegritySeverity.Critical)
+            .Take(MaxVisibleIntegrityIssues)
+            .ToArray();
+        RemainingIntegrityIssueCount = Math.Max(0, value.Count - VisibleIntegrityIssues.Count);
+    }
 
     public Models.GameSettings EffectiveSettings
         => Models.GameSettings.Resolve(_globalGameSettingsService.Settings, UsesCustomGameSettings, CustomGameSettings);
@@ -185,120 +215,61 @@ public partial class Game : ObservableObject
         Launcher = new MinecraftLauncher(param);
     }
 
-    public async Task InstallVersion(bool isOffline = false, bool showFileProgress = false)
+    public async Task InstallVersion(bool isOffline = false, bool showFileProgress = false, CancellationToken cancellationToken = default)
     {
         try
         {
-            await InstallVersionOrThrow(isOffline, showFileProgress);
+            await InstallVersionOrThrow(isOffline, showFileProgress, cancellationToken: cancellationToken);
         }
         catch
         {
         }
     }
 
-    public async Task InstallVersionOrThrow(bool isOffline = false, bool showFileProgress = false)
+    public async Task InstallVersionOrThrow(
+        bool isOffline = false,
+        bool showFileProgress = false,
+        IProgress<CmlLib.Core.Installers.InstallerProgressChangedEventArgs>? fileProgress = null,
+        IProgress<CmlLib.Core.ByteProgress>? byteProgress = null,
+        CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Starting InstallVersion with isOffline: {IsOffline}, showFileProgress: {ShowFileProgress}", isOffline, showFileProgress);
         CreateMCLauncher(isOffline);
 
-        var not = _notify.Create(
-            "Initializing Version",
-            $"Initializing {Version.Type} version {Version.DisplayName}",
-            0,
-            false,
-            true
-        );
+        var modLoaderRouter = Ioc.Default.GetService<Installers.ModLoaderRouter>()
+            ?? throw new InvalidOperationException("Mod loader router service is not available.");
+        var resolution = await modLoaderRouter.ResolveAsync(
+            Path,
+            Version,
+            isOffline ? Installers.ModLoaderResolutionMode.LocalOnly : Installers.ModLoaderResolutionMode.Online,
+            Version.RealVersion,
+            cancellationToken);
+        string? ver = resolution.ResolvedVersion;
+        _logger.LogInformation("Version initialization completed. Version: {Version}", ver);
 
-        _notify.Update(
-            not.Id,
-            message: $"Initializing {Version.Type} version {Version.DisplayName}",
-            isIndeterminate: true);
-
-        try
+        if (ver == null)
         {
-            var modLoaderRouter = Ioc.Default.GetService<Installers.ModLoaderRouter>()
-                ?? throw new InvalidOperationException("Mod loader router service is not available.");
-            var resolution = await modLoaderRouter.ResolveAsync(
-                Path,
-                Version,
-                isOffline ? Installers.ModLoaderResolutionMode.LocalOnly : Installers.ModLoaderResolutionMode.Online,
-                Version.RealVersion,
-                not.CancellationToken.Value);
-            string? ver = resolution.ResolvedVersion;
-            _logger.LogInformation("Version initialization completed. Version: {Version}", ver);
-
-            if (ver == null)
-            {
-                _logger.LogWarning("Version {VersionType} {ModVersion} {BasedOn} not found.", Version.Type, Version.ModVersion, Version.BasedOn);
-
-                _notify.Complete(
-                    not.Id,
-                    message: $"Version {Version.Type} {Version.ModVersion} {Version.BasedOn} not found. Check your internet connection.",
-                    success: false
-                );
-
-                throw new InvalidOperationException(resolution.Message ?? $"Version {Version.Type} {Version.ModVersion} {Version.BasedOn} not found.");
-            }
-            if (isOffline)
-            {
-                _logger.LogDebug("Validating version {Version} against the local offline manifest cache.", ver);
-                if (!await IsVersionAvailableLocallyAsync(ver))
-                {
-                    _logger.LogWarning("Version {Version} not found in offline mode. Can't proceed installation.", ver);
-                    throw new InvalidOperationException($"Version {ver} not found in offline mode. Can't proceed installation.");
-                }
-            }
-
-            Version.RealVersion = ver;
-
-            (string Files, string bytes, double prog, double? progbytes) prog = (string.Empty, string.Empty, 0, null);
-
-            void UpdateProg()
-            {
-                string msg = prog.Files;
-                if (!string.IsNullOrWhiteSpace(prog.bytes))
-                {
-                    msg += " | " + prog.bytes;
-                }
-
-                var realprog = prog.progbytes ?? prog.prog;
-
-                _notify.Update(
-                    not.Id,
-                    message: msg,
-                    progress: realprog,
-                    isIndeterminate: false
-                );
-            }
-
-            await Launcher.InstallAsync(
-                ver,
-                showFileProgress
-                    ? new Progress<InstallerProgressChangedEventArgs>(e =>
-                    {
-                        prog.Files = $"{e.Name} \n({e.ProgressedTasks}/{e.TotalTasks})";
-                        prog.prog = Math.Round((double)e.ProgressedTasks / e.TotalTasks * 100, 2);
-                        UpdateProg();
-                    })
-                    : null,
-                new Progress<ByteProgress>(e =>
-                {
-                    prog.bytes = $"{Math.Round((e.ProgressedBytes * Math.Pow(10, -6)), 0)} MB/{Math.Round((e.TotalBytes * Math.Pow(10, -6)), 0)} MB";
-                    prog.progbytes = Math.Round((double)e.ProgressedBytes / e.TotalBytes * 100, 2);
-                    
-                    UpdateProg();
-                }),
-                not.CancellationToken.Value);
-
-            _logger.LogInformation("Version {VersionType} {VersionDisplayName} installation completed successfully.", Version.Type, Version.DisplayName);
-            _notify.Complete(not.Id, true, $"Finished downloading/verifying {Version.Type} version {Version.DisplayName}");
+            _logger.LogWarning("Version {VersionType} {ModVersion} {BasedOn} not found.", Version.Type, Version.ModVersion, Version.BasedOn);
+            throw new InvalidOperationException(resolution.Message ?? $"Version {Version.Type} {Version.ModVersion} {Version.BasedOn} not found.");
         }
-        catch (Exception ex)
+        if (isOffline)
         {
-            _logger.LogError(ex, "An error occurred during version installation.");
-            _notify.Complete(not.Id, false, "Installation Failed", ex);
-            throw;
+            _logger.LogDebug("Validating version {Version} against the local offline manifest cache.", ver);
+            if (!await IsVersionAvailableLocallyAsync(ver))
+            {
+                _logger.LogWarning("Version {Version} not found in offline mode. Can't proceed installation.", ver);
+                throw new InvalidOperationException($"Version {ver} not found in offline mode. Can't proceed installation.");
+            }
         }
+
+        Version.RealVersion = ver;
+        await Launcher.InstallAsync(
+            ver,
+            showFileProgress ? fileProgress : null,
+            byteProgress,
+            cancellationToken);
+
+        _logger.LogInformation("Version {VersionType} {VersionDisplayName} installation completed successfully.", Version.Type, Version.DisplayName);
     }
 
     private async Task<bool> IsVersionAvailableLocallyAsync(string version)

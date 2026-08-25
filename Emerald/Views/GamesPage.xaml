@@ -6,12 +6,12 @@
     xmlns:conv="using:Emerald.Helpers.Converters"
     xmlns:corex="using:Emerald.CoreX"
     xmlns:corexIns="using:Emerald.CoreX.Installers"
+    xmlns:corexInstallation="using:Emerald.CoreX.Installation"
     xmlns:corexVer="using:Emerald.CoreX.Versions"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helpers="using:Emerald.Helpers"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="using:Emerald.UserControls"
-    IsEnabled="{x:Bind ViewModel.IsLoading.Equals(x:False), Mode=OneWay}"
     mc:Ignorable="d">
 
   <Page.Resources>
@@ -50,7 +50,8 @@
               Text="{x:Bind InstallationStatusText, Mode=OneWay}" />
           </StackPanel>
         </cn:SettingsCard.Header>
-        <StackPanel Orientation="Horizontal" Spacing="8">
+        <StackPanel Spacing="8">
+          <StackPanel Orientation="Horizontal" Spacing="8">
           <Button
                         x:Name="LaunchGame"
                         Click="LaunchGame_Click"
@@ -132,6 +133,34 @@
               </MenuFlyout>
             </DropDownButton.Flyout>
           </DropDownButton>
+          </StackPanel>
+          <cn:SettingsExpander
+            Header="{helpers:Localize KeyName=IntegrityIssuesHeader}"
+            Visibility="{x:Bind HasIntegrityIssues, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+            <cn:SettingsExpander.Items>
+              <cn:SettingsCard>
+                <StackPanel Spacing="6">
+                  <ItemsRepeater ItemsSource="{x:Bind VisibleIntegrityIssues, Mode=OneWay}">
+                    <ItemsRepeater.Layout>
+                      <StackLayout Spacing="4" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                      <DataTemplate x:DataType="corexInstallation:IntegrityIssue">
+                        <TextBlock Text="{x:Bind Message}" TextWrapping="WrapWholeWords" />
+                      </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                  </ItemsRepeater>
+                  <StackPanel
+                    Orientation="Horizontal"
+                    Spacing="4"
+                    Visibility="{x:Bind HasRemainingIntegrityIssues, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{helpers:Localize KeyName=AdditionalIntegrityIssues}" />
+                    <TextBlock Text="{x:Bind RemainingIntegrityIssueCount, Mode=OneWay}" />
+                  </StackPanel>
+                </StackPanel>
+              </cn:SettingsCard>
+            </cn:SettingsExpander.Items>
+          </cn:SettingsExpander>
         </StackPanel>
       </cn:SettingsCard>
     </DataTemplate>
@@ -161,7 +190,11 @@
                 DefaultLabelPosition="Right"
                 OverflowButtonVisibility="Collapsed">
         <AppBarButton Click="AddGame_Click" Icon="Add" Label="Add Game" />
-        <AppBarButton Command="{x:Bind ViewModel.RefreshGamesCommand}" Icon="Refresh" Label="Refresh" />
+        <AppBarButton
+          Command="{x:Bind ViewModel.RefreshGamesCommand}"
+          Icon="Refresh"
+          IsEnabled="{x:Bind ViewModel.CanRefreshGames, Mode=OneWay}"
+          Label="Refresh" />
       </CommandBar>
     </Grid>
 

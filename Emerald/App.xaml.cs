@@ -134,6 +134,8 @@ Notes
             return client;
         });
         services.AddSingleton<INetworkCapabilityService, NetworkCapabilityService>();
+        services.AddSingleton<CoreX.Services.IUiDispatcher>(_ =>
+            new Services.DispatcherQueueUiDispatcher(MainWindow.DispatcherQueue));
         services.AddSingleton<IInstallationStateStore, InstallationStateStore>();
         services.AddSingleton<VerifiedGameInstaller>();
         services.AddSingleton<IInstanceInstallationService, InstanceInstallationService>();

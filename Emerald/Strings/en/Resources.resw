@@ -1216,4 +1216,19 @@
   <data name="UseThisJava" xml:space="preserve">
     <value>Use this Java</value>
   </data>
+  <data name="IntegrityIssuesHeader" xml:space="preserve">
+    <value>Installation issues</value>
+  </data>
+  <data name="AdditionalIntegrityIssues" xml:space="preserve">
+    <value>Additional issues not shown:</value>
+  </data>
+  <data name="VerificationCompleteMessage" xml:space="preserve">
+    <value>Verified {0}: {1} files checked.</value>
+  </data>
+  <data name="VerificationWarningsMessage" xml:space="preserve">
+    <value>Verified {0} with {1} warning(s).</value>
+  </data>
+  <data name="VerificationNeedsRepairMessage" xml:space="preserve">
+    <value>{0} needs repair: {1} issue(s).</value>
+  </data>
 </root>
