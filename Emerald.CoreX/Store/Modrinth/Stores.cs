@@ -17,19 +17,6 @@ public sealed class ModStore : ModrinthStore
     }
 }
 
-public sealed class PluginStore : ModrinthStore
-{
-    public PluginStore(MinecraftPath path, ILogger<PluginStore> logger)
-        : base(path, logger, "plugin", "plugins", StoreContentType.Plugin)
-    {
-    }
-
-    public PluginStore(ILogger<PluginStore> logger)
-        : this(new MinecraftPath(MinecraftPath.GetOSDefaultPath()), logger)
-    {
-    }
-}
-
 public sealed class ResourcePackStore : ModrinthStore
 {
     public ResourcePackStore(MinecraftPath path, ILogger<ResourcePackStore> logger)

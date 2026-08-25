@@ -39,12 +39,20 @@ public sealed class GameSettingsJavaTests
         var settings = new GameSettings
         {
             UseCustomJava = true,
-            JavaPath = "/custom/java"
+            JavaPath = "/custom/java",
+            UseSharedAssetsPath = true,
+            UseSharedLibrariesPath = true,
+            UseSharedRuntimePath = true,
+            UseSharedVersionsPath = true
         };
 
         var clone = settings.Clone();
 
         Assert.True(clone.UseCustomJava);
         Assert.Equal("/custom/java", clone.JavaPath);
+        Assert.True(clone.UseSharedAssetsPath);
+        Assert.True(clone.UseSharedLibrariesPath);
+        Assert.True(clone.UseSharedRuntimePath);
+        Assert.True(clone.UseSharedVersionsPath);
     }
 }

@@ -13,5 +13,10 @@ public sealed class StoreInstallRecord
     public string FilePath { get; set; } = string.Empty;
     public string? Sha1 { get; set; }
     public string? Sha512 { get; set; }
+    public string? GodFolderHash { get; set; }
+    public string? HashAlgorithm { get; set; }
+    public string? SharedFilePath { get; set; }
+    public StoreLinkKind LinkKind { get; set; }
+    public string? DownloadUrl { get; set; }
     public DateTimeOffset InstalledAtUtc { get; set; } = DateTimeOffset.UtcNow;
 }

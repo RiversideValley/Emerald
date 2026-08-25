@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using CmlLib.Core;
+using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Store.Modrinth.JSON;
 using Microsoft.Extensions.Logging;
@@ -178,7 +179,14 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
                 progress?.Report(scaled);
                 _notificationService.Update(notification.Id, progress: scaled);
             });
-            await _fileInstaller.InstallAsync(probe.MrPackPath, stagingGame.Path.BasePath, fileProgress, cancellationToken);
+            await _fileInstaller.InstallAsync(
+                probe.MrPackPath,
+                stagingGame.Path.BasePath,
+                stagingGame,
+                _core.BasePath.BasePath,
+                finalPath,
+                fileProgress,
+                cancellationToken);
 
             _notificationService.Update(notification.Id, message: "Finalizing instance...", progress: 96);
             Directory.Move(stagingPath, finalPath);
@@ -289,7 +297,7 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
 
         if (file.Hashes?.Sha1 is { Length: > 0 } sha1)
         {
-            var actual = await ComputeHashAsync(SHA1.Create(), filePath, cancellationToken);
+            var actual = await FileHash.ComputeSha1Async(filePath, cancellationToken);
             if (!actual.Equals(sha1, StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException("Downloaded modpack failed SHA-1 verification.");
@@ -298,24 +306,11 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
 
         if (file.Hashes?.Sha512 is { Length: > 0 } sha512)
         {
-            var actual = await ComputeHashAsync(SHA512.Create(), filePath, cancellationToken);
+            var actual = await FileHash.ComputeHashAsync(SHA512.Create(), filePath, cancellationToken);
             if (!actual.Equals(sha512, StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException("Downloaded modpack failed SHA-512 verification.");
             }
-        }
-    }
-
-    private static async Task<string> ComputeHashAsync(
-        HashAlgorithm algorithm,
-        string filePath,
-        CancellationToken cancellationToken)
-    {
-        using (algorithm)
-        {
-            await using var stream = File.OpenRead(filePath);
-            var hash = await algorithm.ComputeHashAsync(stream, cancellationToken);
-            return Convert.ToHexString(hash).ToLowerInvariant();
         }
     }
 

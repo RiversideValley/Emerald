@@ -41,7 +41,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
     private readonly INotificationService _notificationService;
     private readonly IAccountService _accountService;
     private readonly IGameRuntimeSettings _settings;
-    private readonly DispatcherQueue _dispatcher;
+    private readonly IUiDispatcher _dispatcher;
     private readonly object _syncRoot = new();
     private readonly Dictionary<string, ActiveSessionRuntime> _activeSessions = new(StringComparer.OrdinalIgnoreCase);
 
@@ -55,7 +55,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
         INotificationService notificationService,
         IAccountService accountService,
         IGameRuntimeSettings settings,
-        DispatcherQueue dispatcher)
+        IUiDispatcher dispatcher)
     {
         _logger = logger;
         _notificationService = notificationService;
@@ -115,9 +115,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
     /// </summary>
     public async Task<GameSession?> LaunchAsync(Game game, EAccount? account = null)
     {
-        if (game == null)
+        if (!TryValidateLaunchRequest(game, ref account))
         {
-            _logger.LogWarning("Skipping launch because no game was provided.");
             return null;
         }
 
@@ -126,60 +125,16 @@ public sealed class GameRuntimeService : IGameRuntimeService
             game.Version.DisplayName,
             game.Path.BasePath);
 
-        if (string.IsNullOrWhiteSpace(game.Version.RealVersion))
-        {
-            _logger.LogWarning(
-                "Skipping launch for {GameName} because no installed runtime version is available.",
-                game.Version.DisplayName);
-            _notificationService.Warning("InstallRequired", $"Install or update {game.Version.DisplayName} before launching.");
-            return null;
-        }
-
-        account ??= _accountService.GetSelectedAccount();
         if (account == null)
         {
-            _logger.LogWarning(
-                "Skipping launch for {GameName} because no account is available.",
-                game.Version.DisplayName);
-            _notificationService.Warning("NoAccount", "Please sign in to an account first");
             return null;
         }
 
-        ActiveSessionRuntime runtime;
-        lock (_syncRoot)
+        var realVersion = game.Version.RealVersion!;
+        var runtime = CreateRuntimeSessionOrGetExisting(game, out var created);
+        if (!created)
         {
-            var pathKey = GetPathKey(game.Path.BasePath);
-            if (_activeSessions.TryGetValue(pathKey, out var existingRuntime))
-            {
-                _logger.LogInformation(
-                    "Launch request ignored because {GameName} is already running.",
-                    game.Version.DisplayName);
-                _notificationService.Warning("GameAlreadyRunning", $"{game.Version.DisplayName} is already running.");
-                return existingRuntime.Session;
-            }
-
-            var session = new GameSession(game, DateTimeOffset.Now)
-            {
-                State = GameRunState.Launching,
-                CaptureMode = _settings.IsLogCaptureEnabled ? GameCaptureMode.StandardOutputOnly : GameCaptureMode.LifecycleOnly
-            };
-
-            runtime = new ActiveSessionRuntime
-            {
-                PathKey = pathKey,
-                Session = session,
-                LogCaptureEnabled = _settings.IsLogCaptureEnabled,
-                ExistingCrashReports = SnapshotCrashReports(game.Path.BasePath),
-                Cancellation = new CancellationTokenSource(),
-                Assemblers = new Dictionary<GameLogSource, MinecraftLogEventAssembler>
-                {
-                    [GameLogSource.StandardOutput] = new(GameLogSource.StandardOutput),
-                    [GameLogSource.StandardError] = new(GameLogSource.StandardError)
-                },
-                Deduplicator = new GameLogDeduplicator()
-            };
-
-            _activeSessions[pathKey] = runtime;
+            return runtime.Session;
         }
 
         _logger.LogDebug(
@@ -188,79 +143,11 @@ public sealed class GameRuntimeService : IGameRuntimeService
             runtime.LogCaptureEnabled,
             runtime.ExistingCrashReports.Count);
 
-        RunOnUI(() =>
-        {
-            Sessions.Insert(0, runtime.Session);
-            ApplyActiveState(game, runtime.Session, null);
-        });
-
-        AppendLifecycle(runtime, GameLogLevel.Info, $"Preparing launch for {game.Version.DisplayName}.");
-
-        if (!runtime.LogCaptureEnabled)
-        {
-            AppendLifecycle(runtime, GameLogLevel.Info, "Game log capture is disabled in settings.");
-        }
+        RegisterLaunchingSession(game, runtime);
 
         try
         {
-            _logger.LogDebug("Authenticating launch account for {GameName}.", game.Version.DisplayName);
-            var authenticationResult = await _accountService.AuthenticateAccountAsync(account);
-            ThrowIfLaunchCancelled(runtime);
-
-            var process = await game.BuildProcess(
-                game.Version.RealVersion,
-                authenticationResult.Session,
-                authenticationResult.RuntimeOptions);
-            runtime.Process = process;
-
-            _logger.LogDebug(
-                "Process created for {GameName}. Verb: {Verb}. UseShellExecute: {UseShellExecute}.",
-                game.Version.DisplayName,
-                process.StartInfo.Verb,
-                process.StartInfo.UseShellExecute);
-
-            ConfigureProcess(process, runtime);
-            AttachProcessHandlers(runtime);
-
-            ThrowIfLaunchCancelled(runtime);
-
-            if (!process.Start())
-            {
-                throw new InvalidOperationException($"Failed to start {game.Version.DisplayName}.");
-            }
-
-            runtime.ProcessStarted = true;
-
-            if (runtime.CanReadStandardStreams)
-            {
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-            }
-
-            RunOnUI(() =>
-            {
-                runtime.Session.ProcessId = TryGetProcessId(process);
-                runtime.Session.State = GameRunState.Running;
-                runtime.Session.CaptureMode = runtime.LogCaptureEnabled
-                    ? runtime.CanReadStandardStreams ? GameCaptureMode.StandardOutputOnly : GameCaptureMode.StandardOutputUnavailable
-                    : GameCaptureMode.LifecycleOnly;
-
-                ApplyActiveState(game, runtime.Session, runtime.Session.ProcessId);
-            });
-
-            _logger.LogInformation(
-                "Game process started for {GameName}. PID: {ProcessId}. CaptureMode: {CaptureMode}.",
-                game.Version.DisplayName,
-                runtime.Session.ProcessId,
-                runtime.Session.CaptureMode);
-
-            if (runtime.LogCaptureEnabled && !runtime.CanReadStandardStreams)
-            {
-                AppendLifecycle(runtime, GameLogLevel.Warn, "Standard output capture is unavailable for this session. Only lifecycle events will be shown.");
-            }
-
-            AppendLifecycle(runtime, GameLogLevel.Info, $"Launched {game.Version.DisplayName}.");
-            _notificationService.Info("GameLaunched", $"Launched {game.Version.DisplayName}");
+            await StartRuntimeProcessAsync(game, realVersion, account, runtime);
             return runtime.Session;
         }
         catch (OperationCanceledException)
@@ -278,6 +165,169 @@ public sealed class GameRuntimeService : IGameRuntimeService
             _notificationService.Error("LaunchError", $"Failed to launch {game.Version.DisplayName}", ex: ex);
             return runtime.Session;
         }
+    }
+
+    private bool TryValidateLaunchRequest(Game? game, ref EAccount? account)
+    {
+        if (game == null)
+        {
+            _logger.LogWarning("Skipping launch because no game was provided.");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(game.Version.RealVersion))
+        {
+            _logger.LogWarning(
+                "Skipping launch for {GameName} because no installed runtime version is available.",
+                game.Version.DisplayName);
+            _notificationService.Warning("InstallRequired", $"Install or update {game.Version.DisplayName} before launching.");
+            return false;
+        }
+
+        account ??= _accountService.GetSelectedAccount();
+        if (account != null)
+        {
+            return true;
+        }
+
+        _logger.LogWarning(
+            "Skipping launch for {GameName} because no account is available.",
+            game.Version.DisplayName);
+        _notificationService.Warning("NoAccount", "Please sign in to an account first");
+        return false;
+    }
+
+    private ActiveSessionRuntime CreateRuntimeSessionOrGetExisting(Game game, out bool created)
+    {
+        lock (_syncRoot)
+        {
+            var pathKey = GetPathKey(game.Path.BasePath);
+            if (_activeSessions.TryGetValue(pathKey, out var existingRuntime))
+            {
+                _logger.LogInformation(
+                    "Launch request ignored because {GameName} is already running.",
+                    game.Version.DisplayName);
+                _notificationService.Warning("GameAlreadyRunning", $"{game.Version.DisplayName} is already running.");
+                created = false;
+                return existingRuntime;
+            }
+
+            var runtime = CreateRuntimeSession(game, pathKey);
+            _activeSessions[pathKey] = runtime;
+            created = true;
+            return runtime;
+        }
+    }
+
+    private ActiveSessionRuntime CreateRuntimeSession(Game game, string pathKey)
+    {
+        var session = new GameSession(game, DateTimeOffset.Now)
+        {
+            State = GameRunState.Launching,
+            CaptureMode = _settings.IsLogCaptureEnabled ? GameCaptureMode.StandardOutputOnly : GameCaptureMode.LifecycleOnly
+        };
+
+        return new ActiveSessionRuntime
+        {
+            PathKey = pathKey,
+            Session = session,
+            LogCaptureEnabled = _settings.IsLogCaptureEnabled,
+            ExistingCrashReports = SnapshotCrashReports(game.Path.BasePath),
+            Cancellation = new CancellationTokenSource(),
+            Assemblers = new Dictionary<GameLogSource, MinecraftLogEventAssembler>
+            {
+                [GameLogSource.StandardOutput] = new(GameLogSource.StandardOutput),
+                [GameLogSource.StandardError] = new(GameLogSource.StandardError)
+            },
+            Deduplicator = new GameLogDeduplicator()
+        };
+    }
+
+    private void RegisterLaunchingSession(Game game, ActiveSessionRuntime runtime)
+    {
+        RunOnUI(() =>
+        {
+            Sessions.Insert(0, runtime.Session);
+            ApplyActiveState(game, runtime.Session, null);
+        });
+
+        AppendLifecycle(runtime, GameLogLevel.Info, $"Preparing launch for {game.Version.DisplayName}.");
+        if (!runtime.LogCaptureEnabled)
+        {
+            AppendLifecycle(runtime, GameLogLevel.Info, "Game log capture is disabled in settings.");
+        }
+    }
+
+    private async Task StartRuntimeProcessAsync(
+        Game game,
+        string realVersion,
+        EAccount account,
+        ActiveSessionRuntime runtime)
+    {
+        _logger.LogDebug("Authenticating launch account for {GameName}.", game.Version.DisplayName);
+        var authenticationResult = await _accountService.AuthenticateAccountAsync(account);
+        ThrowIfLaunchCancelled(runtime);
+
+        var process = await game.BuildProcess(
+            realVersion,
+            authenticationResult.Session,
+            authenticationResult.RuntimeOptions);
+        runtime.Process = process;
+
+        _logger.LogDebug(
+            "Process created for {GameName}. Verb: {Verb}. UseShellExecute: {UseShellExecute}.",
+            game.Version.DisplayName,
+            process.StartInfo.Verb,
+            process.StartInfo.UseShellExecute);
+
+        ConfigureProcess(process, runtime);
+        AttachProcessHandlers(runtime);
+        StartProcess(game, runtime, process);
+        MarkProcessRunning(game, runtime, process);
+    }
+
+    private void StartProcess(Game game, ActiveSessionRuntime runtime, Process process)
+    {
+        ThrowIfLaunchCancelled(runtime);
+        if (!process.Start())
+        {
+            throw new InvalidOperationException($"Failed to start {game.Version.DisplayName}.");
+        }
+
+        runtime.ProcessStarted = true;
+        if (runtime.CanReadStandardStreams)
+        {
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+        }
+    }
+
+    private void MarkProcessRunning(Game game, ActiveSessionRuntime runtime, Process process)
+    {
+        RunOnUI(() =>
+        {
+            runtime.Session.ProcessId = TryGetProcessId(process);
+            runtime.Session.State = GameRunState.Running;
+            runtime.Session.CaptureMode = runtime.LogCaptureEnabled
+                ? runtime.CanReadStandardStreams ? GameCaptureMode.StandardOutputOnly : GameCaptureMode.StandardOutputUnavailable
+                : GameCaptureMode.LifecycleOnly;
+
+            ApplyActiveState(game, runtime.Session, runtime.Session.ProcessId);
+        });
+
+        _logger.LogInformation(
+            "Game process started for {GameName}. PID: {ProcessId}. CaptureMode: {CaptureMode}.",
+            game.Version.DisplayName,
+            runtime.Session.ProcessId,
+            runtime.Session.CaptureMode);
+
+        if (runtime.LogCaptureEnabled && !runtime.CanReadStandardStreams)
+        {
+            AppendLifecycle(runtime, GameLogLevel.Warn, "Standard output capture is unavailable for this session. Only lifecycle events will be shown.");
+        }
+
+        AppendLifecycle(runtime, GameLogLevel.Info, $"Launched {game.Version.DisplayName}.");
+        _notificationService.Info("GameLaunched", $"Launched {game.Version.DisplayName}");
     }
 
     /// <summary>
@@ -956,35 +1006,16 @@ public sealed class GameRuntimeService : IGameRuntimeService
     /// </summary>
     private T RunOnUI<T>(Func<T> action)
     {
-        if (_dispatcher.HasThreadAccess)
-        {
-            return action();
-        }
-
-        var tcs = new TaskCompletionSource<T>();
-        _dispatcher.TryEnqueue(() =>
-        {
-            try
-            {
-                tcs.SetResult(action());
-            }
-            catch (Exception ex)
-            {
-                tcs.SetException(ex);
-            }
-        });
-        return tcs.Task.GetAwaiter().GetResult();
+        T result = default!;
+        _dispatcher.Invoke(() => result = action());
+        return result;
     }
 
     /// <summary>
     /// Executes the supplied delegate on the UI dispatcher without a return value.
     /// </summary>
     private void RunOnUI(Action action)
-        => RunOnUI(() =>
-        {
-            action();
-            return true;
-        });
+        => _dispatcher.Invoke(action);
 
     private static string GetPathKey(string path)
     {
