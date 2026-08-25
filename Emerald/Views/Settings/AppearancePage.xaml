@@ -21,15 +21,17 @@
         </ComboBox>
       </cn:SettingsCard>
       <cn:SettingsCard
-        Header="{helpers:Localize KeyName=MicaType}"
-        Description="{helpers:Localize KeyName=MicaTypeDescription}"
+        Header="{helpers:Localize KeyName=BackdropType}"
+        Description="{helpers:Localize KeyName=BackdropTypeDescription}"
         HeaderIcon="{helpers:FontIcon Glyph=}">
         <ComboBox
-          SelectedIndex="{Binding App.Appearance.MicaType, Mode=TwoWay}">
+          SelectedIndex="{Binding App.Appearance.BackdropType, Mode=TwoWay}">
           <ComboBoxItem
             Content="Mica" />
           <ComboBoxItem
             Content="Mica Alt" />
+          <ComboBoxItem
+            Content="Acrylic" />
         </ComboBox>
       </cn:SettingsCard>
       <cn:SettingsCard
