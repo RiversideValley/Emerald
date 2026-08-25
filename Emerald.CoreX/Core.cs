@@ -67,11 +67,17 @@ public partial class Core(
     IStoreInstallRecordRepository storeInstallRecordRepository,
     IStoreSharedContentSettingsService storeSharedContentSettingsService,
     IInstanceInstallationService? installationService = null,
-    INetworkCapabilityService? networkCapabilityService = null) : ObservableObject
+    INetworkCapabilityService? networkCapabilityService = null,
+    HttpClient? httpClient = null,
+    IDownloadActivityService? downloadActivity = null,
+    IUiDispatcher? uiDispatcher = null) : ObservableObject
 {
     private bool _networkSubscribed;
+    private bool _downloadActivitySubscribed;
     private readonly object _refreshGate = new();
     private Task? _refreshTask;
+    private Task? _localInitializationTask;
+    private bool _catalogRefreshPending;
     private readonly object _auditGate = new();
     private readonly Queue<InstallationAuditWorkItem> _pendingAudits = new();
     private readonly Dictionary<Game, InstallationAuditWorkItem> _auditsByGame = new();
@@ -112,6 +118,7 @@ public partial class Core(
     private bool _isRefreshing = false;
 
     public Models.GameSettings GameOptions => globalGameSettingsService.Settings;
+    private IUiDispatcher UiDispatcher => uiDispatcher ?? new InlineUiDispatcher();
 
     public void LoadGames()
     {
@@ -236,83 +243,133 @@ public partial class Core(
         return minecraftBaseSettingsService.Get<SavedGame[]>(SettingsKeys.SavedGames, []);
     }
 
-    /// <summary>
-    /// Initializes the Core with the given Minecraft path and retrieves the list of available vanilla Minecraft versions.
-    /// </summary>
-    /// <param name="basePath">The base path for Minecraft files. If null, initialization will require a previously set path.</param>
-    /// <returns>A task that represents the asynchronous operation of initialization and refreshing Minecraft versions.</returns>
-    public Task InitializeAndRefresh(MinecraftPath? basePath = null)
+    /// <summary>Loads local settings and saved games without performing network requests.</summary>
+    public Task InitializeLocalAsync(MinecraftPath? basePath = null)
     {
         lock (_refreshGate)
         {
-            // A refresh clears and rebuilds UI-bound collections. Sharing the in-flight task
-            // keeps repeated Refresh clicks and background callers from doing that concurrently.
-            if (_refreshTask is { IsCompleted: false }) return _refreshTask;
+            if (_localInitializationTask is { IsCompleted: false }) return _localInitializationTask;
+            _localInitializationTask = InitializeLocalCoreAsync(basePath);
+            return _localInitializationTask;
+        }
+    }
 
-            _refreshTask = InitializeAndRefreshCoreAsync(basePath);
+    private Task InitializeLocalCoreAsync(MinecraftPath? basePath)
+    {
+        SubscribeToNetworkState();
+        SubscribeToDownloadActivity();
+        if (!Initialized && basePath == null)
+            throw new InvalidOperationException("Minecraft Path must be set on first initialize");
+
+        if (basePath != null && (!Initialized || !PathsEqual(basePath.BasePath, BasePath?.BasePath)))
+        {
+            if (downloadActivity?.Snapshot.ActiveDownloads > 0)
+                throw new InvalidOperationException("Minecraft path cannot be changed while downloads are active.");
+
+            BasePath = basePath;
+            Launcher = CreateCatalogLauncher(basePath);
+            PrepareBaseScopedServices();
+            LoadGames();
+        }
+
+        Initialized = true;
+        foreach (var game in Games) game.CreateMCLauncher(IsOfflineMode);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>Refreshes remote metadata only; local games and cached versions survive failures.</summary>
+    public Task RefreshVersionCatalogAsync(CancellationToken cancellationToken = default)
+    {
+        lock (_refreshGate)
+        {
+            if (_refreshTask is { IsCompleted: false }) return _refreshTask;
+            _refreshTask = RefreshVersionCatalogCoreAsync(cancellationToken);
             return _refreshTask;
         }
     }
 
-    private async Task InitializeAndRefreshCoreAsync(MinecraftPath? basePath)
+    [Obsolete("Use InitializeLocalAsync followed by RefreshVersionCatalogAsync.")]
+    public async Task InitializeAndRefresh(MinecraftPath? basePath = null)
     {
-        var not = _notify.Create(
-            "InitializingCore",
-            isIndeterminate: true, 
-            isCancellable: true
-        );
-        IsRefreshing = true;
-        SubscribeToNetworkState();
-        try
-        {
-            _logger.LogInformation("Trying to load vanilla minecraft versions from servers");
+        await InitializeLocalAsync(basePath);
+        await RefreshVersionCatalogAsync();
+    }
 
-            if (!Initialized && basePath == null)
+    private async Task RefreshVersionCatalogCoreAsync(CancellationToken cancellationToken)
+    {
+        if (!Initialized || BasePath == null) return;
+        IDisposable? refreshLease = null;
+        if (downloadActivity != null && !downloadActivity.TryAcquireCatalogRefresh(out refreshLease))
+        {
+            _catalogRefreshPending = true;
+            return;
+        }
+
+        using (refreshLease)
+        {
+            IsRefreshing = true;
+            try
             {
-                _logger.LogInformation("Minecraft Path must be set on first initialize");
-                throw new InvalidOperationException("Minecraft Path must be set on first initialize");
+                if (networkCapabilityService != null)
+                {
+                    var capability = await networkCapabilityService.ProbeAsync(NetworkCapability.MinecraftMetadata, cancellationToken);
+                    if (capability.EffectiveState is NetworkAvailabilityState.Unavailable or NetworkAvailabilityState.Degraded)
+                    {
+                        IsOfflineMode = true;
+                        return;
+                    }
+                }
+
+                using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                deadline.CancelAfter(TimeSpan.FromSeconds(10));
+                var versions = await Launcher.GetAllVersionsAsync(deadline.Token);
+                await UiDispatcher.InvokeAsync(() =>
+                {
+                    VanillaVersions.Clear();
+                    VanillaVersions.AddRange(versions.Select(x => new Versions.Version { ReleaseTime = x.ReleaseTime.DateTime, BasedOn = x.Name, ReleaseType = x.Type }));
+                    IsOfflineMode = false;
+                    foreach (var game in Games) game.CreateMCLauncher(false);
+                });
+                networkCapabilityService?.ReportSuccess(NetworkCapability.MinecraftMetadata);
             }
-            if (basePath != null)
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                Launcher = new MinecraftLauncher(basePath);
-                BasePath = basePath;
+                IsOfflineMode = true;
+                networkCapabilityService?.ReportFailure(NetworkCapability.MinecraftMetadata, new TimeoutException("Minecraft version catalog request timed out."));
             }
-
-            PrepareBaseScopedServices();
-            LoadGames();
-            Initialized = true;
-
-            var l = await Launcher.GetAllVersionsAsync(not.CancellationToken.Value);
-
-            VanillaVersions.Clear();
-            VanillaVersions.AddRange(l.Select(x => new Versions.Version() { ReleaseTime = x.ReleaseTime.DateTime, BasedOn = x.Name, ReleaseType = x.Type }));
-            IsOfflineMode = false;
-            networkCapabilityService?.ReportSuccess(NetworkCapability.MinecraftMetadata);
-            _notify.Complete(not.Id, true);
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogWarning(ex, "Failed to load vanilla Minecraft versions; continuing in offline mode.");
-            IsOfflineMode = true;
-            networkCapabilityService?.ReportFailure(NetworkCapability.MinecraftMetadata, ex);
-            _notify.Complete(not.Id, true, "OfflineMode");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogCritical(ex, "Failed to load vanilla minecraft versions: {ex}", ex.Message);
-            _notify.Complete(not.Id, false, ex.Message, ex);
-            Initialized = false;
-        }
-        finally
-        {
-            foreach (var game in Games)
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
-                game.CreateMCLauncher(IsOfflineMode);
+                _logger.LogWarning(ex, "Failed to refresh vanilla Minecraft versions; retaining local catalog.");
+                IsOfflineMode = true;
+                networkCapabilityService?.ReportFailure(NetworkCapability.MinecraftMetadata, ex);
             }
-            _logger.LogInformation("Loaded {count} vanilla versions", VanillaVersions.Count);
-            IsRefreshing = false;
-            VersionsRefreshed?.Invoke(this, new());
+            finally
+            {
+                IsRefreshing = false;
+                VersionsRefreshed?.Invoke(this, new());
+            }
         }
+    }
+
+    private MinecraftLauncher CreateCatalogLauncher(MinecraftPath basePath)
+    {
+        var parameters = MinecraftLauncherParameters.CreateDefault(basePath);
+        if (httpClient != null) parameters.HttpClient = httpClient;
+        return new MinecraftLauncher(parameters);
+    }
+
+    private void SubscribeToDownloadActivity()
+    {
+        if (_downloadActivitySubscribed || downloadActivity == null) return;
+        downloadActivity.Changed += (_, snapshot) =>
+        {
+            if (snapshot.ActiveDownloads == 0 && _catalogRefreshPending)
+            {
+                _catalogRefreshPending = false;
+                _ = RefreshVersionCatalogAsync();
+            }
+        };
+        _downloadActivitySubscribed = true;
     }
 
     /// <summary>
@@ -326,6 +383,10 @@ public partial class Core(
         try
         {
             await InstallGameOrThrow(game, showFileprog);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Installation cancelled for game {version}", game?.Version.BasedOn);
         }
         catch (Exception ex)
         {

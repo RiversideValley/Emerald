@@ -161,11 +161,6 @@
                 DefaultLabelPosition="Right"
                 OverflowButtonVisibility="Collapsed">
         <AppBarButton Click="AddGame_Click" Icon="Add" Label="Add Game" />
-        <AppBarButton
-          Command="{x:Bind ViewModel.RefreshGamesCommand}"
-          Icon="Refresh"
-          IsEnabled="{x:Bind ViewModel.CanRefreshGames, Mode=OneWay}"
-          Label="Refresh" />
       </CommandBar>
     </Grid>
 

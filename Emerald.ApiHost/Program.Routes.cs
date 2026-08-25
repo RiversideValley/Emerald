@@ -32,7 +32,7 @@ public partial class Program
 
     private static void MapStatusRoutes(RouteGroupBuilder api)
     {
-        api.MapGet("/status", (Core c, INetworkCapabilityService network) => Results.Ok(new
+        api.MapGet("/status", (Core c, INetworkCapabilityService network, IDownloadActivityService downloads) => Results.Ok(new
         {
             Initialized = c.Initialized,
             IsRefreshing = c.IsRefreshing,
@@ -40,12 +40,13 @@ public partial class Program
             BasePath = c.BasePath?.BasePath,
             GamesCount = c.Games.Count,
             VanillaVersionsCount = c.VanillaVersions.Count,
-            Network = Enum.GetValues<NetworkCapability>().Select(capability => network.GetSnapshot(capability))
+            Network = Enum.GetValues<NetworkCapability>().Select(capability => network.GetSnapshot(capability)),
+            Downloads = downloads.Snapshot
         }))
         .WithName("GetStatus")
         .WithTags("Status");
 
-        api.MapPost("/core/initialize", async (InitializeCoreRequest req, Core c, ILogger<Program> logger) =>
+        api.MapPost("/core/initialize", async (InitializeCoreRequest req, Core c, IDownloadActivityService downloads, ILogger<Program> logger) =>
         {
             if (string.IsNullOrWhiteSpace(req.BasePath))
             {
@@ -55,9 +56,15 @@ public partial class Program
             var minecraftPath = Path.GetFullPath(req.BasePath);
             Directory.CreateDirectory(minecraftPath);
 
+            if (downloads.Snapshot.ActiveDownloads > 0)
+            {
+                return Results.Conflict(new { Error = "Minecraft path cannot be changed while downloads are active." });
+            }
+
             try
             {
-                await c.InitializeAndRefresh(new MinecraftPath(minecraftPath));
+                await c.InitializeLocalAsync(new MinecraftPath(minecraftPath));
+                _ = c.RefreshVersionCatalogAsync();
                 return Results.Ok(new
                 {
                     Message = "Core initialized.",

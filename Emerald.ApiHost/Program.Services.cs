@@ -42,6 +42,8 @@ public partial class Program
             return client;
         });
         services.AddSingleton<INetworkCapabilityService, NetworkCapabilityService>();
+        services.AddSingleton<IDownloadActivityService, DownloadActivityService>();
+        services.AddSingleton<DownloadTimeouts>();
         services.AddSingleton<IInstallationStateStore, InstallationStateStore>();
         services.AddSingleton<VerifiedGameInstaller>();
         services.AddSingleton<IInstanceInstallationService, InstanceInstallationService>();

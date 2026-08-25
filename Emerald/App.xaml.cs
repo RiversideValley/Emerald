@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using CmlLib.Core;
 using CommonServiceLocator;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Helpers;
@@ -134,6 +135,8 @@ Notes
             return client;
         });
         services.AddSingleton<INetworkCapabilityService, NetworkCapabilityService>();
+        services.AddSingleton<IDownloadActivityService, DownloadActivityService>();
+        services.AddSingleton<DownloadTimeouts>();
         services.AddSingleton<CoreX.Services.IUiDispatcher>(_ =>
             new Services.DispatcherQueueUiDispatcher(MainWindow.DispatcherQueue));
         services.AddSingleton<IInstallationStateStore, InstallationStateStore>();
@@ -280,6 +283,23 @@ Notes
         //load settings,
         SS.LoadData();
         this.Log().LogInformation("Application settings loaded.");
+
+        var core = Ioc.Default.GetRequiredService<CoreX.Core>();
+        var configuredMinecraftPath = SS.Settings.Minecraft.Path;
+        var startupMinecraftPath = string.IsNullOrWhiteSpace(configuredMinecraftPath)
+            ? new MinecraftPath()
+            : new MinecraftPath(configuredMinecraftPath);
+        try
+        {
+            // Local game state is available before navigation; the catalog refresh is
+            // deliberately silent and bounded so offline startup never blocks Home.
+            core.InitializeLocalAsync(startupMinecraftPath).GetAwaiter().GetResult();
+            _ = core.RefreshVersionCatalogAsync();
+        }
+        catch (Exception ex)
+        {
+            this.Log().LogWarning(ex, "Could not initialize local Minecraft state at startup.");
+        }
 
         var ac = Ioc.Default.GetService<CoreX.Services.IAccountService>();
         _ = ac.InitializeAsync(MicrosoftClientId);

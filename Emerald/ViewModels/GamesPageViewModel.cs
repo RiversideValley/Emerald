@@ -61,8 +61,6 @@ public partial class GamesPageViewModel : ObservableObject
     [ObservableProperty]
     private string _gamesLoadingMessage = "Loading games...";
 
-    public bool CanRefreshGames => !_core.IsRefreshing && !IsLoading;
-
     [ObservableProperty]
     private string _searchQuery = string.Empty;
 
@@ -413,14 +411,6 @@ public partial class GamesPageViewModel : ObservableObject
             {
                 _dispatcherQueue.TryEnqueue(() => OnPropertyChanged(nameof(IsOfflineMode)));
             }
-            else if (e.PropertyName == nameof(Core.IsRefreshing))
-            {
-                _dispatcherQueue.TryEnqueue(() =>
-                {
-                    OnPropertyChanged(nameof(CanRefreshGames));
-                    RefreshGamesCommand.NotifyCanExecuteChanged();
-                });
-            }
         };
         _core.VersionsRefreshed += (_, _) => QueueVersionsProjectionUpdate();
         Games.CollectionChanged += (_, _) => QueueGamesProjectionUpdate();
@@ -497,8 +487,6 @@ public partial class GamesPageViewModel : ObservableObject
     partial void OnIsLoadingChanged(bool value)
     {
         OnPropertyChanged(nameof(ShowNoGamesMessage));
-        OnPropertyChanged(nameof(CanRefreshGames));
-        RefreshGamesCommand.NotifyCanExecuteChanged();
     }
     partial void OnVersionSearchQueryChanged(string value) => UpdateFilteredAvailableVersions();
     partial void OnSelectedReleaseTypeFilterChanged(string value) => UpdateFilteredAvailableVersions();
@@ -809,13 +797,6 @@ public partial class GamesPageViewModel : ObservableObject
 
             _logger.LogInformation("Initializing GamesPage");
 
-            if (!_core.Initialized && !_core.IsRefreshing)
-            {
-                var path = _settingsService.Settings.Minecraft.Path;
-                var mcPath = path != null ? new MinecraftPath(path) : new();
-                await _core.InitializeAndRefresh(mcPath);
-            }
-
             _dispatcherQueue.TryEnqueue(() =>
             {
                 UpdateAvailableVersions();
@@ -834,22 +815,6 @@ public partial class GamesPageViewModel : ObservableObject
             {
                 _dispatcherQueue.TryEnqueue(() => IsLoading = false);
             }
-        }
-    }
-
-    [RelayCommand(CanExecute = nameof(CanRefreshGames))]
-    private async Task RefreshGamesAsync()
-    {
-        if (!CanRefreshGames) return;
-
-        try
-        {
-            _logger.LogInformation("Refreshing games list.");
-            await _core.InitializeAndRefresh();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to refresh games");
         }
     }
 
