@@ -88,15 +88,10 @@ public sealed class MinecraftOptionsService : IMinecraftOptionsService
         {
             var baseVersion = game.Version.BasedOn;
             var versionPath = Path.Combine(game.Path.Versions, baseVersion, baseVersion + ".json");
-            if (!File.Exists(versionPath)) return [];
-            using var version = JsonDocument.Parse(await File.ReadAllBytesAsync(versionPath, ct));
-            if (!version.RootElement.TryGetProperty("assetIndex", out var index) || !index.TryGetProperty("id", out var id)) return [];
-            var indexPath = Path.Combine(game.Path.Assets, "indexes", id.GetString() + ".json");
-            if (!File.Exists(indexPath)) return [];
-            using var assetIndex = JsonDocument.Parse(await File.ReadAllBytesAsync(indexPath, ct));
-            if (!assetIndex.RootElement.TryGetProperty("objects", out var objects)) return [];
-            if (!objects.TryGetProperty("minecraft/lang/" + locale + ".json", out var asset) || !asset.TryGetProperty("hash", out var hashElement)) return [];
-            var hash = hashElement.GetString();
+            var assetIndexId = await ReadAssetIndexIdAsync(versionPath, ct);
+            if (assetIndexId is null) return [];
+            var indexPath = Path.Combine(game.Path.Assets, "indexes", assetIndexId + ".json");
+            var hash = await ReadLanguageAssetHashAsync(indexPath, locale, ct);
             if (string.IsNullOrEmpty(hash)) return [];
             var path = Path.Combine(game.Path.Assets, "objects", hash[..2], hash);
             if (!File.Exists(path)) return [];
@@ -104,6 +99,26 @@ public sealed class MinecraftOptionsService : IMinecraftOptionsService
             return await ParseJsonLanguageAsync(stream, ct);
         }
         catch (Exception ex) { _logger.LogDebug(ex, "Unable to load localized Minecraft language assets."); return []; }
+    }
+
+    private static async Task<string?> ReadAssetIndexIdAsync(string versionPath, CancellationToken ct)
+    {
+        if (!File.Exists(versionPath)) return null;
+        using var version = JsonDocument.Parse(await File.ReadAllBytesAsync(versionPath, ct));
+        return version.RootElement.TryGetProperty("assetIndex", out var index) && index.TryGetProperty("id", out var id)
+            ? id.GetString()
+            : null;
+    }
+
+    private static async Task<string?> ReadLanguageAssetHashAsync(string indexPath, string locale, CancellationToken ct)
+    {
+        if (!File.Exists(indexPath)) return null;
+        using var assetIndex = JsonDocument.Parse(await File.ReadAllBytesAsync(indexPath, ct));
+        if (!assetIndex.RootElement.TryGetProperty("objects", out var objects)) return null;
+        var languageAsset = "minecraft/lang/" + locale + ".json";
+        return objects.TryGetProperty(languageAsset, out var asset) && asset.TryGetProperty("hash", out var hash)
+            ? hash.GetString()
+            : null;
     }
 
     private async Task<Dictionary<string, string>> LoadJarLanguageAsync(Game game, string locale, CancellationToken ct)

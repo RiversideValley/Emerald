@@ -49,7 +49,7 @@ public partial class MinecraftOptionEntry : ObservableObject
     public double SliderValue
     {
         get => double.TryParse(RawValue, NumberStyles.Float,
-                   CultureInfo.InvariantCulture, out var d) ? d * SliderStorageMultiplier + SliderStorageOffset : SliderMin;
+                   CultureInfo.InvariantCulture, out var d) ? (d * SliderStorageMultiplier) + SliderStorageOffset : SliderMin;
         set
         {
             var rounded = SliderIsInt ? Math.Round(value) : value;
