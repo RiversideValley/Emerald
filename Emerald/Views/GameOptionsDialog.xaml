@@ -45,8 +45,27 @@
           <ToggleSwitch
             Grid.Column="1"
             IsOn="{x:Bind IsBooleanTrue, Mode=TwoWay}"
-            OffContent="Off" OnContent="On"
+            OffContent="{helpers:Localize KeyName=GameOptionsOff}"
+            OnContent="{helpers:Localize KeyName=GameOptionsOn}"
             VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+    </DataTemplate>
+
+    <!-- ── Unsupported and device-specific values (read-only) ── -->
+    <DataTemplate x:Key="ReadOnlyTemplate" x:DataType="gameOptions:MinecraftOptionEntry">
+      <Border Margin="0,3" Padding="14,10" CornerRadius="10"
+              Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" Opacity="0.75">
+        <Grid ColumnSpacing="12">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+          <StackPanel Spacing="2" VerticalAlignment="Center">
+            <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind DisplayName}" />
+            <TextBlock Opacity="0.55" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind Key}" />
+          </StackPanel>
+          <TextBlock Grid.Column="1" MaxWidth="260" TextTrimming="CharacterEllipsis"
+                     FontFamily="Cascadia Mono" Style="{StaticResource CaptionTextBlockStyle}"
+                     Text="{x:Bind RawValue}" VerticalAlignment="Center" />
         </Grid>
       </Border>
     </DataTemplate>
@@ -194,7 +213,8 @@
       SliderTemplate="{StaticResource SliderTemplate}"
       EnumTemplate="{StaticResource EnumTemplate}"
       SoundTemplate="{StaticResource SoundTemplate}"
-      KeyBindTemplate="{StaticResource KeyBindTemplate}" />
+      KeyBindTemplate="{StaticResource KeyBindTemplate}"
+      ReadOnlyTemplate="{StaticResource ReadOnlyTemplate}" />
   </ContentDialog.Resources>
 
   <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
@@ -208,7 +228,7 @@
     <Border Grid.Row="0" Padding="20,20,20,14">
       <StackPanel Spacing="14">
         <StackPanel Spacing="4">
-          <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Game Options" />
+          <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="{helpers:Localize KeyName=GameOptionsTitle}" />
           <TextBlock
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             Style="{StaticResource CaptionTextBlockStyle}"
@@ -220,7 +240,7 @@
             <ColumnDefinition Width="180" />
           </Grid.ColumnDefinitions>
           <AutoSuggestBox
-            PlaceholderText="Search options…"
+            PlaceholderText="{helpers:Localize KeyName=GameOptionsSearchPlaceholder}"
             QueryIcon="Find"
             Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
           <ComboBox
@@ -239,7 +259,7 @@
         HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
         Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
         <ProgressRing IsActive="True" />
-        <TextBlock HorizontalAlignment="Center" Text="Loading options…" />
+        <TextBlock HorizontalAlignment="Center" Text="{helpers:Localize KeyName=GameOptionsLoading}" />
       </StackPanel>
 
       <!-- No options.txt yet -->
@@ -248,12 +268,12 @@
         Visibility="{x:Bind ViewModel.OptionsFileExists, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
         <FontIcon FontSize="48" Glyph="&#xE8A5;" Opacity="0.45" />
         <TextBlock HorizontalAlignment="Center" Style="{StaticResource SubtitleTextBlockStyle}"
-                   Text="No options file yet" />
+                   Text="{helpers:Localize KeyName=GameOptionsNoFileTitle}" />
         <TextBlock
           MaxWidth="340" HorizontalAlignment="Center"
           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
           Style="{StaticResource CaptionTextBlockStyle}"
-          Text="Launch the game at least once to generate options.txt, then return here to edit it."
+          Text="{helpers:Localize KeyName=GameOptionsNoFileDescription}"
           TextAlignment="Center" TextWrapping="WrapWholeWords" />
       </StackPanel>
 
@@ -263,10 +283,10 @@
         Visibility="{x:Bind ViewModel.ShowEmptySearch, Mode=OneWay, Converter={StaticResource BoolToVis}}">
         <FontIcon FontSize="40" Glyph="&#xE721;" Opacity="0.45" />
         <TextBlock HorizontalAlignment="Center" Style="{StaticResource SubtitleTextBlockStyle}"
-                   Text="No options match" />
+                   Text="{helpers:Localize KeyName=GameOptionsNoMatchesTitle}" />
         <TextBlock HorizontalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                    Style="{StaticResource CaptionTextBlockStyle}"
-                   Text="Try a different search term or clear the category filter." />
+                   Text="{helpers:Localize KeyName=GameOptionsNoMatchesDescription}" />
       </StackPanel>
 
       <!-- Options list -->
@@ -285,6 +305,17 @@
           </ListView.ItemContainerStyle>
         </ListView>
       </ScrollViewer>
+
+      <Border HorizontalAlignment="Stretch" VerticalAlignment="Top" Padding="12" CornerRadius="8"
+              Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+              Visibility="{x:Bind ViewModel.HasSaveConflict, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+        <Grid ColumnSpacing="12">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+          <TextBlock Text="{x:Bind ViewModel.ConflictMessage, Mode=OneWay}" TextWrapping="Wrap" VerticalAlignment="Center" />
+          <Button Grid.Column="1" Content="{helpers:Localize KeyName=GameOptionsReload}"
+                  Command="{x:Bind ViewModel.ReloadCommand}" />
+        </Grid>
+      </Border>
     </Grid>
 
     <!-- ── Footer ── -->
@@ -300,13 +331,13 @@
           <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <Button Grid.Column="0" Click="Close_Click" Content="Close" />
+        <Button Grid.Column="0" Click="Close_Click" Content="{helpers:Localize KeyName=Close}" />
         <Button
           Grid.Column="2"
           Click="Save_Click"
-          Content="Save Options"
+          Content="{helpers:Localize KeyName=GameOptionsSave}"
           Style="{ThemeResource AccentButtonStyle}"
-          IsEnabled="{x:Bind ViewModel.HasOptions, Mode=OneWay}" />
+          IsEnabled="{x:Bind ViewModel.CanSave, Mode=OneWay}" />
       </Grid>
     </Border>
   </Grid>

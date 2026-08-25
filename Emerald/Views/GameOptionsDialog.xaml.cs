@@ -31,8 +31,8 @@ public sealed partial class GameOptionsDialog : ContentDialog
 
     private async void Save_Click(object sender, RoutedEventArgs e)
     {
-        await ViewModel.SaveCommand.ExecuteAsync(null);
-        Hide();
+        await ViewModel.SaveAsync();
+        if (ViewModel.LastSaveSucceeded) Hide();
     }
 }
 
@@ -44,6 +44,7 @@ public sealed class OptionTemplateSelector : DataTemplateSelector
     public DataTemplate? EnumTemplate     { get; set; }
     public DataTemplate? SoundTemplate    { get; set; }
     public DataTemplate? KeyBindTemplate  { get; set; }
+    public DataTemplate? ReadOnlyTemplate { get; set; }
 
     protected override DataTemplate SelectTemplateCore(object item)
     {
@@ -57,6 +58,7 @@ public sealed class OptionTemplateSelector : DataTemplateSelector
                 MinecraftOptionType.Enum        => EnumTemplate,
                 MinecraftOptionType.SoundVolume => SoundTemplate,
                 MinecraftOptionType.KeyBind     => KeyBindTemplate,
+                MinecraftOptionType.ReadOnly    => ReadOnlyTemplate,
                 _                               => BooleanTemplate
             } ?? base.SelectTemplateCore(item);
         }

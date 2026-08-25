@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Emerald.CoreX;
 using Emerald.CoreX.GameOptions;
+using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Notifications;
 using Microsoft.Extensions.Logging;
 
@@ -26,6 +28,7 @@ public partial class GameOptionsViewModel : ObservableObject
     private bool _isLoading;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasOptions))]
     private bool _optionsFileExists = true;
 
     [ObservableProperty]
@@ -33,10 +36,21 @@ public partial class GameOptionsViewModel : ObservableObject
     private string _searchQuery = string.Empty;
 
     [ObservableProperty]
-    private string _selectedCategory = "All";
+    private string _selectedCategory = "GameOptionsAll".Localize();
 
     [ObservableProperty]
     private string _gameDisplayName = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanSave))]
+    private bool _isSaving;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanSave))]
+    private bool _hasSaveConflict;
+
+    [ObservableProperty]
+    private string _conflictMessage = string.Empty;
 
     public ObservableCollection<MinecraftOptionEntry> FilteredEntries { get; } = [];
     public ObservableCollection<string>               Categories      { get; } = [];
@@ -44,6 +58,8 @@ public partial class GameOptionsViewModel : ObservableObject
     public bool HasOptions       => !IsLoading && FilteredEntries.Count > 0 && OptionsFileExists;
     public bool ShowEmptySearch  => !IsLoading && FilteredEntries.Count == 0 && OptionsFileExists
                                     && !string.IsNullOrWhiteSpace(SearchQuery);
+    public bool CanSave => HasOptions && !IsSaving && !HasSaveConflict && _allEntries.Any(entry => entry.IsDirty && entry.IsEditable);
+    public bool LastSaveSucceeded { get; private set; }
 
     public GameOptionsViewModel(
         IMinecraftOptionsService service,
@@ -64,9 +80,14 @@ public partial class GameOptionsViewModel : ObservableObject
 
         try
         {
+            foreach (var entry in _allEntries) entry.PropertyChanged -= Entry_PropertyChanged;
+            HasSaveConflict = false;
+            ConflictMessage = string.Empty;
+            LastSaveSucceeded = false;
             var result = await _service.LoadAsync(game);
             OptionsFileExists = result.OptionsFileExists;
             _allEntries = result.Entries;
+            foreach (var entry in _allEntries) entry.PropertyChanged += Entry_PropertyChanged;
 
             RebuildCategories();
             ApplyFilter();
@@ -74,8 +95,8 @@ public partial class GameOptionsViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load options for {Name}.", game.Version.DisplayName);
-            _notify.Error("OptionsLoadError",
-                $"Failed to load options for {game.Version.DisplayName}.", ex: ex);
+            _notify.Error("GameOptionsLoadError".Localize(),
+                string.Format("GameOptionsLoadErrorMessage".Localize(), game.Version.DisplayName), ex: ex);
         }
         finally
         {
@@ -83,22 +104,42 @@ public partial class GameOptionsViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
     public async Task SaveAsync()
     {
-        if (_game is null || _allEntries.Count == 0) return;
+        LastSaveSucceeded = false;
+        if (_game is null || !CanSave) return;
 
         try
         {
-            await _service.SaveAsync(_game, _allEntries);
-            _notify.Info("OptionsSaved", $"Saved options for {_game.Version.DisplayName}.");
+            IsSaving = true;
+            var result = await _service.SaveAsync(_game, _allEntries);
+            if (result.Status == MinecraftOptionsSaveStatus.Conflict)
+            {
+                HasSaveConflict = true;
+                ConflictMessage = string.Format("GameOptionsConflictMessage".Localize(), string.Join(", ", result.ConflictingKeys));
+                _notify.Warning("GameOptionsConflict".Localize(), ConflictMessage);
+                return;
+            }
+            LastSaveSucceeded = result.Status is MinecraftOptionsSaveStatus.Saved or MinecraftOptionsSaveStatus.NoChanges;
+            _notify.Info("GameOptionsSaved".Localize(), string.Format("GameOptionsSavedMessage".Localize(), _game.Version.DisplayName));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save options for {Name}.", _game.Version.DisplayName);
-            _notify.Error("OptionsSaveError",
-                $"Failed to save options for {_game.Version.DisplayName}.", ex: ex);
+            _notify.Error("GameOptionsSaveError".Localize(),
+                string.Format("GameOptionsSaveErrorMessage".Localize(), _game.Version.DisplayName), ex: ex);
         }
+        finally
+        {
+            IsSaving = false;
+            OnPropertyChanged(nameof(CanSave));
+        }
+    }
+
+    [RelayCommand]
+    public async Task ReloadAsync()
+    {
+        if (_game is not null) await LoadAsync(_game);
     }
 
     partial void OnSearchQueryChanged(string value)        => ApplyFilter();
@@ -107,9 +148,9 @@ public partial class GameOptionsViewModel : ObservableObject
     private void RebuildCategories()
     {
         Categories.Clear();
-        Categories.Add("All");
+        Categories.Add("GameOptionsAll".Localize());
         foreach (var cat in _allEntries
-                     .Select(e => e.Category)
+            .Select(e => CategoryLabel(e.Category))
                      .Distinct(StringComparer.OrdinalIgnoreCase)
                      .OrderBy(c => c, StringComparer.OrdinalIgnoreCase))
         {
@@ -123,8 +164,8 @@ public partial class GameOptionsViewModel : ObservableObject
 
         var filtered = _allEntries.AsEnumerable();
 
-        if (SelectedCategory != "All")
-            filtered = filtered.Where(e => e.Category == SelectedCategory);
+        if (SelectedCategory != "GameOptionsAll".Localize())
+            filtered = filtered.Where(e => CategoryLabel(e.Category) == SelectedCategory);
 
         if (!string.IsNullOrWhiteSpace(SearchQuery))
         {
@@ -139,5 +180,14 @@ public partial class GameOptionsViewModel : ObservableObject
 
         OnPropertyChanged(nameof(HasOptions));
         OnPropertyChanged(nameof(ShowEmptySearch));
+        OnPropertyChanged(nameof(CanSave));
     }
+
+    private void Entry_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MinecraftOptionEntry.IsDirty)) OnPropertyChanged(nameof(CanSave));
+    }
+
+    private static string CategoryLabel(MinecraftOptionCategory category) =>
+        $"GameOptionsCategory{category}".Localize();
 }

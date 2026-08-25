@@ -1219,4 +1219,33 @@
   <data name="VerificationNeedsRepairMessage" xml:space="preserve">
     <value>{0} needs repair: {1} issue(s).</value>
   </data>
+  <data name="GameOptionsTitle" xml:space="preserve"><value>Game Options</value></data>
+  <data name="GameOptionsSearchPlaceholder" xml:space="preserve"><value>Search options…</value></data>
+  <data name="GameOptionsLoading" xml:space="preserve"><value>Loading options…</value></data>
+  <data name="GameOptionsNoFileTitle" xml:space="preserve"><value>No options file yet</value></data>
+  <data name="GameOptionsNoFileDescription" xml:space="preserve"><value>Launch the game at least once to generate options.txt, then return here to edit it.</value></data>
+  <data name="GameOptionsNoMatchesTitle" xml:space="preserve"><value>No options match</value></data>
+  <data name="GameOptionsNoMatchesDescription" xml:space="preserve"><value>Try a different search term or clear the category filter.</value></data>
+  <data name="GameOptionsSave" xml:space="preserve"><value>Save Options</value></data>
+  <data name="GameOptionsReload" xml:space="preserve"><value>Reload</value></data>
+  <data name="GameOptionsOn" xml:space="preserve"><value>On</value></data>
+  <data name="GameOptionsOff" xml:space="preserve"><value>Off</value></data>
+  <data name="GameOptionsLoadError" xml:space="preserve"><value>Could not load options</value></data>
+  <data name="GameOptionsLoadErrorMessage" xml:space="preserve"><value>Failed to load options for {0}.</value></data>
+  <data name="GameOptionsSaveError" xml:space="preserve"><value>Could not save options</value></data>
+  <data name="GameOptionsSaveErrorMessage" xml:space="preserve"><value>Failed to save options for {0}.</value></data>
+  <data name="GameOptionsSaved" xml:space="preserve"><value>Options saved</value></data>
+  <data name="GameOptionsSavedMessage" xml:space="preserve"><value>Saved options for {0}.</value></data>
+  <data name="GameOptionsConflict" xml:space="preserve"><value>Options changed on disk</value></data>
+  <data name="GameOptionsConflictMessage" xml:space="preserve"><value>These options changed on disk: {0}. Reload before saving.</value></data>
+  <data name="GameOptionsAll" xml:space="preserve"><value>All</value></data>
+  <data name="GameOptionsCategoryGeneral" xml:space="preserve"><value>General</value></data>
+  <data name="GameOptionsCategoryGraphics" xml:space="preserve"><value>Graphics</value></data>
+  <data name="GameOptionsCategoryDisplay" xml:space="preserve"><value>Display</value></data>
+  <data name="GameOptionsCategoryAccessibility" xml:space="preserve"><value>Accessibility</value></data>
+  <data name="GameOptionsCategoryControls" xml:space="preserve"><value>Controls</value></data>
+  <data name="GameOptionsCategoryChat" xml:space="preserve"><value>Chat</value></data>
+  <data name="GameOptionsCategorySound" xml:space="preserve"><value>Sound</value></data>
+  <data name="GameOptionsCategoryKeyBindings" xml:space="preserve"><value>Key Bindings</value></data>
+  <data name="GameOptionsCategoryUnsupported" xml:space="preserve"><value>Unsupported</value></data>
 </root>
