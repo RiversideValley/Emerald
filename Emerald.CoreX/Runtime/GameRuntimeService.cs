@@ -190,16 +190,34 @@ public sealed class GameRuntimeService : IGameRuntimeService
         }
 
         account ??= _accountService.GetSelectedAccount();
-        if (account != null)
+        if (account == null)
         {
-            return true;
+            _logger.LogWarning(
+                "Skipping launch for {GameName} because no account is available.",
+                game.Version.DisplayName);
+            _notificationService.Warning("NoAccount", "Please sign in to an account first");
+            return false;
         }
 
-        _logger.LogWarning(
-            "Skipping launch for {GameName} because no account is available.",
-            game.Version.DisplayName);
-        _notificationService.Warning("NoAccount", "Please sign in to an account first");
-        return false;
+        var minecraftNetwork = _networkCapabilityService.GetSnapshot(NetworkCapability.MinecraftMetadata);
+        if (minecraftNetwork.EffectiveState == NetworkAvailabilityState.Unavailable
+            && account.Type is (AccountType.Microsoft or AccountType.ElyBy))
+        {
+            // A network-backed account cannot be refreshed or validated while Emerald is
+            // operating from local Minecraft metadata. Do not silently replace it with a
+            // generated offline identity; the user must explicitly choose their offline account.
+            _logger.LogWarning(
+                "Skipping offline launch for {GameName} because selected account {AccountName} is {AccountType}.",
+                game.Version.DisplayName,
+                account.Name,
+                account.Type);
+            _notificationService.Warning(
+                "Offline account required",
+                "Emerald is offline. Select an offline account before launching.");
+            return false;
+        }
+
+        return true;
     }
 
     private ActiveSessionRuntime CreateRuntimeSessionOrGetExisting(Game game, out bool created)

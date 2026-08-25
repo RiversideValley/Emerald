@@ -314,7 +314,7 @@ public partial class Program
         .WithName("RepairGame")
         .WithTags("Games");
 
-        api.MapPost("/games/launch", async (GameLaunchRequest req, IGameRuntimeService runtime, IInstanceInstallationService installation, Core c, IAccountService ac, ILogger<Program> logger) =>
+        api.MapPost("/games/launch", async (GameLaunchRequest req, IGameRuntimeService runtime, IInstanceInstallationService installation, INetworkCapabilityService network, Core c, IAccountService ac, ILogger<Program> logger) =>
         {
             var game = c.Games.FirstOrDefault(g => g.Path.BasePath == req.BasePath);
             if (game == null) return Results.NotFound(new { Error = $"Game instance at path '{req.BasePath}' not found." });
@@ -324,6 +324,14 @@ public partial class Program
 
             var account = ac.GetSelectedAccount();
             if (account == null) return Results.BadRequest(new { Error = "No account selected. Please select or create an account first." });
+            if (network.GetSnapshot(NetworkCapability.MinecraftMetadata).EffectiveState == NetworkAvailabilityState.Unavailable
+                && account.Type is (AccountType.Microsoft or AccountType.ElyBy))
+            {
+                return Results.BadRequest(new
+                {
+                    Error = "Emerald is offline. Select an offline account before launching."
+                });
+            }
 
             _ = Task.Run(async () =>
             {
