@@ -10,16 +10,23 @@ public partial class MinecraftOptionEntry : ObservableObject
     public required string Key        { get; init; }
     public required string DisplayName { get; init; }
     public required MinecraftOptionType Type { get; init; }
-    public string   Category  { get; init; } = "General";
+    public MinecraftOptionCategory Category { get; init; } = MinecraftOptionCategory.General;
     public double   SliderMin { get; init; }
     public double   SliderMax { get; init; } = 1.0;
     public double   SliderStep { get; init; } = 0.01;
     public bool     SliderIsInt { get; init; }
     public string?  SliderSuffix { get; init; }
+    /// <summary>Maps the stored value to the slider's display value.</summary>
+    public double SliderStorageMultiplier { get; init; } = 1;
+    public double SliderStorageOffset { get; init; }
     public IReadOnlyList<MinecraftEnumOption> EnumOptions { get; init; } = [];
 
     [ObservableProperty]
     private string _rawValue = string.Empty;
+
+    public string OriginalRawValue { get; private set; } = string.Empty;
+    public bool IsEditable => Type is not MinecraftOptionType.KeyBind and not MinecraftOptionType.ReadOnly and not MinecraftOptionType.Skip;
+    public bool IsDirty => !string.Equals(RawValue, OriginalRawValue, System.StringComparison.Ordinal);
 
     partial void OnRawValueChanged(string value)
     {
@@ -28,6 +35,7 @@ public partial class MinecraftOptionEntry : ObservableObject
         OnPropertyChanged(nameof(EnumRawValue));
         OnPropertyChanged(nameof(SelectedEnumOption));
         OnPropertyChanged(nameof(DisplayValueLabel));
+        OnPropertyChanged(nameof(IsDirty));
     }
 
     // ── Boolean ──────────────────────────────────────────────────────────────
@@ -41,13 +49,14 @@ public partial class MinecraftOptionEntry : ObservableObject
     public double SliderValue
     {
         get => double.TryParse(RawValue, NumberStyles.Float,
-                   CultureInfo.InvariantCulture, out var d) ? d : SliderMin;
+                   CultureInfo.InvariantCulture, out var d) ? d * SliderStorageMultiplier + SliderStorageOffset : SliderMin;
         set
         {
             var rounded = SliderIsInt ? Math.Round(value) : value;
-            RawValue = SliderIsInt
+            var stored = (rounded - SliderStorageOffset) / SliderStorageMultiplier;
+            RawValue = SliderIsInt && SliderStorageMultiplier == 1 && SliderStorageOffset == 0
                 ? ((int)rounded).ToString(CultureInfo.InvariantCulture)
-                : rounded.ToString(CultureInfo.InvariantCulture);
+                : stored.ToString("G17", CultureInfo.InvariantCulture);
             OnPropertyChanged();
         }
     }
@@ -55,10 +64,10 @@ public partial class MinecraftOptionEntry : ObservableObject
     // ── Enum ─────────────────────────────────────────────────────────────────
     public string? EnumRawValue
     {
-        get => RawValue.Trim('"');
+        get => RawValue;
         set
         {
-            RawValue = value is null ? string.Empty : $"\"{value}\"";
+            RawValue = value ?? string.Empty;
             OnPropertyChanged();
         }
     }
@@ -88,9 +97,15 @@ public partial class MinecraftOptionEntry : ObservableObject
             .FirstOrDefault(o => o.RawValue == EnumRawValue)?.DisplayLabel
             ?? EnumRawValue
             ?? RawValue,
-        MinecraftOptionType.KeyBind => RawValue.TrimStart("key.".ToCharArray()),
+        MinecraftOptionType.KeyBind => RawValue,
         _ => RawValue
     };
+
+    public void AcceptChanges()
+    {
+        OriginalRawValue = RawValue;
+        OnPropertyChanged(nameof(IsDirty));
+    }
 }
 
 public sealed record MinecraftEnumOption(string RawValue, string DisplayLabel);

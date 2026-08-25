@@ -1,381 +1,296 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace Emerald.CoreX.GameOptions;
 
+/// <summary>Edits only catalogued Minecraft settings and preserves every other line.</summary>
 public sealed class MinecraftOptionsService : IMinecraftOptionsService
 {
-    // ── Keys to hide from the editor ─────────────────────────────────────────
-    private static readonly HashSet<string> SkippedKeys = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "version", "lang", "lastServer", "resourcePacks", "incompatibleResourcePacks",
-        "soundDevice", "tutorialStep", "startedCleanly", "realmsNotifications",
-        "joinedFirstServer", "hideServerAddress", "advanced_itemtooltips",
-        "pauseOnLostFocus", "log4jFixedProtocolVersion", "enableVsync",
-        "glDebugVerbosity", "skipMultiplayerWarning", "skipRealmsWarning",
-        "hideMatchedNames", "chatLinks", "chatLinksPrompt"
-    };
-
-    // ── Known slider ranges ───────────────────────────────────────────────────
-    private static readonly Dictionary<string, (double Min, double Max, bool IsInt, double Step, string? Suffix)>
-        SliderMeta = new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["renderDistance"]           = (2,  32,  true,  1,    " chunks"),
-            ["simulationDistance"]       = (5,  32,  true,  1,    " chunks"),
-            ["maxFps"]                   = (10, 260, true,  1,    " fps"),
-            ["fov"]                      = (30, 110, false, 1,    "°"),
-            ["gamma"]                    = (0,  1,   false, 0.01, null),
-            ["fovEffectScale"]           = (0,  1,   false, 0.01, null),
-            ["mouseSensitivity"]         = (0,  1,   false, 0.01, null),
-            ["mipmapLevels"]             = (0,  4,   true,  1,    null),
-            ["biomeBlendRadius"]         = (0,  7,   true,  1,    null),
-            ["screenEffectScale"]        = (0,  1,   false, 0.01, null),
-            ["chatOpacity"]              = (0,  1,   false, 0.01, null),
-            ["chatLineSpacing"]          = (0,  1,   false, 0.01, null),
-            ["chatDelay"]                = (0,  6,   false, 0.1,  "s"),
-            ["chatWidth"]                = (0,  1,   false, 0.01, null),
-            ["chatHeightFocused"]        = (0,  1,   false, 0.01, null),
-            ["chatHeightUnfocused"]      = (0,  1,   false, 0.01, null),
-            ["chatScale"]                = (0,  1,   false, 0.01, null),
-            ["textBackgroundOpacity"]    = (0,  1,   false, 0.01, null),
-            ["notificationDisplayTime"]  = (0.5, 5, false, 0.5,  "s"),
-            ["menuBackgroundBlurriness"] = (0,  10,  true,  1,    null),
-            ["entityDistanceScaling"]    = (0.5, 5, false, 0.1,  "×"),
-        };
-
-    // ── Category heuristics ───────────────────────────────────────────────────
-    private static readonly Dictionary<string, string> CategoryMap =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["renderDistance"]          = "Graphics",
-            ["simulationDistance"]      = "Graphics",
-            ["maxFps"]                  = "Graphics",
-            ["fov"]                     = "Graphics",
-            ["gamma"]                   = "Graphics",
-            ["graphicsMode"]            = "Graphics",
-            ["ao"]                      = "Graphics",
-            ["fancyGraphics"]           = "Graphics",
-            ["graphics"]                = "Graphics",
-            ["particles"]               = "Graphics",
-            ["entityShadows"]           = "Graphics",
-            ["renderClouds"]            = "Graphics",
-            ["mipmapLevels"]            = "Graphics",
-            ["vsync"]                   = "Graphics",
-            ["entityDistanceScaling"]   = "Graphics",
-            ["chunkBuilderType"]        = "Graphics",
-            ["prioritizeChunkUpdates"]  = "Graphics",
-            ["fullscreen"]              = "Display",
-            ["guiScale"]                = "Display",
-            ["fullscreenResolution"]    = "Display",
-            ["narrator"]                = "Accessibility",
-            ["subtitles"]               = "Accessibility",
-            ["highContrast"]            = "Accessibility",
-            ["darkMojangStudiosBackground"] = "Accessibility",
-            ["menuBackgroundBlurriness"] = "Accessibility",
-            ["mouseSensitivity"]        = "Mouse & Controls",
-            ["invertYMouse"]            = "Mouse & Controls",
-            ["discreteMouseScroll"]     = "Mouse & Controls",
-            ["smoothCamera"]            = "Mouse & Controls",
-            ["touchscreen"]             = "Mouse & Controls",
-            ["chatVisibility"]          = "Chat",
-            ["chatColors"]              = "Chat",
-            ["chatOpacity"]             = "Chat",
-            ["chatLineSpacing"]         = "Chat",
-            ["chatScale"]               = "Chat",
-            ["chatWidth"]               = "Chat",
-            ["chatHeightFocused"]       = "Chat",
-            ["chatHeightUnfocused"]     = "Chat",
-            ["chatDelay"]               = "Chat",
-            ["textBackgroundOpacity"]   = "Chat",
-        };
-
     private readonly ILogger<MinecraftOptionsService> _logger;
 
-    public MinecraftOptionsService(ILogger<MinecraftOptionsService> logger)
-        => _logger = logger;
+    public MinecraftOptionsService(ILogger<MinecraftOptionsService> logger) => _logger = logger;
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Public API
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public async Task<MinecraftOptionsLoadResult> LoadAsync(
-        Game game, CancellationToken cancellationToken = default)
+    public async Task<MinecraftOptionsLoadResult> LoadAsync(Game game, CancellationToken cancellationToken = default)
     {
-        var optionsPath = Path.Combine(game.Path.BasePath, "options.txt");
-        if (!File.Exists(optionsPath))
+        var path = Path.Combine(game.Path.BasePath, "options.txt");
+        if (!File.Exists(path)) return new MinecraftOptionsLoadResult { OptionsFileExists = false };
+
+        var document = await MinecraftOptionsDocument.ReadAsync(path, cancellationToken);
+        var lang = await LoadLanguageAsync(game, cancellationToken);
+        var entries = document.EffectiveOptions
+            .Select(pair => MinecraftOptionCatalog.Create(pair.Key, pair.Value, lang))
+            .Where(entry => entry.Type != MinecraftOptionType.Skip)
+            .OrderBy(entry => entry.Category)
+            .ThenBy(entry => entry.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        _logger.LogInformation("Loaded {Count} options for {Name}.", entries.Count, game.Version.DisplayName);
+        return new MinecraftOptionsLoadResult { Entries = entries, OptionsFileExists = true };
+    }
+
+    public async Task<MinecraftOptionsSaveResult> SaveAsync(Game game, IEnumerable<MinecraftOptionEntry> entries, CancellationToken cancellationToken = default)
+    {
+        var dirty = entries.Where(entry => entry.IsEditable && entry.IsDirty).ToArray();
+        if (dirty.Length == 0) return new MinecraftOptionsSaveResult { Status = MinecraftOptionsSaveStatus.NoChanges };
+
+        var path = Path.Combine(game.Path.BasePath, "options.txt");
+        if (!File.Exists(path))
+            return new MinecraftOptionsSaveResult { Status = MinecraftOptionsSaveStatus.Conflict, ConflictingKeys = dirty.Select(x => x.Key).ToArray() };
+
+        var document = await MinecraftOptionsDocument.ReadAsync(path, cancellationToken);
+        var conflicts = dirty
+            .Where(entry => !document.TryGetEffectiveValue(entry.Key, out var current) || current != entry.OriginalRawValue)
+            .Select(entry => entry.Key)
+            .ToArray();
+        if (conflicts.Length > 0)
+            return new MinecraftOptionsSaveResult { Status = MinecraftOptionsSaveStatus.Conflict, ConflictingKeys = conflicts };
+
+        await document.PatchLastOccurrences(dirty.ToDictionary(entry => entry.Key, entry => entry.RawValue, StringComparer.Ordinal))
+            .WriteReplacingAsync(path, cancellationToken);
+        foreach (var entry in dirty) entry.AcceptChanges();
+        _logger.LogInformation("Saved {Count} options for {Name}.", dirty.Length, game.Version.DisplayName);
+        return new MinecraftOptionsSaveResult { Status = MinecraftOptionsSaveStatus.Saved };
+    }
+
+    private async Task<Dictionary<string, string>> LoadLanguageAsync(Game game, CancellationToken ct)
+    {
+        var english = await LoadAssetLanguageAsync(game, "en_us", ct);
+        if (english.Count == 0) english = await LoadJarLanguageAsync(game, "en_us", ct);
+        foreach (var locale in GetLanguageCandidates().Where(locale => locale != "en_us"))
         {
-            _logger.LogInformation(
-                "options.txt not found at {Path} — game hasn't been launched yet.", optionsPath);
-            return new MinecraftOptionsLoadResult { OptionsFileExists = false };
+            var localized = await LoadAssetLanguageAsync(game, locale, ct);
+            if (localized.Count == 0) continue;
+            foreach (var pair in localized) english[pair.Key] = pair.Value;
+            break;
         }
-
-        var raw  = await ParseOptionsFileAsync(optionsPath, cancellationToken);
-        var lang = await TryLoadLangAsync(game, cancellationToken);
-        var entries = BuildEntries(raw, lang);
-
-        _logger.LogInformation(
-            "Loaded {Count} option entries for {Name}.", entries.Count, game.Version.DisplayName);
-
-        return new MinecraftOptionsLoadResult
-        {
-            Entries = entries,
-            OptionsFileExists = true,
-            OriginalRaw = raw
-        };
+        return english;
     }
 
-    public async Task SaveAsync(
-        Game game, IEnumerable<MinecraftOptionEntry> entries,
-        CancellationToken cancellationToken = default)
+    private static IEnumerable<string> GetLanguageCandidates()
     {
-        var optionsPath = Path.Combine(game.Path.BasePath, "options.txt");
-
-        // Re-read the file so we preserve lines we never showed in the UI.
-        var original = File.Exists(optionsPath)
-            ? await ParseOptionsFileAsync(optionsPath, cancellationToken)
-            : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var e in entries)
-            original[e.Key] = e.RawValue;
-
-        var lines = original.Select(kvp => $"{kvp.Key}:{kvp.Value}");
-        await File.WriteAllLinesAsync(optionsPath, lines, cancellationToken);
-        _logger.LogInformation("Saved options.txt for {Name}.", game.Version.DisplayName);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Parsing
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private static async Task<Dictionary<string, string>> ParseOptionsFileAsync(
-        string path, CancellationToken ct)
-    {
-        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var line in await File.ReadAllLinesAsync(path, ct))
+        var culture = CultureInfo.CurrentUICulture;
+        var exact = culture.Name.Replace('-', '_').ToLowerInvariant();
+        if (!string.IsNullOrEmpty(exact)) yield return exact;
+        if (!string.IsNullOrEmpty(culture.Name))
         {
-            var idx = line.IndexOf(':');
-            if (idx < 1) continue;
-            var key = line[..idx].Trim();
-            var val = line[(idx + 1)..]; // preserve value exactly
-            if (!string.IsNullOrEmpty(key))
-                map[key] = val;
+            var specific = CultureInfo.CreateSpecificCulture(culture.Name).Name.Replace('-', '_').ToLowerInvariant();
+            if (!string.Equals(exact, specific, StringComparison.Ordinal)) yield return specific;
         }
-        return map;
+        yield return "en_us";
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Lang loading
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private async Task<Dictionary<string, string>> TryLoadLangAsync(Game game, CancellationToken ct)
+    private async Task<Dictionary<string, string>> LoadAssetLanguageAsync(Game game, string locale, CancellationToken ct)
     {
         try
         {
-            // Use the *vanilla* JAR (BasedOn), even for modded instances.
-            var jarPath = Path.Combine(
-                game.Path.Versions,
-                game.Version.BasedOn,
-                $"{game.Version.BasedOn}.jar");
+            var baseVersion = game.Version.BasedOn;
+            var versionPath = Path.Combine(game.Path.Versions, baseVersion, baseVersion + ".json");
+            if (!File.Exists(versionPath)) return [];
+            using var version = JsonDocument.Parse(await File.ReadAllBytesAsync(versionPath, ct));
+            if (!version.RootElement.TryGetProperty("assetIndex", out var index) || !index.TryGetProperty("id", out var id)) return [];
+            var indexPath = Path.Combine(game.Path.Assets, "indexes", id.GetString() + ".json");
+            if (!File.Exists(indexPath)) return [];
+            using var assetIndex = JsonDocument.Parse(await File.ReadAllBytesAsync(indexPath, ct));
+            if (!assetIndex.RootElement.TryGetProperty("objects", out var objects)) return [];
+            if (!objects.TryGetProperty("minecraft/lang/" + locale + ".json", out var asset) || !asset.TryGetProperty("hash", out var hashElement)) return [];
+            var hash = hashElement.GetString();
+            if (string.IsNullOrEmpty(hash)) return [];
+            var path = Path.Combine(game.Path.Assets, "objects", hash[..2], hash);
+            if (!File.Exists(path)) return [];
+            await using var stream = File.OpenRead(path);
+            return await ParseJsonLanguageAsync(stream, ct);
+        }
+        catch (Exception ex) { _logger.LogDebug(ex, "Unable to load localized Minecraft language assets."); return []; }
+    }
 
-            if (!File.Exists(jarPath))
+    private async Task<Dictionary<string, string>> LoadJarLanguageAsync(Game game, string locale, CancellationToken ct)
+    {
+        try
+        {
+            var baseVersion = game.Version.BasedOn;
+            var jarPath = Path.Combine(game.Path.Versions, baseVersion, baseVersion + ".jar");
+            if (!File.Exists(jarPath)) return [];
+            using var jar = ZipFile.OpenRead(jarPath);
+            var json = jar.GetEntry("assets/minecraft/lang/" + locale + ".json");
+            if (json is not null) { await using var stream = json.Open(); return await ParseJsonLanguageAsync(stream, ct); }
+            var legacy = jar.GetEntry("assets/minecraft/lang/en_US.lang");
+            if (legacy is null) return [];
+            await using var legacyStream = legacy.Open();
+            using var reader = new StreamReader(legacyStream);
+            var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            while (await reader.ReadLineAsync(ct) is { } line)
             {
-                _logger.LogDebug("JAR not found at {Path}; will prettify keys instead.", jarPath);
-                return [];
+                var index = line.IndexOf('=');
+                if (index > 0) result[line[..index].Trim()] = line[(index + 1)..].Trim();
             }
-
-            return await LoadLangFromJarAsync(jarPath, ct);
+            return result;
         }
-        catch (Exception ex)
+        catch (Exception ex) { _logger.LogDebug(ex, "Unable to load Minecraft language from version JAR."); return []; }
+    }
+
+    private static async Task<Dictionary<string, string>> ParseJsonLanguageAsync(Stream stream, CancellationToken ct)
+    {
+        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
+        return document.RootElement.EnumerateObject().ToDictionary(x => x.Name, x => x.Value.GetString() ?? string.Empty, StringComparer.OrdinalIgnoreCase);
+    }
+}
+
+internal sealed class MinecraftOptionsDocument
+{
+    private readonly IReadOnlyList<Line> _lines;
+    private readonly bool _hasBom;
+    private MinecraftOptionsDocument(IReadOnlyList<Line> lines, bool hasBom) { _lines = lines; _hasBom = hasBom; }
+
+    public IEnumerable<KeyValuePair<string, string>> EffectiveOptions
+    {
+        get
         {
-            _logger.LogWarning(ex, "Failed to load lang for {Name}.", game.Version.DisplayName);
-            return [];
+            var map = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var line in _lines) if (line.Key is not null) map[line.Key] = line.Value!;
+            return map;
         }
     }
 
-    private static async Task<Dictionary<string, string>> LoadLangFromJarAsync(
-        string jarPath, CancellationToken ct)
+    public static async Task<MinecraftOptionsDocument> ReadAsync(string path, CancellationToken ct)
     {
-        using var jar = ZipFile.OpenRead(jarPath);
-
-        // 1.13+ JSON
-        var jsonEntry = jar.GetEntry("assets/minecraft/lang/en_us.json");
-        if (jsonEntry is not null)
+        var bytes = await File.ReadAllBytesAsync(path, ct);
+        var hasBom = bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF;
+        var text = new UTF8Encoding(false, true).GetString(hasBom ? bytes.AsSpan(3) : bytes);
+        var lines = new List<Line>();
+        var start = 0;
+        for (var index = 0; index < text.Length; index++)
         {
-            await using var stream = jsonEntry.Open();
-            var doc = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
-            return doc.RootElement
-                .EnumerateObject()
-                .ToDictionary(p => p.Name, p => p.Value.GetString() ?? string.Empty,
-                    StringComparer.OrdinalIgnoreCase);
+            if (text[index] is not '\r' and not '\n') continue;
+            var length = text[index] == '\r' && index + 1 < text.Length && text[index + 1] == '\n' ? 2 : 1;
+            lines.Add(Line.Parse(text[start..index], text.Substring(index, length)));
+            index += length - 1;
+            start = index + 1;
         }
-
-        // Pre-1.13 .lang
-        var legacyEntry = jar.GetEntry("assets/minecraft/lang/en_US.lang");
-        if (legacyEntry is null) return [];
-
-        var lang = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        await using var legacyStream = legacyEntry.Open();
-        using var reader = new StreamReader(legacyStream);
-        string? line;
-        while ((line = await reader.ReadLineAsync(ct)) is not null)
-        {
-            var eq = line.IndexOf('=');
-            if (eq > 0) lang[line[..eq].Trim()] = line[(eq + 1)..].Trim();
-        }
-        return lang;
+        if (start < text.Length) lines.Add(Line.Parse(text[start..], string.Empty));
+        return new MinecraftOptionsDocument(lines, hasBom);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Entry building
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private List<MinecraftOptionEntry> BuildEntries(
-        Dictionary<string, string> raw,
-        Dictionary<string, string> lang)
+    public bool TryGetEffectiveValue(string key, out string value)
     {
-        var list = new List<MinecraftOptionEntry>();
+        for (var index = _lines.Count - 1; index >= 0; index--)
+            if (string.Equals(_lines[index].Key, key, StringComparison.Ordinal)) { value = _lines[index].Value!; return true; }
+        value = string.Empty;
+        return false;
+    }
 
-        foreach (var (key, rawValue) in raw)
+    public MinecraftOptionsDocument PatchLastOccurrences(IReadOnlyDictionary<string, string> values)
+    {
+        var remaining = new Dictionary<string, string>(values, StringComparer.Ordinal);
+        var output = _lines.ToArray();
+        for (var index = output.Length - 1; index >= 0 && remaining.Count > 0; index--)
+            if (output[index].Key is { } key && remaining.Remove(key, out var value)) output[index] = output[index].WithValue(value);
+        return new MinecraftOptionsDocument(output, _hasBom);
+    }
+
+    public async Task WriteReplacingAsync(string path, CancellationToken ct)
+    {
+        var text = string.Concat(_lines.Select(line => line.Body + line.Newline));
+        var content = new UTF8Encoding(false).GetBytes(text);
+        var payload = _hasBom
+            ? new UTF8Encoding(true).GetPreamble().Concat(content).ToArray()
+            : content;
+        var temporary = path + ".emerald-options-" + Guid.NewGuid().ToString("N") + ".tmp";
+        try
         {
-            var type = ClassifyOption(key, rawValue);
-            if (type == MinecraftOptionType.Skip) continue;
-
-            var (min, max, isInt, step, suffix) = GetSliderMeta(key, type);
-
-            list.Add(new MinecraftOptionEntry
+            await using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous | FileOptions.WriteThrough))
             {
-                Key          = key,
-                DisplayName  = ResolveDisplayName(key, lang),
-                Category     = ResolveCategory(key),
-                Type         = type,
-                RawValue     = rawValue,
-                SliderMin    = min,
-                SliderMax    = max,
-                SliderIsInt  = isInt,
-                SliderStep   = step,
-                SliderSuffix = suffix,
-                EnumOptions  = type == MinecraftOptionType.Enum
-                    ? ResolveEnumOptions(key, rawValue, lang)
-                    : []
-            });
+                await stream.WriteAsync(payload, ct);
+                await stream.FlushAsync(ct);
+                stream.Flush(flushToDisk: true);
+            }
+            File.Replace(temporary, path, null);
         }
-
-        return list
-            .OrderBy(e => e.Category)
-            .ThenBy(e => e.DisplayName, StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Classification
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private static MinecraftOptionType ClassifyOption(string key, string rawValue)
+    private sealed class Line
     {
-        if (SkippedKeys.Contains(key))                                return MinecraftOptionType.Skip;
-        if (key.StartsWith("key_",           StringComparison.OrdinalIgnoreCase)) return MinecraftOptionType.KeyBind;
-        if (key.StartsWith("soundCategory_", StringComparison.OrdinalIgnoreCase)) return MinecraftOptionType.SoundVolume;
-
-        if (rawValue is "true" or "false")     return MinecraftOptionType.Boolean;
-        if (rawValue.StartsWith('"'))          return MinecraftOptionType.Enum;
-
-        if (!double.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var d))
-            return MinecraftOptionType.Enum; // unrecognised string → treat as enum
-
-        // Known int sliders
-        if (SliderMeta.TryGetValue(key, out var meta) && meta.IsInt)
-            return MinecraftOptionType.IntSlider;
-
-        // Heuristic: no decimal point and value looks like a small int → int slider
-        if (!rawValue.Contains('.') && d >= 0 && d <= 512)
-            return MinecraftOptionType.IntSlider;
-
-        return MinecraftOptionType.FloatSlider;
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private static string ResolveDisplayName(string key, Dictionary<string, string> lang)
-    {
-        if (key.StartsWith("soundCategory_", StringComparison.OrdinalIgnoreCase))
+        public Line(string body, string newline, string? key, string? value, int valueStart)
         {
-            var cat = key["soundCategory_".Length..];
-            return lang.TryGetValue($"soundCategory.{cat}", out var n) ? n : PrettifyKey(cat);
+            Body = body;
+            Newline = newline;
+            Key = key;
+            Value = value;
+            ValueStart = valueStart;
         }
-        return lang.TryGetValue($"options.{key}", out var name) ? name : PrettifyKey(key);
-    }
 
-    private static string ResolveCategory(string key)
-    {
-        if (key.StartsWith("key_",           StringComparison.OrdinalIgnoreCase)) return "Key Bindings";
-        if (key.StartsWith("soundCategory_", StringComparison.OrdinalIgnoreCase)) return "Sound";
-        return CategoryMap.TryGetValue(key, out var cat) ? cat : "General";
-    }
+        public string Body { get; }
+        public string Newline { get; }
+        public string? Key { get; }
+        public string? Value { get; }
+        public int ValueStart { get; }
 
-    private static (double Min, double Max, bool IsInt, double Step, string? Suffix)
-        GetSliderMeta(string key, MinecraftOptionType type)
-    {
-        if (type == MinecraftOptionType.SoundVolume) return (0, 1, false, 0.01, null);
-        if (SliderMeta.TryGetValue(key, out var m))  return m;
-        return type == MinecraftOptionType.IntSlider
-            ? (0, 100, true,  1,    null)
-            : (0, 1,   false, 0.01, null);
-    }
-
-    private static IReadOnlyList<MinecraftEnumOption> ResolveEnumOptions(
-        string key, string rawValue, Dictionary<string, string> lang)
-    {
-        var opts  = new List<MinecraftEnumOption>();
-        var pfx   = $"options.{key}.";
-
-        foreach (var kvp in lang)
+        public static Line Parse(string body, string newline)
         {
-            if (kvp.Key.StartsWith(pfx, StringComparison.OrdinalIgnoreCase))
-                opts.Add(new MinecraftEnumOption(kvp.Key[pfx.Length..], kvp.Value));
+            var colon = body.IndexOf(':');
+            if (colon < 1) return new Line(body, newline, null, null, 0);
+            var key = body[..colon].Trim();
+            if (key.Length == 0) return new Line(body, newline, null, null, 0);
+            var start = colon + 1;
+            while (start < body.Length && (body[start] == ' ' || body[start] == '\t')) start++;
+            return new Line(body, newline, key, body[start..], start);
         }
-
-        // Fall back to shared labels (options.on / options.off)
-        if (opts.Count == 0)
-        {
-            var shared = new[] { "true", "false", "on", "off" };
-            foreach (var s in shared)
-                if (lang.TryGetValue($"options.{s}", out var lbl))
-                    opts.Add(new MinecraftEnumOption(s, lbl));
-        }
-
-        // Always include the current raw value so the ComboBox has something to select.
-        var bare = rawValue.Trim('"');
-        if (!string.IsNullOrEmpty(bare) && opts.All(o => o.RawValue != bare))
-            opts.Insert(0, new MinecraftEnumOption(bare, PrettifyKey(bare)));
-
-        return opts;
+        public Line WithValue(string value) => new(Body[..ValueStart] + value, Newline, Key, value, ValueStart);
     }
+}
 
-    private static string PrettifyKey(string key)
+internal static class MinecraftOptionCatalog
+{
+    private static readonly HashSet<string> Hidden = new(StringComparer.Ordinal) { "version", "lang", "lastServer", "resourcePacks", "incompatibleResourcePacks", "tutorialStep", "startedCleanly", "joinedFirstServer" };
+    private static readonly HashSet<string> Booleans = new(StringComparer.Ordinal) { "ao", "enableVsync", "entityShadows", "fullscreen", "bobView", "forceUnicodeFont", "highContrast", "showSubtitles", "directionalAudio", "autoJump", "discrete_mouse_scroll", "invertYMouse", "invertXMouse", "touchscreen", "toggleCrouch", "toggleSprint", "toggleAttack", "toggleUse", "chatColors", "chatLinks", "chatLinksPrompt", "backgroundForChatOnly", "hideLightningFlashes", "hideSplashTexts", "darkMojangStudiosBackground", "rawMouseInput", "narratorHotkey", "hideServerAddress", "advancedItemTooltips", "pauseOnLostFocus", "modelPart_cape", "modelPart_jacket", "modelPart_left_sleeve", "modelPart_right_sleeve", "modelPart_left_pants_leg", "modelPart_right_pants_leg", "modelPart_hat" };
+    private static readonly Dictionary<string, (double Min, double Max, bool Integer, double Step, string? Suffix, MinecraftOptionCategory Category, double Multiplier, double Offset)> Sliders = new(StringComparer.Ordinal)
     {
-        // "key_key.forward" → "Forward"
-        if (key.StartsWith("key_key.", StringComparison.OrdinalIgnoreCase))
-            key = key["key_key.".Length..];
+        ["fov"] = (30,110,true,1,"°",MinecraftOptionCategory.Graphics,40,70), ["renderDistance"] = (2,32,true,1," chunks",MinecraftOptionCategory.Graphics,1,0), ["simulationDistance"] = (5,32,true,1," chunks",MinecraftOptionCategory.Graphics,1,0), ["maxFps"] = (10,260,true,10," fps",MinecraftOptionCategory.Graphics,1,0), ["mipmapLevels"] = (0,4,true,1,null,MinecraftOptionCategory.Graphics,1,0), ["biomeBlendRadius"] = (0,7,true,1,null,MinecraftOptionCategory.Graphics,1,0), ["menuBackgroundBlurriness"] = (0,10,true,1,null,MinecraftOptionCategory.Accessibility,1,0), ["entityDistanceScaling"] = (.5,5,false,.1,"×",MinecraftOptionCategory.Graphics,1,0), ["notificationDisplayTime"] = (.5,10,false,.5,"s",MinecraftOptionCategory.Accessibility,1,0), ["sprintWindow"] = (0,10,true,1,null,MinecraftOptionCategory.Controls,1,0), ["weatherRadius"] = (3,10,true,1,null,MinecraftOptionCategory.Graphics,1,0), ["cloudRange"] = (2,128,true,1,null,MinecraftOptionCategory.Graphics,1,0)
+    };
+    private static readonly HashSet<string> UnitSliders = new(StringComparer.Ordinal) { "gamma", "mouseSensitivity", "fovEffectScale", "screenEffectScale", "darknessEffectScale", "damageTiltStrength", "glintSpeed", "glintStrength", "chatOpacity", "chatLineSpacing", "chatDelay", "chatWidth", "chatHeightFocused", "chatHeightUnfocused", "chatScale", "textBackgroundOpacity", "mouseWheelSensitivity", "panoramaScrollSpeed" };
 
-        var sb = new StringBuilder();
-        for (var i = 0; i < key.Length; i++)
-        {
-            var c = key[i];
-            if (c is '_' or '.') { sb.Append(' '); continue; }
-            if (i > 0 && char.IsUpper(c) && !char.IsUpper(key[i - 1])) sb.Append(' ');
-            sb.Append(i == 0 ? char.ToUpperInvariant(c) : c);
-        }
-        return sb.ToString().Trim();
+    public static MinecraftOptionEntry Create(string key, string raw, IReadOnlyDictionary<string, string> lang)
+    {
+        if (Hidden.Contains(key)) return Entry(key, raw, Prettify(key), MinecraftOptionCategory.General, MinecraftOptionType.Skip);
+        if (key.StartsWith("key_", StringComparison.Ordinal)) return Entry(key, raw, ResolveKeyBindName(key, raw, lang), MinecraftOptionCategory.KeyBindings, MinecraftOptionType.KeyBind);
+        if (key.StartsWith("soundCategory_", StringComparison.Ordinal) && IsNumber(raw)) return Slider(key, raw, Resolve(lang, "soundCategory." + key["soundCategory_".Length..], Prettify(key)), MinecraftOptionCategory.Sound, 0, 1, false, .01, null, 1, 0, MinecraftOptionType.SoundVolume);
+        if (Booleans.Contains(key) && raw is "true" or "false") return Entry(key, raw, Resolve(lang, "options." + key, Prettify(key)), CategoryFor(key), MinecraftOptionType.Boolean);
+        if (Sliders.TryGetValue(key, out var slider) && IsNumber(raw)) return Slider(key, raw, Resolve(lang, "options." + key, Prettify(key)), slider.Category, slider.Min, slider.Max, slider.Integer, slider.Step, slider.Suffix, slider.Multiplier, slider.Offset, slider.Integer ? MinecraftOptionType.IntSlider : MinecraftOptionType.FloatSlider);
+        if (UnitSliders.Contains(key) && IsNumber(raw)) return Slider(key, raw, Resolve(lang, "options." + key, Prettify(key)), CategoryFor(key), 0, 1, false, .01, null, 1, 0, MinecraftOptionType.FloatSlider);
+        if (TryNumericEnum(key, raw, lang, out var numeric)) return numeric;
+        if (TryStringEnum(key, raw, lang, out var text)) return text;
+        return Entry(key, raw, Resolve(lang, "options." + key, Prettify(key)), MinecraftOptionCategory.Unsupported, MinecraftOptionType.ReadOnly);
     }
+
+    private static bool TryNumericEnum(string key, string raw, IReadOnlyDictionary<string, string> lang, out MinecraftOptionEntry entry)
+    {
+        string[]? values = key switch { "graphicsMode" => ["0","1","2"], "particles" => ["0","1","2"], "narrator" => ["0","1","2","3"], "chatVisibility" => ["0","1","2"], "attackIndicator" => ["0","1","2"], "prioritizeChunkUpdates" => ["0","1","2"], "difficulty" => ["0","1","2","3"], "ao" when raw is not "true" and not "false" => ["0","1","2"], _ => null };
+        if (values is null || !values.Contains(raw, StringComparer.Ordinal)) { entry = null!; return false; }
+        entry = Enum(key, raw, Resolve(lang, "options." + key, Prettify(key)), CategoryFor(key), values.Select(value => new MinecraftEnumOption(value, ResolveEnumLabel(key, value, lang))));
+        return true;
+    }
+
+    private static bool TryStringEnum(string key, string raw, IReadOnlyDictionary<string, string> lang, out MinecraftOptionEntry entry)
+    {
+        var bare = raw.Trim('"');
+        string[]? values = key switch { "mainHand" => ["left","right"], "renderClouds" => ["false","fast","true"], "graphicsPreset" => ["fast","fancy","fabulous","custom"], "inactivityFpsLimit" => ["minimized","afk"], _ => null };
+        if (values is null || !values.Contains(bare, StringComparer.Ordinal)) { entry = null!; return false; }
+        var quoted = raw.StartsWith('"');
+        entry = Enum(key, raw, Resolve(lang, "options." + key, Prettify(key)), CategoryFor(key), values.Select(value => new MinecraftEnumOption(quoted ? "\"" + value + "\"" : value, ResolveEnumLabel(key, value, lang))));
+        return true;
+    }
+
+    private static MinecraftOptionEntry Entry(string key, string raw, string name, MinecraftOptionCategory category, MinecraftOptionType type) { var entry = new MinecraftOptionEntry { Key = key, DisplayName = name, Category = category, Type = type, RawValue = raw }; entry.AcceptChanges(); return entry; }
+    private static MinecraftOptionEntry Slider(string key, string raw, string name, MinecraftOptionCategory category, double min, double max, bool integer, double step, string? suffix, double multiplier, double offset, MinecraftOptionType type) { var entry = new MinecraftOptionEntry { Key = key, DisplayName = name, Category = category, Type = type, RawValue = raw, SliderMin = min, SliderMax = max, SliderIsInt = integer, SliderStep = step, SliderSuffix = suffix, SliderStorageMultiplier = multiplier, SliderStorageOffset = offset }; entry.AcceptChanges(); return entry; }
+    private static MinecraftOptionEntry Enum(string key, string raw, string name, MinecraftOptionCategory category, IEnumerable<MinecraftEnumOption> options) { var entry = new MinecraftOptionEntry { Key = key, DisplayName = name, Category = category, Type = MinecraftOptionType.Enum, RawValue = raw, EnumOptions = options.ToArray() }; entry.AcceptChanges(); return entry; }
+    private static bool IsNumber(string value) => double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
+    private static string Resolve(IReadOnlyDictionary<string, string> lang, string key, string fallback) => lang.TryGetValue(key, out var value) ? value : fallback;
+    private static string ResolveEnumLabel(string key, string value, IReadOnlyDictionary<string, string> lang) => new[] { "options." + key + "." + value, "options." + value, "options.graphics." + value, "options.particles." + value, "options.narrator." + value }.Select(candidate => Resolve(lang, candidate, string.Empty)).FirstOrDefault(label => label.Length > 0) ?? Prettify(value);
+    private static MinecraftOptionCategory CategoryFor(string key) => key switch { "chatVisibility" or "chatOpacity" or "chatLineSpacing" or "chatDelay" or "chatWidth" or "chatHeightFocused" or "chatHeightUnfocused" or "chatScale" or "textBackgroundOpacity" or "chatColors" or "chatLinks" or "chatLinksPrompt" or "backgroundForChatOnly" => MinecraftOptionCategory.Chat, "mouseSensitivity" or "invertYMouse" or "invertXMouse" or "discrete_mouse_scroll" or "autoJump" or "toggleCrouch" or "toggleSprint" or "toggleAttack" or "toggleUse" or "sprintWindow" or "mainHand" => MinecraftOptionCategory.Controls, "showSubtitles" or "highContrast" or "forceUnicodeFont" or "darkMojangStudiosBackground" or "menuBackgroundBlurriness" or "notificationDisplayTime" => MinecraftOptionCategory.Accessibility, "fullscreen" => MinecraftOptionCategory.Display, _ => MinecraftOptionCategory.Graphics };
+    private static string ResolveKeyBindName(string key, string raw, IReadOnlyDictionary<string, string> lang) => Resolve(lang, key["key_".Length..], Prettify(key)) + " — " + Resolve(lang, raw, LegacyKey(raw));
+    private static string LegacyKey(string raw) => raw switch { "-100" => "Mouse Left", "-99" => "Mouse Right", "-98" => "Mouse Middle", "17" => "W", "30" => "A", "31" => "S", "32" => "D", "57" => "Space", "42" => "Left Shift", "29" => "Left Control", _ => raw };
+    private static string Prettify(string key) { var clean = key.StartsWith("key_key.", StringComparison.Ordinal) ? key["key_key.".Length..] : key.Replace('_', ' ').Replace('.', ' '); var builder = new StringBuilder(); for (var index = 0; index < clean.Length; index++) { var c = clean[index]; if (index > 0 && char.IsUpper(c) && char.IsLower(clean[index - 1])) builder.Append(' '); builder.Append(c); } return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(builder.ToString()); }
 }

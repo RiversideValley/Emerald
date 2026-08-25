@@ -8,5 +8,6 @@ public enum MinecraftOptionType
     Enum,
     KeyBind,
     SoundVolume,
+    ReadOnly,
     Skip
 }

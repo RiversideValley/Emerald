@@ -18,7 +18,7 @@ public interface IMinecraftOptionsService
     /// Writes entries back to options.txt, preserving any keys that were
     /// not parsed into MinecraftOptionEntry objects.
     /// </summary>
-    Task SaveAsync(
+    Task<MinecraftOptionsSaveResult> SaveAsync(
         Game game,
         IEnumerable<MinecraftOptionEntry> entries,
         CancellationToken cancellationToken = default);
@@ -28,7 +28,12 @@ public sealed class MinecraftOptionsLoadResult
 {
     public IReadOnlyList<MinecraftOptionEntry> Entries { get; init; } = [];
     public bool OptionsFileExists { get; init; }
-    /// <summary>Full original key→value map, used to round-trip unknown keys on save.</summary>
-    public IReadOnlyDictionary<string, string> OriginalRaw { get; init; }
-        = new Dictionary<string, string>();
+}
+
+public enum MinecraftOptionsSaveStatus { Saved, NoChanges, Conflict }
+
+public sealed class MinecraftOptionsSaveResult
+{
+    public MinecraftOptionsSaveStatus Status { get; init; }
+    public IReadOnlyList<string> ConflictingKeys { get; init; } = [];
 }
