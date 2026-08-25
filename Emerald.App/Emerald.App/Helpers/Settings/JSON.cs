@@ -51,11 +51,6 @@ public class Settings : JSON
             RAM = DirectResoucres.MaxRAM / 2,
             MCVerionsConfiguration = new(),
             JVM = new(),
-            Downloader = new()
-            {
-                AssetsCheck = true,
-                HashCheck = true
-            }
         }
     };
 
@@ -92,8 +87,6 @@ public partial class Minecraft : JSON
     [ObservableProperty]
     private bool _IsAdmin;
 
-    public Downloader Downloader { get; set; } = new();
-
     public MCVerionsConfiguration MCVerionsConfiguration { get; set; }
 
     public JVM JVM { get; set; } = new();
@@ -110,15 +103,6 @@ public class Account : JSON
     public string ClientToken { get; set; }
     public string UUID { get; set; }
     public bool LastAccessed { get; set; }
-}
-
-public partial class Downloader : JSON
-{
-    [ObservableProperty]
-    private bool _HashCheck;
-
-    [ObservableProperty]
-    private bool _AssetsCheck;
 }
 
 public partial class JVM : JSON

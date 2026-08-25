@@ -88,7 +88,6 @@ public class SettingsService(
     {
         Track(Settings);
         Track(Settings.Minecraft);
-        Track(Settings.Minecraft.Downloader);
         Track(Settings.Minecraft.MCVerionsConfiguration);
         Track(Settings.Minecraft.JVM);
         Track(Settings.App);

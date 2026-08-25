@@ -115,22 +115,8 @@ namespace Emerald.Core
         /// <summary>
         /// Creates a Minecraft <see cref="System.Diagnostics.Process"/> using the given <paramref name="ver"/> and <paramref name="launchOption"/>(s)
         /// </summary>
-        public async Task<System.Diagnostics.Process?> CreateProcessAsync(string ver, MLaunchOption launchOption, bool createTask = true, bool SkipAssetsCheck = false, bool SkipHashCheck = false)
+        public async Task<System.Diagnostics.Process?> CreateProcessAsync(string ver, MLaunchOption launchOption, bool createTask = true)
         {
-            if (UseOfflineLoader)
-                SkipAssetsCheck = SkipHashCheck = true;
-
-            Launcher.GameFileCheckers.AssetFileChecker = SkipAssetsCheck ? null : new();
-
-            if (Launcher.GameFileCheckers.AssetFileChecker != null)
-                Launcher.GameFileCheckers.AssetFileChecker.CheckHash = !SkipHashCheck;
-
-            if (Launcher.GameFileCheckers.ClientFileChecker != null)
-                Launcher.GameFileCheckers.ClientFileChecker.CheckHash = !SkipHashCheck;
-
-            if (Launcher.GameFileCheckers.LibraryFileChecker != null)
-                Launcher.GameFileCheckers.LibraryFileChecker.CheckHash = !SkipHashCheck;
-
             var id = createTask ? TasksHelper.AddProgressTask(Localized.LaunchMC) : int.MaxValue;
             int prog = 0;
             string message = "";

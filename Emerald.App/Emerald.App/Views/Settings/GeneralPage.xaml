@@ -78,23 +78,6 @@
         </uc:Expander>
 
         <uc:Expander
-                    Title="{helpers:Localize Name=DownloadSettings}"
-                    Description="{helpers:Localize Name=DownloadSettingsDescription}"
-                    Icon="&#xE896;"
-                    IsEnabled="{x:Bind Main:App.Current.Launcher.UIState, Mode=OneWay}">
-          <StackPanel Spacing="6">
-            <uc:ExpanderItem
-                            Title="{helpers:Localize Name=AssetsCheck}"
-                            Margin="0,-10,0,0"
-                            BorderVisibility="Collapsed">
-              <ToggleSwitch IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.Downloader.AssetsCheck, Mode=TwoWay}" />
-            </uc:ExpanderItem>
-            <uc:ExpanderItem Title="{helpers:Localize Name=HashCheck}" Margin="0,0,0,-10">
-              <ToggleSwitch IsOn="{x:Bind SS:SettingsSystem.Settings.Minecraft.Downloader.HashCheck, Mode=TwoWay}" />
-            </uc:ExpanderItem>
-          </StackPanel>
-        </uc:Expander>
-        <uc:Expander
                     Title="{helpers:Localize Name=AutoLogin}"
                     Description="{helpers:Localize Name=AutoLoginDescription}"
                     ExpanderStyle="Static"

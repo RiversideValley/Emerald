@@ -174,9 +174,6 @@
   <data name="Appearance" xml:space="preserve">
     <value>Appearance</value>
   </data>
-  <data name="AssetsCheck" xml:space="preserve">
-    <value>Assets check</value>
-  </data>
   <data name="AuthWindowshello" xml:space="preserve">
     <value>Authenticating using Windows Hello...</value>
   </data>
@@ -332,12 +329,6 @@
   </data>
   <data name="Downloads" xml:space="preserve">
     <value>Downloads</value>
-  </data>
-  <data name="DownloadSettings" xml:space="preserve">
-    <value>Download Settings</value>
-  </data>
-  <data name="DownloadSettingsDescription" xml:space="preserve">
-    <value>Optional. Recommended to turn these on</value>
   </data>
   <data name="GodFolders" xml:space="preserve">
     <value>God folders</value>
@@ -509,9 +500,6 @@
   </data>
   <data name="GotoLinkAndEnterDeviceCode" xml:space="preserve">
     <value>Go to {Link} and enter the code below to sign-in</value>
-  </data>
-  <data name="HashCheck" xml:space="preserve">
-    <value>Hash check</value>
   </data>
   <data name="Height" xml:space="preserve">
     <value>Screen Height</value>
