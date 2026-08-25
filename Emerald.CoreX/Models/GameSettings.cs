@@ -64,12 +64,6 @@ public partial class GameSettings : ObservableObject
     private int _serverPort = 25565;
 
     [ObservableProperty]
-    private bool _HashCheck = true;
-
-    [ObservableProperty]
-    private bool _AssetsCheck = true;
-
-    [ObservableProperty]
     private bool _IsAdmin;
 
     [ObservableProperty]
@@ -290,8 +284,6 @@ public partial class GameSettings : ObservableObject
             QuickPlayRealms = QuickPlayRealms,
             ServerIp = ServerIp,
             ServerPort = ServerPort,
-            HashCheck = HashCheck,
-            AssetsCheck = AssetsCheck,
             IsAdmin = IsAdmin,
             UseCustomJava = UseCustomJava,
             JavaPath = JavaPath,
@@ -327,8 +319,6 @@ public partial class GameSettings : ObservableObject
         QuickPlayRealms = source.QuickPlayRealms;
         ServerIp = source.ServerIp;
         ServerPort = source.ServerPort;
-        HashCheck = source.HashCheck;
-        AssetsCheck = source.AssetsCheck;
         IsAdmin = source.IsAdmin;
         UseCustomJava = source.UseCustomJava;
         JavaPath = source.JavaPath;

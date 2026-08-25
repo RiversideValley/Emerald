@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using CmlLib.Core;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Notifications;
+using Emerald.CoreX.Installation;
 using Emerald.CoreX.Store.Modrinth.JSON;
 using Microsoft.Extensions.Logging;
 
@@ -55,6 +56,7 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
     private readonly INotificationService _notificationService;
     private readonly ILogger<ModpackInstanceCreationService> _logger;
     private readonly HttpClient _httpClient;
+    private readonly IDownloadActivityService _downloadActivity;
 
     public ModpackInstanceCreationService(
         Core core,
@@ -62,7 +64,7 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
         IMrPackFileInstaller fileInstaller,
         INotificationService notificationService,
         ILogger<ModpackInstanceCreationService> logger)
-        : this(core, reader, fileInstaller, notificationService, logger, CreateDefaultHttpClient())
+        : this(core, reader, fileInstaller, notificationService, logger, CreateDefaultHttpClient(), null)
     {
     }
 
@@ -72,7 +74,8 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
         IMrPackFileInstaller fileInstaller,
         INotificationService notificationService,
         ILogger<ModpackInstanceCreationService> logger,
-        HttpClient httpClient)
+        HttpClient httpClient,
+        IDownloadActivityService? downloadActivity = null)
     {
         _core = core;
         _reader = reader;
@@ -80,6 +83,7 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
         _notificationService = notificationService;
         _logger = logger;
         _httpClient = httpClient;
+        _downloadActivity = downloadActivity ?? new DownloadActivityService();
     }
 
     public async Task<ModpackProbeResult> ProbeAsync(
@@ -87,6 +91,7 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
         IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
     {
+        using var downloadLease = await _downloadActivity.AcquireDownloadAsync(cancellationToken);
         var file = SelectMrPackFile(version);
         var tempPath = Path.Combine(Path.GetTempPath(), "Emerald", "Modpacks", $"{Guid.NewGuid():N}.mrpack");
         Directory.CreateDirectory(Path.GetDirectoryName(tempPath)!);
@@ -114,6 +119,7 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
         IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
     {
+        using var downloadLease = await _downloadActivity.AcquireDownloadAsync(cancellationToken);
         if (_core.BasePath == null)
         {
             throw new InvalidOperationException("Cannot create a modpack instance before the Minecraft path is initialized.");

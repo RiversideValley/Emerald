@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Input;
 using Emerald.CoreX;
 using Emerald.CoreX.Helpers;
+using Emerald.CoreX.Installation;
 using Emerald.CoreX.Installers;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
@@ -43,6 +44,8 @@ public partial class GamesPageViewModel : ObservableObject
     private int _modLoaderLoadRequestId;
     private int _modpackDetailsLoadRequestId;
     private int _modpackProbeRequestId;
+    private int _gamesProjectionQueued;
+    private int _versionsProjectionQueued;
     private bool _isUpdatingAddGameDefaults;
     private bool _isInitializingModpacks;
 
@@ -57,8 +60,6 @@ public partial class GamesPageViewModel : ObservableObject
 
     [ObservableProperty]
     private string _gamesLoadingMessage = "Loading games...";
-
-    private bool IsRefreshing => _core.IsRefreshing;
 
     [ObservableProperty]
     private string _searchQuery = string.Empty;
@@ -288,6 +289,8 @@ public partial class GamesPageViewModel : ObservableObject
 
     public bool ShowNoGamesMessage => !IsLoading && FilteredGames.Count == 0;
 
+    public bool IsOfflineMode => _core.IsOfflineMode;
+
     public bool HasModpackProbe => ModpackProbe != null;
 
     public string ModpackMinecraftVersion => ModpackProbe?.MinecraftVersion ?? string.Empty;
@@ -402,13 +405,15 @@ public partial class GamesPageViewModel : ObservableObject
         ModpackSortOptions.Add(new SearchSortOptionItem(SearchSortOptions.Newest, "Newest"));
         SelectedModpackSortOption = ModpackSortOptions.FirstOrDefault();
 
-        _core.PropertyChanged += (_, _) => _dispatcherQueue.TryEnqueue(() => this.OnPropertyChanged());
-        _core.VersionsRefreshed += (_, _) => _dispatcherQueue.TryEnqueue(UpdateAvailableVersions);
-        Games.CollectionChanged += (_, _) => _dispatcherQueue.TryEnqueue(() =>
+        _core.PropertyChanged += (_, e) =>
         {
-            UpdateFilteredGames();
-            RefreshFolderState();
-        });
+            if (e.PropertyName == nameof(Core.IsOfflineMode))
+            {
+                _dispatcherQueue.TryEnqueue(() => OnPropertyChanged(nameof(IsOfflineMode)));
+            }
+        };
+        _core.VersionsRefreshed += (_, _) => QueueVersionsProjectionUpdate();
+        Games.CollectionChanged += (_, _) => QueueGamesProjectionUpdate();
         AvailableModLoaders.CollectionChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(HasAvailableModLoaders));
@@ -479,7 +484,10 @@ public partial class GamesPageViewModel : ObservableObject
     }
 
     partial void OnSearchQueryChanged(string value) => UpdateFilteredGames();
-    partial void OnIsLoadingChanged(bool value) => OnPropertyChanged(nameof(ShowNoGamesMessage));
+    partial void OnIsLoadingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ShowNoGamesMessage));
+    }
     partial void OnVersionSearchQueryChanged(string value) => UpdateFilteredAvailableVersions();
     partial void OnSelectedReleaseTypeFilterChanged(string value) => UpdateFilteredAvailableVersions();
     partial void OnSelectedAddGameModeChanged(AddGameMode value)
@@ -745,6 +753,27 @@ public partial class GamesPageViewModel : ObservableObject
         _logger.LogDebug("Updated available versions list. VersionCount: {VersionCount}.", AvailableVersions.Count);
     }
 
+    private void QueueGamesProjectionUpdate()
+    {
+        if (Interlocked.Exchange(ref _gamesProjectionQueued, 1) != 0) return;
+        _dispatcherQueue.TryEnqueue(() =>
+        {
+            Interlocked.Exchange(ref _gamesProjectionQueued, 0);
+            UpdateFilteredGames();
+            RefreshFolderState();
+        });
+    }
+
+    private void QueueVersionsProjectionUpdate()
+    {
+        if (Interlocked.Exchange(ref _versionsProjectionQueued, 1) != 0) return;
+        _dispatcherQueue.TryEnqueue(() =>
+        {
+            Interlocked.Exchange(ref _versionsProjectionQueued, 0);
+            UpdateAvailableVersions();
+        });
+    }
+
     private static string FormatReleaseTypeLabel(string releaseType)
     {
         if (string.IsNullOrWhiteSpace(releaseType))
@@ -768,13 +797,6 @@ public partial class GamesPageViewModel : ObservableObject
 
             _logger.LogInformation("Initializing GamesPage");
 
-            if (!_core.Initialized && !_core.IsRefreshing)
-            {
-                var path = _settingsService.Settings.Minecraft.Path;
-                var mcPath = path != null ? new MinecraftPath(path) : new();
-                await _core.InitializeAndRefresh(mcPath);
-            }
-
             _dispatcherQueue.TryEnqueue(() =>
             {
                 UpdateAvailableVersions();
@@ -793,20 +815,6 @@ public partial class GamesPageViewModel : ObservableObject
             {
                 _dispatcherQueue.TryEnqueue(() => IsLoading = false);
             }
-        }
-    }
-
-    [RelayCommand]
-    private async Task RefreshGamesAsync()
-    {
-        try
-        {
-            _logger.LogInformation("Refreshing games list.");
-            await _core.InitializeAndRefresh();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to refresh games");
         }
     }
 
@@ -1300,6 +1308,58 @@ public partial class GamesPageViewModel : ObservableObject
             _logger.LogError(ex, "Failed to install game");
             _dispatcherQueue.TryEnqueue(() =>
                 _notificationService.Error("InstallError", $"Failed to install {game.Version.DisplayName}", ex: ex));
+        }
+    }
+
+    [RelayCommand]
+    private async Task VerifyGameAsync(Game? game)
+    {
+        if (game == null) return;
+        try
+        {
+            var report = await _core.VerifyGameAsync(game, IntegrityCheckLevel.Full);
+            if (report.State == InstanceInstallationState.Ready)
+            {
+                _notificationService.Info(
+                    "VerificationComplete",
+                    string.Format("VerificationCompleteMessage".Localize(), game.Version.DisplayName, report.CheckedFiles));
+            }
+            else if (report.State == InstanceInstallationState.ReadyWithWarnings)
+            {
+                _notificationService.Warning(
+                    "VerificationWarnings",
+                    string.Format("VerificationWarningsMessage".Localize(), game.Version.DisplayName, report.Issues.Count));
+            }
+            else
+            {
+                _notificationService.Error(
+                    "VerificationFailed",
+                    string.Format("VerificationNeedsRepairMessage".Localize(), game.Version.DisplayName, report.Issues.Count));
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to verify game {Game}", game.Version.DisplayName);
+            _notificationService.Error("VerificationFailed", $"Could not verify {game.Version.DisplayName}.", ex: ex);
+        }
+    }
+
+    [RelayCommand]
+    private async Task RepairGameAsync(Game? game)
+    {
+        if (game == null) return;
+        try
+        {
+            var result = await _core.RepairGameAsync(game);
+            if (result.Success)
+                _notificationService.Info("RepairComplete", $"Repaired {game.Version.DisplayName}.");
+            else
+                _notificationService.Warning("RepairFailed", result.FailureReason ?? $"Could not repair {game.Version.DisplayName}.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to repair game {Game}", game.Version.DisplayName);
+            _notificationService.Error("RepairFailed", $"Could not repair {game.Version.DisplayName}.", ex: ex);
         }
     }
 

@@ -53,7 +53,8 @@ public partial class Program
                 await accountService.InitializeAsync(MicrosoftClientId);
 
                 var minecraftPath = new MinecraftPath(basePath);
-                await core.InitializeAndRefresh(minecraftPath);
+                await core.InitializeLocalAsync(minecraftPath);
+                _ = core.RefreshVersionCatalogAsync();
 
                 logger.LogInformation("Emerald CoreX Headless engine initialized successfully! Minecraft base path: {Path}", basePath);
             }

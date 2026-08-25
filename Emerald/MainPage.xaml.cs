@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using CommonServiceLocator;
@@ -94,61 +95,52 @@ public sealed partial class MainPage : Page
         SS.Settings.App.Appearance.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is null)
-            {
                 return;
-            }
-
+            
             this.Log().LogDebug("Applying appearance change for property {PropertyName}.", e.PropertyName);
-            TintColor();
-            _ = this.GetThemeService().SetThemeAsync((AppTheme)SS.Settings.App.Appearance.Theme);
+            RefreshAppearance();
         };
-
-        void TintColor()
-        {
-            switch ((Helpers.Settings.Enums.MicaTintColor)SS.Settings.App.Appearance.MicaTintColor)
-            {
-                case Helpers.Settings.Enums.MicaTintColor.NoColor:
-                    MainGrid.Background = null;
-                    this.Log().LogDebug("Cleared custom Mica tint background.");
-                    break;
-                case Helpers.Settings.Enums.MicaTintColor.AccentColor:
-                    MainGrid.Background = new SolidColorBrush((Color)Application.Current.Resources["SystemAccentColor"])
-                    {
-                        Opacity = (double)SS.Settings.App.Appearance.TintOpacity / 100
-                    };
-                    this.Log().LogDebug("Applied accent Mica tint background. Opacity: {Opacity}.", SS.Settings.App.Appearance.TintOpacity);
-                    break;
-                case Helpers.Settings.Enums.MicaTintColor.CustomColor:
-                    var customColor = SS.Settings.App.Appearance.CustomMicaTintColor;
-                    MainGrid.Background = new SolidColorBrush
-                    {
-                        Color = customColor ?? Color.FromArgb(255, 234, 0, 94),
-                        Opacity = (double)SS.Settings.App.Appearance.TintOpacity / 100
-                    };
-                    this.Log().LogDebug("Applied custom Mica tint background. HasCustomColor: {HasCustomColor}.", customColor != null);
-                    break;
-            }
-        }
-
-        TintColor();
-        _ = this.GetThemeService().SetThemeAsync((AppTheme)SS.Settings.App.Appearance.Theme);
-
-        var mica = WindowManager.IntializeWindow(App.Current.MainWindow);
-#if WINDOWS
-        if (mica != null)
-        {
-            this.Log().LogInformation("Mica backdrop initialized for the main window.");
-            mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
-            SS.Settings.App.Appearance.PropertyChanged += (_, _)
-                => mica.MicaController.Kind = (MicaKind)SS.Settings.App.Appearance.MicaType;
-        }
-        else
-        {
-            this.Log().LogDebug("Mica backdrop was not initialized for the main window.");
-        }
-#endif
+        
+        RefreshAppearance();
     }
 
+    private void RefreshAppearance()
+    {
+        _ = this.GetThemeService().SetThemeAsync((AppTheme)SS.Settings.App.Appearance.Theme);
+        
+        SystemBackdrop backdrop = SS.Settings.App.Appearance.BackdropType switch
+        {
+            0 => new MicaBackdrop() { Kind = MicaKind.Base },
+            1 => new MicaBackdrop() { Kind = MicaKind.BaseAlt },
+            _ => new DesktopAcrylicBackdrop()
+        };
+        App.Current.MainWindow.SystemBackdrop = backdrop;
+            
+        switch ((Helpers.Settings.Enums.MicaTintColor)SS.Settings.App.Appearance.MicaTintColor)
+        {
+            case Helpers.Settings.Enums.MicaTintColor.NoColor:
+                MainGrid.Background = null;
+                this.Log().LogDebug("Cleared custom Mica tint background.");
+                break;
+            case Helpers.Settings.Enums.MicaTintColor.AccentColor:
+                MainGrid.Background = new SolidColorBrush((Color)Application.Current.Resources["SystemAccentColor"])
+                {
+                    Opacity = (double)SS.Settings.App.Appearance.TintOpacity / 100
+                };
+                this.Log().LogDebug("Applied accent Mica tint background. Opacity: {Opacity}.", SS.Settings.App.Appearance.TintOpacity);
+                break;
+            case Helpers.Settings.Enums.MicaTintColor.CustomColor:
+                var customColor = SS.Settings.App.Appearance.CustomMicaTintColor;
+                MainGrid.Background = new SolidColorBrush
+                {
+                    Color = customColor ?? Color.FromArgb(255, 234, 0, 94),
+                    Opacity = (double)SS.Settings.App.Appearance.TintOpacity / 100
+                };
+                this.Log().LogDebug("Applied custom Mica tint background. HasCustomColor: {HasCustomColor}.", customColor != null);
+                break;
+        }
+    }
+    
     /// <summary>
     /// Populates the main navigation view and selects the default route.
     /// </summary>

@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Services;
+using Emerald.CoreX.Installation;
 using Emerald.Helpers;
 using Emerald.UserControls;
 using Emerald.Views.Store;
@@ -87,7 +88,7 @@ public sealed partial class GamesPage : Page
                 var folderPath = game.Path.BasePath;
                 if (Directory.Exists(folderPath))
                 {
-                    await Launcher.LaunchFolderAsync(await StorageFolder.GetFolderFromPathAsync(folderPath));
+                    folderPath.RevealInFinder();
                 }
                 else
                 {
@@ -102,12 +103,24 @@ public sealed partial class GamesPage : Page
         }
     }
 
-    private void InstallGame_Click(object sender, RoutedEventArgs e)
+    private async void InstallGame_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is Game game)
         {
-            Task.Run(() => ViewModel.InstallGameCommand.ExecuteAsync(game));
+            await ViewModel.InstallGameCommand.ExecuteAsync(game);
         }
+    }
+
+    private async void VerifyGame_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuFlyoutItem { Tag: Game game }) return;
+        await ViewModel.VerifyGameCommand.ExecuteAsync(game);
+    }
+
+    private async void RepairGame_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuFlyoutItem { Tag: Game game }) return;
+        await ViewModel.RepairGameCommand.ExecuteAsync(game);
     }
 
     private async void LaunchGame_Click(object sender, RoutedEventArgs e)

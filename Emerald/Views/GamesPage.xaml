@@ -6,12 +6,12 @@
     xmlns:conv="using:Emerald.Helpers.Converters"
     xmlns:corex="using:Emerald.CoreX"
     xmlns:corexIns="using:Emerald.CoreX.Installers"
+    xmlns:corexInstallation="using:Emerald.CoreX.Installation"
     xmlns:corexVer="using:Emerald.CoreX.Versions"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helpers="using:Emerald.Helpers"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="using:Emerald.UserControls"
-    IsEnabled="{x:Bind ViewModel.IsLoading.Equals(x:False), Mode=OneWay}"
     mc:Ignorable="d">
 
   <Page.Resources>
@@ -43,16 +43,18 @@
             <TextBlock
               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
               Style="{StaticResource CaptionTextBlockStyle}"
-              Text="{x:Bind RuntimeStatusText, Mode=OneWay}" />
+              Text="{x:Bind StatusText, Mode=OneWay}" />
           </StackPanel>
         </cn:SettingsCard.Header>
-        <StackPanel Orientation="Horizontal" Spacing="8">
+        <StackPanel Spacing="8">
+          <StackPanel Orientation="Horizontal" Spacing="8">
           <Button
                         x:Name="LaunchGame"
                         Click="LaunchGame_Click"
                         Content="{helpers:FontIcon Glyph=&#xE768;}"
                         IsEnabled="{x:Bind CanLaunch, Mode=OneWay}"
                         Tag="{x:Bind}"
+                        Visibility="{x:Bind CanLaunch, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                         ToolTipService.ToolTip="Launch" />
           <Button
                         Click="StopGame_Click"
@@ -65,6 +67,7 @@
                         Content="{helpers:FontIcon Glyph=&#xE896;}"
                         IsEnabled="{x:Bind CanModify, Mode=OneWay}"
                         Tag="{x:Bind}"
+                        Visibility="{x:Bind CanLaunch, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
                         ToolTipService.ToolTip="Install/Update" />
           <DropDownButton Content="{helpers:FontIcon Glyph=&#xE712;}" ToolTipService.ToolTip="More Options">
             <DropDownButton.Flyout>
@@ -81,6 +84,19 @@
                                     Tag="{x:Bind}"
                                     Text="Force Stop"
                                     Visibility="{x:Bind HasActiveSession, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem
+                                    Click="VerifyGame_Click"
+                                    Icon="{helpers:FontIcon Glyph=&#xE9D5;}"
+                                    IsEnabled="{x:Bind CanModify, Mode=OneWay}"
+                                    Tag="{x:Bind}"
+                                    Text="Verify installation" />
+                <MenuFlyoutItem
+                                    Click="RepairGame_Click"
+                                    Icon="{helpers:FontIcon Glyph=&#xE90F;}"
+                                    IsEnabled="{x:Bind CanModify, Mode=OneWay}"
+                                    Tag="{x:Bind}"
+                                    Text="Repair installation" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                                     Click="ManageSettings_Click"
@@ -122,6 +138,7 @@
               </MenuFlyout>
             </DropDownButton.Flyout>
           </DropDownButton>
+          </StackPanel>
         </StackPanel>
       </cn:SettingsCard>
     </DataTemplate>
@@ -151,24 +168,55 @@
                 DefaultLabelPosition="Right"
                 OverflowButtonVisibility="Collapsed">
         <AppBarButton Click="AddGame_Click" Icon="Add" Label="Add Game" />
-        <AppBarButton Command="{x:Bind ViewModel.RefreshGamesCommand}" Icon="Refresh" Label="Refresh" />
       </CommandBar>
     </Grid>
 
     <Grid Grid.Row="1" Margin="24,0,24,24">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
         <RowDefinition Height="*" />
       </Grid.RowDefinitions>
-      <AutoSuggestBox
+      <Border
                 Grid.Row="0"
+                Margin="0,0,0,12"
+                Padding="12"
+                Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Visibility="{x:Bind ViewModel.IsOfflineMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+        <Grid ColumnSpacing="12">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <FontIcon
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                        Glyph="&#xE7BA;" />
+          <StackPanel Grid.Column="1" Spacing="2">
+            <TextBlock
+                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                            Text="{helpers:Localize KeyName=OfflineMode}" />
+            <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{helpers:Localize KeyName=OfflineModeDescription}"
+                            TextWrapping="WrapWholeWords" />
+          </StackPanel>
+        </Grid>
+      </Border>
+      <AutoSuggestBox
+                Grid.Row="1"
                 MaxWidth="400"
                 Margin="0,0,0,12"
                 HorizontalAlignment="Stretch"
                 PlaceholderText="Search games..."
                 QueryIcon="Find"
                 Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay}" />
-      <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+      <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
         <Grid>
           <StackPanel
                         HorizontalAlignment="Center"
