@@ -27,13 +27,21 @@ public sealed class InstanceInstallationService(
     IInstallationStateStore stateStore,
     INetworkCapabilityService network,
     IUiDispatcher? uiDispatcher = null,
-    INotificationService? notifications = null) : IInstanceInstallationService
+    INotificationService? notifications = null,
+    IDownloadActivityService? downloadActivity = null) : IInstanceInstallationService
 {
     // A shared gate is keyed by the normalized instance path because callers can
     // reach this service through the UI, API, startup audit, and launch preflight.
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> Gates = new(StringComparer.OrdinalIgnoreCase);
 
     private IUiDispatcher UiDispatcher => uiDispatcher ?? new InlineUiDispatcher();
+    private IDownloadActivityService DownloadActivity => downloadActivity ??= new DownloadActivityService();
+
+    private sealed record InstallationSnapshot(
+        InstanceInstallationState State,
+        DateTimeOffset? LastVerifiedAt,
+        IReadOnlyList<IntegrityIssue> Issues,
+        string? RealVersion);
 
     public Task<InstanceInstallResult> InstallAsync(Game game, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
         => Task.Run(() => InstallOrRepairAsync(game, false, progress, cancellationToken), cancellationToken);
@@ -51,7 +59,19 @@ public sealed class InstanceInstallationService(
     {
         var gate = Gates.GetOrAdd(Path.GetFullPath(game.Path.BasePath), _ => new SemaphoreSlim(1, 1));
         await gate.WaitAsync(cancellationToken);
+        var snapshot = Capture(game);
         try { return await VerifyCoreAsync(game, level, progress, cancellationToken); }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            await RestoreAsync(game, snapshot);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            var failed = FailedVerificationReport(level, ex);
+            await ApplyAsync(game, failed);
+            return failed;
+        }
         finally { gate.Release(); }
     }
 
@@ -62,7 +82,19 @@ public sealed class InstanceInstallationService(
         if (!gate.Wait(0)) return null;
         try
         {
-            return await VerifyCoreAsync(game, level, progress, cancellationToken);
+            var snapshot = Capture(game);
+            try { return await VerifyCoreAsync(game, level, progress, cancellationToken); }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                await RestoreAsync(game, snapshot);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                var failed = FailedVerificationReport(level, ex);
+                await ApplyAsync(game, failed);
+                return failed;
+            }
         }
         finally
         {
@@ -79,6 +111,7 @@ public sealed class InstanceInstallationService(
 
     private async Task<InstanceInstallResult> InstallOrRepairAsync(Game game, bool repair, IProgress<InstallationProgress>? progress, CancellationToken cancellationToken)
     {
+        using var downloadLease = await DownloadActivity.AcquireDownloadAsync(cancellationToken);
         var gate = Gates.GetOrAdd(Path.GetFullPath(game.Path.BasePath), _ => new SemaphoreSlim(1, 1));
         await gate.WaitAsync(cancellationToken);
         // Keep the old receipt until the entire operation and post-install audit
@@ -89,6 +122,7 @@ public sealed class InstanceInstallationService(
         var terminalSuccess = false;
         string? terminalMessage = null;
         Exception? terminalException = null;
+        InstallationSnapshot? snapshot = null;
         try
         {
             previous = await stateStore.ReadAsync(game, cancellationToken);
@@ -96,6 +130,7 @@ public sealed class InstanceInstallationService(
                 return new(false, game.InstallationState, game.Version.RealVersion, null, "Stop the running game before installing or repairing it.");
 
             var operationName = repair ? "Repairing" : "Installing";
+            snapshot = Capture(game);
             await SetStateAsync(game, InstanceInstallationState.Installing);
             reporter = new InstallationProgressReporter(
                 UiDispatcher,
@@ -152,8 +187,10 @@ public sealed class InstanceInstallationService(
         }
         catch (OperationCanceledException)
         {
+            if (snapshot != null)
+                await RestoreAsync(game, snapshot);
             terminalProgress = new("Canceled", game.Version.DisplayName, 0, 0);
-            terminalMessage = $"Canceled {repair.ToString().ToLowerInvariant()} of {game.Version.DisplayName}";
+            terminalMessage = $"Canceled installation/repair of {game.Version.DisplayName}";
             throw;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -310,6 +347,27 @@ public sealed class InstanceInstallationService(
             game.LastVerifiedAt = report.VerifiedAt;
             game.IntegrityIssues = report.Issues;
         });
+
+    private static InstallationSnapshot Capture(Game game)
+        => new(game.InstallationState, game.LastVerifiedAt, game.IntegrityIssues, game.Version.RealVersion);
+
+    private Task RestoreAsync(Game game, InstallationSnapshot snapshot)
+        => UiDispatcher.InvokeAsync(() =>
+        {
+            game.Version.RealVersion = snapshot.RealVersion;
+            game.InstallationState = snapshot.State;
+            game.LastVerifiedAt = snapshot.LastVerifiedAt;
+            game.IntegrityIssues = snapshot.Issues;
+        });
+
+    private static InstanceIntegrityReport FailedVerificationReport(IntegrityCheckLevel level, Exception exception)
+        => new(
+            level,
+            InstanceInstallationState.Failed,
+            [new IntegrityIssue("verification-failed", $"Local verification could not complete: {exception.Message}", IntegritySeverity.Critical)],
+            DateTimeOffset.UtcNow,
+            0,
+            0);
 
     private sealed class ActionProgress<T>(Action<T> action) : IProgress<T>
     {

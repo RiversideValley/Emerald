@@ -70,6 +70,39 @@ public sealed class InstanceInstallationServiceTests
     }
 
     [Fact]
+    public async Task VerifiedInstaller_StalledResponse_FailsAfterConfiguredAttempts()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "emerald-installer-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            using var network = new NetworkCapabilityService(new HttpClient(new OfflineHttpHandler()));
+            var installer = new VerifiedGameInstaller(
+                new HttpClient(new StalledHandler()),
+                network,
+                new DownloadTimeouts
+                {
+                    ResponseHeadersTimeout = TimeSpan.FromMilliseconds(20),
+                    InactivityTimeout = TimeSpan.FromMilliseconds(20),
+                    Attempts = 2
+                });
+            var file = new GameFile("client.jar")
+            {
+                Path = Path.Combine(root, "client.jar"),
+                Url = "https://invalid.example/client.jar",
+                Size = 1
+            };
+
+            await Assert.ThrowsAsync<AggregateException>(() => installer.Install([file], null, null, CancellationToken.None).AsTask());
+            Assert.Empty(Directory.GetFiles(root, "*.emerald-download-*"));
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, true);
+        }
+    }
+
+    [Fact]
     public async Task Install_FallbackVerificationFailure_CompletesProgressAndReportsFailedState()
     {
         var root = Path.Combine(Path.GetTempPath(), "emerald-install-tests", Guid.NewGuid().ToString("N"));
@@ -134,6 +167,15 @@ public sealed class InstanceInstallationServiceTests
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             => throw new HttpRequestException("offline");
+    }
+
+    private sealed class StalledHandler : HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            throw new InvalidOperationException("The stalled request should have been cancelled.");
+        }
     }
 
     private sealed class RecordingNotificationService : INotificationService
