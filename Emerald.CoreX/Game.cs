@@ -45,6 +45,7 @@ public partial class Game : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanStop))]
     [NotifyPropertyChangedFor(nameof(CanModify))]
     [NotifyPropertyChangedFor(nameof(RuntimeStatusText))]
+    [NotifyPropertyChangedFor(nameof(StatusText))]
     private GameRunState _runState = GameRunState.Idle;
 
     [ObservableProperty]
@@ -52,28 +53,34 @@ public partial class Game : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanStop))]
     [NotifyPropertyChangedFor(nameof(CanModify))]
     [NotifyPropertyChangedFor(nameof(RuntimeStatusText))]
+    [NotifyPropertyChangedFor(nameof(StatusText))]
     private bool _hasActiveSession;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(RuntimeStatusText))]
+    [NotifyPropertyChangedFor(nameof(StatusText))]
     private int? _activeProcessId;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(RuntimeStatusText))]
+    [NotifyPropertyChangedFor(nameof(StatusText))]
     private int? _lastExitCode;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(RuntimeStatusText))]
+    [NotifyPropertyChangedFor(nameof(StatusText))]
     private DateTimeOffset? _lastRunEndedAt;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(InstallationStatusText))]
+    [NotifyPropertyChangedFor(nameof(StatusText))]
     [NotifyPropertyChangedFor(nameof(CanLaunch))]
     [NotifyPropertyChangedFor(nameof(CanModify))]
     private InstanceInstallationState _installationState = InstanceInstallationState.Unknown;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(InstallationStatusText))]
+    [NotifyPropertyChangedFor(nameof(StatusText))]
     private DateTimeOffset? _lastVerifiedAt;
 
     [ObservableProperty]
@@ -94,7 +101,7 @@ public partial class Game : ObservableObject
 
     public bool HasRemainingIntegrityIssues => RemainingIntegrityIssueCount > 0;
 
-    public bool CanLaunch => !HasActiveSession && InstallationState is not InstanceInstallationState.Installing and not InstanceInstallationState.Verifying;
+    public bool CanLaunch => !HasActiveSession && InstallationState is InstanceInstallationState.Ready;
 
     public bool CanStop => HasActiveSession;
 
@@ -104,14 +111,14 @@ public partial class Game : ObservableObject
 
     public string InstallationStatusText => InstallationState switch
     {
-        InstanceInstallationState.Ready => LastVerifiedAt is { } at ? $"Ready • verified {at.ToLocalTime():g}" : "Ready",
+        InstanceInstallationState.Ready => "Ready",
         InstanceInstallationState.ReadyWithWarnings => "Ready with warnings",
         InstanceInstallationState.NeedsRepair => "Needs repair",
-        InstanceInstallationState.NotInstalled => "Not installed",
-        InstanceInstallationState.Installing => "Installing",
+        InstanceInstallationState.NotInstalled => "Not found",
+        InstanceInstallationState.Installing => "Downloading",
         InstanceInstallationState.Verifying => "Verifying",
-        InstanceInstallationState.Failed => "Installation failed",
-        _ => "Installation unknown"
+        InstanceInstallationState.Failed => "failed",
+        _ => "unknown"
     };
 
     partial void OnIntegrityIssuesChanged(IReadOnlyList<IntegrityIssue> value)
@@ -133,17 +140,40 @@ public partial class Game : ObservableObject
     public string RuntimeStatusText => RunState switch
     {
         GameRunState.Launching => "Launching",
-        GameRunState.Running => ActiveProcessId is int pid ? $"Running • PID {pid}" : "Running",
+        GameRunState.Running => "Running",
         GameRunState.Stopping => "Stopping",
         GameRunState.Failed => LastExitCode is int failedCode ? $"Last run failed • exit {failedCode}" : "Last run failed",
-        GameRunState.Exited => LastExitCode is int exitCode
-            ? $"Last exit • code {exitCode}"
-            : LastRunEndedAt is DateTimeOffset endedAt
+        GameRunState.Exited => LastRunEndedAt is DateTimeOffset endedAt
                 ? $"Last run ended • {endedAt.ToLocalTime():g}"
                 : "Last run ended",
         _ => "Ready"
     };
 
+    
+    public string StatusText
+    {
+        get
+        {
+            var stat = "";
+            
+            if(RunState != GameRunState.Idle)
+                stat += RuntimeStatusText;
+            
+            if(InstallationState != InstanceInstallationState.Ready)
+            {
+                if (!string.IsNullOrEmpty(stat))
+                    stat += "\n";
+                
+                stat += $"Installation {InstallationStatusText}";
+            }
+
+            if (string.IsNullOrEmpty(stat))
+                stat = "Ready";
+            
+            return stat;
+        }
+    }
+    
     public Game(
         MinecraftPath path,
         Versions.Version version,

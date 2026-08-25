@@ -43,11 +43,7 @@
             <TextBlock
               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
               Style="{StaticResource CaptionTextBlockStyle}"
-              Text="{x:Bind RuntimeStatusText, Mode=OneWay}" />
-            <TextBlock
-              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-              Style="{StaticResource CaptionTextBlockStyle}"
-              Text="{x:Bind InstallationStatusText, Mode=OneWay}" />
+              Text="{x:Bind StatusText, Mode=OneWay}" />
           </StackPanel>
         </cn:SettingsCard.Header>
         <StackPanel Spacing="8">
@@ -58,6 +54,7 @@
                         Content="{helpers:FontIcon Glyph=&#xE768;}"
                         IsEnabled="{x:Bind CanLaunch, Mode=OneWay}"
                         Tag="{x:Bind}"
+                        Visibility="{x:Bind CanLaunch, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                         ToolTipService.ToolTip="Launch" />
           <Button
                         Click="StopGame_Click"
@@ -70,6 +67,7 @@
                         Content="{helpers:FontIcon Glyph=&#xE896;}"
                         IsEnabled="{x:Bind CanModify, Mode=OneWay}"
                         Tag="{x:Bind}"
+                        Visibility="{x:Bind CanLaunch, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
                         ToolTipService.ToolTip="Install/Update" />
           <DropDownButton Content="{helpers:FontIcon Glyph=&#xE712;}" ToolTipService.ToolTip="More Options">
             <DropDownButton.Flyout>
@@ -134,33 +132,6 @@
             </DropDownButton.Flyout>
           </DropDownButton>
           </StackPanel>
-          <cn:SettingsExpander
-            Header="{helpers:Localize KeyName=IntegrityIssuesHeader}"
-            Visibility="{x:Bind HasIntegrityIssues, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-            <cn:SettingsExpander.Items>
-              <cn:SettingsCard>
-                <StackPanel Spacing="6">
-                  <ItemsRepeater ItemsSource="{x:Bind VisibleIntegrityIssues, Mode=OneWay}">
-                    <ItemsRepeater.Layout>
-                      <StackLayout Spacing="4" />
-                    </ItemsRepeater.Layout>
-                    <ItemsRepeater.ItemTemplate>
-                      <DataTemplate x:DataType="corexInstallation:IntegrityIssue">
-                        <TextBlock Text="{x:Bind Message}" TextWrapping="WrapWholeWords" />
-                      </DataTemplate>
-                    </ItemsRepeater.ItemTemplate>
-                  </ItemsRepeater>
-                  <StackPanel
-                    Orientation="Horizontal"
-                    Spacing="4"
-                    Visibility="{x:Bind HasRemainingIntegrityIssues, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-                    <TextBlock Text="{helpers:Localize KeyName=AdditionalIntegrityIssues}" />
-                    <TextBlock Text="{x:Bind RemainingIntegrityIssueCount, Mode=OneWay}" />
-                  </StackPanel>
-                </StackPanel>
-              </cn:SettingsCard>
-            </cn:SettingsExpander.Items>
-          </cn:SettingsExpander>
         </StackPanel>
       </cn:SettingsCard>
     </DataTemplate>

@@ -7,10 +7,13 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
 using System.Text;
+using Windows.System;
 using Windows.System.Diagnostics;
 
 namespace Emerald.CoreX.Helpers;
@@ -33,6 +36,10 @@ public static class Extensions
     //        tip.CloseButtonClick += (_, _) => tip.IsOpen = false;
     //    }
     //}
+    public static void RevealInFinder(this string FilePath)
+    {
+        FileManager.Reveal(FilePath);
+    }
 
     public static int? GetMemoryGB()
     {

@@ -88,7 +88,7 @@ public sealed partial class GamesPage : Page
                 var folderPath = game.Path.BasePath;
                 if (Directory.Exists(folderPath))
                 {
-                    await Launcher.LaunchFolderAsync(await StorageFolder.GetFolderFromPathAsync(folderPath));
+                    folderPath.RevealInFinder();
                 }
                 else
                 {
