@@ -41,7 +41,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
     private readonly INotificationService _notificationService;
     private readonly IAccountService _accountService;
     private readonly IGameRuntimeSettings _settings;
-    private readonly DispatcherQueue _dispatcher;
+    private readonly IUiDispatcher _dispatcher;
     private readonly object _syncRoot = new();
     private readonly Dictionary<string, ActiveSessionRuntime> _activeSessions = new(StringComparer.OrdinalIgnoreCase);
 
@@ -55,7 +55,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
         INotificationService notificationService,
         IAccountService accountService,
         IGameRuntimeSettings settings,
-        DispatcherQueue dispatcher)
+        IUiDispatcher dispatcher)
     {
         _logger = logger;
         _notificationService = notificationService;
@@ -1008,35 +1008,16 @@ public sealed class GameRuntimeService : IGameRuntimeService
     /// </summary>
     private T RunOnUI<T>(Func<T> action)
     {
-        if (_dispatcher.HasThreadAccess)
-        {
-            return action();
-        }
-
-        var tcs = new TaskCompletionSource<T>();
-        _dispatcher.TryEnqueue(() =>
-        {
-            try
-            {
-                tcs.SetResult(action());
-            }
-            catch (Exception ex)
-            {
-                tcs.SetException(ex);
-            }
-        });
-        return tcs.Task.GetAwaiter().GetResult();
+        T result = default!;
+        _dispatcher.Invoke(() => result = action());
+        return result;
     }
 
     /// <summary>
     /// Executes the supplied delegate on the UI dispatcher without a return value.
     /// </summary>
     private void RunOnUI(Action action)
-        => RunOnUI(() =>
-        {
-            action();
-            return true;
-        });
+        => _dispatcher.Invoke(action);
 
     private static string GetPathKey(string path)
     {
