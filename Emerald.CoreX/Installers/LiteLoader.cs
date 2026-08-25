@@ -40,7 +40,6 @@ public class LiteLoader : IModLoaderInstaller
             if (versions == null || !versions.Any())
                 throw new NullReferenceException();
 
-
             var filtered = versions.Where(x => x.BaseVersion == mcVersion);
 
             if (filtered == null || !filtered.Any())
@@ -71,9 +70,7 @@ public class LiteLoader : IModLoaderInstaller
         this.Log().LogInformation("Installing LiteLoader Loader for {mcversion}", mcversion);
         try
         {
-
             var LiteLoaderInstaller = new LiteLoaderInstaller(_httpClient);
-
 
             if (!online)
             {
@@ -99,7 +96,6 @@ public class LiteLoader : IModLoaderInstaller
                     loaders.First(x=> x.Version == modversion),
                     await launcher.GetVersionAsync(mcversion),
                     path);
-
 
             this.Log().LogInformation("Installed LiteLoader Loader {versionName}", versionName);
             _notify.Complete(not.Id, true);

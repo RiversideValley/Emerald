@@ -376,7 +376,6 @@ namespace Emerald.Core
             UIChangeRequested(this, new UIChangeRequestedEventArgs((bool)sender));
         }
 
-
         private void GlacierClient_StatusChanged(object sender, EventArgs e)
         {
             StatusChanged(this, new StatusChangedEventArgs(sender.ToString()));

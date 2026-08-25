@@ -149,7 +149,6 @@ public partial class Game : ObservableObject
         _ => "Ready"
     };
 
-    
     public string StatusText
     {
         get
