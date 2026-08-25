@@ -23,48 +23,34 @@ public static class FileManager
             if (!isFile && !isDirectory)
                 return false;
 
-            if (OperatingSystem.IsWindows())
-            {
-                // Explorer:
-                // file   -> open parent folder + select file
-                // folder -> open folder
-                return isFile
-                    ? Start("explorer.exe", $"/select,{path}")
-                    : Start("explorer.exe", path);
-            }
-
-            if (OperatingSystem.IsMacOS())
-            {
-                // Finder:
-                // -R reveals/selects the item.
-                return isFile
-                    ? Start("/usr/bin/open", "-R", path)
-                    : Start("/usr/bin/open", path);
-            }
-
-            if (OperatingSystem.IsLinux())
-            {
-                if (isDirectory)
-                    return Start("xdg-open", path);
-
-                // Try freedesktop FileManager1 first so the actual
-                // file is selected instead of just opening its folder.
-                if (TryLinuxReveal(path))
-                    return true;
-
-                // Fallback: open the containing directory.
-                var directory = Path.GetDirectoryName(path);
-
-                return directory is not null &&
-                       Start("xdg-open", directory);
-            }
-
-            return false;
+            return RevealOnCurrentPlatform(path, isFile, isDirectory);
         }
         catch
         {
             return false;
         }
+    }
+
+    private static bool RevealOnCurrentPlatform(string path, bool isFile, bool isDirectory)
+    {
+        if (OperatingSystem.IsWindows()) return RevealOnWindows(path, isFile);
+        if (OperatingSystem.IsMacOS()) return RevealOnMacOS(path, isFile);
+        if (OperatingSystem.IsLinux()) return RevealOnLinux(path, isFile, isDirectory);
+        return false;
+    }
+
+    private static bool RevealOnWindows(string path, bool isFile)
+        => isFile ? Start("explorer.exe", $"/select,{path}") : Start("explorer.exe", path);
+
+    private static bool RevealOnMacOS(string path, bool isFile)
+        => isFile ? Start("/usr/bin/open", "-R", path) : Start("/usr/bin/open", path);
+
+    private static bool RevealOnLinux(string path, bool isFile, bool isDirectory)
+    {
+        if (isDirectory) return Start("xdg-open", path);
+        if (TryLinuxReveal(path)) return true;
+        var directory = Path.GetDirectoryName(path);
+        return directory is not null && Start("xdg-open", directory);
     }
 
     private static bool TryLinuxReveal(string path)

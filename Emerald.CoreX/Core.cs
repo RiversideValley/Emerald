@@ -298,8 +298,7 @@ public partial class Core(
     private async Task RefreshVersionCatalogCoreAsync(CancellationToken cancellationToken)
     {
         if (!Initialized || BasePath == null) return;
-        IDisposable? refreshLease = null;
-        if (downloadActivity != null && !downloadActivity.TryAcquireCatalogRefresh(out refreshLease))
+        if (!TryAcquireCatalogRefresh(out var refreshLease))
         {
             _catalogRefreshPending = true;
             return;
@@ -310,38 +309,18 @@ public partial class Core(
             IsRefreshing = true;
             try
             {
-                if (networkCapabilityService != null)
-                {
-                    var capability = await networkCapabilityService.ProbeAsync(NetworkCapability.MinecraftMetadata, cancellationToken);
-                    if (capability.EffectiveState is NetworkAvailabilityState.Unavailable or NetworkAvailabilityState.Degraded)
-                    {
-                        IsOfflineMode = true;
-                        return;
-                    }
-                }
-
-                using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                deadline.CancelAfter(TimeSpan.FromSeconds(10));
-                var versions = await Launcher.GetAllVersionsAsync(deadline.Token);
-                await UiDispatcher.InvokeAsync(() =>
-                {
-                    VanillaVersions.Clear();
-                    VanillaVersions.AddRange(versions.Select(x => new Versions.Version { ReleaseTime = x.ReleaseTime.DateTime, BasedOn = x.Name, ReleaseType = x.Type }));
-                    IsOfflineMode = false;
-                    foreach (var game in Games) game.CreateMCLauncher(false);
-                });
+                if (!await IsMinecraftMetadataAvailableAsync(cancellationToken)) return;
+                await LoadAndApplyRemoteVersionsAsync(cancellationToken);
                 networkCapabilityService?.ReportSuccess(NetworkCapability.MinecraftMetadata);
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                IsOfflineMode = true;
-                networkCapabilityService?.ReportFailure(NetworkCapability.MinecraftMetadata, new TimeoutException("Minecraft version catalog request timed out."));
+                HandleCatalogFailure(new TimeoutException("Minecraft version catalog request timed out."));
             }
             catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
                 _logger.LogWarning(ex, "Failed to refresh vanilla Minecraft versions; retaining local catalog.");
-                IsOfflineMode = true;
-                networkCapabilityService?.ReportFailure(NetworkCapability.MinecraftMetadata, ex);
+                HandleCatalogFailure(ex);
             }
             finally
             {
@@ -349,6 +328,46 @@ public partial class Core(
                 VersionsRefreshed?.Invoke(this, new());
             }
         }
+    }
+
+    private bool TryAcquireCatalogRefresh(out IDisposable? lease)
+    {
+        lease = null;
+        return downloadActivity == null || downloadActivity.TryAcquireCatalogRefresh(out lease);
+    }
+
+    private async Task<bool> IsMinecraftMetadataAvailableAsync(CancellationToken cancellationToken)
+    {
+        if (networkCapabilityService == null) return true;
+        var capability = await networkCapabilityService.ProbeAsync(NetworkCapability.MinecraftMetadata, cancellationToken);
+        if (capability.EffectiveState is not (NetworkAvailabilityState.Unavailable or NetworkAvailabilityState.Degraded)) return true;
+        IsOfflineMode = true;
+        return false;
+    }
+
+    private async Task LoadAndApplyRemoteVersionsAsync(CancellationToken cancellationToken)
+    {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(10));
+        var versions = await Launcher.GetAllVersionsAsync(deadline.Token);
+        await UiDispatcher.InvokeAsync(() =>
+        {
+            VanillaVersions.Clear();
+            VanillaVersions.AddRange(versions.Select(x => new Versions.Version
+            {
+                ReleaseTime = x.ReleaseTime.DateTime,
+                BasedOn = x.Name,
+                ReleaseType = x.Type ?? string.Empty
+            }));
+            IsOfflineMode = false;
+            foreach (var game in Games) game.CreateMCLauncher(false);
+        });
+    }
+
+    private void HandleCatalogFailure(Exception exception)
+    {
+        IsOfflineMode = true;
+        networkCapabilityService?.ReportFailure(NetworkCapability.MinecraftMetadata, exception);
     }
 
     private MinecraftLauncher CreateCatalogLauncher(MinecraftPath basePath)
@@ -581,57 +600,10 @@ public partial class Core(
         {
             while (true)
             {
-                // The page is interactive once catalog refresh has finished. Unlike a fixed delay,
-                // this also behaves correctly when remote metadata is slow.
-                while (IsRefreshing)
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(100));
-                }
-
+                await WaitForCatalogRefreshAsync();
                 var item = TakeNextInstallationAudit();
                 if (item == null) break;
-
-                var requeued = false;
-                try
-                {
-                    var result = await installer.VerifyWhenIdleAsync(
-                        item.Game,
-                        item.CheckLevel,
-                        cancellationToken: item.Cancellation.Token);
-                    if (result == null)
-                    {
-                        // A user operation or game session owns this instance. Give the other
-                        // instances a turn, then retry this audit instead of silently losing it.
-                        requeued = RequeueInstallationAudit(item);
-                        if (requeued) await Task.Delay(TimeSpan.FromSeconds(1));
-                        continue;
-                    }
-
-                    if (item.CheckLevel == IntegrityCheckLevel.Quick)
-                    {
-                        var store = CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstallationStateStore>();
-                        var receipt = store == null ? null : await store.ReadAsync(item.Game, item.Cancellation.Token);
-                        if (result.CanLaunch
-                            && receipt?.FullVerificationAt is DateTimeOffset verified
-                            && DateTimeOffset.UtcNow - verified > TimeSpan.FromDays(7))
-                        {
-                            item.CheckLevel = IntegrityCheckLevel.Full;
-                            requeued = RequeueInstallationAudit(item);
-                        }
-                    }
-                }
-                catch (OperationCanceledException) when (item.Cancellation.IsCancellationRequested)
-                {
-                    // A reload or removal invalidated this work item.
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Background installation audit failed for {game}.", item.Game.Version.DisplayName);
-                }
-                finally
-                {
-                    if (!requeued) CompleteInstallationAudit(item);
-                }
+                await ProcessInstallationAuditItemAsync(installer, item);
             }
         }
         catch (Exception ex)
@@ -650,6 +622,52 @@ public partial class Core(
                 }
             }
         }
+    }
+
+    private async Task WaitForCatalogRefreshAsync()
+    {
+        while (IsRefreshing)
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+    }
+
+    private async Task ProcessInstallationAuditItemAsync(IInstanceInstallationService installer, InstallationAuditWorkItem item)
+    {
+        var requeued = false;
+        try
+        {
+            var result = await installer.VerifyWhenIdleAsync(item.Game, item.CheckLevel, cancellationToken: item.Cancellation.Token);
+            if (result == null)
+            {
+                requeued = RequeueInstallationAudit(item);
+                if (requeued) await Task.Delay(TimeSpan.FromSeconds(1));
+                return;
+            }
+
+            if (item.CheckLevel == IntegrityCheckLevel.Quick)
+                requeued = await RequeueStaleFullAuditAsync(item, result);
+        }
+        catch (OperationCanceledException) when (item.Cancellation.IsCancellationRequested)
+        {
+            // A reload or removal invalidated this work item.
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Background installation audit failed for {game}.", item.Game.Version.DisplayName);
+        }
+        finally
+        {
+            if (!requeued) CompleteInstallationAudit(item);
+        }
+    }
+
+    private async Task<bool> RequeueStaleFullAuditAsync(InstallationAuditWorkItem item, InstanceIntegrityReport result)
+    {
+        var store = CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstallationStateStore>();
+        var receipt = store == null ? null : await store.ReadAsync(item.Game, item.Cancellation.Token);
+        if (!result.CanLaunch || receipt?.FullVerificationAt is not DateTimeOffset verified) return false;
+        if (DateTimeOffset.UtcNow - verified <= TimeSpan.FromDays(7)) return false;
+        item.CheckLevel = IntegrityCheckLevel.Full;
+        return RequeueInstallationAudit(item);
     }
 
     private InstallationAuditWorkItem? TakeNextInstallationAudit()

@@ -92,48 +92,16 @@ public sealed class VerifiedGameInstaller(
     private async Task DownloadVerifiedAsync(GameFile file, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(file.Url)) throw new InvalidOperationException($"No download URL is available for {file.Path}.");
-        Directory.CreateDirectory(Path.GetDirectoryName(file.Path)!);
+        var destinationPath = file.Path!;
+        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
         // Keeping the temporary file beside its destination makes the final move
         // an atomic same-volume replacement on supported filesystems.
-        var temporary = file.Path + ".emerald-download-" + Guid.NewGuid().ToString("N");
+        var temporary = destinationPath + ".emerald-download-" + Guid.NewGuid().ToString("N");
         try
         {
-            for (var attempt = 1; attempt <= _timeouts.Attempts; attempt++)
-            {
-                try
-                {
-                    using var headersDeadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    headersDeadline.CancelAfter(_timeouts.ResponseHeadersTimeout);
-                    using var response = await httpClient.GetAsync(file.Url, HttpCompletionOption.ResponseHeadersRead, headersDeadline.Token);
-                    if (response.StatusCode == HttpStatusCode.NotFound) throw new NonRetryableDownloadException($"File was not found: {file.Url}");
-                    if (!response.IsSuccessStatusCode && (int)response.StatusCode < 500)
-                        throw new NonRetryableDownloadException($"Download failed with HTTP {(int)response.StatusCode}: {file.Url}");
-                    response.EnsureSuccessStatusCode();
-                    await using (var source = await response.Content.ReadAsStreamAsync(cancellationToken))
-                    await using (var destination = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous))
-                        await CopyWithInactivityTimeoutAsync(source, destination, file.Url, cancellationToken);
-
-                    var downloaded = new GameFile(file.Name) { Path = temporary, Hash = file.Hash, Size = file.Size };
-                    // Validation failures are deterministic and must not be retried
-                    // or allowed to overwrite a previously healthy destination.
-                    if (!await IsHealthyAsync(downloaded, cancellationToken))
-                        throw new NonRetryableDownloadException($"Downloaded file failed validation: {file.Name}");
-                    File.Move(temporary, file.Path, true);
-                    network.ReportSuccess(NetworkCapability.MinecraftFiles);
-                    return;
-                }
-                catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
-                {
-                    if (File.Exists(temporary)) File.Delete(temporary);
-                    if (attempt == _timeouts.Attempts) throw new DownloadTimeoutException("response", file.Url);
-                    await Task.Delay(TimeSpan.FromMilliseconds(250 * attempt), cancellationToken);
-                }
-                catch (Exception ex) when (attempt < _timeouts.Attempts && ex is not NonRetryableDownloadException && ex is not OperationCanceledException)
-                {
-                    if (File.Exists(temporary)) File.Delete(temporary);
-                    await Task.Delay(TimeSpan.FromMilliseconds(250 * attempt), cancellationToken);
-                }
-            }
+            await DownloadWithRetriesAsync(file, temporary, cancellationToken);
+            File.Move(temporary, destinationPath, true);
+            network.ReportSuccess(NetworkCapability.MinecraftFiles);
         }
         catch (Exception ex)
         {
@@ -141,6 +109,59 @@ public sealed class VerifiedGameInstaller(
             throw;
         }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
+    }
+
+    private async Task DownloadWithRetriesAsync(GameFile file, string temporary, CancellationToken cancellationToken)
+    {
+        for (var attempt = 1; attempt <= _timeouts.Attempts; attempt++)
+        {
+            try
+            {
+                await DownloadAttemptAsync(file, temporary, cancellationToken);
+                return;
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                DeleteTemporaryFile(temporary);
+                if (attempt == _timeouts.Attempts) throw new DownloadTimeoutException("response", file.Url!);
+                await DelayBeforeRetryAsync(attempt, cancellationToken);
+            }
+            catch (Exception ex) when (ShouldRetry(ex, attempt))
+            {
+                DeleteTemporaryFile(temporary);
+                await DelayBeforeRetryAsync(attempt, cancellationToken);
+            }
+        }
+    }
+
+    private async Task DownloadAttemptAsync(GameFile file, string temporary, CancellationToken cancellationToken)
+    {
+        using var headersDeadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        headersDeadline.CancelAfter(_timeouts.ResponseHeadersTimeout);
+        using var response = await httpClient.GetAsync(file.Url, HttpCompletionOption.ResponseHeadersRead, headersDeadline.Token);
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            throw new NonRetryableDownloadException($"File was not found: {file.Url}");
+        if (!response.IsSuccessStatusCode && (int)response.StatusCode < 500)
+            throw new NonRetryableDownloadException($"Download failed with HTTP {(int)response.StatusCode}: {file.Url}");
+        response.EnsureSuccessStatusCode();
+        await using (var source = await response.Content.ReadAsStreamAsync(cancellationToken))
+        await using (var destination = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous))
+            await CopyWithInactivityTimeoutAsync(source, destination, file.Url!, cancellationToken);
+
+        var downloaded = new GameFile(file.Name) { Path = temporary, Hash = file.Hash, Size = file.Size };
+        if (!await IsHealthyAsync(downloaded, cancellationToken))
+            throw new NonRetryableDownloadException($"Downloaded file failed validation: {file.Name}");
+    }
+
+    private bool ShouldRetry(Exception exception, int attempt)
+        => attempt < _timeouts.Attempts && exception is not NonRetryableDownloadException and not OperationCanceledException;
+
+    private static Task DelayBeforeRetryAsync(int attempt, CancellationToken cancellationToken)
+        => Task.Delay(TimeSpan.FromMilliseconds(250 * attempt), cancellationToken);
+
+    private static void DeleteTemporaryFile(string path)
+    {
+        if (File.Exists(path)) File.Delete(path);
     }
 
     private async Task CopyWithInactivityTimeoutAsync(Stream source, Stream destination, string url, CancellationToken cancellationToken)

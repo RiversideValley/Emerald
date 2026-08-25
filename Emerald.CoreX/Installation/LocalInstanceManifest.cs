@@ -18,74 +18,10 @@ internal static class LocalInstanceManifest
         var files = new Dictionary<string, ExpectedManagedFile>(StringComparer.OrdinalIgnoreCase);
         var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var current = resolved;
-        // Loader versions commonly inherit from vanilla. Walk that chain while
-        // guarding against malformed metadata that contains an inheritance loop.
         while (!string.IsNullOrWhiteSpace(current) && visited.Add(current))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var jsonRelative = SafeRelative(Path.Combine(current, current + ".json"));
-            var jsonPath = Path.Combine(game.Path.Versions, jsonRelative);
-            Add(files, new(ManagedPathRoot.Versions, jsonRelative, FileSize(jsonPath), FileSha1(jsonPath), null,
-                ManagedFileCategory.Metadata, IntegritySeverity.Critical));
-            if (!File.Exists(jsonPath)) break;
-
-            await using var stream = File.OpenRead(jsonPath);
-            using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
-            var root = document.RootElement;
-
-            if (root.TryGetProperty("downloads", out var downloads)
-                && downloads.TryGetProperty("client", out var client))
-            {
-                var jarRelative = SafeRelative(Path.Combine(current, current + ".jar"));
-                Add(files, FromDownload(ManagedPathRoot.Versions, jarRelative, client,
-                    ManagedFileCategory.Client, IntegritySeverity.Critical));
-            }
-
-            if (root.TryGetProperty("libraries", out var libraries))
-            {
-                foreach (var library in libraries.EnumerateArray())
-                {
-                    if (!IsAllowedOnCurrentPlatform(library) || !library.TryGetProperty("downloads", out var libraryDownloads)) continue;
-                    if (libraryDownloads.TryGetProperty("artifact", out var artifact)
-                        && artifact.TryGetProperty("path", out var artifactPath))
-                    {
-                        Add(files, FromDownload(ManagedPathRoot.Libraries, SafeRelative(artifactPath.GetString()!), artifact,
-                            ManagedFileCategory.Library, IntegritySeverity.Critical));
-                    }
-
-                    if (libraryDownloads.TryGetProperty("classifiers", out var classifiers))
-                    {
-                        foreach (var classifier in classifiers.EnumerateObject())
-                        {
-                            if (!IsCurrentNativeClassifier(classifier.Name) || !classifier.Value.TryGetProperty("path", out var nativePath)) continue;
-                            Add(files, FromDownload(ManagedPathRoot.Libraries, SafeRelative(nativePath.GetString()!), classifier.Value,
-                                ManagedFileCategory.Native, IntegritySeverity.Critical));
-                        }
-                    }
-                }
-            }
-
-            if (root.TryGetProperty("assetIndex", out var assetIndex)
-                && assetIndex.TryGetProperty("id", out var assetId))
-            {
-                var indexRelative = SafeRelative(Path.Combine("indexes", assetId.GetString()! + ".json"));
-                var indexFile = FromDownload(ManagedPathRoot.Assets, indexRelative, assetIndex,
-                    ManagedFileCategory.Metadata, IntegritySeverity.Critical);
-                Add(files, indexFile);
-                AddAssetObjects(game, files, indexRelative, cancellationToken);
-            }
-
-            if (root.TryGetProperty("logging", out var logging)
-                && logging.TryGetProperty("client", out var loggingClient)
-                && loggingClient.TryGetProperty("file", out var loggingFile)
-                && loggingFile.TryGetProperty("id", out var loggingId))
-            {
-                Add(files, FromDownload(ManagedPathRoot.Assets,
-                    SafeRelative(Path.Combine("log_configs", loggingId.GetString()!)), loggingFile,
-                    ManagedFileCategory.Logging, IntegritySeverity.Critical));
-            }
-
-            current = root.TryGetProperty("inheritsFrom", out var inherited) ? inherited.GetString() : null;
+            current = await AddVersionFilesAsync(game, current, files, cancellationToken);
         }
 
         var list = files.Values.OrderBy(x => x.Root).ThenBy(x => x.RelativePath, StringComparer.Ordinal).ToList();
@@ -97,6 +33,82 @@ internal static class LocalInstanceManifest
             ManifestFingerprint = ComputeManifestFingerprint(list),
             Files = list
         };
+    }
+
+    private static async Task<string?> AddVersionFilesAsync(Game game, string version, Dictionary<string, ExpectedManagedFile> files,
+        CancellationToken cancellationToken)
+    {
+        var jsonRelative = SafeRelative(Path.Combine(version, version + ".json"));
+        var jsonPath = Path.Combine(game.Path.Versions, jsonRelative);
+        Add(files, new(ManagedPathRoot.Versions, jsonRelative, FileSize(jsonPath), FileSha1(jsonPath), null,
+            ManagedFileCategory.Metadata, IntegritySeverity.Critical));
+        if (!File.Exists(jsonPath)) return null;
+
+        await using var stream = File.OpenRead(jsonPath);
+        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+        var root = document.RootElement;
+        AddClientFile(root, version, files);
+        AddLibraries(root, files);
+        AddAssetIndex(game, root, files, cancellationToken);
+        AddLoggingFile(root, files);
+        return GetString(root, "inheritsFrom");
+    }
+
+    private static void AddClientFile(JsonElement root, string version, Dictionary<string, ExpectedManagedFile> files)
+    {
+        if (!root.TryGetProperty("downloads", out var downloads) || !downloads.TryGetProperty("client", out var client)) return;
+        var relative = SafeRelative(Path.Combine(version, version + ".jar"));
+        Add(files, FromDownload(ManagedPathRoot.Versions, relative, client, ManagedFileCategory.Client, IntegritySeverity.Critical));
+    }
+
+    private static void AddLibraries(JsonElement root, Dictionary<string, ExpectedManagedFile> files)
+    {
+        if (!root.TryGetProperty("libraries", out var libraries)) return;
+        foreach (var library in libraries.EnumerateArray()) AddLibrary(library, files);
+    }
+
+    private static void AddLibrary(JsonElement library, Dictionary<string, ExpectedManagedFile> files)
+    {
+        if (!IsAllowedOnCurrentPlatform(library) || !library.TryGetProperty("downloads", out var downloads)) return;
+        AddArtifact(downloads, files);
+        AddNativeClassifiers(downloads, files);
+    }
+
+    private static void AddArtifact(JsonElement downloads, Dictionary<string, ExpectedManagedFile> files)
+    {
+        if (!downloads.TryGetProperty("artifact", out var artifact) || !artifact.TryGetProperty("path", out var path)) return;
+        Add(files, FromDownload(ManagedPathRoot.Libraries, SafeRelative(path.GetString()!), artifact,
+            ManagedFileCategory.Library, IntegritySeverity.Critical));
+    }
+
+    private static void AddNativeClassifiers(JsonElement downloads, Dictionary<string, ExpectedManagedFile> files)
+    {
+        if (!downloads.TryGetProperty("classifiers", out var classifiers)) return;
+        foreach (var classifier in classifiers.EnumerateObject())
+        {
+            if (!IsCurrentNativeClassifier(classifier.Name) || !classifier.Value.TryGetProperty("path", out var path)) continue;
+            Add(files, FromDownload(ManagedPathRoot.Libraries, SafeRelative(path.GetString()!), classifier.Value,
+                ManagedFileCategory.Native, IntegritySeverity.Critical));
+        }
+    }
+
+    private static void AddAssetIndex(Game game, JsonElement root, Dictionary<string, ExpectedManagedFile> files,
+        CancellationToken cancellationToken)
+    {
+        if (!root.TryGetProperty("assetIndex", out var assetIndex) || !assetIndex.TryGetProperty("id", out var assetId)) return;
+        var relative = SafeRelative(Path.Combine("indexes", assetId.GetString()! + ".json"));
+        Add(files, FromDownload(ManagedPathRoot.Assets, relative, assetIndex, ManagedFileCategory.Metadata, IntegritySeverity.Critical));
+        AddAssetObjects(game, files, relative, cancellationToken);
+    }
+
+    private static void AddLoggingFile(JsonElement root, Dictionary<string, ExpectedManagedFile> files)
+    {
+        if (!root.TryGetProperty("logging", out var logging)
+            || !logging.TryGetProperty("client", out var client)
+            || !client.TryGetProperty("file", out var file)
+            || !file.TryGetProperty("id", out var id)) return;
+        Add(files, FromDownload(ManagedPathRoot.Assets, SafeRelative(Path.Combine("log_configs", id.GetString()!)), file,
+            ManagedFileCategory.Logging, IntegritySeverity.Critical));
     }
 
     public static string Resolve(Game game, ExpectedManagedFile file)
