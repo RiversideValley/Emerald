@@ -91,6 +91,71 @@ public sealed partial class AccountService
         return authenticationResult;
     }
 
+    public async Task<GameAuthenticationResult> AuthenticateLaunchAccountAsync(EAccount account, bool useOfflineFallback)
+    {
+        if (!useOfflineFallback || account.Type == AccountType.Offline)
+        {
+            return await AuthenticateAccountAsync(account).ConfigureAwait(false);
+        }
+
+        var (offlineAccount, created) = EnsureOfflineLaunchAccount(account);
+        _logger.LogInformation(
+            "Using offline launch account '{OfflineName}' for selected {AccountType} account '{SelectedName}'. Created: {Created}.",
+            offlineAccount.Name,
+            account.Type,
+            account.Name,
+            created);
+
+        if (created)
+        {
+            _notificationService?.Info(
+                "OfflineMode",
+                $"Created offline account '{offlineAccount.Name}' for this launch.");
+        }
+
+        return await AuthenticateAccountAsync(offlineAccount).ConfigureAwait(false);
+    }
+
+    private (EAccount Account, bool Created) EnsureOfflineLaunchAccount(EAccount sourceAccount)
+    {
+        var username = string.IsNullOrWhiteSpace(sourceAccount.Name)
+            ? "Player"
+            : sourceAccount.Name.Trim();
+        EAccount? offlineAccount = null;
+        var created = false;
+
+        _gate.Wait();
+        try
+        {
+            _uiDispatcher.Invoke(() =>
+            {
+                offlineAccount = _accounts.FirstOrDefault(candidate =>
+                    candidate.Type == AccountType.Offline &&
+                    candidate.Name.Equals(username, StringComparison.OrdinalIgnoreCase));
+
+                if (offlineAccount is not null)
+                {
+                    return;
+                }
+
+                offlineAccount = new EAccount(username, AccountType.Offline);
+                _accounts.Add(offlineAccount);
+                created = true;
+            });
+        }
+        finally
+        {
+            _gate.Release();
+        }
+
+        if (created)
+        {
+            PersistAccounts();
+        }
+
+        return (offlineAccount!, created);
+    }
+
     private IAccountAuthenticationProvider GetAuthenticationProvider(AccountType accountType)
         => _authenticationProviders.TryGetValue(accountType, out var provider)
             ? provider

@@ -174,9 +174,6 @@
   <data name="Appearance" xml:space="preserve">
     <value>Appearance</value>
   </data>
-  <data name="AssetsCheck" xml:space="preserve">
-    <value>Assets check</value>
-  </data>
   <data name="AuthWindowshello" xml:space="preserve">
     <value>Authenticating using Windows Hello...</value>
   </data>
@@ -332,12 +329,6 @@
   </data>
   <data name="Downloads" xml:space="preserve">
     <value>Downloads</value>
-  </data>
-  <data name="DownloadSettings" xml:space="preserve">
-    <value>Download Settings</value>
-  </data>
-  <data name="DownloadSettingsDescription" xml:space="preserve">
-    <value>Optional. Recommended to turn these on</value>
   </data>
   <data name="GodFolders" xml:space="preserve">
     <value>God folders</value>
@@ -509,9 +500,6 @@
   </data>
   <data name="GotoLinkAndEnterDeviceCode" xml:space="preserve">
     <value>Go to {Link} and enter the code below to sign-in</value>
-  </data>
-  <data name="HashCheck" xml:space="preserve">
-    <value>Hash check</value>
   </data>
   <data name="Height" xml:space="preserve">
     <value>Screen Height</value>
@@ -740,6 +728,9 @@
   </data>
   <data name="OfflineMode" xml:space="preserve">
     <value>Offline Mode</value>
+  </data>
+  <data name="OfflineModeDescription" xml:space="preserve">
+    <value>Emerald is using local Minecraft metadata. Installed games can still launch, but adding or repairing versions may need internet access.</value>
   </data>
   <data name="Options" xml:space="preserve">
     <value>Options</value>
@@ -1212,5 +1203,20 @@
   </data>
   <data name="UseThisJava" xml:space="preserve">
     <value>Use this Java</value>
+  </data>
+  <data name="IntegrityIssuesHeader" xml:space="preserve">
+    <value>Installation issues</value>
+  </data>
+  <data name="AdditionalIntegrityIssues" xml:space="preserve">
+    <value>Additional issues not shown:</value>
+  </data>
+  <data name="VerificationCompleteMessage" xml:space="preserve">
+    <value>Verified {0}: {1} files checked.</value>
+  </data>
+  <data name="VerificationWarningsMessage" xml:space="preserve">
+    <value>Verified {0} with {1} warning(s).</value>
+  </data>
+  <data name="VerificationNeedsRepairMessage" xml:space="preserve">
+    <value>{0} needs repair: {1} issue(s).</value>
   </data>
 </root>

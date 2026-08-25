@@ -13,9 +13,11 @@ namespace Emerald.CoreX.Installers;
 public class Fabric : IModLoaderInstaller
 {
     private readonly Notifications.INotificationService _notify;
-    public Fabric(Notifications.INotificationService notificationService)
+    private readonly HttpClient _httpClient;
+    public Fabric(Notifications.INotificationService notificationService, HttpClient httpClient)
     {
         _notify = notificationService;
+        _httpClient = httpClient;
     }
 
     public Versions.Type Type => Versions.Type.Fabric;
@@ -31,7 +33,7 @@ public class Fabric : IModLoaderInstaller
 
         try
         {
-            var fabricInstaller = new FabricInstaller(new HttpClient());
+            var fabricInstaller = new FabricInstaller(_httpClient);
             var versions = await fabricInstaller.GetLoaders(mcVersion);
 
             if (versions == null || !versions.Any())
@@ -62,7 +64,7 @@ public class Fabric : IModLoaderInstaller
         this.Log().LogInformation("Installing Fabric Loader for {mcversion}", mcversion);
         try
         {
-            var fabricInstaller = new FabricInstaller(new HttpClient());
+            var fabricInstaller = new FabricInstaller(_httpClient);
 
             if (!online)
             {

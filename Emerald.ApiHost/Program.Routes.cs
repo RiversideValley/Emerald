@@ -1,6 +1,7 @@
 using CmlLib.Core;
 using Emerald.CoreX;
 using Emerald.CoreX.Installers;
+using Emerald.CoreX.Installation;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
@@ -31,19 +32,21 @@ public partial class Program
 
     private static void MapStatusRoutes(RouteGroupBuilder api)
     {
-        api.MapGet("/status", (Core c) => Results.Ok(new
+        api.MapGet("/status", (Core c, INetworkCapabilityService network, IDownloadActivityService downloads) => Results.Ok(new
         {
             Initialized = c.Initialized,
             IsRefreshing = c.IsRefreshing,
             IsOfflineMode = c.IsOfflineMode,
             BasePath = c.BasePath?.BasePath,
             GamesCount = c.Games.Count,
-            VanillaVersionsCount = c.VanillaVersions.Count
+            VanillaVersionsCount = c.VanillaVersions.Count,
+            Network = Enum.GetValues<NetworkCapability>().Select(capability => network.GetSnapshot(capability)),
+            Downloads = downloads.Snapshot
         }))
         .WithName("GetStatus")
         .WithTags("Status");
 
-        api.MapPost("/core/initialize", async (InitializeCoreRequest req, Core c, ILogger<Program> logger) =>
+        api.MapPost("/core/initialize", async (InitializeCoreRequest req, Core c, IDownloadActivityService downloads, ILogger<Program> logger) =>
         {
             if (string.IsNullOrWhiteSpace(req.BasePath))
             {
@@ -53,9 +56,15 @@ public partial class Program
             var minecraftPath = Path.GetFullPath(req.BasePath);
             Directory.CreateDirectory(minecraftPath);
 
+            if (downloads.Snapshot.ActiveDownloads > 0)
+            {
+                return Results.Conflict(new { Error = "Minecraft path cannot be changed while downloads are active." });
+            }
+
             try
             {
-                await c.InitializeAndRefresh(new MinecraftPath(minecraftPath));
+                await c.InitializeLocalAsync(new MinecraftPath(minecraftPath));
+                _ = c.RefreshVersionCatalogAsync();
                 return Results.Ok(new
                 {
                     Message = "Core initialized.",
@@ -207,6 +216,18 @@ public partial class Program
 
     private static void MapGameRoutes(RouteGroupBuilder api)
     {
+        MapListGameRoute(api);
+        MapCreateGameRoute(api);
+        MapRemoveGameRoute(api);
+        MapInstallGameRoute(api);
+        MapVerifyGameRoute(api);
+        MapRepairGameRoute(api);
+        MapLaunchGameRoute(api);
+        MapStopGameRoute(api);
+    }
+
+    private static void MapListGameRoute(RouteGroupBuilder api)
+    {
         api.MapGet("/games", (Core c) =>
         {
             if (!c.Initialized)
@@ -219,12 +240,18 @@ public partial class Program
                 g.Version.BasedOn,
                 Type = g.Version.Type,
                 UsesCustomSettings = g.UsesCustomGameSettings,
-                RunState = g.RunState.ToString()
+                RunState = g.RunState.ToString(),
+                InstallationState = g.InstallationState.ToString(),
+                g.LastVerifiedAt,
+                IntegrityIssues = g.IntegrityIssues.Count
             }));
         })
         .WithName("ListGames")
         .WithTags("Games");
+    }
 
+    private static void MapCreateGameRoute(RouteGroupBuilder api)
+    {
         api.MapPost("/games", (CreateGameRequest req, Core c) =>
         {
             if (!c.Initialized)
@@ -258,7 +285,10 @@ public partial class Program
         })
         .WithName("CreateGame")
         .WithTags("Games");
+    }
 
+    private static void MapRemoveGameRoute(RouteGroupBuilder api)
+    {
         api.MapDelete("/games", (string basePath, bool deleteFolder, Core c) =>
         {
             var game = c.Games.FirstOrDefault(g => g.Path.BasePath == basePath);
@@ -268,7 +298,10 @@ public partial class Program
         })
         .WithName("RemoveGame")
         .WithTags("Games");
+    }
 
+    private static void MapInstallGameRoute(RouteGroupBuilder api)
+    {
         api.MapPost("/games/install", async (GameInstallRequest req, Core c, ILogger<Program> logger) =>
         {
             var game = c.Games.FirstOrDefault(g => g.Path.BasePath == req.BasePath);
@@ -288,39 +321,58 @@ public partial class Program
         })
         .WithName("InstallGame")
         .WithTags("Games");
+    }
 
-        api.MapPost("/games/launch", (GameLaunchRequest req, IGameRuntimeService runtime, Core c, IAccountService ac, ILogger<Program> logger) =>
+    private static void MapVerifyGameRoute(RouteGroupBuilder api)
+    {
+        api.MapPost("/games/verify", async (GameInstallRequest req, Core c) =>
+        {
+            var game = c.Games.FirstOrDefault(g => g.Path.BasePath == req.BasePath);
+            if (game == null) return Results.NotFound(new { Error = $"Game instance '{req.BasePath}' not found." });
+            var report = await c.VerifyGameAsync(game, IntegrityCheckLevel.Full);
+            return Results.Ok(report);
+        })
+        .WithName("VerifyGame")
+        .WithTags("Games");
+    }
+
+    private static void MapRepairGameRoute(RouteGroupBuilder api)
+    {
+        api.MapPost("/games/repair", async (GameInstallRequest req, Core c) =>
+        {
+            var game = c.Games.FirstOrDefault(g => g.Path.BasePath == req.BasePath);
+            if (game == null) return Results.NotFound(new { Error = $"Game instance '{req.BasePath}' not found." });
+            var result = await c.RepairGameAsync(game);
+            return result.Success ? Results.Ok(result) : Results.BadRequest(result);
+        })
+        .WithName("RepairGame")
+        .WithTags("Games");
+    }
+
+    private static void MapLaunchGameRoute(RouteGroupBuilder api)
+    {
+        api.MapPost("/games/launch", async (GameLaunchRequest req, IGameRuntimeService runtime, IInstanceInstallationService installation, INetworkCapabilityService network, Core c, IAccountService ac, ILogger<Program> logger) =>
         {
             var game = c.Games.FirstOrDefault(g => g.Path.BasePath == req.BasePath);
             if (game == null) return Results.NotFound(new { Error = $"Game instance at path '{req.BasePath}' not found." });
 
-            if (string.IsNullOrWhiteSpace(game.Version.RealVersion))
-                return Results.BadRequest(new
-                {
-                    Error = $"{game.Version.DisplayName} has not been installed yet. Call /api/games/install first."
-                });
+            var readiness = await installation.PrepareLaunchAsync(game);
+            if (!readiness.CanLaunch) return Results.BadRequest(readiness);
 
             var account = ac.GetSelectedAccount();
             if (account == null) return Results.BadRequest(new { Error = "No account selected. Please select or create an account first." });
+            if (RequiresOfflineAccount(network, account)) return OfflineAccountRequiredResult();
 
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    logger.LogInformation("Launching game instance: {Name} ({Path})", game.Version.DisplayName, game.Path.BasePath);
-                    await runtime.LaunchAsync(game, account);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Failed to launch game instance {Name}", game.Version.DisplayName);
-                }
-            });
+            _ = Task.Run(() => LaunchInBackgroundAsync(game, account, runtime, logger));
 
             return Results.Ok(new { Message = "Launch process initiated." });
         })
         .WithName("LaunchGame")
         .WithTags("Games");
+    }
 
+    private static void MapStopGameRoute(RouteGroupBuilder api)
+    {
         api.MapPost("/games/stop", async (GameStopRequest req, IGameRuntimeService runtime, Core c) =>
         {
             var game = c.Games.FirstOrDefault(g => g.Path.BasePath == req.BasePath);
@@ -335,6 +387,26 @@ public partial class Program
         })
         .WithName("StopGame")
         .WithTags("Games");
+    }
+
+    private static bool RequiresOfflineAccount(INetworkCapabilityService network, EAccount account)
+        => network.GetSnapshot(NetworkCapability.MinecraftMetadata).EffectiveState == NetworkAvailabilityState.Unavailable
+            && account.Type is AccountType.Microsoft or AccountType.ElyBy;
+
+    private static IResult OfflineAccountRequiredResult()
+        => Results.BadRequest(new { Error = "Emerald is offline. Select an offline account before launching." });
+
+    private static async Task LaunchInBackgroundAsync(Game game, EAccount account, IGameRuntimeService runtime, ILogger<Program> logger)
+    {
+        try
+        {
+            logger.LogInformation("Launching game instance: {Name} ({Path})", game.Version.DisplayName, game.Path.BasePath);
+            await runtime.LaunchAsync(game, account);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to launch game instance {Name}", game.Version.DisplayName);
+        }
     }
 
     private static void MapVersionRoutes(RouteGroupBuilder api)

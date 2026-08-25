@@ -206,23 +206,6 @@
             </cn:SettingsCard>
           </cn:SettingsExpander.Items>
         </cn:SettingsExpander>
-        <cn:SettingsExpander
-          Header="{helpers:Localize KeyName=DownloadSettings}"
-          HeaderIcon="{helpers:FontIcon Glyph=}"
-          Description="{helpers:Localize KeyName=DownloadSettingsDescription}">
-          <cn:SettingsExpander.Items>
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=AssetsCheck}">
-              <ToggleSwitch
-                IsOn="{x:Bind GameSettings.AssetsCheck, Mode=TwoWay}" />
-            </cn:SettingsCard>
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=HashCheck}">
-              <ToggleSwitch
-                IsOn="{x:Bind GameSettings.HashCheck, Mode=TwoWay}" />
-            </cn:SettingsCard>
-          </cn:SettingsExpander.Items>
-        </cn:SettingsExpander>
         </StackPanel>
         <StackPanel
           Spacing="4">

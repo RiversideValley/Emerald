@@ -233,10 +233,19 @@ public sealed partial class MinecraftSettingsUC : UserControl
 
         var path = folder.Path;
         this.Log().LogInformation("New Minecraft path: {path}", path);
-        SS.Settings.Minecraft.Path = path;
-
-        await Ioc.Default.GetService<CoreX.Core>().InitializeAndRefresh(new(path));
-        await RefreshJavaOptionsAsync();
+        var core = Ioc.Default.GetService<CoreX.Core>();
+        try
+        {
+            await core.InitializeLocalAsync(new(path));
+            SS.Settings.Minecraft.Path = path;
+            _ = core.RefreshVersionCatalogAsync();
+            await RefreshJavaOptionsAsync();
+        }
+        catch (InvalidOperationException ex)
+        {
+            Ioc.Default.GetService<CoreX.Notifications.INotificationService>()
+                ?.Warning("Minecraft path unchanged", ex.Message);
+        }
     }
 
     private async void ChangePath_OnClick(object sender, RoutedEventArgs e)

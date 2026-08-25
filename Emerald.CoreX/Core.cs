@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
+using Emerald.CoreX.Installation;
 using Emerald.CoreX.Services;
 using Emerald.CoreX.Store;
 using Emerald.Services;
@@ -64,8 +65,37 @@ public partial class Core(
     IGameRuntimeService runtimeService,
     IGlobalGameSettingsService globalGameSettingsService,
     IStoreInstallRecordRepository storeInstallRecordRepository,
-    IStoreSharedContentSettingsService storeSharedContentSettingsService) : ObservableObject
+    IStoreSharedContentSettingsService storeSharedContentSettingsService,
+    IInstanceInstallationService? installationService = null,
+    INetworkCapabilityService? networkCapabilityService = null,
+    HttpClient? httpClient = null,
+    IDownloadActivityService? downloadActivity = null,
+    IUiDispatcher? uiDispatcher = null) : ObservableObject
 {
+    private bool _networkSubscribed;
+    private bool _downloadActivitySubscribed;
+    private readonly object _refreshGate = new();
+    private Task? _refreshTask;
+    private Task? _localInitializationTask;
+    private bool _catalogRefreshPending;
+    private readonly object _auditGate = new();
+    private readonly Queue<InstallationAuditWorkItem> _pendingAudits = new();
+    private readonly Dictionary<Game, InstallationAuditWorkItem> _auditsByGame = new();
+    private readonly HashSet<InstallationAuditWorkItem> _activeAudits = new();
+    private bool _auditWorkerRunning;
+    private int _gamesGeneration;
+
+    /// <summary>
+    /// Tracks a local audit without relying on the UI-bound <see cref="Games"/> collection.
+    /// The cancellation source is owned by the queue and is disposed once this item is discarded.
+    /// </summary>
+    private sealed class InstallationAuditWorkItem(Game game, int generation)
+    {
+        public Game Game { get; } = game;
+        public int Generation { get; } = generation;
+        public IntegrityCheckLevel CheckLevel { get; set; } = IntegrityCheckLevel.Quick;
+        public CancellationTokenSource Cancellation { get; } = new();
+    }
     public const string GamesFolderName = "Instances";
     public MinecraftLauncher Launcher { get; set; }
     public IGlobalGameSettingsService GlobalGameSettingsService => globalGameSettingsService;
@@ -74,7 +104,8 @@ public partial class Core(
 
     public bool IsRunning { get; set; } = false;
     public MinecraftPath? BasePath { get; private set; } = null;
-    public bool IsOfflineMode { get; private set; } = false;
+    [ObservableProperty]
+    private bool _isOfflineMode = false;
 
     public readonly ObservableCollection<Versions.Version> VanillaVersions = new();
 
@@ -87,6 +118,7 @@ public partial class Core(
     private bool _isRefreshing = false;
 
     public Models.GameSettings GameOptions => globalGameSettingsService.Settings;
+    private IUiDispatcher UiDispatcher => uiDispatcher ?? new InlineUiDispatcher();
 
     public void LoadGames()
     {
@@ -105,6 +137,12 @@ public partial class Core(
 
         PrepareBaseScopedServices();
         var savedGames = LoadOrMigrateSavedGames();
+        var generation = Interlocked.Increment(ref _gamesGeneration);
+        lock (_auditGate)
+        {
+            CancelAllInstallationAuditsLocked();
+        }
+
         Games.Clear();
         if (savedGames.Length == 0)
         {
@@ -116,7 +154,9 @@ public partial class Core(
         {
             try
             {
-                Games.Add(sg.ToGame(globalGameSettingsService, BasePath.BasePath));
+                var game = sg.ToGame(globalGameSettingsService, BasePath.BasePath);
+                Games.Add(game);
+                QueueInstallationAudit(game, generation);
             }
             catch (Exception ex)
             {
@@ -203,66 +243,152 @@ public partial class Core(
         return minecraftBaseSettingsService.Get<SavedGame[]>(SettingsKeys.SavedGames, []);
     }
 
-    /// <summary>
-    /// Initializes the Core with the given Minecraft path and retrieves the list of available vanilla Minecraft versions.
-    /// </summary>
-    /// <param name="basePath">The base path for Minecraft files. If null, initialization will require a previously set path.</param>
-    /// <returns>A task that represents the asynchronous operation of initialization and refreshing Minecraft versions.</returns>
-    public async Task InitializeAndRefresh(MinecraftPath? basePath = null)
+    /// <summary>Loads local settings and saved games without performing network requests.</summary>
+    public Task InitializeLocalAsync(MinecraftPath? basePath = null)
     {
-        var not = _notify.Create(
-            "InitializingCore",
-            isIndeterminate: true, 
-            isCancellable: true
-        );
-        IsRefreshing = true;
-        try
+        lock (_refreshGate)
         {
-            _logger.LogInformation("Trying to load vanilla minecraft versions from servers");
+            if (_localInitializationTask is { IsCompleted: false }) return _localInitializationTask;
+            _localInitializationTask = InitializeLocalCoreAsync(basePath);
+            return _localInitializationTask;
+        }
+    }
 
-            if (!Initialized && basePath == null)
-            {
-                _logger.LogInformation("Minecraft Path must be set on first initialize");
-                throw new InvalidOperationException("Minecraft Path must be set on first initialize");
-            }
-            if (basePath != null)
-            {
-                Launcher = new MinecraftLauncher(basePath);
-                BasePath = basePath;
-            }
+    private Task InitializeLocalCoreAsync(MinecraftPath? basePath)
+    {
+        SubscribeToNetworkState();
+        SubscribeToDownloadActivity();
+        if (!Initialized && basePath == null)
+            throw new InvalidOperationException("Minecraft Path must be set on first initialize");
 
+        if (basePath != null && (!Initialized || !PathsEqual(basePath.BasePath, BasePath?.BasePath)))
+        {
+            if (downloadActivity?.Snapshot.ActiveDownloads > 0)
+                throw new InvalidOperationException("Minecraft path cannot be changed while downloads are active.");
+
+            BasePath = basePath;
+            Launcher = CreateCatalogLauncher(basePath);
             PrepareBaseScopedServices();
             LoadGames();
-            Initialized = true;
+        }
 
-            var l = await Launcher.GetAllVersionsAsync(not.CancellationToken.Value);
+        Initialized = true;
+        foreach (var game in Games) game.CreateMCLauncher(IsOfflineMode);
+        return Task.CompletedTask;
+    }
 
-            VanillaVersions.Clear();
-            VanillaVersions.AddRange(l.Select(x => new Versions.Version() { ReleaseTime = x.ReleaseTime.DateTime, BasedOn = x.Name, ReleaseType = x.Type }));
-            IsOfflineMode = false;
-            _notify.Complete(not.Id, true);
-        }
-        catch (HttpRequestException)
+    /// <summary>Refreshes remote metadata only; local games and cached versions survive failures.</summary>
+    public Task RefreshVersionCatalogAsync(CancellationToken cancellationToken = default)
+    {
+        lock (_refreshGate)
         {
-            IsOfflineMode = false;
-            _notify.Complete(not.Id, true,"OfflineMode");
+            if (_refreshTask is { IsCompleted: false }) return _refreshTask;
+            _refreshTask = RefreshVersionCatalogCoreAsync(cancellationToken);
+            return _refreshTask;
         }
-        catch (Exception ex)
+    }
+
+    [Obsolete("Use InitializeLocalAsync followed by RefreshVersionCatalogAsync.")]
+    public async Task InitializeAndRefresh(MinecraftPath? basePath = null)
+    {
+        await InitializeLocalAsync(basePath);
+        await RefreshVersionCatalogAsync();
+    }
+
+    private async Task RefreshVersionCatalogCoreAsync(CancellationToken cancellationToken)
+    {
+        if (!Initialized || BasePath == null) return;
+        if (!TryAcquireCatalogRefresh(out var refreshLease))
         {
-            _logger.LogCritical(ex, "Failed to load vanilla minecraft versions: {ex}", ex.Message);
-            _notify.Complete(not.Id, false, ex.Message, ex);
-            Initialized = false;
+            _catalogRefreshPending = true;
+            return;
         }
-        finally
+
+        using (refreshLease)
         {
-            foreach (var game in Games)
+            IsRefreshing = true;
+            try
             {
-                game.CreateMCLauncher(IsOfflineMode);
+                if (!await IsMinecraftMetadataAvailableAsync(cancellationToken)) return;
+                await LoadAndApplyRemoteVersionsAsync(cancellationToken);
+                networkCapabilityService?.ReportSuccess(NetworkCapability.MinecraftMetadata);
             }
-            _logger.LogInformation("Loaded {count} vanilla versions", VanillaVersions.Count);
-            IsRefreshing = false;
-            VersionsRefreshed?.Invoke(this, new());
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                HandleCatalogFailure(new TimeoutException("Minecraft version catalog request timed out."));
+            }
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogWarning(ex, "Failed to refresh vanilla Minecraft versions; retaining local catalog.");
+                HandleCatalogFailure(ex);
+            }
+            finally
+            {
+                IsRefreshing = false;
+                VersionsRefreshed?.Invoke(this, new());
+            }
         }
+    }
+
+    private bool TryAcquireCatalogRefresh(out IDisposable? lease)
+    {
+        lease = null;
+        return downloadActivity == null || downloadActivity.TryAcquireCatalogRefresh(out lease);
+    }
+
+    private async Task<bool> IsMinecraftMetadataAvailableAsync(CancellationToken cancellationToken)
+    {
+        if (networkCapabilityService == null) return true;
+        var capability = await networkCapabilityService.ProbeAsync(NetworkCapability.MinecraftMetadata, cancellationToken);
+        if (capability.EffectiveState is not (NetworkAvailabilityState.Unavailable or NetworkAvailabilityState.Degraded)) return true;
+        IsOfflineMode = true;
+        return false;
+    }
+
+    private async Task LoadAndApplyRemoteVersionsAsync(CancellationToken cancellationToken)
+    {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(10));
+        var versions = await Launcher.GetAllVersionsAsync(deadline.Token);
+        await UiDispatcher.InvokeAsync(() =>
+        {
+            VanillaVersions.Clear();
+            VanillaVersions.AddRange(versions.Select(x => new Versions.Version
+            {
+                ReleaseTime = x.ReleaseTime.DateTime,
+                BasedOn = x.Name,
+                ReleaseType = x.Type ?? string.Empty
+            }));
+            IsOfflineMode = false;
+            foreach (var game in Games) game.CreateMCLauncher(false);
+        });
+    }
+
+    private void HandleCatalogFailure(Exception exception)
+    {
+        IsOfflineMode = true;
+        networkCapabilityService?.ReportFailure(NetworkCapability.MinecraftMetadata, exception);
+    }
+
+    private MinecraftLauncher CreateCatalogLauncher(MinecraftPath basePath)
+    {
+        var parameters = MinecraftLauncherParameters.CreateDefault(basePath);
+        if (httpClient != null) parameters.HttpClient = httpClient;
+        return new MinecraftLauncher(parameters);
+    }
+
+    private void SubscribeToDownloadActivity()
+    {
+        if (_downloadActivitySubscribed || downloadActivity == null) return;
+        downloadActivity.Changed += (_, snapshot) =>
+        {
+            if (snapshot.ActiveDownloads == 0 && _catalogRefreshPending)
+            {
+                _catalogRefreshPending = false;
+                _ = RefreshVersionCatalogAsync();
+            }
+        };
+        _downloadActivitySubscribed = true;
     }
 
     /// <summary>
@@ -276,6 +402,10 @@ public partial class Core(
         try
         {
             await InstallGameOrThrow(game, showFileprog);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Installation cancelled for game {version}", game?.Version.BasedOn);
         }
         catch (Exception ex)
         {
@@ -294,12 +424,27 @@ public partial class Core(
         var version = game.Version;
         _logger.LogInformation("Installing game {version}", version.BasedOn);
 
-        await game.InstallVersionOrThrow(
-            isOffline: IsOfflineMode,
-            showFileProgress: showFileprog
-        );
+        var installer = installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstanceInstallationService>()
+            ?? throw new InvalidOperationException("Instance installation service is not available.");
+        var result = await installer.InstallAsync(game);
+        if (!result.Success)
+        {
+            throw new InvalidOperationException(result.FailureReason ?? "Installation failed.");
+        }
 
         SaveGames();
+    }
+
+    public Task<InstanceIntegrityReport> VerifyGameAsync(Game game, IntegrityCheckLevel level, CancellationToken cancellationToken = default)
+        => (installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetRequiredService<IInstanceInstallationService>())
+            .VerifyAsync(game, level, cancellationToken: cancellationToken);
+
+    public async Task<InstanceInstallResult> RepairGameAsync(Game game, CancellationToken cancellationToken = default)
+    {
+        var installer = installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetRequiredService<IInstanceInstallationService>();
+        var result = await installer.RepairAsync(game, cancellationToken: cancellationToken);
+        if (result.Success) SaveGames();
+        return result;
     }
 
     public Game CreateGame(Versions.Version version, string? folderName = null)
@@ -317,6 +462,7 @@ public partial class Core(
         var path = Path.Combine(BasePath.BasePath, GamesFolderName, resolvedFolderName);
 
         var game = new Game(new(path), version, sharedMinecraftBasePath: BasePath.BasePath, globalGameSettingsService: globalGameSettingsService);
+        game.InstallationState = InstanceInstallationState.NotInstalled;
 
         Games.Add(game);
         try
@@ -372,6 +518,7 @@ public partial class Core(
                 return;
             }
 
+            CancelInstallationAudit(game);
             Games.Remove(game);
             SaveGames();
 
@@ -396,6 +543,223 @@ public partial class Core(
             );
         }
     }
+
+    private void SubscribeToNetworkState()
+    {
+        if (_networkSubscribed || networkCapabilityService == null) return;
+        networkCapabilityService.Changed += NetworkCapabilityService_Changed;
+        _networkSubscribed = true;
+    }
+
+    private void NetworkCapabilityService_Changed(object? sender, NetworkCapabilitySnapshot snapshot)
+    {
+        if (snapshot.Capability != NetworkCapability.MinecraftMetadata) return;
+        // Checking is a transient probe state. Keep the last terminal result so
+        // recovery polling cannot make the Home page flicker online/offline.
+        if (snapshot.State == NetworkAvailabilityState.Checking) return;
+        IsOfflineMode = snapshot.EffectiveState == NetworkAvailabilityState.Unavailable;
+    }
+
+    private void QueueInstallationAudit(Game game, int generation)
+    {
+        var installer = installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstanceInstallationService>();
+        if (installer == null) return;
+
+        var startWorker = false;
+        lock (_auditGate)
+        {
+            CancelInstallationAuditLocked(game);
+
+            var item = new InstallationAuditWorkItem(game, generation);
+            _auditsByGame[game] = item;
+            _pendingAudits.Enqueue(item);
+            if (!_auditWorkerRunning)
+            {
+                _auditWorkerRunning = true;
+                startWorker = true;
+            }
+        }
+
+        if (startWorker) _ = Task.Run(ProcessInstallationAuditsAsync);
+    }
+
+    /// <summary>
+    /// Runs migration and stale full audits after catalog refresh has completed. Queue state is
+    /// deliberately separate from <see cref="Games"/>, because that collection belongs to the UI thread.
+    /// </summary>
+    private async Task ProcessInstallationAuditsAsync()
+    {
+        var installer = installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstanceInstallationService>();
+        if (installer == null)
+        {
+            lock (_auditGate) _auditWorkerRunning = false;
+            return;
+        }
+
+        try
+        {
+            while (true)
+            {
+                await WaitForCatalogRefreshAsync();
+                var item = TakeNextInstallationAudit();
+                if (item == null) break;
+                await ProcessInstallationAuditItemAsync(installer, item);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Background installation audit queue stopped unexpectedly.");
+        }
+        finally
+        {
+            lock (_auditGate)
+            {
+                _auditWorkerRunning = false;
+                if (_pendingAudits.Count > 0)
+                {
+                    _auditWorkerRunning = true;
+                    _ = Task.Run(ProcessInstallationAuditsAsync);
+                }
+            }
+        }
+    }
+
+    private async Task WaitForCatalogRefreshAsync()
+    {
+        while (IsRefreshing)
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+    }
+
+    private async Task ProcessInstallationAuditItemAsync(IInstanceInstallationService installer, InstallationAuditWorkItem item)
+    {
+        var requeued = false;
+        try
+        {
+            var result = await installer.VerifyWhenIdleAsync(item.Game, item.CheckLevel, cancellationToken: item.Cancellation.Token);
+            if (result == null)
+            {
+                requeued = RequeueInstallationAudit(item);
+                if (requeued) await Task.Delay(TimeSpan.FromSeconds(1));
+                return;
+            }
+
+            if (item.CheckLevel == IntegrityCheckLevel.Quick)
+                requeued = await RequeueStaleFullAuditAsync(item, result);
+        }
+        catch (OperationCanceledException) when (item.Cancellation.IsCancellationRequested)
+        {
+            // A reload or removal invalidated this work item.
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Background installation audit failed for {game}.", item.Game.Version.DisplayName);
+        }
+        finally
+        {
+            if (!requeued) CompleteInstallationAudit(item);
+        }
+    }
+
+    private async Task<bool> RequeueStaleFullAuditAsync(InstallationAuditWorkItem item, InstanceIntegrityReport result)
+    {
+        var store = CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstallationStateStore>();
+        var receipt = store == null ? null : await store.ReadAsync(item.Game, item.Cancellation.Token);
+        if (!result.CanLaunch || receipt?.FullVerificationAt is not DateTimeOffset verified) return false;
+        if (DateTimeOffset.UtcNow - verified <= TimeSpan.FromDays(7)) return false;
+        item.CheckLevel = IntegrityCheckLevel.Full;
+        return RequeueInstallationAudit(item);
+    }
+
+    private InstallationAuditWorkItem? TakeNextInstallationAudit()
+    {
+        lock (_auditGate)
+        {
+            while (_pendingAudits.TryDequeue(out var item))
+            {
+                if (!IsCurrentInstallationAuditLocked(item))
+                {
+                    item.Cancellation.Dispose();
+                    continue;
+                }
+
+                _activeAudits.Add(item);
+                return item;
+            }
+
+            return null;
+        }
+    }
+
+    private bool RequeueInstallationAudit(InstallationAuditWorkItem item)
+    {
+        lock (_auditGate)
+        {
+            _activeAudits.Remove(item);
+            if (!IsCurrentInstallationAuditLocked(item))
+            {
+                return false;
+            }
+
+            _pendingAudits.Enqueue(item);
+            return true;
+        }
+    }
+
+    private void CompleteInstallationAudit(InstallationAuditWorkItem item)
+    {
+        lock (_auditGate)
+        {
+            _activeAudits.Remove(item);
+            if (_auditsByGame.TryGetValue(item.Game, out var current) && ReferenceEquals(current, item))
+            {
+                _auditsByGame.Remove(item.Game);
+            }
+        }
+
+        item.Cancellation.Dispose();
+    }
+
+    private void CancelInstallationAudit(Game game)
+    {
+        lock (_auditGate)
+        {
+            CancelInstallationAuditLocked(game);
+        }
+    }
+
+    private void CancelInstallationAuditLocked(Game game)
+    {
+        if (_auditsByGame.Remove(game, out var item))
+        {
+            item.Cancellation.Cancel();
+        }
+    }
+
+    private void CancelAllInstallationAuditsLocked()
+    {
+        var queued = _pendingAudits.ToArray();
+        var queuedSet = queued.ToHashSet();
+        _pendingAudits.Clear();
+
+        foreach (var item in queued)
+        {
+            item.Cancellation.Cancel();
+            item.Cancellation.Dispose();
+        }
+
+        foreach (var item in _auditsByGame.Values.Where(item => !queuedSet.Contains(item)))
+        {
+            item.Cancellation.Cancel();
+        }
+
+        _auditsByGame.Clear();
+    }
+
+    private bool IsCurrentInstallationAuditLocked(InstallationAuditWorkItem item)
+        => item.Generation == Volatile.Read(ref _gamesGeneration)
+            && !item.Cancellation.IsCancellationRequested
+            && _auditsByGame.TryGetValue(item.Game, out var current)
+            && ReferenceEquals(current, item);
 
     private static bool PathsEqual(string left, string right)
         => string.Equals(

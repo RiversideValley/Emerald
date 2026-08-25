@@ -4,6 +4,7 @@ using CmlLib.Core;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
+using Emerald.CoreX.Installation;
 using Emerald.CoreX.Services;
 using Emerald.CoreX.Store;
 using Emerald.CoreX.Tests.Support;
@@ -39,7 +40,34 @@ public sealed class CoreAddGameTests
         Assert.Equal("/tmp/emerald-custom-folder/Instances/shared-modpack", game.Path.BasePath);
     }
 
-    private static Emerald.CoreX.Core CreateCore(string basePath)
+    [Fact]
+    public async Task LoadGames_CancelsAnInFlightAuditBeforeReloadingGames()
+    {
+        var audits = new BlockingAuditService();
+        var basePath = Path.Combine(Path.GetTempPath(), "emerald-audit-reload", Guid.NewGuid().ToString("N"));
+        var core = CreateCore(basePath, audits);
+        try
+        {
+            core.AddGame(CreateVersion("Audit test"));
+            core.SaveGames();
+
+            core.LoadGames();
+            await audits.Started.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+            core.LoadGames();
+            await audits.CancellationObserved.Task.WaitAsync(TimeSpan.FromSeconds(2));
+            audits.Release();
+
+            await AsyncAssert.EventuallyAsync(() => audits.CallCount >= 2);
+        }
+        finally
+        {
+            audits.Release();
+            if (Directory.Exists(basePath)) Directory.Delete(basePath, true);
+        }
+    }
+
+    private static Emerald.CoreX.Core CreateCore(string basePath, IInstanceInstallationService? installationService = null)
     {
         var notificationService = Ioc.Default.GetService<INotificationService>()
             ?? new NotificationService(NullLogger<NotificationService>.Instance);
@@ -51,7 +79,8 @@ public sealed class CoreAddGameTests
             new TestGameRuntimeService(),
             new TestGlobalGameSettingsService(),
             new TestStoreInstallRecordRepository(),
-            new TestStoreSharedContentSettingsService());
+            new TestStoreSharedContentSettingsService(),
+            installationService);
 
         typeof(Emerald.CoreX.Core)
             .GetProperty("BasePath", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!
@@ -138,5 +167,50 @@ public sealed class CoreAddGameTests
 
         public GameSession? TryGetActiveSession(Emerald.CoreX.Game game)
             => null;
+    }
+
+    private sealed class BlockingAuditService : IInstanceInstallationService
+    {
+        private readonly TaskCompletionSource<bool> _release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<bool> CancellationObserved { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public int CallCount { get; private set; }
+
+        public void Release() => _release.TrySetResult(true);
+
+        public Task<InstanceInstallResult> InstallAsync(Game game, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
+            => throw new NotSupportedException();
+
+        public Task<InstanceInstallResult> RepairAsync(Game game, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
+            => throw new NotSupportedException();
+
+        public Task<InstanceIntegrityReport> VerifyAsync(Game game, IntegrityCheckLevel level, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
+            => Task.FromResult(ReadyReport(level));
+
+        public async Task<InstanceIntegrityReport?> VerifyWhenIdleAsync(Game game, IntegrityCheckLevel level, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
+        {
+            CallCount++;
+            Started.TrySetResult(true);
+            try
+            {
+                await _release.Task.WaitAsync(cancellationToken);
+                return ReadyReport(level);
+            }
+            catch (OperationCanceledException)
+            {
+                CancellationObserved.TrySetResult(true);
+                throw;
+            }
+        }
+
+        public Task<LaunchReadinessResult> PrepareLaunchAsync(Game game, CancellationToken cancellationToken = default)
+        {
+            var report = ReadyReport(IntegrityCheckLevel.Quick);
+            return Task.FromResult(new LaunchReadinessResult(true, report));
+        }
+
+        private static InstanceIntegrityReport ReadyReport(IntegrityCheckLevel level)
+            => new(level, InstanceInstallationState.Ready, [], DateTimeOffset.UtcNow, 0, 0);
     }
 }

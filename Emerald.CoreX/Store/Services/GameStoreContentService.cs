@@ -1,4 +1,5 @@
 using Emerald.CoreX.Runtime;
+using Emerald.CoreX.Installation;
 using Emerald.CoreX.Store.Modrinth;
 using Emerald.CoreX.Store.Modrinth.JSON;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,7 @@ public sealed class GameStoreContentService : IGameStoreContentService
     private readonly IGameRuntimeService _runtimeService;
     private readonly IStoreSharedContentService _sharedContentService;
     private readonly ILogger<GameStoreContentService> _logger;
+    private readonly IDownloadActivityService _downloadActivity;
     private readonly Dictionary<StoreContentType, IModrinthStore> _stores;
 
     public GameStoreContentService(
@@ -19,12 +21,14 @@ public sealed class GameStoreContentService : IGameStoreContentService
         IGameRuntimeService runtimeService,
         IStoreSharedContentService sharedContentService,
         IEnumerable<IModrinthStore> stores,
-        ILogger<GameStoreContentService> logger)
+        ILogger<GameStoreContentService> logger,
+        IDownloadActivityService? downloadActivity = null)
     {
         _records = records;
         _runtimeService = runtimeService;
         _sharedContentService = sharedContentService;
         _logger = logger;
+        _downloadActivity = downloadActivity ?? new DownloadActivityService();
         _stores = stores
             .GroupBy(store => store.ContentType)
             .ToDictionary(group => group.Key, group => group.First());
@@ -86,6 +90,7 @@ public sealed class GameStoreContentService : IGameStoreContentService
         IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
     {
+        using var downloadLease = await _downloadActivity.AcquireDownloadAsync(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         EnsureGameIsNotRunning(game);
         PrepareBaseScopedStore(game);
