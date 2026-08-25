@@ -8,10 +8,12 @@ namespace Emerald.CoreX.Installers;
 public class NeoForge : IModLoaderInstaller
 {
     private readonly Notifications.INotificationService _notify;
+    private readonly HttpClient _httpClient;
 
-    public NeoForge(Notifications.INotificationService notificationService)
+    public NeoForge(Notifications.INotificationService notificationService, HttpClient httpClient)
     {
         _notify = notificationService;
+        _httpClient = httpClient;
     }
 
     public Versions.Type Type => Versions.Type.NeoForge;
@@ -27,7 +29,7 @@ public class NeoForge : IModLoaderInstaller
 
         try
         {
-            var versionLoader = new NeoForgeVersionLoader(new HttpClient());
+            var versionLoader = new NeoForgeVersionLoader(_httpClient);
             var versions = await versionLoader.GetNeoForgeVersions(mcVersion);
 
             if (versions == null || !versions.Any())

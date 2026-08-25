@@ -1,6 +1,7 @@
 using CmlLib.Core;
 using Emerald.CoreX;
 using Emerald.CoreX.Installers;
+using Emerald.CoreX.Installation;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
@@ -31,14 +32,15 @@ public partial class Program
 
     private static void MapStatusRoutes(RouteGroupBuilder api)
     {
-        api.MapGet("/status", (Core c) => Results.Ok(new
+        api.MapGet("/status", (Core c, INetworkCapabilityService network) => Results.Ok(new
         {
             Initialized = c.Initialized,
             IsRefreshing = c.IsRefreshing,
             IsOfflineMode = c.IsOfflineMode,
             BasePath = c.BasePath?.BasePath,
             GamesCount = c.Games.Count,
-            VanillaVersionsCount = c.VanillaVersions.Count
+            VanillaVersionsCount = c.VanillaVersions.Count,
+            Network = Enum.GetValues<NetworkCapability>().Select(capability => network.GetSnapshot(capability))
         }))
         .WithName("GetStatus")
         .WithTags("Status");
@@ -219,7 +221,10 @@ public partial class Program
                 g.Version.BasedOn,
                 Type = g.Version.Type,
                 UsesCustomSettings = g.UsesCustomGameSettings,
-                RunState = g.RunState.ToString()
+                RunState = g.RunState.ToString(),
+                InstallationState = g.InstallationState.ToString(),
+                g.LastVerifiedAt,
+                IntegrityIssues = g.IntegrityIssues.Count
             }));
         })
         .WithName("ListGames")
@@ -289,16 +294,33 @@ public partial class Program
         .WithName("InstallGame")
         .WithTags("Games");
 
-        api.MapPost("/games/launch", (GameLaunchRequest req, IGameRuntimeService runtime, Core c, IAccountService ac, ILogger<Program> logger) =>
+        api.MapPost("/games/verify", async (GameInstallRequest req, Core c) =>
+        {
+            var game = c.Games.FirstOrDefault(g => g.Path.BasePath == req.BasePath);
+            if (game == null) return Results.NotFound(new { Error = $"Game instance '{req.BasePath}' not found." });
+            var report = await c.VerifyGameAsync(game, IntegrityCheckLevel.Full);
+            return Results.Ok(report);
+        })
+        .WithName("VerifyGame")
+        .WithTags("Games");
+
+        api.MapPost("/games/repair", async (GameInstallRequest req, Core c) =>
+        {
+            var game = c.Games.FirstOrDefault(g => g.Path.BasePath == req.BasePath);
+            if (game == null) return Results.NotFound(new { Error = $"Game instance '{req.BasePath}' not found." });
+            var result = await c.RepairGameAsync(game);
+            return result.Success ? Results.Ok(result) : Results.BadRequest(result);
+        })
+        .WithName("RepairGame")
+        .WithTags("Games");
+
+        api.MapPost("/games/launch", async (GameLaunchRequest req, IGameRuntimeService runtime, IInstanceInstallationService installation, Core c, IAccountService ac, ILogger<Program> logger) =>
         {
             var game = c.Games.FirstOrDefault(g => g.Path.BasePath == req.BasePath);
             if (game == null) return Results.NotFound(new { Error = $"Game instance at path '{req.BasePath}' not found." });
 
-            if (string.IsNullOrWhiteSpace(game.Version.RealVersion))
-                return Results.BadRequest(new
-                {
-                    Error = $"{game.Version.DisplayName} has not been installed yet. Call /api/games/install first."
-                });
+            var readiness = await installation.PrepareLaunchAsync(game);
+            if (!readiness.CanLaunch) return Results.BadRequest(readiness);
 
             var account = ac.GetSelectedAccount();
             if (account == null) return Results.BadRequest(new { Error = "No account selected. Please select or create an account first." });

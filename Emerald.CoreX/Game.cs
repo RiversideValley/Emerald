@@ -8,6 +8,7 @@ using CmlLib.Core.VersionMetadata;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Runtime;
+using Emerald.CoreX.Installation;
 using Emerald.CoreX.Services;
 using Emerald.CoreX.Services.Auth;
 using Microsoft.Extensions.Logging;
@@ -64,11 +65,35 @@ public partial class Game : ObservableObject
     [NotifyPropertyChangedFor(nameof(RuntimeStatusText))]
     private DateTimeOffset? _lastRunEndedAt;
 
-    public bool CanLaunch => !HasActiveSession;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(InstallationStatusText))]
+    [NotifyPropertyChangedFor(nameof(CanLaunch))]
+    private InstanceInstallationState _installationState = InstanceInstallationState.Unknown;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(InstallationStatusText))]
+    private DateTimeOffset? _lastVerifiedAt;
+
+    [ObservableProperty]
+    private IReadOnlyList<IntegrityIssue> _integrityIssues = [];
+
+    public bool CanLaunch => !HasActiveSession && InstallationState is not InstanceInstallationState.Installing and not InstanceInstallationState.Verifying;
 
     public bool CanStop => HasActiveSession;
 
     public bool CanModify => !HasActiveSession;
+
+    public string InstallationStatusText => InstallationState switch
+    {
+        InstanceInstallationState.Ready => LastVerifiedAt is { } at ? $"Ready • verified {at.ToLocalTime():g}" : "Ready",
+        InstanceInstallationState.ReadyWithWarnings => "Ready with warnings",
+        InstanceInstallationState.NeedsRepair => "Needs repair",
+        InstanceInstallationState.NotInstalled => "Not installed",
+        InstanceInstallationState.Installing => "Installing",
+        InstanceInstallationState.Verifying => "Verifying",
+        InstanceInstallationState.Failed => "Installation failed",
+        _ => "Installation unknown"
+    };
 
     public Models.GameSettings EffectiveSettings
         => Models.GameSettings.Resolve(_globalGameSettingsService.Settings, UsesCustomGameSettings, CustomGameSettings);
@@ -142,6 +167,8 @@ public partial class Game : ObservableObject
         RefreshMinecraftPath();
         _logger.LogDebug("Creating Minecraft launcher. OfflineMode: {IsOffline}.", isOffline);
         var param = MinecraftLauncherParameters.CreateDefault(Path);
+        var sharedHttpClient = Ioc.Default.GetService<HttpClient>();
+        if (sharedHttpClient != null) param.HttpClient = sharedHttpClient;
 
         if (isOffline)
         {
@@ -150,6 +177,8 @@ public partial class Game : ObservableObject
         }
         else
         {
+            var verifiedInstaller = Ioc.Default.GetService<Installation.VerifiedGameInstaller>();
+            if (verifiedInstaller != null) param.GameInstaller = verifiedInstaller;
             _logger.LogInformation("Online mode enabled. Using the default version loader.");
         }
 
@@ -189,11 +218,13 @@ public partial class Game : ObservableObject
         {
             var modLoaderRouter = Ioc.Default.GetService<Installers.ModLoaderRouter>()
                 ?? throw new InvalidOperationException("Mod loader router service is not available.");
-            string? ver = await modLoaderRouter.RouteAndInitializeAsync(
+            var resolution = await modLoaderRouter.ResolveAsync(
                 Path,
                 Version,
-                online: !isOffline,
-                installedVersion: Version.RealVersion);
+                isOffline ? Installers.ModLoaderResolutionMode.LocalOnly : Installers.ModLoaderResolutionMode.Online,
+                Version.RealVersion,
+                not.CancellationToken.Value);
+            string? ver = resolution.ResolvedVersion;
             _logger.LogInformation("Version initialization completed. Version: {Version}", ver);
 
             if (ver == null)
@@ -206,7 +237,7 @@ public partial class Game : ObservableObject
                     success: false
                 );
 
-                throw new InvalidOperationException($"Version {Version.Type} {Version.ModVersion} {Version.BasedOn} not found.");
+                throw new InvalidOperationException(resolution.Message ?? $"Version {Version.Type} {Version.ModVersion} {Version.BasedOn} not found.");
             }
             if (isOffline)
             {
@@ -282,7 +313,7 @@ public partial class Game : ObservableObject
         AccountRuntimeAuthOptions? runtimeAuthOptions = null)
     {
         _logger.LogInformation("Building process for version: {Version}", version);
-        CreateMCLauncher(_launcherOfflineMode);
+        CreateMCLauncher(true);
         var launchOpt = EffectiveSettings.ToMLaunchOption();
         launchOpt.Session = session;
 
@@ -312,12 +343,6 @@ public partial class Game : ObservableObject
                 validation.NormalizedPath,
                 validation.Version);
         }
-
-        _logger.LogDebug(
-            "Verifying launch files for {Version} before building the process. OfflineMode: {OfflineMode}.",
-            version,
-            _launcherOfflineMode);
-        await Launcher.InstallAsync(version);
 
         _logger.LogDebug("Preparing launch options for {Version}. FullScreen: {FullScreen}. DockName: {DockName}.", version, EffectiveSettings.FullScreen, EffectiveSettings.DockName);
         return await Launcher.BuildProcessAsync(version, launchOpt);

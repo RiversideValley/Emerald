@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
+using Emerald.CoreX.Installation;
 using Emerald.CoreX.Store;
 using Emerald.CoreX.Store.Modrinth;
 using Emerald.Helpers;
@@ -126,6 +127,17 @@ Notes
     {
         services.AddSingleton<CoreX.Core>();
 
+        services.AddSingleton(_ =>
+        {
+            var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("Emerald-Launcher/1.0");
+            return client;
+        });
+        services.AddSingleton<INetworkCapabilityService, NetworkCapabilityService>();
+        services.AddSingleton<IInstallationStateStore, InstallationStateStore>();
+        services.AddSingleton<VerifiedGameInstaller>();
+        services.AddSingleton<IInstanceInstallationService, InstanceInstallationService>();
+
         services.AddSingleton<CoreX.Runtime.IGameRuntimeService>(provider =>
         {
             var logger = provider.GetRequiredService<ILogger<GameRuntimeService>>();
@@ -136,7 +148,14 @@ Notes
                                   ?? DispatcherQueue.GetForCurrentThread()
                                   ?? throw new InvalidOperationException("A DispatcherQueue is required for the game runtime service.");
 
-            return new GameRuntimeService(logger, notificationService, accountService, runtimeSettings, new Services.DispatcherQueueUiDispatcher(dispatcherQueue));
+            return new GameRuntimeService(
+                logger,
+                notificationService,
+                accountService,
+                runtimeSettings,
+                new Services.DispatcherQueueUiDispatcher(dispatcherQueue),
+                provider.GetRequiredService<IInstanceInstallationService>(),
+                provider.GetRequiredService<INetworkCapabilityService>());
         });
 
         //Mod Loaders

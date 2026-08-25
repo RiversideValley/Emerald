@@ -1,6 +1,7 @@
 using Emerald.ApiHost.Services;
 using Emerald.CoreX;
 using Emerald.CoreX.Installers;
+using Emerald.CoreX.Installation;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
 using Emerald.CoreX.Services;
@@ -34,6 +35,16 @@ public partial class Program
         services.AddSingleton<IGameRuntimeSettings, HeadlessGameRuntimeSettings>();
         services.AddSingleton<IJavaRuntimeProbe, ProcessJavaRuntimeProbe>();
         services.AddSingleton<IJavaRuntimeCatalogService, JavaRuntimeCatalogService>();
+        services.AddSingleton(_ =>
+        {
+            var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("Emerald-Launcher/1.0");
+            return client;
+        });
+        services.AddSingleton<INetworkCapabilityService, NetworkCapabilityService>();
+        services.AddSingleton<IInstallationStateStore, InstallationStateStore>();
+        services.AddSingleton<VerifiedGameInstaller>();
+        services.AddSingleton<IInstanceInstallationService, InstanceInstallationService>();
 
         services.AddSingleton<ElyByOAuthOptions>(_ =>
             new ElyByOAuthOptions(

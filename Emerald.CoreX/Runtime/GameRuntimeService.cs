@@ -4,6 +4,7 @@ using System.Text;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Services;
+using Emerald.CoreX.Installation;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
 
@@ -42,6 +43,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
     private readonly IAccountService _accountService;
     private readonly IGameRuntimeSettings _settings;
     private readonly IUiDispatcher _dispatcher;
+    private readonly IInstanceInstallationService _installationService;
+    private readonly INetworkCapabilityService _networkCapabilityService;
     private readonly object _syncRoot = new();
     private readonly Dictionary<string, ActiveSessionRuntime> _activeSessions = new(StringComparer.OrdinalIgnoreCase);
 
@@ -55,13 +58,17 @@ public sealed class GameRuntimeService : IGameRuntimeService
         INotificationService notificationService,
         IAccountService accountService,
         IGameRuntimeSettings settings,
-        IUiDispatcher dispatcher)
+        IUiDispatcher dispatcher,
+        IInstanceInstallationService installationService,
+        INetworkCapabilityService networkCapabilityService)
     {
         _logger = logger;
         _notificationService = notificationService;
         _accountService = accountService;
         _settings = settings;
         _dispatcher = dispatcher;
+        _installationService = installationService;
+        _networkCapabilityService = networkCapabilityService;
         _logger.LogInformation("Game runtime service initialized.");
     }
 
@@ -130,6 +137,13 @@ public sealed class GameRuntimeService : IGameRuntimeService
             return null;
         }
 
+        var readiness = await _installationService.PrepareLaunchAsync(game);
+        if (!readiness.CanLaunch)
+        {
+            _notificationService.Warning("RepairRequired", readiness.FailureReason ?? $"Repair {game.Version.DisplayName} before launching.");
+            return null;
+        }
+
         var realVersion = game.Version.RealVersion!;
         var runtime = CreateRuntimeSessionOrGetExisting(game, out var created);
         if (!created)
@@ -172,15 +186,6 @@ public sealed class GameRuntimeService : IGameRuntimeService
         if (game == null)
         {
             _logger.LogWarning("Skipping launch because no game was provided.");
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(game.Version.RealVersion))
-        {
-            _logger.LogWarning(
-                "Skipping launch for {GameName} because no installed runtime version is available.",
-                game.Version.DisplayName);
-            _notificationService.Warning("InstallRequired", $"Install or update {game.Version.DisplayName} before launching.");
             return false;
         }
 
@@ -267,7 +272,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
         _logger.LogDebug("Authenticating launch account for {GameName}.", game.Version.DisplayName);
         var authenticationResult = await _accountService.AuthenticateLaunchAccountAsync(
             account,
-            game.IsLauncherOfflineMode);
+            _networkCapabilityService.GetSnapshot(NetworkCapability.Authentication).State == NetworkAvailabilityState.Unavailable);
         ThrowIfLaunchCancelled(runtime);
 
         var process = await game.BuildProcess(

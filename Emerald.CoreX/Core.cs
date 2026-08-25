@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
+using Emerald.CoreX.Installation;
 using Emerald.CoreX.Services;
 using Emerald.CoreX.Store;
 using Emerald.Services;
@@ -64,8 +65,11 @@ public partial class Core(
     IGameRuntimeService runtimeService,
     IGlobalGameSettingsService globalGameSettingsService,
     IStoreInstallRecordRepository storeInstallRecordRepository,
-    IStoreSharedContentSettingsService storeSharedContentSettingsService) : ObservableObject
+    IStoreSharedContentSettingsService storeSharedContentSettingsService,
+    IInstanceInstallationService? installationService = null,
+    INetworkCapabilityService? networkCapabilityService = null) : ObservableObject
 {
+    private bool _networkSubscribed;
     public const string GamesFolderName = "Instances";
     public MinecraftLauncher Launcher { get; set; }
     public IGlobalGameSettingsService GlobalGameSettingsService => globalGameSettingsService;
@@ -117,7 +121,9 @@ public partial class Core(
         {
             try
             {
-                Games.Add(sg.ToGame(globalGameSettingsService, BasePath.BasePath));
+                var game = sg.ToGame(globalGameSettingsService, BasePath.BasePath);
+                Games.Add(game);
+                _ = InitializeInstallationStateAsync(game);
             }
             catch (Exception ex)
             {
@@ -217,6 +223,7 @@ public partial class Core(
             isCancellable: true
         );
         IsRefreshing = true;
+        SubscribeToNetworkState();
         try
         {
             _logger.LogInformation("Trying to load vanilla minecraft versions from servers");
@@ -241,12 +248,14 @@ public partial class Core(
             VanillaVersions.Clear();
             VanillaVersions.AddRange(l.Select(x => new Versions.Version() { ReleaseTime = x.ReleaseTime.DateTime, BasedOn = x.Name, ReleaseType = x.Type }));
             IsOfflineMode = false;
+            networkCapabilityService?.ReportSuccess(NetworkCapability.MinecraftMetadata);
             _notify.Complete(not.Id, true);
         }
         catch (HttpRequestException ex)
         {
             _logger.LogWarning(ex, "Failed to load vanilla Minecraft versions; continuing in offline mode.");
             IsOfflineMode = true;
+            networkCapabilityService?.ReportFailure(NetworkCapability.MinecraftMetadata, ex);
             _notify.Complete(not.Id, true, "OfflineMode");
         }
         catch (Exception ex)
@@ -296,12 +305,27 @@ public partial class Core(
         var version = game.Version;
         _logger.LogInformation("Installing game {version}", version.BasedOn);
 
-        await game.InstallVersionOrThrow(
-            isOffline: IsOfflineMode,
-            showFileProgress: showFileprog
-        );
+        var installer = installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstanceInstallationService>()
+            ?? throw new InvalidOperationException("Instance installation service is not available.");
+        var result = await installer.InstallAsync(game);
+        if (!result.Success)
+        {
+            throw new InvalidOperationException(result.FailureReason ?? "Installation failed.");
+        }
 
         SaveGames();
+    }
+
+    public Task<InstanceIntegrityReport> VerifyGameAsync(Game game, IntegrityCheckLevel level, CancellationToken cancellationToken = default)
+        => (installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetRequiredService<IInstanceInstallationService>())
+            .VerifyAsync(game, level, cancellationToken: cancellationToken);
+
+    public async Task<InstanceInstallResult> RepairGameAsync(Game game, CancellationToken cancellationToken = default)
+    {
+        var installer = installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetRequiredService<IInstanceInstallationService>();
+        var result = await installer.RepairAsync(game, cancellationToken: cancellationToken);
+        if (result.Success) SaveGames();
+        return result;
     }
 
     public Game CreateGame(Versions.Version version, string? folderName = null)
@@ -319,6 +343,7 @@ public partial class Core(
         var path = Path.Combine(BasePath.BasePath, GamesFolderName, resolvedFolderName);
 
         var game = new Game(new(path), version, sharedMinecraftBasePath: BasePath.BasePath, globalGameSettingsService: globalGameSettingsService);
+        game.InstallationState = InstanceInstallationState.NotInstalled;
 
         Games.Add(game);
         try
@@ -396,6 +421,42 @@ public partial class Core(
                 $"Failed to remove game {game.Version.DisplayName} based on {game.Version.BasedOn} {game.Version.Type}",
                ex: ex
             );
+        }
+    }
+
+    private void SubscribeToNetworkState()
+    {
+        if (_networkSubscribed || networkCapabilityService == null) return;
+        networkCapabilityService.Changed += NetworkCapabilityService_Changed;
+        _networkSubscribed = true;
+    }
+
+    private void NetworkCapabilityService_Changed(object? sender, NetworkCapabilitySnapshot snapshot)
+    {
+        if (snapshot.Capability != NetworkCapability.MinecraftMetadata) return;
+        IsOfflineMode = snapshot.State == NetworkAvailabilityState.Unavailable;
+    }
+
+    private async Task InitializeInstallationStateAsync(Game game)
+    {
+        var installer = installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstanceInstallationService>();
+        if (installer == null) return;
+        try
+        {
+            var report = await installer.VerifyAsync(game, IntegrityCheckLevel.Quick);
+            var store = CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstallationStateStore>();
+            var receipt = store == null ? null : await store.ReadAsync(game);
+            if (report.CanLaunch
+                && receipt?.FullVerificationAt is DateTimeOffset verified
+                && DateTimeOffset.UtcNow - verified > TimeSpan.FromDays(7)
+                && !game.HasActiveSession)
+            {
+                await installer.VerifyAsync(game, IntegrityCheckLevel.Full);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not initialize installation state for {Game}", game.Version.DisplayName);
         }
     }
 
