@@ -13,9 +13,11 @@ namespace Emerald.CoreX.Installers;
 public class Quilt : IModLoaderInstaller
 {
     private readonly Notifications.INotificationService _notify;
-    public Quilt(Notifications.INotificationService notificationService)
+    private readonly HttpClient _httpClient;
+    public Quilt(Notifications.INotificationService notificationService, HttpClient httpClient)
     {
         _notify = notificationService;
+        _httpClient = httpClient;
     }
 
     public Versions.Type Type => Versions.Type.Quilt;
@@ -31,7 +33,7 @@ public class Quilt : IModLoaderInstaller
 
         try
         {
-            var QuiltInstaller = new QuiltInstaller(new HttpClient());
+            var QuiltInstaller = new QuiltInstaller(_httpClient);
             var versions = await QuiltInstaller.GetLoaders(mcVersion);
 
             if (versions == null || !versions.Any())
@@ -62,7 +64,7 @@ public class Quilt : IModLoaderInstaller
         this.Log().LogInformation("Installing Quilt Loader for {mcversion}", mcversion);
         try
         {
-            var QuiltInstaller = new QuiltInstaller(new HttpClient());
+            var QuiltInstaller = new QuiltInstaller(_httpClient);
 
             if (!online)
             {

@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -173,9 +173,6 @@
   </data>
   <data name="Appearance" xml:space="preserve">
     <value>Appearance</value>
-  </data>
-  <data name="AssetsCheck" xml:space="preserve">
-    <value>Assets check</value>
   </data>
   <data name="AuthWindowshello" xml:space="preserve">
     <value>Authenticating using Windows Hello...</value>
@@ -332,12 +329,6 @@
   </data>
   <data name="Downloads" xml:space="preserve">
     <value>Downloads</value>
-  </data>
-  <data name="DownloadSettings" xml:space="preserve">
-    <value>Download Settings</value>
-  </data>
-  <data name="DownloadSettingsDescription" xml:space="preserve">
-    <value>Optional. Recommended to turn these on</value>
   </data>
   <data name="GodFolders" xml:space="preserve">
     <value>God folders</value>
@@ -510,9 +501,6 @@
   <data name="GotoLinkAndEnterDeviceCode" xml:space="preserve">
     <value>Go to {Link} and enter the code below to sign-in</value>
   </data>
-  <data name="HashCheck" xml:space="preserve">
-    <value>Hash check</value>
-  </data>
   <data name="Height" xml:space="preserve">
     <value>Screen Height</value>
   </data>
@@ -642,11 +630,11 @@
   <data name="MergeMsAcExistingWithNew" xml:space="preserve">
     <value>{Count} Microsoft account with same UUID already exist(s) in the accounts. Do you want to merge them together?</value>
   </data>
-  <data name="MicaType" xml:space="preserve">
-    <value>Mica Type</value>
+  <data name="BackdropType" xml:space="preserve">
+    <value>Window Backdrop Type</value>
   </data>
-  <data name="MicaTypeDescription" xml:space="preserve">
-    <value>Normal Mica or Mica Alt (Tabbed)</value>
+  <data name="BackdropTypeDescription" xml:space="preserve">
+    <value>Normal Mica, Mica Alt (Tabbed) or Acrylic</value>
   </data>
   <data name="MicrosoftAccount" xml:space="preserve">
     <value>Microsoft Account</value>
@@ -740,6 +728,9 @@
   </data>
   <data name="OfflineMode" xml:space="preserve">
     <value>Offline Mode</value>
+  </data>
+  <data name="OfflineModeDescription" xml:space="preserve">
+    <value>Emerald is using local Minecraft metadata. Installed games can still launch, but adding or repairing versions may need internet access.</value>
   </data>
   <data name="Options" xml:space="preserve">
     <value>Options</value>
@@ -1213,4 +1204,48 @@
   <data name="UseThisJava" xml:space="preserve">
     <value>Use this Java</value>
   </data>
+  <data name="IntegrityIssuesHeader" xml:space="preserve">
+    <value>Installation issues</value>
+  </data>
+  <data name="AdditionalIntegrityIssues" xml:space="preserve">
+    <value>Additional issues not shown:</value>
+  </data>
+  <data name="VerificationCompleteMessage" xml:space="preserve">
+    <value>Verified {0}: {1} files checked.</value>
+  </data>
+  <data name="VerificationWarningsMessage" xml:space="preserve">
+    <value>Verified {0} with {1} warning(s).</value>
+  </data>
+  <data name="VerificationNeedsRepairMessage" xml:space="preserve">
+    <value>{0} needs repair: {1} issue(s).</value>
+  </data>
+  <data name="GameOptionsTitle" xml:space="preserve"><value>Game Options</value></data>
+  <data name="GameOptionsSearchPlaceholder" xml:space="preserve"><value>Search options…</value></data>
+  <data name="GameOptionsLoading" xml:space="preserve"><value>Loading options…</value></data>
+  <data name="GameOptionsNoFileTitle" xml:space="preserve"><value>No options file yet</value></data>
+  <data name="GameOptionsNoFileDescription" xml:space="preserve"><value>Launch the game at least once to generate options.txt, then return here to edit it.</value></data>
+  <data name="GameOptionsNoMatchesTitle" xml:space="preserve"><value>No options match</value></data>
+  <data name="GameOptionsNoMatchesDescription" xml:space="preserve"><value>Try a different search term or clear the category filter.</value></data>
+  <data name="GameOptionsSave" xml:space="preserve"><value>Save Options</value></data>
+  <data name="GameOptionsReload" xml:space="preserve"><value>Reload</value></data>
+  <data name="GameOptionsOn" xml:space="preserve"><value>On</value></data>
+  <data name="GameOptionsOff" xml:space="preserve"><value>Off</value></data>
+  <data name="GameOptionsLoadError" xml:space="preserve"><value>Could not load options</value></data>
+  <data name="GameOptionsLoadErrorMessage" xml:space="preserve"><value>Failed to load options for {0}.</value></data>
+  <data name="GameOptionsSaveError" xml:space="preserve"><value>Could not save options</value></data>
+  <data name="GameOptionsSaveErrorMessage" xml:space="preserve"><value>Failed to save options for {0}.</value></data>
+  <data name="GameOptionsSaved" xml:space="preserve"><value>Options saved</value></data>
+  <data name="GameOptionsSavedMessage" xml:space="preserve"><value>Saved options for {0}.</value></data>
+  <data name="GameOptionsConflict" xml:space="preserve"><value>Options changed on disk</value></data>
+  <data name="GameOptionsConflictMessage" xml:space="preserve"><value>These options changed on disk: {0}. Reload before saving.</value></data>
+  <data name="GameOptionsAll" xml:space="preserve"><value>All</value></data>
+  <data name="GameOptionsCategoryGeneral" xml:space="preserve"><value>General</value></data>
+  <data name="GameOptionsCategoryGraphics" xml:space="preserve"><value>Graphics</value></data>
+  <data name="GameOptionsCategoryDisplay" xml:space="preserve"><value>Display</value></data>
+  <data name="GameOptionsCategoryAccessibility" xml:space="preserve"><value>Accessibility</value></data>
+  <data name="GameOptionsCategoryControls" xml:space="preserve"><value>Controls</value></data>
+  <data name="GameOptionsCategoryChat" xml:space="preserve"><value>Chat</value></data>
+  <data name="GameOptionsCategorySound" xml:space="preserve"><value>Sound</value></data>
+  <data name="GameOptionsCategoryKeyBindings" xml:space="preserve"><value>Key Bindings</value></data>
+  <data name="GameOptionsCategoryUnsupported" xml:space="preserve"><value>Unsupported</value></data>
 </root>

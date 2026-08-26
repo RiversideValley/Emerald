@@ -14,9 +14,11 @@ namespace Emerald.CoreX.Installers;
 public class LiteLoader : IModLoaderInstaller
 {
     private readonly Notifications.INotificationService _notify;
-    public LiteLoader(Notifications.INotificationService notificationService)
+    private readonly HttpClient _httpClient;
+    public LiteLoader(Notifications.INotificationService notificationService, HttpClient httpClient)
     {
         _notify = notificationService;
+        _httpClient = httpClient;
     }
 
     public Versions.Type Type => Versions.Type.LiteLoader;
@@ -32,12 +34,11 @@ public class LiteLoader : IModLoaderInstaller
 
         try
         {
-            var LiteLoaderInstaller = new LiteLoaderInstaller(new HttpClient());
+            var LiteLoaderInstaller = new LiteLoaderInstaller(_httpClient);
             var versions = await LiteLoaderInstaller.GetAllLiteLoaders();
 
             if (versions == null || !versions.Any())
                 throw new NullReferenceException();
-
 
             var filtered = versions.Where(x => x.BaseVersion == mcVersion);
 
@@ -69,9 +70,7 @@ public class LiteLoader : IModLoaderInstaller
         this.Log().LogInformation("Installing LiteLoader Loader for {mcversion}", mcversion);
         try
         {
-
-            var LiteLoaderInstaller = new LiteLoaderInstaller(new HttpClient());
-
+            var LiteLoaderInstaller = new LiteLoaderInstaller(_httpClient);
 
             if (!online)
             {
@@ -97,7 +96,6 @@ public class LiteLoader : IModLoaderInstaller
                     loaders.First(x=> x.Version == modversion),
                     await launcher.GetVersionAsync(mcversion),
                     path);
-
 
             this.Log().LogInformation("Installed LiteLoader Loader {versionName}", versionName);
             _notify.Complete(not.Id, true);

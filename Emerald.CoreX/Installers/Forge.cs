@@ -14,9 +14,11 @@ namespace Emerald.CoreX.Installers;
 public class Forge : IModLoaderInstaller
 {
     private readonly Notifications.INotificationService _notify;
-    public Forge(Notifications.INotificationService notificationService)
+    private readonly HttpClient _httpClient;
+    public Forge(Notifications.INotificationService notificationService, HttpClient httpClient)
     {
         _notify = notificationService;
+        _httpClient = httpClient;
     }
 
     public Versions.Type Type => Versions.Type.Forge;
@@ -32,7 +34,7 @@ public class Forge : IModLoaderInstaller
 
         try
         {
-            var versionLoader = new ForgeVersionLoader(new HttpClient());
+            var versionLoader = new ForgeVersionLoader(_httpClient);
             var versions = await versionLoader.GetForgeVersions(mcVersion);
 
             if (versions == null || !versions.Any())

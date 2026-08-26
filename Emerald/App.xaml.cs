@@ -1,10 +1,12 @@
 using System;
 using System.Diagnostics;
+using CmlLib.Core;
 using CommonServiceLocator;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
+using Emerald.CoreX.Installation;
 using Emerald.CoreX.Store;
 using Emerald.CoreX.Store.Modrinth;
 using Emerald.Helpers;
@@ -126,6 +128,21 @@ Notes
     {
         services.AddSingleton<CoreX.Core>();
 
+        services.AddSingleton(_ =>
+        {
+            var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("Emerald-Launcher/1.0");
+            return client;
+        });
+        services.AddSingleton<INetworkCapabilityService, NetworkCapabilityService>();
+        services.AddSingleton<IDownloadActivityService, DownloadActivityService>();
+        services.AddSingleton<DownloadTimeouts>();
+        services.AddSingleton<CoreX.Services.IUiDispatcher>(_ =>
+            new Services.DispatcherQueueUiDispatcher(MainWindow.DispatcherQueue));
+        services.AddSingleton<IInstallationStateStore, InstallationStateStore>();
+        services.AddSingleton<VerifiedGameInstaller>();
+        services.AddSingleton<IInstanceInstallationService, InstanceInstallationService>();
+
         services.AddSingleton<CoreX.Runtime.IGameRuntimeService>(provider =>
         {
             var logger = provider.GetRequiredService<ILogger<GameRuntimeService>>();
@@ -136,7 +153,14 @@ Notes
                                   ?? DispatcherQueue.GetForCurrentThread()
                                   ?? throw new InvalidOperationException("A DispatcherQueue is required for the game runtime service.");
 
-            return new GameRuntimeService(logger, notificationService, accountService, runtimeSettings, dispatcherQueue);
+            return new GameRuntimeService(
+                logger,
+                notificationService,
+                accountService,
+                runtimeSettings,
+                new Services.DispatcherQueueUiDispatcher(dispatcherQueue),
+                provider.GetRequiredService<IInstanceInstallationService>(),
+                provider.GetRequiredService<INetworkCapabilityService>());
         });
 
         //Mod Loaders
@@ -148,6 +172,10 @@ Notes
         services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Optifine>();
 
         services.AddTransient<CoreX.Installers.ModLoaderRouter>();
+        
+        // Options.txt
+        services.AddTransient<CoreX.GameOptions.IMinecraftOptionsService,
+            CoreX.GameOptions.MinecraftOptionsService>();
     }
 
     private void ConfigureStoreServices(IServiceCollection services)
@@ -207,6 +235,7 @@ Notes
         services.AddSingleton<ViewModels.AccountsPageViewModel>();
         services.AddTransient<ViewModels.LogsPageViewModel>();
         services.AddTransient<ViewModels.ModrinthStorePageViewModel>();
+        services.AddTransient<ViewModels.GameOptionsViewModel>();
     }
     
     #endregion
@@ -259,6 +288,23 @@ Notes
         //load settings,
         SS.LoadData();
         this.Log().LogInformation("Application settings loaded.");
+
+        var core = Ioc.Default.GetRequiredService<CoreX.Core>();
+        var configuredMinecraftPath = SS.Settings.Minecraft.Path;
+        var startupMinecraftPath = string.IsNullOrWhiteSpace(configuredMinecraftPath)
+            ? new MinecraftPath()
+            : new MinecraftPath(configuredMinecraftPath);
+        try
+        {
+            // Local game state is available before navigation; the catalog refresh is
+            // deliberately silent and bounded so offline startup never blocks Home.
+            core.InitializeLocalAsync(startupMinecraftPath).GetAwaiter().GetResult();
+            _ = core.RefreshVersionCatalogAsync();
+        }
+        catch (Exception ex)
+        {
+            this.Log().LogWarning(ex, "Could not initialize local Minecraft state at startup.");
+        }
 
         var ac = Ioc.Default.GetService<CoreX.Services.IAccountService>();
         _ = ac.InitializeAsync(MicrosoftClientId);

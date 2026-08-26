@@ -334,7 +334,7 @@ namespace Emerald.WinUI.Views.Home
             l.FullScreen = SS.Settings.Minecraft.JVM.FullScreen;
             l.JVMArguments = SS.Settings.Minecraft.JVM.Arguments;
 
-            var process = await App.Current.Launcher.CreateProcessAsync(ver, l, true, !SS.Settings.Minecraft.Downloader.AssetsCheck, !SS.Settings.Minecraft.Downloader.HashCheck);
+            var process = await App.Current.Launcher.CreateProcessAsync(ver, l);
 
             if (process != null)
                 StartProcess(process);

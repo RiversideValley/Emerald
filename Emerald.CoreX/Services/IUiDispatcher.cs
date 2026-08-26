@@ -1,6 +1,6 @@
 namespace Emerald.CoreX.Services;
 
-internal interface IUiDispatcher
+public interface IUiDispatcher
 {
     bool HasThreadAccess { get; }
 
@@ -9,7 +9,7 @@ internal interface IUiDispatcher
     Task InvokeAsync(Action action);
 }
 
-internal sealed class InlineUiDispatcher : IUiDispatcher
+public sealed class InlineUiDispatcher : IUiDispatcher
 {
     public bool HasThreadAccess => true;
 

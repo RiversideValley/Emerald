@@ -25,6 +25,7 @@ public interface IAccountService
         CancellationToken cancellationToken = default);
     Task RemoveAccountAsync(EAccount account);
     Task<GameAuthenticationResult> AuthenticateAccountAsync(EAccount account);
+    Task<GameAuthenticationResult> AuthenticateLaunchAccountAsync(EAccount account, bool useOfflineFallback);
     EAccount? GetMostRecentlyUsedAccount();
     EAccount? GetSelectedAccount();
     void SetSelectedAccount(EAccount? account);

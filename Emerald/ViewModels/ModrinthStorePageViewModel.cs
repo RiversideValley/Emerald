@@ -142,15 +142,6 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
     [RelayCommand]
     private async Task InitializeAsync(object? navigationParameter)
     {
-        if (!_core.Initialized && !_core.IsRefreshing)
-        {
-            var configuredPath = _settingsService.Settings.Minecraft.Path;
-            var path = string.IsNullOrWhiteSpace(configuredPath)
-                ? new MinecraftPath()
-                : new MinecraftPath(configuredPath);
-            await _core.InitializeAndRefresh(path);
-        }
-
         App.Current.MainWindow.DispatcherQueue.TryEnqueue(async () =>
         {
             SyncGames();
