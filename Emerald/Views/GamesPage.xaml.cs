@@ -230,4 +230,12 @@ public sealed partial class GamesPage : Page
 
         Frame?.Navigate(typeof(AccountsPage), null, new EntranceNavigationTransitionInfo());
     }
+    
+    private async void EditOptions_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not Game game) return;
+
+        var dialog = new GameOptionsDialog(game) { XamlRoot = XamlRoot };
+        await dialog.ShowAsync();
+    }
 }

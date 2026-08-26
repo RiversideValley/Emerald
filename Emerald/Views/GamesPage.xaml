@@ -128,6 +128,13 @@
                                     Foreground="{ThemeResource SystemFillColorCriticalBrush}"
                                     Icon="{helpers:FontIcon Glyph=&#xE74D;}"
                                     Text="Remove with Files" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem
+                  Click="EditOptions_Click"
+                  Icon="{helpers:FontIcon Glyph=&#xE713;}"
+                  Tag="{x:Bind}"
+                  IsEnabled="{x:Bind CanModify, Mode=OneWay}"
+                  Text="Edit Options" />
               </MenuFlyout>
             </DropDownButton.Flyout>
           </DropDownButton>
