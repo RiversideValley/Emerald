@@ -76,22 +76,25 @@ public sealed class GameRuntimeServiceTests
     private sealed class RecordingAccountService(EAccount selected) : IAccountService
     {
         public ObservableCollection<EAccount> Accounts { get; } = [selected];
-        public bool RequireMicrosoftAccountForOfflineAccounts => false;
-        public bool RequireMicrosoftAccountForElyByAccounts => false;
+        public IReadOnlyList<AccountProviderDescriptor> Providers { get; } =
+        [
+            new(AccountProviderIds.Microsoft, "Microsoft", [], RequiresNetworkForLaunch: true),
+            new(AccountProviderIds.ElyBy, "Ely.by", [], RequiresNetworkForLaunch: true)
+        ];
         public int AuthenticationCalls { get; private set; }
 
+        public AccountProviderUsability GetProviderUsability(string providerId) => AccountProviderUsability.Available;
+        public AccountProviderUsability GetAccountUsability(EAccount account) => AccountProviderUsability.Available;
         public Task LoadAllAccountsAsync() => Task.CompletedTask;
-        public void CreateOfflineAccount(string username) => throw new NotSupportedException();
-        public Task SignInMicrosoftAccountAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task SignInElyByAccountAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task SignInElyByAccountAsync(string login, string password, string? twoFactorCode = null, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<EAccount> SignInAsync(string providerId, AccountSignInRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task RefreshAccountAsync(EAccount account, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task RemoveAccountAsync(EAccount account) => throw new NotSupportedException();
         public Task<GameAuthenticationResult> AuthenticateAccountAsync(EAccount account) => AuthenticateAsync();
         public Task<GameAuthenticationResult> AuthenticateLaunchAccountAsync(EAccount account, bool useOfflineFallback) => AuthenticateAsync();
         public EAccount? GetMostRecentlyUsedAccount() => selected;
         public EAccount? GetSelectedAccount() => selected;
         public void SetSelectedAccount(EAccount? account) => throw new NotSupportedException();
-        public Task InitializeAsync(string clientId) => Task.CompletedTask;
+        public Task InitializeAsync() => Task.CompletedTask;
 
         private Task<GameAuthenticationResult> AuthenticateAsync()
         {

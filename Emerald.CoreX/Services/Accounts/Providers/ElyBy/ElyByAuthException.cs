@@ -20,3 +20,11 @@ public sealed class ElyByTwoFactorRequiredException : ElyByAuthException
     {
     }
 }
+
+public sealed class ElyByReauthenticationRequiredException : ElyByAuthException
+{
+    public ElyByReauthenticationRequiredException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+}

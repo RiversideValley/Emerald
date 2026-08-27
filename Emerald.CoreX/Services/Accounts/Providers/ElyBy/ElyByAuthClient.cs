@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Emerald.CoreX.Services.Auth.OAuth;
 using Microsoft.Extensions.Logging;
 
 namespace Emerald.CoreX.Services.Auth.ElyBy;
@@ -29,7 +30,7 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
         _httpClient = httpClient ?? new HttpClient();
     }
 
-    public ElyByOAuthAuthorizationRequest CreateOAuthAuthorizationRequest(string state, string? loginHint = null)
+    public BrowserOAuthAuthorizationRequest CreateOAuthAuthorizationRequest(string state, string? loginHint = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(state);
         var oauthOptions = GetConfiguredOAuthOptions();
@@ -41,6 +42,7 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
             ("redirect_uri", oauthOptions.RedirectUri),
             ("response_type", "code"),
             ("scope", oauthOptions.Scope),
+            ("prompt", "select_account"),
             ("state", state)
         };
 
@@ -48,7 +50,7 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
             parameters.Add(("login_hint", loginHint));
 
         var authorizationUri = new Uri(AccountBaseUri, "oauth2/v1?" + BuildQuery(parameters));
-        return new ElyByOAuthAuthorizationRequest(authorizationUri, redirectUri, state);
+        return new BrowserOAuthAuthorizationRequest("Ely.by", authorizationUri, redirectUri, state);
     }
 
     public async Task<ElyByAuthSession> ExchangeOAuthCodeAsync(
@@ -57,7 +59,10 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
         var oauthOptions = GetConfiguredOAuthOptions();
-        var response = await SendOAuthTokenRequestAsync(
+        ElyByOAuthTokenResponse response;
+        try
+        {
+            response = await SendOAuthTokenRequestAsync(
                 new Dictionary<string, string>
                 {
                     ["client_id"] = oauthOptions.ClientId,
@@ -67,7 +72,13 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
                     ["code"] = code
                 },
                 cancellationToken)
-            .ConfigureAwait(false);
+                .ConfigureAwait(false);
+        }
+        catch (ElyByAuthException ex) when (IsInvalidRefreshToken(ex.Message))
+        {
+            throw new ElyByReauthenticationRequiredException(
+                "Your Ely.by sign-in has expired. Sign in again in your browser.", ex);
+        }
 
         return await CreateOAuthSessionAsync(response, fallbackRefreshToken: null, cancellationToken).ConfigureAwait(false);
     }
@@ -216,6 +227,12 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
         return await CreateOAuthSessionAsync(response, account.RefreshToken, cancellationToken).ConfigureAwait(false);
     }
 
+    private static bool IsInvalidRefreshToken(string message)
+        => message.Contains("invalid_grant", StringComparison.OrdinalIgnoreCase)
+           || message.Contains("invalid refresh", StringComparison.OrdinalIgnoreCase)
+           || (message.Contains("refresh token", StringComparison.OrdinalIgnoreCase)
+               && message.Contains("invalid", StringComparison.OrdinalIgnoreCase));
+
     private async Task<ElyByOAuthTokenResponse> SendOAuthTokenRequestAsync(
         IReadOnlyDictionary<string, string> parameters,
         CancellationToken cancellationToken)
@@ -333,7 +350,7 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
         if (_oauthOptions is { IsConfigured: true })
             return _oauthOptions;
 
-        throw new ElyByAuthException("Ely.by OAuth is not configured. Set the Ely.by client id, client secret, and redirect URI in App.xaml.cs.");
+        throw new ElyByAuthException("Ely.by OAuth is not configured. Set the build-time client id, client secret, and redirect URI properties.");
     }
 
     private static string BuildQuery(IEnumerable<(string Key, string? Value)> parameters)

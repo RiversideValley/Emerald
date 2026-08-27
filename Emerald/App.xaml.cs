@@ -1,10 +1,12 @@
 using System;
 using System.Diagnostics;
+using System.Reflection;
 using CmlLib.Core;
 using CommonServiceLocator;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Notifications;
+using Emerald.CoreX.Services.Auth;
 using Emerald.CoreX.Runtime;
 using Emerald.CoreX.Installation;
 using Emerald.CoreX.Store;
@@ -27,10 +29,6 @@ namespace Emerald;
 /// </summary>
 public partial class App : Application
 {
-    private const string MicrosoftClientId = "dfeccda7-604a-4895-b409-9d35f1679b5d";
-    private const string ElyByClientId = "emerald1";
-    private const string ElyByClientSecret = "_hrxVlIoEWm1sqRlruFevD5v87mYW4EKPdmPWlraQoVP6kOXxJV9Y-qMrcm7Znk4";
-    private const string ElyByRedirectUri = "http://127.0.0.1:58135/oauth/elyby/";
     private const string CurrentReleaseNotes = """
 What's new
 - Emerald now stores Windows app data in the app's local ApplicationData folder.
@@ -76,33 +74,45 @@ Notes
 
     private void ConfigureAuthServices(IServiceCollection services)
     {
-        //Ely.By
+        var elyByOptions = new CoreX.Services.Auth.ElyBy.ElyByOAuthOptions(
+            GetBuildMetadata("Emerald.ElyByClientId"),
+            GetBuildMetadata("Emerald.ElyByClientSecret"),
+            GetBuildMetadata("Emerald.ElyByRedirectUri"));
+
+        // Ely.by values are injected by CI or Directory.Build.local.props and
+        // intentionally never live in tracked source.
         services.AddSingleton<CoreX.Services.Auth.ElyBy.ElyByOAuthOptions>(_ =>
-            new CoreX.Services.Auth.ElyBy.ElyByOAuthOptions(
-                ElyByClientId,
-                ElyByClientSecret,
-                ElyByRedirectUri));
+            elyByOptions);
         services.AddSingleton<CoreX.Services.Auth.ElyBy.IElyByAuthClient>(provider =>
             new CoreX.Services.Auth.ElyBy.ElyByAuthClient(
                 provider.GetRequiredService<ILogger<CoreX.Services.Auth.ElyBy.ElyByAuthClient>>(),
                 provider.GetRequiredService<CoreX.Services.Auth.ElyBy.ElyByOAuthOptions>()));
         services.AddSingleton<CoreX.Services.Auth.ElyBy.IElyByAccountStore, CoreX.Services.Auth.ElyBy.ElyByAccountStore>();
-        services.AddSingleton<CoreX.Services.Auth.ElyBy.IElyByOAuthBrowser>(provider =>
+        services.AddSingleton<CoreX.Services.Auth.OAuth.ISystemBrowserLauncher>(provider =>
         {
             var dispatcherQueue = MainWindow?.DispatcherQueue
                                   ?? DispatcherQueue.GetForCurrentThread()
                                   ?? throw new InvalidOperationException("A DispatcherQueue is required for Ely.by browser authentication.");
 
-            return new Services.ElyByLoopbackOAuthBrowser(
-                provider.GetRequiredService<ILogger<Services.ElyByLoopbackOAuthBrowser>>(),
-                dispatcherQueue);
+            return new Services.UnoSystemBrowserLauncher(dispatcherQueue);
         });
+        services.AddSingleton<CoreX.Services.Auth.OAuth.IBrowserOAuthBroker>(provider =>
+            new CoreX.Services.Auth.OAuth.LoopbackBrowserOAuthBroker(
+                provider.GetRequiredService<ILogger<CoreX.Services.Auth.OAuth.LoopbackBrowserOAuthBroker>>(),
+                provider.GetRequiredService<CoreX.Services.Auth.OAuth.ISystemBrowserLauncher>()));
 
         //authLib
         services.AddSingleton<CoreX.Services.Auth.Authlib.IAuthlibInjectorService>(provider =>
             new CoreX.Services.Auth.Authlib.AuthlibInjectorService(
                 provider.GetRequiredService<ILogger<CoreX.Services.Auth.Authlib.AuthlibInjectorService>>(),
                 Path.Combine(DirectResoucres.LocalDataPath, "authlib-injector")));
+
+        services.AddSingleton(new CoreX.Services.Auth.AccountProviderPolicyOptions
+        {
+            RequireMicrosoftForOfflineAccounts = true,
+            RequireMicrosoftForElyByAccounts = true
+        });
+        services.AddEmeraldAccountProviders(GetBuildMetadata("Emerald.MSFTClientId"));
 
         //Accounts
         services.AddSingleton<CoreX.Services.IAccountService>(provider =>
@@ -115,14 +125,17 @@ Notes
                 provider.GetRequiredService<ILogger<CoreX.Services.AccountService>>(),
                 provider.GetRequiredService<Services.IBaseSettingsService>(),
                 new Services.DispatcherQueueUiDispatcher(dispatcherQueue),
+                provider.GetServices<CoreX.Services.Auth.IAccountProvider>(),
                 Path.Combine(DirectResoucres.LocalDataPath, "accounts", "cml_accounts.json"),
-                notificationService: provider.GetRequiredService<CoreX.Notifications.INotificationService>(),
-                elyByAuthClient: provider.GetRequiredService<CoreX.Services.Auth.ElyBy.IElyByAuthClient>(),
-                elyByAccountStore: provider.GetRequiredService<CoreX.Services.Auth.ElyBy.IElyByAccountStore>(),
-                elyByOAuthBrowser: provider.GetRequiredService<CoreX.Services.Auth.ElyBy.IElyByOAuthBrowser>(),
-                authlibInjectorService: provider.GetRequiredService<CoreX.Services.Auth.Authlib.IAuthlibInjectorService>());
+                notificationService: provider.GetRequiredService<CoreX.Notifications.INotificationService>());
         });
     }
+
+    private static string GetBuildMetadata(string key)
+        => typeof(App).Assembly
+            .GetCustomAttributes<AssemblyMetadataAttribute>()
+            .FirstOrDefault(attribute => string.Equals(attribute.Key, key, StringComparison.Ordinal))
+            ?.Value ?? string.Empty;
 
     private void ConfigureCoreServices(IServiceCollection services)
     {
@@ -307,7 +320,7 @@ Notes
         }
 
         var ac = Ioc.Default.GetService<CoreX.Services.IAccountService>();
-        _ = ac.InitializeAsync(MicrosoftClientId);
+        _ = ac.InitializeAsync();
         this.Log().LogInformation("Account service initialization requested.");
 
         // Do not repeat app initialization when the Window already has content,

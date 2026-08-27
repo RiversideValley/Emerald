@@ -4,6 +4,7 @@ using System.Text;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Services;
+using Emerald.CoreX.Services.Auth;
 using Emerald.CoreX.Installation;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
@@ -200,8 +201,10 @@ public sealed class GameRuntimeService : IGameRuntimeService
         }
 
         var minecraftNetwork = _networkCapabilityService.GetSnapshot(NetworkCapability.MinecraftMetadata);
+        var providerId = account.ProviderId;
+        var provider = _accountService.Providers.FirstOrDefault(candidate => candidate.ProviderId == providerId);
         if (minecraftNetwork.EffectiveState == NetworkAvailabilityState.Unavailable
-            && account.Type is (AccountType.Microsoft or AccountType.ElyBy))
+            && provider?.RequiresNetworkForLaunch != false)
         {
             // A network-backed account cannot be refreshed or validated while Emerald is
             // operating from local Minecraft metadata. Do not silently replace it with a

@@ -1,0 +1,10 @@
+<Project>
+  <!-- Copy to Directory.Build.local.props for a local Ely.by-enabled build.
+       Never commit the copied file. CI can pass these values with /p:. -->
+  <PropertyGroup>
+    <EmeraldMSFTClientId>replace-with-client-id</EmeraldMSFTClientId>
+    <EmeraldElyByClientId>replace-with-client-id</EmeraldElyByClientId>
+    <EmeraldElyByClientSecret>replace-with-client-secret</EmeraldElyByClientSecret>
+    <EmeraldElyByRedirectUri>http://127.0.0.1:58135/oauth/elyby/</EmeraldElyByRedirectUri>
+  </PropertyGroup>
+</Project>

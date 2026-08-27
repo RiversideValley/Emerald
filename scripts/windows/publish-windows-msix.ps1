@@ -13,6 +13,10 @@ param(
     [string]$ReleaseTag = "",
     [string]$CommitSha = "",
     [string]$BuildTimestampUtc = "",
+    [string]$EmeraldMSFTClientId = "",
+    [string]$EmeraldElyByClientId = "",
+    [string]$EmeraldElyByClientSecret = "",
+    [string]$EmeraldElyByRedirectUri = "",
     [switch]$SkipBundleVerify,
     [switch]$SkipBundleArchive,
     [Parameter(Mandatory = $true)]
@@ -240,6 +244,18 @@ try {
     }
 
     $msixFiles = @()
+    $accountProviderProperties = @()
+    foreach ($property in @(
+        @{ Name = "EmeraldMSFTClientId"; Value = $EmeraldMSFTClientId },
+        @{ Name = "EmeraldElyByClientId"; Value = $EmeraldElyByClientId },
+        @{ Name = "EmeraldElyByClientSecret"; Value = $EmeraldElyByClientSecret },
+        @{ Name = "EmeraldElyByRedirectUri"; Value = $EmeraldElyByRedirectUri }
+    )) {
+        if (-not [string]::IsNullOrWhiteSpace($property.Value)) {
+            $accountProviderProperties += "/p:$($property.Name)=$($property.Value)"
+        }
+    }
+
     foreach ($platform in $Platforms) {
         $appxDir = Join-Path $packagesRoot "$platform\"
         New-Item -ItemType Directory -Path $appxDir -Force | Out-Null
@@ -265,6 +281,7 @@ try {
             "/p:EmeraldReleaseTag=$ReleaseTag" `
             "/p:EmeraldCommitSha=$CommitSha" `
             "/p:EmeraldBuildTimestampUtc=$BuildTimestampUtc" `
+            @accountProviderProperties `
             "/p:AppxPackageVersion=$Version" `
             "/p:AppxPackageDir=$appxDir" `
             "/p:PackageCertificateThumbprint=$importedThumbprint" `

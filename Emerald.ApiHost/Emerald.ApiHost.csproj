@@ -7,11 +7,30 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Emerald.MSFTClientId</_Parameter1>
+      <_Parameter2>$(EmeraldMSFTClientId)</_Parameter2>
+    </AssemblyAttribute>
     <ProjectReference Include="..\Emerald.CoreX\Emerald.CoreX.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Emerald.ElyByClientId</_Parameter1>
+      <_Parameter2>$(EmeraldElyByClientId)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Emerald.ElyByClientSecret</_Parameter1>
+      <_Parameter2>$(EmeraldElyByClientSecret)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Emerald.ElyByRedirectUri</_Parameter1>
+      <_Parameter2>$(EmeraldElyByRedirectUri)</_Parameter2>
+    </AssemblyAttribute>
   </ItemGroup>
 </Project>

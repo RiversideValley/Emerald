@@ -1,14 +1,13 @@
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Services;
+using Emerald.CoreX.Services.Auth;
+using Emerald.Helpers;
 using Microsoft.Extensions.Logging;
-using System;
 
 namespace Emerald.ViewModels;
 
@@ -25,46 +24,27 @@ public partial class AccountsPageViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LoadingMessage))]
-    [NotifyPropertyChangedFor(nameof(CanStartMicrosoftLogin))]
-    [NotifyPropertyChangedFor(nameof(CanStartElyByLogin))]
-    [NotifyPropertyChangedFor(nameof(CanStartOfflineAccount))]
     [NotifyPropertyChangedFor(nameof(CanCancelLogin))]
-    [NotifyCanExecuteChangedFor(nameof(AddMicrosoftAccountCommand))]
-    [NotifyCanExecuteChangedFor(nameof(AddElyByAccountCommand))]
-    [NotifyCanExecuteChangedFor(nameof(AddOfflineAccountCommand))]
     [NotifyCanExecuteChangedFor(nameof(CancelLoginCommand))]
     private bool _isLoginInProgress;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LoadingMessage))]
-    private string _loginStatusMessage = "Loading accounts...";
+    private string _loginStatusMessage = "AccountsLoading".Localize();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasLoadError))]
     private string? _loadErrorMessage;
 
-    [ObservableProperty]
-    private string _offlineUsername = string.Empty;
-
     public ObservableCollection<EAccount> Accounts => _accountService.Accounts;
+    public IReadOnlyList<AccountProviderDescriptor> Providers => _accountService.Providers;
     public bool HasLoadError => !string.IsNullOrWhiteSpace(LoadErrorMessage);
     public EAccount? SelectedAccount => _accountService.GetSelectedAccount();
-    public bool CanCreateOfflineAccount
-        => !_accountService.RequireMicrosoftAccountForOfflineAccounts
-           || Accounts.Any(account => account.Type == AccountType.Microsoft);
-    public bool CanCreateElyByAccount
-        => !_accountService.RequireMicrosoftAccountForElyByAccounts
-           || Accounts.Any(account => account.Type == AccountType.Microsoft);
-    public bool CanStartMicrosoftLogin => !IsLoginInProgress;
-    public bool CanStartElyByLogin => CanCreateElyByAccount && !IsLoginInProgress;
-    public bool CanStartOfflineAccount => CanCreateOfflineAccount && !IsLoginInProgress;
+    public AccountProviderUsability GetProviderUsability(string providerId)
+        => _accountService.GetProviderUsability(providerId);
     public bool CanCancelLogin
         => IsLoginInProgress && _loginCancellationSource is { IsCancellationRequested: false };
-    public string LoadingMessage => IsLoginInProgress ? LoginStatusMessage : "Loading accounts...";
-    public bool ShowOfflineAccountRestriction
-        => _accountService.RequireMicrosoftAccountForOfflineAccounts && !CanCreateOfflineAccount;
-    public bool ShowElyByAccountRestriction
-        => _accountService.RequireMicrosoftAccountForElyByAccounts && !CanCreateElyByAccount;
+    public string LoadingMessage => IsLoginInProgress ? LoginStatusMessage : "AccountsLoading".Localize();
 
     public AccountsPageViewModel(IAccountService accountService, INotificationService notificationService, ILogger<AccountsPageViewModel> logger)
     {
@@ -94,8 +74,8 @@ public partial class AccountsPageViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load accounts.");
-            LoadErrorMessage = "Could not load accounts.";
-            _notificationService.Error("AccountLoadError", "Could not load accounts.", ex: ex);
+            LoadErrorMessage = "AccountLoadFailedMessage".Localize();
+            _notificationService.Error("AccountLoadFailedTitle".Localize(), LoadErrorMessage, ex: ex);
         }
         finally
         {
@@ -103,27 +83,71 @@ public partial class AccountsPageViewModel : ObservableObject
         }
     }
 
-    [RelayCommand(CanExecute = nameof(CanStartMicrosoftLogin))]
-    private async Task AddMicrosoftAccountAsync()
+    public async Task AddProviderAccountAsync(
+        string providerId,
+        string methodId,
+        string? username = null)
     {
-        var cancellationToken = BeginLogin("Complete Microsoft sign-in in your browser.");
+        var provider = Providers.FirstOrDefault(candidate => candidate.ProviderId == providerId);
+        if (provider is null)
+        {
+            _notificationService.Error(
+                "AccountProviderMissingTitle".Localize(),
+                "AccountProviderMissingMessage".Localize());
+            return;
+        }
+
+        var usability = _accountService.GetProviderUsability(providerId);
+        if (!usability.IsAvailable)
+        {
+            var message = usability.UnavailableReason ?? $"{provider.DisplayName} is unavailable.";
+            LoadErrorMessage = message;
+            _notificationService.Warning("AccountProviderUnavailableTitle".Localize(), message);
+            return;
+        }
+
+        var method = provider.SignInMethods.FirstOrDefault(candidate => candidate.MethodId == methodId);
+        if (method is null)
+        {
+            _notificationService.Error(
+                "AccountSignInMethodMissingTitle".Localize(),
+                "AccountSignInMethodMissingMessage".Localize());
+            return;
+        }
+
+        if (method.InputKind == AccountSignInInputKind.Username && string.IsNullOrWhiteSpace(username))
+        {
+            _notificationService.Warning("InvalidUsernameTitle".Localize(), "InvalidUsernameMessage".Localize());
+            return;
+        }
+
+        var cancellationToken = BeginLogin(method.InputKind == AccountSignInInputKind.Username
+            ? string.Format("AccountAddingFormat".Localize(), provider.DisplayName)
+            : string.Format("AccountBrowserSignInFormat".Localize(), provider.DisplayName));
         try
         {
-            await _accountService.SignInMicrosoftAccountAsync(cancellationToken);
-            _notificationService.Info("AccountAdded", "Microsoft account added successfully!");
+            await _accountService.SignInAsync(providerId, new AccountSignInRequest(methodId, username), cancellationToken);
+            LoadErrorMessage = null;
+            _notificationService.Info(
+                "AccountAddedTitle".Localize(),
+                string.Format("AccountAddedFormat".Localize(), provider.DisplayName));
             NotifyAccountStateChanged();
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            _logger.LogInformation("Microsoft sign-in was canceled.");
             LoadErrorMessage = null;
-            _notificationService.Info("SignInCanceled", "Microsoft sign-in canceled.");
+            _notificationService.Info(
+                "SignInCanceledTitle".Localize(),
+                string.Format("SignInCanceledFormat".Localize(), provider.DisplayName));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to sign in with Microsoft account.");
-            LoadErrorMessage = "Failed to add Microsoft account.";
-            _notificationService.Error("SignInError", "Failed to add Microsoft account.", ex: ex);
+            _logger.LogError(ex, "Failed to sign in with {AccountProvider}.", providerId);
+            LoadErrorMessage = ex.Message;
+            _notificationService.Error(
+                "AccountSignInFailedTitle".Localize(),
+                string.Format("AccountSignInFailedFormat".Localize(), provider.DisplayName),
+                ex: ex);
         }
         finally
         {
@@ -131,67 +155,22 @@ public partial class AccountsPageViewModel : ObservableObject
         }
     }
 
-    [RelayCommand(CanExecute = nameof(CanStartElyByLogin))]
-    private async Task AddElyByAccountAsync()
+    public async Task RefreshAccountAsync(EAccount account)
     {
-        if (!CanCreateElyByAccount)
-        {
-            _notificationService.Warning("ElyByNeedsMicrosoft", "Sign in with a Microsoft account before adding Ely.by accounts.");
-            return;
-        }
-
-        var cancellationToken = BeginLogin("Complete Ely.by sign-in in your browser.");
         try
         {
-            _notificationService.Info("UsingBrowser", "Complete Ely.by sign-in in your browser.");
-            await _accountService.SignInElyByAccountAsync(cancellationToken);
-            _notificationService.Info("AccountAdded", "Ely.by account added successfully!");
-            NotifyAccountStateChanged();
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            _logger.LogInformation("Ely.by sign-in was canceled.");
+            await _accountService.RefreshAccountAsync(account);
             LoadErrorMessage = null;
-            _notificationService.Info("SignInCanceled", "Ely.by sign-in canceled.");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to sign in with Ely.by account.");
-            LoadErrorMessage = "Failed to add Ely.by account.";
-            _notificationService.Error("ElyBySignInError", "Failed to add Ely.by account.", ex: ex);
-        }
-        finally
-        {
-            EndLogin(cancellationToken);
-        }
-    }
-
-    [RelayCommand(CanExecute = nameof(CanStartOfflineAccount))]
-    private void AddOfflineAccount()
-    {
-        if (!CanStartOfflineAccount)
-        {
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(OfflineUsername))
-        {
-            _notificationService.Warning("InvalidUsername", "Offline username cannot be empty.");
-            return;
-        }
-
-        try
-        {
-            _accountService.CreateOfflineAccount(OfflineUsername);
-            LoadErrorMessage = null;
-            _notificationService.Info("AccountAdded", $"Offline account '{OfflineUsername}' created.");
-            OfflineUsername = string.Empty; // Clear for next use
             NotifyAccountStateChanged();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create offline account.");
-            _notificationService.Error("CreateOfflineError", "Could not create offline account.", ex: ex);
+            _logger.LogError(ex, "Failed to refresh account {AccountName}.", account.Name);
+            LoadErrorMessage = ex.Message;
+            _notificationService.Error(
+                "AccountRefreshFailedTitle".Localize(),
+                string.Format("AccountRefreshFailedFormat".Localize(), account.Name),
+                ex: ex);
         }
     }
 
@@ -203,7 +182,7 @@ public partial class AccountsPageViewModel : ObservableObject
             return;
         }
 
-        LoginStatusMessage = "Canceling sign-in...";
+        LoginStatusMessage = "AccountCancelingSignIn".Localize();
         _loginCancellationSource.Cancel();
         NotifyLoginCommandStateChanged();
     }
@@ -216,13 +195,18 @@ public partial class AccountsPageViewModel : ObservableObject
         try
         {
             await _accountService.RemoveAccountAsync(account);
-            _notificationService.Info("AccountRemoved", $"Account '{account.Name}' has been removed.");
+            _notificationService.Info(
+                "AccountRemovedTitle".Localize(),
+                string.Format("AccountRemovedFormat".Localize(), account.Name));
             NotifyAccountStateChanged();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to remove account.");
-            _notificationService.Error("RemoveAccountError", "Could not remove the account.", ex: ex);
+            _notificationService.Error(
+                "AccountRemoveFailedTitle".Localize(),
+                "AccountRemoveFailedMessage".Localize(),
+                ex: ex);
         }
     }
 
@@ -244,16 +228,21 @@ public partial class AccountsPageViewModel : ObservableObject
 
         try
         {
-            await _accountService.AuthenticateAccountAsync(account);
+            await _accountService.RefreshAccountAsync(account);
             _accountService.SetSelectedAccount(account);
-            _notificationService.Info("AccountSelected", $"'{account.Name}' is now selected for launches.");
+            _notificationService.Info(
+                "AccountSelectedTitle".Localize(),
+                string.Format("AccountSelectedFormat".Localize(), account.Name));
             NotifyAccountStateChanged();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to activate account {AccountName}.", account.Name);
-            LoadErrorMessage = $"Failed to authenticate '{account.Name}'.";
-            _notificationService.Error("AccountSelectError", $"Could not switch to '{account.Name}'.", ex: ex);
+            LoadErrorMessage = string.Format("AccountAuthenticationFailedFormat".Localize(), account.Name);
+            _notificationService.Error(
+                "AccountSelectFailedTitle".Localize(),
+                string.Format("AccountSelectFailedFormat".Localize(), account.Name),
+                ex: ex);
         }
         finally
         {
@@ -284,7 +273,7 @@ public partial class AccountsPageViewModel : ObservableObject
         _loginCancellationSource.Dispose();
         _loginCancellationSource = null;
         IsLoginInProgress = false;
-        LoginStatusMessage = "Loading accounts...";
+        LoginStatusMessage = "AccountsLoading".Localize();
         IsLoading = false;
         NotifyAccountStateChanged();
         NotifyLoginCommandStateChanged();
@@ -293,22 +282,13 @@ public partial class AccountsPageViewModel : ObservableObject
     private void NotifyAccountStateChanged()
     {
         OnPropertyChanged(nameof(SelectedAccount));
-        OnPropertyChanged(nameof(CanCreateOfflineAccount));
-        OnPropertyChanged(nameof(CanCreateElyByAccount));
-        OnPropertyChanged(nameof(CanStartMicrosoftLogin));
-        OnPropertyChanged(nameof(CanStartElyByLogin));
-        OnPropertyChanged(nameof(CanStartOfflineAccount));
+        OnPropertyChanged(nameof(Providers));
         OnPropertyChanged(nameof(CanCancelLogin));
-        OnPropertyChanged(nameof(ShowOfflineAccountRestriction));
-        OnPropertyChanged(nameof(ShowElyByAccountRestriction));
         NotifyLoginCommandStateChanged();
     }
 
     private void NotifyLoginCommandStateChanged()
     {
-        AddMicrosoftAccountCommand.NotifyCanExecuteChanged();
-        AddElyByAccountCommand.NotifyCanExecuteChanged();
-        AddOfflineAccountCommand.NotifyCanExecuteChanged();
         CancelLoginCommand.NotifyCanExecuteChanged();
     }
 }
