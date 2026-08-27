@@ -6,6 +6,7 @@ using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Services;
 using Emerald.CoreX.Services.Auth.Authlib;
 using Emerald.CoreX.Services.Auth.ElyBy;
+using Emerald.CoreX.Services.Auth.OAuth;
 using Emerald.CoreX.Services.Auth.Microsoft;
 using Emerald.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -205,10 +206,11 @@ internal sealed class FakeElyByAuthClient : IElyByAuthClient
     public List<string> RefreshCalls { get; } = [];
     public List<string> InvalidateCalls { get; } = [];
 
-    public ElyByOAuthAuthorizationRequest CreateOAuthAuthorizationRequest(string state, string? loginHint = null)
+    public BrowserOAuthAuthorizationRequest CreateOAuthAuthorizationRequest(string state, string? loginHint = null)
     {
         AuthorizationRequestCalls.Add((state, loginHint));
-        return new ElyByOAuthAuthorizationRequest(
+        return new BrowserOAuthAuthorizationRequest(
+            "Ely.by",
             new Uri($"https://account.ely.by/oauth2/v1?state={state}"),
             new Uri("http://127.0.0.1:58135/oauth/elyby/"),
             state);
@@ -254,14 +256,14 @@ internal sealed class FakeElyByAuthClient : IElyByAuthClient
     }
 }
 
-internal sealed class FakeElyByOAuthBrowser : IElyByOAuthBrowser
+internal sealed class FakeElyByOAuthBrowser : IBrowserOAuthBroker
 {
     public string Code { get; set; } = "ely-oauth-code";
-    public List<ElyByOAuthAuthorizationRequest> Requests { get; } = [];
-    public Func<ElyByOAuthAuthorizationRequest, CancellationToken, Task<ElyByOAuthAuthorizationResult>>? OnAuthorizeAsync { get; set; }
+    public List<BrowserOAuthAuthorizationRequest> Requests { get; } = [];
+    public Func<BrowserOAuthAuthorizationRequest, CancellationToken, Task<BrowserOAuthAuthorizationResult>>? OnAuthorizeAsync { get; set; }
 
-    public Task<ElyByOAuthAuthorizationResult> AuthorizeAsync(
-        ElyByOAuthAuthorizationRequest request,
+    public Task<BrowserOAuthAuthorizationResult> AuthorizeAsync(
+        BrowserOAuthAuthorizationRequest request,
         CancellationToken cancellationToken = default)
     {
         Requests.Add(request);
@@ -269,7 +271,7 @@ internal sealed class FakeElyByOAuthBrowser : IElyByOAuthBrowser
 
         return OnAuthorizeAsync is not null
             ? OnAuthorizeAsync(request, cancellationToken)
-            : Task.FromResult(new ElyByOAuthAuthorizationResult(Code));
+            : Task.FromResult(new BrowserOAuthAuthorizationResult(Code));
     }
 }
 

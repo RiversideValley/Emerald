@@ -10,20 +10,8 @@ public sealed partial class AccountService
     {
         _logger.LogInformation("Removing account '{Name}' ({Type}).", account.Name, account.Type);
 
-        if (account.Type == AccountType.Microsoft)
-        {
-            await EnsureInitializedAsync().ConfigureAwait(false);
-            await GetAuthenticationProvider(account.Type).RemoveAsync(account).ConfigureAwait(false);
-            _logger.LogInformation("Signed out Microsoft account '{Name}' ({Identifier}).", account.Name, account.UniqueId);
-            await LoadAllAccountsAsync().ConfigureAwait(false);
-            return;
-        }
-
-        if (account.Type == AccountType.ElyBy)
-        {
-            await GetAuthenticationProvider(account.Type).RemoveAsync(account).ConfigureAwait(false);
-            _logger.LogInformation("Signed out Ely.by account '{Name}' ({Identifier}).", account.Name, account.UniqueId);
-        }
+        await EnsureInitializedAsync().ConfigureAwait(false);
+        await GetProvider(account).RemoveAsync(account).ConfigureAwait(false);
 
         var wasSelected = false;
         await _gate.WaitAsync().ConfigureAwait(false);
@@ -52,21 +40,10 @@ public sealed partial class AccountService
     {
         _logger.LogInformation("Authenticating '{Name}' ({Type}).", account.Name, account.Type);
 
-        if (account.Type == AccountType.Offline)
-        {
-            EnsureOfflineAccountPolicyMet("Offline accounts require at least one Microsoft account.");
-        }
-        else if (account.Type == AccountType.ElyBy)
-        {
-            EnsureElyByAccountPolicyMet("Ely.by accounts require at least one Microsoft account.");
-        }
-        else if (account.Type == AccountType.Microsoft)
-        {
-            await EnsureInitializedAsync().ConfigureAwait(false);
-        }
-
-        var authenticationResult = await GetAuthenticationProvider(account.Type)
-            .AuthenticateAsync(account)
+        await EnsureInitializedAsync().ConfigureAwait(false);
+        _uiDispatcher.Invoke(() => EnsureAccountUsableCore(account));
+        var authenticationResult = await GetProvider(account)
+            .AuthenticateForLaunchAsync(account)
             .ConfigureAwait(false);
 
         await _gate.WaitAsync().ConfigureAwait(false);
@@ -93,12 +70,13 @@ public sealed partial class AccountService
 
     public async Task<GameAuthenticationResult> AuthenticateLaunchAccountAsync(EAccount account, bool useOfflineFallback)
     {
-        if (!useOfflineFallback || account.Type == AccountType.Offline)
+        EnsureProviderId(account);
+        if (!useOfflineFallback || account.ProviderId == AccountProviderIds.Offline)
         {
             return await AuthenticateAccountAsync(account).ConfigureAwait(false);
         }
 
-        var (offlineAccount, created) = EnsureOfflineLaunchAccount(account);
+        var (offlineAccount, created) = await GetOrCreateOfflineLaunchAccountAsync(account).ConfigureAwait(false);
         _logger.LogInformation(
             "Using offline launch account '{OfflineName}' for selected {AccountType} account '{SelectedName}'. Created: {Created}.",
             offlineAccount.Name,
@@ -116,13 +94,12 @@ public sealed partial class AccountService
         return await AuthenticateAccountAsync(offlineAccount).ConfigureAwait(false);
     }
 
-    private (EAccount Account, bool Created) EnsureOfflineLaunchAccount(EAccount sourceAccount)
+    private async Task<(EAccount Account, bool Created)> GetOrCreateOfflineLaunchAccountAsync(EAccount sourceAccount)
     {
         var username = string.IsNullOrWhiteSpace(sourceAccount.Name)
             ? "Player"
             : sourceAccount.Name.Trim();
         EAccount? offlineAccount = null;
-        var created = false;
 
         _gate.Wait();
         try
@@ -130,17 +107,8 @@ public sealed partial class AccountService
             _uiDispatcher.Invoke(() =>
             {
                 offlineAccount = _accounts.FirstOrDefault(candidate =>
-                    candidate.Type == AccountType.Offline &&
+                    candidate.ProviderId == AccountProviderIds.Offline &&
                     candidate.Name.Equals(username, StringComparison.OrdinalIgnoreCase));
-
-                if (offlineAccount is not null)
-                {
-                    return;
-                }
-
-                offlineAccount = new EAccount(username, AccountType.Offline);
-                _accounts.Add(offlineAccount);
-                created = true;
             });
         }
         finally
@@ -148,16 +116,33 @@ public sealed partial class AccountService
             _gate.Release();
         }
 
-        if (created)
-        {
-            PersistAccounts();
-        }
+        if (offlineAccount is not null)
+            return (offlineAccount, false);
 
-        return (offlineAccount!, created);
+        var method = _providers[AccountProviderIds.Offline].Descriptor.SignInMethods
+            .FirstOrDefault(candidate => candidate.InputKind == AccountSignInInputKind.Username)
+            ?? throw new InvalidOperationException("The offline provider does not expose a username sign-in method.");
+        offlineAccount = await SignInAsync(
+            AccountProviderIds.Offline,
+            new AccountSignInRequest(method.MethodId, username)).ConfigureAwait(false);
+        return (offlineAccount, true);
     }
 
-    private IAccountAuthenticationProvider GetAuthenticationProvider(AccountType accountType)
-        => _authenticationProviders.TryGetValue(accountType, out var provider)
+    public async Task RefreshAccountAsync(EAccount account, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(account);
+        await EnsureInitializedAsync().ConfigureAwait(false);
+        EnsureProviderId(account);
+        _uiDispatcher.Invoke(() => EnsureAccountUsableCore(account));
+        await GetProvider(account).RefreshAsync(account, cancellationToken).ConfigureAwait(false);
+        PersistAccounts();
+    }
+
+    private IAccountProvider GetProvider(EAccount account)
+    {
+        EnsureProviderId(account);
+        return _providers.TryGetValue(account.ProviderId, out var provider)
             ? provider
-            : throw new ArgumentException($"Unknown account type: {accountType}");
+            : throw new ArgumentException($"Unknown account provider: {account.ProviderId}");
+    }
 }

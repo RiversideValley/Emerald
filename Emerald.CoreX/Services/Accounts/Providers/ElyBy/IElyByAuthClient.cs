@@ -1,8 +1,10 @@
+using Emerald.CoreX.Services.Auth.OAuth;
+
 namespace Emerald.CoreX.Services.Auth.ElyBy;
 
 internal interface IElyByAuthClient
 {
-    ElyByOAuthAuthorizationRequest CreateOAuthAuthorizationRequest(string state, string? loginHint = null);
+    BrowserOAuthAuthorizationRequest CreateOAuthAuthorizationRequest(string state, string? loginHint = null);
 
     Task<ElyByAuthSession> ExchangeOAuthCodeAsync(
         string code,

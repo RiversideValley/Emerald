@@ -23,15 +23,9 @@ public sealed partial class AccountService
 
             _settingsService.Set(SettingsKeys.MinecraftAccounts, storedAccounts);
             _settingsService.Set(SettingsKeys.SelectedMinecraftAccount, selectedAccountId);
-            var offlineCount = storedAccounts.Count(account => account.Type == AccountType.Offline);
-            var microsoftCount = storedAccounts.Count(account => account.Type == AccountType.Microsoft);
-            var elyByCount = storedAccounts.Count(account => account.Type == AccountType.ElyBy);
             _logger.LogDebug(
-                "Persisted {TotalCount} accounts ({OfflineCount} offline, {MicrosoftCount} Microsoft, {ElyByCount} Ely.by). SelectedAccountId: {SelectedAccountId}.",
+                "Persisted {AccountCount} accounts. SelectedAccountId: {SelectedAccountId}.",
                 storedAccounts.Count,
-                offlineCount,
-                microsoftCount,
-                elyByCount,
                 selectedAccountId ?? "None");
         }
         catch (Exception ex)
@@ -59,6 +53,16 @@ public sealed partial class AccountService
     {
         if (string.IsNullOrWhiteSpace(account.ProviderId))
             account.ProviderId = AccountProviderIds.FromAccountType(account.Type);
+
+        if (string.IsNullOrWhiteSpace(account.ProviderDisplayName))
+            account.ProviderDisplayName = AccountProviderIds.GetDisplayName(account.ProviderId);
+    }
+
+    private static void ApplyProviderMetadata(EAccount account, AccountProviderDescriptor descriptor)
+    {
+        account.ProviderId = descriptor.ProviderId;
+        account.ProviderDisplayName = descriptor.DisplayName;
+        account.ProviderActions = descriptor.EffectiveActions;
     }
 
     private EAccount CloneStoredAccount(EAccount account)

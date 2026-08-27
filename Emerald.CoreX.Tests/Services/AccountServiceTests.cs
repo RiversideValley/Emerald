@@ -5,6 +5,8 @@ using Emerald.CoreX.Services;
 using Emerald.CoreX.Services.Auth;
 using Emerald.CoreX.Services.Auth.ElyBy;
 using Emerald.CoreX.Services.Auth.Microsoft;
+using Emerald.CoreX.Services.Auth.Offline;
+using Emerald.CoreX.Services.Auth.OAuth;
 using Emerald.CoreX.Tests.Support;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -15,27 +17,126 @@ namespace Emerald.CoreX.Tests.Services;
 public sealed class AccountServiceTests
 {
     [Fact]
-    public void RequireMicrosoftAccountForOfflineAccounts_IsDisabled()
+    public async Task CustomProvider_CanLoadSignInRefreshAuthenticateAndRemove_WithoutServiceChanges()
     {
-        var service = CreateService(new InMemoryBaseSettingsService());
+        var provider = new RecordingAccountProvider();
+        var service = CreateService(new InMemoryBaseSettingsService(), new IAccountProvider[] { provider });
+        await service.InitializeAsync();
+        await service.LoadAllAccountsAsync();
 
-        Assert.False(service.RequireMicrosoftAccountForOfflineAccounts);
+        var account = await service.SignInAsync("test", new AccountSignInRequest("test-browser"));
+        await service.RefreshAccountAsync(account);
+        await service.AuthenticateAccountAsync(account);
+        await service.RemoveAccountAsync(account);
+
+        Assert.True(provider.Loaded);
+        Assert.True(provider.SignedIn);
+        Assert.True(provider.Refreshed);
+        Assert.True(provider.Authenticated);
+        Assert.True(provider.Removed);
+        Assert.Equal("manage-test", service.Providers.Single().EffectiveActions.Single().ActionId);
+        Assert.Empty(service.Accounts);
     }
 
     [Fact]
-    public void RequireMicrosoftAccountForElyByAccounts_IsDisabled()
+    public void DuplicateProviderIds_AreRejected()
     {
-        var service = CreateService(new InMemoryBaseSettingsService());
+        var settings = new InMemoryBaseSettingsService();
+        var exception = Assert.Throws<ArgumentException>(() =>
+            CreateService(settings, new IAccountProvider[]
+            {
+                new OfflineAccountProvider(new AccountProviderPolicyOptions()),
+                new OfflineAccountProvider(new AccountProviderPolicyOptions())
+            }));
 
-        Assert.False(service.RequireMicrosoftAccountForElyByAccounts);
+        Assert.Contains(AccountProviderIds.Offline, exception.Message);
     }
 
     [Fact]
-    public void CreateOfflineAccount_WithoutMicrosoftAccount_CreatesAccount()
+    public void ProviderRequirements_AreConfiguredByProviderPolicy()
+    {
+        var service = CreateService(
+            new InMemoryBaseSettingsService(),
+            policyOptions: new AccountProviderPolicyOptions
+            {
+                RequireMicrosoftForOfflineAccounts = true,
+                RequireMicrosoftForElyByAccounts = true
+            });
+
+        Assert.False(service.GetProviderUsability(AccountProviderIds.Offline).IsAvailable);
+        Assert.False(service.GetProviderUsability(AccountProviderIds.ElyBy).IsAvailable);
+        Assert.Contains(
+            service.Providers.Single(provider => provider.ProviderId == AccountProviderIds.Offline).EffectiveRequirements,
+            requirement => requirement.ProviderId == AccountProviderIds.Microsoft);
+    }
+
+    [Fact]
+    public async Task ProviderRequirements_AreEnforcedForGenericSignIn()
+    {
+        var service = CreateService(
+            new InMemoryBaseSettingsService(),
+            policyOptions: new AccountProviderPolicyOptions { RequireMicrosoftForOfflineAccounts = true });
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => SignInOfflineAsync(service, "Alpha"));
+
+        Assert.Contains("Microsoft", exception.Message);
+    }
+
+    [Fact]
+    public void ProviderRequirements_AreEnforcedForSelection_AndReactToAccountChanges()
+    {
+        var service = CreateService(
+            new InMemoryBaseSettingsService(),
+            policyOptions: new AccountProviderPolicyOptions { RequireMicrosoftForOfflineAccounts = true });
+        var offline = new EAccount("Alpha", AccountType.Offline);
+        service.Accounts.Add(offline);
+
+        Assert.Throws<InvalidOperationException>(() => service.SetSelectedAccount(offline));
+
+        AddMicrosoftAccount(service);
+        Assert.True(service.GetProviderUsability(AccountProviderIds.Offline).IsAvailable);
+        service.SetSelectedAccount(offline);
+        Assert.Same(offline, service.GetSelectedAccount());
+    }
+
+    [Fact]
+    public async Task RemovingRequirementAccount_ClearsNowInvalidSelection()
+    {
+        var service = CreateService(
+            new InMemoryBaseSettingsService(),
+            policyOptions: new AccountProviderPolicyOptions { RequireMicrosoftForOfflineAccounts = true });
+        var microsoft = new EAccount("Microsoft", AccountType.Microsoft, "ms-uuid", "ms-id");
+        var offline = new EAccount("Alpha", AccountType.Offline);
+        service.Accounts.Add(microsoft);
+        service.Accounts.Add(offline);
+        service.SetSelectedAccount(offline);
+
+        await service.RemoveAccountAsync(microsoft);
+
+        Assert.Null(service.GetSelectedAccount());
+        Assert.False(service.GetProviderUsability(AccountProviderIds.Offline).IsAvailable);
+    }
+
+    [Fact]
+    public async Task SignInAsync_RejectsMethodsNotAdvertisedByProvider()
+    {
+        var provider = new RecordingAccountProvider();
+        var service = CreateService(new InMemoryBaseSettingsService(), new IAccountProvider[] { provider });
+
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.SignInAsync("test", new AccountSignInRequest("not-advertised")));
+
+        Assert.Contains("does not expose", exception.Message);
+        Assert.False(provider.SignedIn);
+    }
+
+    [Fact]
+    public async Task SignInAsync_OfflineWithoutMicrosoftRequirement_CreatesAccount()
     {
         var service = CreateService(new InMemoryBaseSettingsService());
 
-        service.CreateOfflineAccount("Alpha");
+        await SignInOfflineAsync(service, "Alpha");
 
         Assert.Contains(service.Accounts, account => account.Type == AccountType.Offline && account.Name == "Alpha");
     }
@@ -87,14 +188,14 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
-    public async Task SignInElyByAccountAsync_WithoutMicrosoftAccount_UsesBrowserOAuth()
+    public async Task SignInAsync_ElyByWithoutMicrosoftRequirement_UsesBrowserOAuth()
     {
         var baseSettingsService = new InMemoryBaseSettingsService();
         var elyByClient = new FakeElyByAuthClient();
         var oauthBrowser = new FakeElyByOAuthBrowser();
         var service = CreateServiceWithEly(baseSettingsService, elyByClient: elyByClient, elyByOAuthBrowser: oauthBrowser);
 
-        await service.SignInElyByAccountAsync();
+        await SignInElyByAsync(service);
 
         Assert.Single(oauthBrowser.Requests);
         Assert.Equal(["ely-oauth-code"], elyByClient.ExchangeOAuthCodeCalls);
@@ -102,7 +203,7 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
-    public async Task SignInElyByAccountAsync_CanceledDuringBrowserAuthorization_DoesNotAddAccount()
+    public async Task SignInAsync_ElyByCanceledDuringBrowserAuthorization_DoesNotAddAccount()
     {
         var baseSettingsService = new InMemoryBaseSettingsService();
         var elyByClient = new FakeElyByAuthClient();
@@ -113,14 +214,14 @@ public sealed class AccountServiceTests
             {
                 authorizationStarted.SetResult(true);
                 await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
-                return new ElyByOAuthAuthorizationResult("unused-code");
+                return new BrowserOAuthAuthorizationResult("unused-code");
             }
         };
 
         var service = CreateServiceWithEly(baseSettingsService, elyByClient: elyByClient, elyByOAuthBrowser: oauthBrowser);
         using var cancellation = new CancellationTokenSource();
 
-        var signInTask = service.SignInElyByAccountAsync(cancellation.Token);
+        var signInTask = SignInElyByAsync(service, cancellation.Token);
         await authorizationStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
         cancellation.Cancel();
 
@@ -130,11 +231,25 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
-    public void SetSelectedAccount_ElyByWithoutMicrosoftAccount_SelectsAccount()
+    public async Task SetSelectedAccount_ElyByWithoutMicrosoftRequirement_SelectsStoredAccount()
     {
-        var service = CreateService(new InMemoryBaseSettingsService());
-        var elyBy = new EAccount("ElyAlpha", AccountType.ElyBy, "ely-alpha-uuid", "elyby:ely-alpha-uuid");
-        service.Accounts.Add(elyBy);
+        var baseSettingsService = new InMemoryBaseSettingsService();
+        baseSettingsService.Set(
+            SettingsKeys.ElyByAccounts,
+            new List<ElyByStoredAccount>
+            {
+                new()
+                {
+                    UniqueId = "elyby:ely-alpha-uuid",
+                    Name = "ElyAlpha",
+                    UUID = "ely-alpha-uuid",
+                    AccessToken = "ely-access",
+                    ClientToken = "ely-client"
+                }
+            });
+        var service = CreateService(baseSettingsService);
+        await service.LoadAllAccountsAsync();
+        var elyBy = Assert.Single(service.Accounts);
 
         service.SetSelectedAccount(elyBy);
 
@@ -161,13 +276,46 @@ public sealed class AccountServiceTests
             });
 
         var service = CreateServiceWithEly(baseSettingsService, elyByClient: new FakeElyByAuthClient());
-        await service.InitializeAsync("client-id");
+        await service.InitializeAsync();
         await service.LoadAllAccountsAsync();
 
         var elyBy = Assert.Single(service.Accounts, account => account.Type == AccountType.ElyBy);
         var result = await service.AuthenticateAccountAsync(elyBy);
 
         Assert.Equal("ElyAlpha", result.Session.Username);
+    }
+
+    [Fact]
+    public async Task UnconfiguredElyBy_DisablesNewSignIn_ButDoesNotStrandLegacyDirectAccount()
+    {
+        var baseSettingsService = new InMemoryBaseSettingsService();
+        baseSettingsService.Set(
+            SettingsKeys.ElyByAccounts,
+            new List<ElyByStoredAccount>
+            {
+                new()
+                {
+                    UniqueId = "elyby:legacy-uuid",
+                    Name = "LegacyEly",
+                    UUID = "legacy-uuid",
+                    AccessToken = "legacy-access",
+                    ClientToken = "legacy-client",
+                    AuthFlow = ElyByAuthFlow.Direct
+                }
+            });
+        var service = CreateService(
+            baseSettingsService,
+            new FakeMicrosoftAccountClient(),
+            new FakeNotificationService(),
+            elyByClient: new FakeElyByAuthClient { ValidateResult = true },
+            elyByOAuthOptions: new ElyByOAuthOptions(string.Empty, string.Empty, string.Empty));
+        await service.LoadAllAccountsAsync();
+        var account = Assert.Single(service.Accounts);
+
+        Assert.False(service.GetProviderUsability(AccountProviderIds.ElyBy).IsAvailable);
+        Assert.True(service.GetAccountUsability(account).IsAvailable);
+        await service.RefreshAccountAsync(account);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => SignInElyByAsync(service));
     }
 
     [Fact]
@@ -187,7 +335,7 @@ public sealed class AccountServiceTests
         var notificationService = new FakeNotificationService();
 
         var service = CreateService(baseSettingsService, microsoftClient, notificationService);
-        await service.InitializeAsync("test-client");
+        await service.InitializeAsync();
 
         await service.LoadAllAccountsAsync();
 
@@ -206,7 +354,7 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
-    public async Task SignInMicrosoftAccountAsync_SelectsMaterializedAccount_WhenNoSelectionExists()
+    public async Task SignInAsync_MicrosoftSelectsMaterializedAccount_WhenNoSelectionExists()
     {
         var microsoftClient = new FakeMicrosoftAccountClient();
         microsoftClient.OnInteractiveSignInAsync = (client, _) =>
@@ -218,9 +366,9 @@ public sealed class AccountServiceTests
         };
 
         var service = CreateService(new InMemoryBaseSettingsService(), microsoftClient);
-        await service.InitializeAsync("client-id");
+        await service.InitializeAsync();
 
-        await service.SignInMicrosoftAccountAsync();
+        await SignInMicrosoftAsync(service);
 
         var selectedAccount = service.GetSelectedAccount();
         Assert.NotNull(selectedAccount);
@@ -230,7 +378,7 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
-    public async Task SignInMicrosoftAccountAsync_CanceledDuringInteractiveSignIn_DoesNotMaterializeAccount()
+    public async Task SignInAsync_MicrosoftCanceledDuringInteractiveSignIn_DoesNotMaterializeAccount()
     {
         var signInStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var microsoftClient = new FakeMicrosoftAccountClient
@@ -244,10 +392,10 @@ public sealed class AccountServiceTests
         };
 
         var service = CreateService(new InMemoryBaseSettingsService(), microsoftClient);
-        await service.InitializeAsync("client-id");
+        await service.InitializeAsync();
         using var cancellation = new CancellationTokenSource();
 
-        var signInTask = service.SignInMicrosoftAccountAsync(cancellation.Token);
+        var signInTask = SignInMicrosoftAsync(service, cancellation.Token);
         await signInStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
         cancellation.Cancel();
 
@@ -256,7 +404,7 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
-    public async Task SignInMicrosoftAccountAsync_Throws_WhenAccountDoesNotMaterialize()
+    public async Task SignInAsync_MicrosoftThrows_WhenAccountDoesNotMaterialize()
     {
         var microsoftClient = new FakeMicrosoftAccountClient
         {
@@ -264,9 +412,9 @@ public sealed class AccountServiceTests
         };
 
         var service = CreateService(new InMemoryBaseSettingsService(), microsoftClient);
-        await service.InitializeAsync("client-id");
+        await service.InitializeAsync();
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => service.SignInMicrosoftAccountAsync());
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => SignInMicrosoftAsync(service));
 
         Assert.Equal(
             "Microsoft sign-in completed, but Emerald could not materialize the signed-in account.",
@@ -284,7 +432,7 @@ public sealed class AccountServiceTests
         microsoftClient.Accounts.Add(new MicrosoftAccountInfo("ms-beta", "Shared", "uuid-beta", DateTime.UtcNow));
 
         var service = CreateService(baseSettingsService, microsoftClient);
-        await service.InitializeAsync("client-id");
+        await service.InitializeAsync();
 
         await service.LoadAllAccountsAsync();
 
@@ -301,7 +449,7 @@ public sealed class AccountServiceTests
         microsoftClient.Accounts.Add(new MicrosoftAccountInfo("ms-identifier", "SharedName", "real-uuid", DateTime.UtcNow.AddHours(-1)));
 
         var service = CreateService(new InMemoryBaseSettingsService(), microsoftClient);
-        await service.InitializeAsync("client-id");
+        await service.InitializeAsync();
         await service.LoadAllAccountsAsync();
 
         var account = Assert.Single(service.Accounts, candidate => candidate.Type == AccountType.Microsoft);
@@ -315,7 +463,7 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
-    public async Task SignInElyByAccountAsync_AddsOAuthStoredAccount_AndSelectsWhenNoSelectionExists()
+    public async Task SignInAsync_ElyByAddsOAuthStoredAccount_AndSelectsWhenNoSelectionExists()
     {
         var baseSettingsService = new InMemoryBaseSettingsService();
         var elyByClient = new FakeElyByAuthClient
@@ -333,7 +481,7 @@ public sealed class AccountServiceTests
 
         var service = CreateServiceWithEly(baseSettingsService, elyByClient: elyByClient, elyByOAuthBrowser: oauthBrowser);
 
-        await service.SignInElyByAccountAsync();
+        await SignInElyByAsync(service);
 
         var account = Assert.Single(service.Accounts, account => account.Type == AccountType.ElyBy);
         Assert.Equal("ElyAlpha", account.Name);
@@ -379,7 +527,7 @@ public sealed class AccountServiceTests
         };
         var authlibInjector = new FakeAuthlibInjectorService();
         var service = CreateServiceWithEly(baseSettingsService, elyByClient: elyByClient, authlibInjectorService: authlibInjector);
-        await service.InitializeAsync("client-id");
+        await service.InitializeAsync();
         await service.LoadAllAccountsAsync();
         AddMicrosoftAccount(service);
 
@@ -436,7 +584,7 @@ public sealed class AccountServiceTests
         };
         var authlibInjector = new FakeAuthlibInjectorService();
         var service = CreateServiceWithEly(baseSettingsService, elyByClient: elyByClient, authlibInjectorService: authlibInjector);
-        await service.InitializeAsync("client-id");
+        await service.InitializeAsync();
         await service.LoadAllAccountsAsync();
 
         var account = Assert.Single(service.Accounts, account => account.Type == AccountType.ElyBy);
@@ -464,7 +612,7 @@ public sealed class AccountServiceTests
         microsoftClient.Accounts.Add(new MicrosoftAccountInfo("ms-keep", "AccountToKeep", "uuid-keep", DateTime.UtcNow.AddMinutes(-5)));
 
         var service = CreateService(baseSettingsService, microsoftClient);
-        await service.InitializeAsync("client-id");
+        await service.InitializeAsync();
         await service.LoadAllAccountsAsync();
 
         var removable = Assert.Single(service.Accounts, account => account.UniqueId == "ms-remove");
@@ -481,13 +629,13 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
-    public void CreateOfflineAccount_FirstAccountBecomesSelected()
+    public async Task SignInAsync_FirstOfflineAccountBecomesSelected()
     {
         var baseSettingsService = new InMemoryBaseSettingsService();
         var service = CreateService(baseSettingsService);
         AddMicrosoftAccount(service);
 
-        service.CreateOfflineAccount("Alpha");
+        await SignInOfflineAsync(service, "Alpha");
 
         var account = Assert.Single(service.Accounts, account => account.Type == AccountType.Offline);
         Assert.Same(account, service.GetSelectedAccount());
@@ -495,14 +643,14 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
-    public void SelectedAccount_RemainsIndependentFromMostRecentlyUsed()
+    public async Task SelectedAccount_RemainsIndependentFromMostRecentlyUsed()
     {
         var baseSettingsService = new InMemoryBaseSettingsService();
         var service = CreateService(baseSettingsService);
         AddMicrosoftAccount(service);
 
-        service.CreateOfflineAccount("Alpha");
-        service.CreateOfflineAccount("Beta");
+        await SignInOfflineAsync(service, "Alpha");
+        await SignInOfflineAsync(service, "Beta");
 
         var alpha = service.Accounts.First(account => account.Name == "Alpha");
         var beta = service.Accounts.First(account => account.Name == "Beta");
@@ -523,7 +671,7 @@ public sealed class AccountServiceTests
         var service = CreateService(baseSettingsService);
         AddMicrosoftAccount(service);
 
-        service.CreateOfflineAccount("Alpha");
+        await SignInOfflineAsync(service, "Alpha");
         var selectedAccount = service.GetSelectedAccount();
         Assert.NotNull(selectedAccount);
 
@@ -534,14 +682,14 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
-    public void SetSelectedAccount_LegacyAccountWithoutUniqueId_GeneratesIdentifierAndPersistsSelection()
+    public async Task SetSelectedAccount_LegacyAccountWithoutUniqueId_GeneratesIdentifierAndPersistsSelection()
     {
         var baseSettingsService = new InMemoryBaseSettingsService();
         var service = CreateService(baseSettingsService);
         AddMicrosoftAccount(service);
 
-        service.CreateOfflineAccount("Alpha");
-        service.CreateOfflineAccount("Beta");
+        await SignInOfflineAsync(service, "Alpha");
+        await SignInOfflineAsync(service, "Beta");
 
         var alpha = service.Accounts.First(account => account.Name == "Alpha");
         alpha.UniqueId = string.Empty;
@@ -564,6 +712,20 @@ public sealed class AccountServiceTests
 
     private static AccountService CreateService(
         InMemoryBaseSettingsService baseSettingsService,
+        AccountProviderPolicyOptions policyOptions)
+        => CreateService(
+            baseSettingsService,
+            new FakeMicrosoftAccountClient(),
+            new FakeNotificationService(),
+            policyOptions: policyOptions);
+
+    private static AccountService CreateService(
+        InMemoryBaseSettingsService baseSettingsService,
+        IEnumerable<IAccountProvider> providers)
+        => CreateService(baseSettingsService, new FakeMicrosoftAccountClient(), new FakeNotificationService(), providers: providers);
+
+    private static AccountService CreateService(
+        InMemoryBaseSettingsService baseSettingsService,
         FakeMicrosoftAccountClient microsoftAccountClient)
         => CreateService(baseSettingsService, microsoftAccountClient, new FakeNotificationService());
 
@@ -573,18 +735,41 @@ public sealed class AccountServiceTests
         FakeNotificationService notificationService,
         FakeElyByAuthClient? elyByClient = null,
         FakeElyByOAuthBrowser? elyByOAuthBrowser = null,
-        FakeAuthlibInjectorService? authlibInjectorService = null)
-        => new(
+        FakeAuthlibInjectorService? authlibInjectorService = null,
+        ElyByOAuthOptions? elyByOAuthOptions = null,
+        IEnumerable<IAccountProvider>? providers = null,
+        AccountProviderPolicyOptions? policyOptions = null)
+    {
+        policyOptions ??= new AccountProviderPolicyOptions
+        {
+            RequireMicrosoftForOfflineAccounts = false,
+            RequireMicrosoftForElyByAccounts = false
+        };
+        providers ??=
+        [
+            new OfflineAccountProvider(policyOptions),
+            new MicrosoftAccountProvider(microsoftAccountClient, "test-client"),
+            new ElyByAccountProvider(
+                new ElyByAccountStore(baseSettingsService),
+                elyByClient ?? new FakeElyByAuthClient(),
+                elyByOAuthBrowser ?? new FakeElyByOAuthBrowser(),
+                authlibInjectorService ?? new FakeAuthlibInjectorService(),
+                elyByOAuthOptions ?? new ElyByOAuthOptions(
+                    "test-client",
+                    "test-secret",
+                    "http://127.0.0.1:48157/oauth/elyby/callback"),
+                policyOptions,
+                NullLogger<ElyByAccountProvider>.Instance)
+        ];
+
+        return new AccountService(
             NullLogger<AccountService>.Instance,
             baseSettingsService,
             new ImmediateUiDispatcher(),
+            providers,
             "/tmp/emerald-tests/cml_accounts.json",
-            microsoftAccountClient,
-            notificationService,
-            elyByClient,
-            new ElyByAccountStore(baseSettingsService),
-            elyByOAuthBrowser ?? new FakeElyByOAuthBrowser(),
-            authlibInjectorService ?? new FakeAuthlibInjectorService());
+            notificationService);
+    }
 
     private static AccountService CreateServiceWithEly(
         InMemoryBaseSettingsService baseSettingsService,
@@ -597,11 +782,86 @@ public sealed class AccountServiceTests
             new FakeNotificationService(),
             elyByClient,
             elyByOAuthBrowser,
-            authlibInjectorService);
+            authlibInjectorService: authlibInjectorService);
 
     private static void AddMicrosoftAccount(AccountService service, string name = "Microsoft")
     {
         var account = new EAccount(name, AccountType.Microsoft, $"{name}-uuid", $"{name}-id");
         service.Accounts.Add(account);
+    }
+
+    private static Task<EAccount> SignInOfflineAsync(
+        AccountService service,
+        string username,
+        CancellationToken cancellationToken = default)
+        => service.SignInAsync(
+            AccountProviderIds.Offline,
+            new AccountSignInRequest(OfflineAccountProvider.CreateMethodId, username),
+            cancellationToken);
+
+    private static Task<EAccount> SignInMicrosoftAsync(
+        AccountService service,
+        CancellationToken cancellationToken = default)
+        => service.SignInAsync(
+            AccountProviderIds.Microsoft,
+            new AccountSignInRequest(MicrosoftAccountProvider.BrowserMethodId),
+            cancellationToken);
+
+    private static Task<EAccount> SignInElyByAsync(
+        AccountService service,
+        CancellationToken cancellationToken = default)
+        => service.SignInAsync(
+            AccountProviderIds.ElyBy,
+            new AccountSignInRequest(ElyByAccountProvider.BrowserMethodId),
+            cancellationToken);
+
+    private sealed class RecordingAccountProvider : IAccountProvider
+    {
+        private readonly EAccount _account = new("Test player", AccountType.Other, "test-uuid", "test-account")
+        {
+            ProviderId = "test"
+        };
+
+        public AccountProviderDescriptor Descriptor { get; } = new(
+            "test",
+            "Test provider",
+            [new AccountSignInMethodDescriptor("test-browser", "Test browser", "Use the test provider browser", IsDefault: true)],
+            Actions: [new AccountProviderActionDescriptor("manage-test", "Manage test", new Uri("https://example.test"))]);
+        public bool Loaded { get; private set; }
+        public bool SignedIn { get; private set; }
+        public bool Refreshed { get; private set; }
+        public bool Authenticated { get; private set; }
+        public bool Removed { get; private set; }
+
+        public Task InitializeAsync(AccountProviderInitializationContext context, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<AccountProviderLoadResult> LoadAccountsAsync(IReadOnlyList<EAccount> persistedAccounts, CancellationToken cancellationToken = default)
+        {
+            Loaded = true;
+            return Task.FromResult(new AccountProviderLoadResult([]));
+        }
+
+        public Task<EAccount> SignInAsync(AccountSignInRequest request, CancellationToken cancellationToken = default)
+        {
+            SignedIn = true;
+            return Task.FromResult(_account);
+        }
+
+        public Task RefreshAsync(EAccount account, CancellationToken cancellationToken = default)
+        {
+            Refreshed = true;
+            return Task.CompletedTask;
+        }
+
+        public Task<GameAuthenticationResult> AuthenticateForLaunchAsync(EAccount account, CancellationToken cancellationToken = default)
+        {
+            Authenticated = true;
+            return Task.FromResult<GameAuthenticationResult>(null!);
+        }
+
+        public Task RemoveAsync(EAccount account, CancellationToken cancellationToken = default)
+        {
+            Removed = true;
+            return Task.CompletedTask;
+        }
     }
 }
