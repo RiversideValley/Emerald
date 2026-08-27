@@ -326,9 +326,37 @@ jobs:
         shell: pwsh
         env:
           WINDOWS_SIGNING_CERT_PASSWORD: ${{ secrets.WINDOWS_SIGNING_CERT_PASSWORD }}
+          # These mirror the direct -p: version metadata below. PRs deliberately
+          # receive empty account values so their build code cannot read secrets.
+          EMERALD_MSFT_CLIENT_ID: ${{ github.event_name != 'pull_request' && secrets.EMERALD_MSFT_CLIENT_ID || '' }}
+          EMERALD_ELYBY_CLIENT_ID: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_CLIENT_ID || '' }}
+          EMERALD_ELYBY_CLIENT_SECRET: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_CLIENT_SECRET || '' }}
+          EMERALD_ELYBY_REDIRECT_URI: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_REDIRECT_URI || '' }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:WINDOWS_SIGNING_CERT_PASSWORD)) {
             throw "WINDOWS_SIGNING_CERT_PASSWORD secret is missing."
+          }
+
+          if ($env:GITHUB_EVENT_NAME -ne "pull_request") {
+            $requiredSecrets = @(
+              "EMERALD_MSFT_CLIENT_ID",
+              "EMERALD_ELYBY_CLIENT_ID",
+              "EMERALD_ELYBY_CLIENT_SECRET",
+              "EMERALD_ELYBY_REDIRECT_URI"
+            )
+            $missingSecrets = $requiredSecrets | Where-Object {
+              [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($_))
+            }
+            if ($missingSecrets.Count -gt 0) {
+              throw "Account-provider build secrets are missing: $($missingSecrets -join ', ')."
+            }
+          }
+
+          $accountProviderArguments = @{
+            EmeraldMSFTClientId = $env:EMERALD_MSFT_CLIENT_ID
+            EmeraldElyByClientId = $env:EMERALD_ELYBY_CLIENT_ID
+            EmeraldElyByClientSecret = $env:EMERALD_ELYBY_CLIENT_SECRET
+            EmeraldElyByRedirectUri = $env:EMERALD_ELYBY_REDIRECT_URI
           }
 
           & .\scripts\windows\publish-windows-msix.ps1 `
@@ -343,6 +371,7 @@ jobs:
             -ReleaseTag "${{ needs.ci-filter.outputs.release_tag }}" `
             -CommitSha "${{ github.sha }}" `
             -BuildTimestampUtc "${{ needs.ci-filter.outputs.build_timestamp_utc }}" `
+            @accountProviderArguments `
             -SkipBundleVerify `
             -SkipBundleArchive `
             -CertificatePath $env:EMERALD_SIGNING_CERT_PATH
@@ -407,9 +436,27 @@ jobs:
 
       - name: Publish macOS app
         shell: bash
+        env:
+          EMERALD_MSFT_CLIENT_ID: ${{ github.event_name != 'pull_request' && secrets.EMERALD_MSFT_CLIENT_ID || '' }}
+          EMERALD_ELYBY_CLIENT_ID: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_CLIENT_ID || '' }}
+          EMERALD_ELYBY_CLIENT_SECRET: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_CLIENT_SECRET || '' }}
+          EMERALD_ELYBY_REDIRECT_URI: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_REDIRECT_URI || '' }}
         run: |
           OUTPUT_DIR="$GITHUB_WORKSPACE/artifacts/macos/Emerald-macOS-arm64"
           mkdir -p "$OUTPUT_DIR"
+
+          if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
+            for secret_name in \
+              EMERALD_MSFT_CLIENT_ID \
+              EMERALD_ELYBY_CLIENT_ID \
+              EMERALD_ELYBY_CLIENT_SECRET \
+              EMERALD_ELYBY_REDIRECT_URI; do
+              if [ -z "${!secret_name}" ]; then
+                echo "Account-provider build secret is missing: $secret_name"
+                exit 1
+              fi
+            done
+          fi
 
           dotnet publish ./Emerald/Emerald.csproj \
             -c Release \
@@ -429,6 +476,10 @@ jobs:
             -p:EmeraldReleaseTag="${{ needs.ci-filter.outputs.release_tag }}" \
             -p:EmeraldCommitSha="${{ github.sha }}" \
             -p:EmeraldBuildTimestampUtc="${{ needs.ci-filter.outputs.build_timestamp_utc }}" \
+            -p:EmeraldMSFTClientId="$EMERALD_MSFT_CLIENT_ID" \
+            -p:EmeraldElyByClientId="$EMERALD_ELYBY_CLIENT_ID" \
+            -p:EmeraldElyByClientSecret="$EMERALD_ELYBY_CLIENT_SECRET" \
+            -p:EmeraldElyByRedirectUri="$EMERALD_ELYBY_REDIRECT_URI" \
             -o "$OUTPUT_DIR"
 
       - name: Zip macOS .app (preserve app bundle metadata)
@@ -501,8 +552,25 @@ jobs:
         shell: bash
         env:
           # Modern Snapcraft equivalent to --destructive-mode
-          SNAPCRAFT_BUILD_ENVIRONMENT: host 
+          SNAPCRAFT_BUILD_ENVIRONMENT: host
+          EMERALD_MSFT_CLIENT_ID: ${{ github.event_name != 'pull_request' && secrets.EMERALD_MSFT_CLIENT_ID || '' }}
+          EMERALD_ELYBY_CLIENT_ID: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_CLIENT_ID || '' }}
+          EMERALD_ELYBY_CLIENT_SECRET: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_CLIENT_SECRET || '' }}
+          EMERALD_ELYBY_REDIRECT_URI: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_REDIRECT_URI || '' }}
         run: |
+          if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
+            for secret_name in \
+              EMERALD_MSFT_CLIENT_ID \
+              EMERALD_ELYBY_CLIENT_ID \
+              EMERALD_ELYBY_CLIENT_SECRET \
+              EMERALD_ELYBY_REDIRECT_URI; do
+              if [ -z "${!secret_name}" ]; then
+                echo "Account-provider build secret is missing: $secret_name"
+                exit 1
+              fi
+            done
+          fi
+
           dotnet publish ./Emerald/Emerald.csproj \
             -c Release \
             -f net10.0-desktop \
@@ -522,7 +590,11 @@ jobs:
             -p:EmeraldUpdateChannel="${{ needs.ci-filter.outputs.release_channel }}" \
             -p:EmeraldReleaseTag="${{ needs.ci-filter.outputs.release_tag }}" \
             -p:EmeraldCommitSha="${{ github.sha }}" \
-            -p:EmeraldBuildTimestampUtc="${{ needs.ci-filter.outputs.build_timestamp_utc }}"
+            -p:EmeraldBuildTimestampUtc="${{ needs.ci-filter.outputs.build_timestamp_utc }}" \
+            -p:EmeraldMSFTClientId="$EMERALD_MSFT_CLIENT_ID" \
+            -p:EmeraldElyByClientId="$EMERALD_ELYBY_CLIENT_ID" \
+            -p:EmeraldElyByClientSecret="$EMERALD_ELYBY_CLIENT_SECRET" \
+            -p:EmeraldElyByRedirectUri="$EMERALD_ELYBY_REDIRECT_URI"
 
       - name: Locate and stage snap artifact
         id: locate
