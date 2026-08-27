@@ -167,7 +167,7 @@ public sealed partial class GamesPage : Page
 
     private async void ForceStopGame_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is UIElement item && item.DataContext is Game game)
+        if (sender is FrameworkElement item && item.DataContext is Game game)
         {
             var result = await MessageBox.Show(
                 "Force Stop",
