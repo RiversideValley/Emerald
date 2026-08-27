@@ -326,18 +326,19 @@ jobs:
         shell: pwsh
         env:
           WINDOWS_SIGNING_CERT_PASSWORD: ${{ secrets.WINDOWS_SIGNING_CERT_PASSWORD }}
-          # These mirror the direct -p: version metadata below. PRs deliberately
-          # receive empty account values so their build code cannot read secrets.
-          EMERALD_MSFT_CLIENT_ID: ${{ github.event_name != 'pull_request' && secrets.EMERALD_MSFT_CLIENT_ID || '' }}
-          EMERALD_ELYBY_CLIENT_ID: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_CLIENT_ID || '' }}
-          EMERALD_ELYBY_CLIENT_SECRET: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_CLIENT_SECRET || '' }}
-          EMERALD_ELYBY_REDIRECT_URI: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_REDIRECT_URI || '' }}
+          # GitHub supplies these to pushes, dispatches, and same-repository PRs.
+          # For public fork PRs the secrets context resolves to empty values.
+          ACCOUNT_PROVIDER_SECRETS_REQUIRED: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+          EMERALD_MSFT_CLIENT_ID: ${{ secrets.EMERALD_MSFT_CLIENT_ID }}
+          EMERALD_ELYBY_CLIENT_ID: ${{ secrets.EMERALD_ELYBY_CLIENT_ID }}
+          EMERALD_ELYBY_CLIENT_SECRET: ${{ secrets.EMERALD_ELYBY_CLIENT_SECRET }}
+          EMERALD_ELYBY_REDIRECT_URI: ${{ secrets.EMERALD_ELYBY_REDIRECT_URI }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:WINDOWS_SIGNING_CERT_PASSWORD)) {
             throw "WINDOWS_SIGNING_CERT_PASSWORD secret is missing."
           }
 
-          if ($env:GITHUB_EVENT_NAME -ne "pull_request") {
+          if ($env:ACCOUNT_PROVIDER_SECRETS_REQUIRED -eq "true") {
             $requiredSecrets = @(
               "EMERALD_MSFT_CLIENT_ID",
               "EMERALD_ELYBY_CLIENT_ID",
@@ -437,15 +438,16 @@ jobs:
       - name: Publish macOS app
         shell: bash
         env:
-          EMERALD_MSFT_CLIENT_ID: ${{ github.event_name != 'pull_request' && secrets.EMERALD_MSFT_CLIENT_ID || '' }}
-          EMERALD_ELYBY_CLIENT_ID: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_CLIENT_ID || '' }}
-          EMERALD_ELYBY_CLIENT_SECRET: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_CLIENT_SECRET || '' }}
-          EMERALD_ELYBY_REDIRECT_URI: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_REDIRECT_URI || '' }}
+          ACCOUNT_PROVIDER_SECRETS_REQUIRED: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+          EMERALD_MSFT_CLIENT_ID: ${{ secrets.EMERALD_MSFT_CLIENT_ID }}
+          EMERALD_ELYBY_CLIENT_ID: ${{ secrets.EMERALD_ELYBY_CLIENT_ID }}
+          EMERALD_ELYBY_CLIENT_SECRET: ${{ secrets.EMERALD_ELYBY_CLIENT_SECRET }}
+          EMERALD_ELYBY_REDIRECT_URI: ${{ secrets.EMERALD_ELYBY_REDIRECT_URI }}
         run: |
           OUTPUT_DIR="$GITHUB_WORKSPACE/artifacts/macos/Emerald-macOS-arm64"
           mkdir -p "$OUTPUT_DIR"
 
-          if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
+          if [ "$ACCOUNT_PROVIDER_SECRETS_REQUIRED" = "true" ]; then
             for secret_name in \
               EMERALD_MSFT_CLIENT_ID \
               EMERALD_ELYBY_CLIENT_ID \
@@ -553,12 +555,13 @@ jobs:
         env:
           # Modern Snapcraft equivalent to --destructive-mode
           SNAPCRAFT_BUILD_ENVIRONMENT: host
-          EMERALD_MSFT_CLIENT_ID: ${{ github.event_name != 'pull_request' && secrets.EMERALD_MSFT_CLIENT_ID || '' }}
-          EMERALD_ELYBY_CLIENT_ID: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_CLIENT_ID || '' }}
-          EMERALD_ELYBY_CLIENT_SECRET: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_CLIENT_SECRET || '' }}
-          EMERALD_ELYBY_REDIRECT_URI: ${{ github.event_name != 'pull_request' && secrets.EMERALD_ELYBY_REDIRECT_URI || '' }}
+          ACCOUNT_PROVIDER_SECRETS_REQUIRED: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+          EMERALD_MSFT_CLIENT_ID: ${{ secrets.EMERALD_MSFT_CLIENT_ID }}
+          EMERALD_ELYBY_CLIENT_ID: ${{ secrets.EMERALD_ELYBY_CLIENT_ID }}
+          EMERALD_ELYBY_CLIENT_SECRET: ${{ secrets.EMERALD_ELYBY_CLIENT_SECRET }}
+          EMERALD_ELYBY_REDIRECT_URI: ${{ secrets.EMERALD_ELYBY_REDIRECT_URI }}
         run: |
-          if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
+          if [ "$ACCOUNT_PROVIDER_SECRETS_REQUIRED" = "true" ]; then
             for secret_name in \
               EMERALD_MSFT_CLIENT_ID \
               EMERALD_ELYBY_CLIENT_ID \
