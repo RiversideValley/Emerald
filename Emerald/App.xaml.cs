@@ -109,8 +109,8 @@ Notes
 
         services.AddSingleton(new CoreX.Services.Auth.AccountProviderPolicyOptions
         {
-            RequireMicrosoftForOfflineAccounts = true,
-            RequireMicrosoftForElyByAccounts = true
+            RequireMicrosoftForOfflineAccounts = false,
+            RequireMicrosoftForElyByAccounts = false
         });
         services.AddEmeraldAccountProviders(GetBuildMetadata("Emerald.MSFTClientId"));
 
