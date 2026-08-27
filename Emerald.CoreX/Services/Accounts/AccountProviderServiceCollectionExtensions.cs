@@ -16,7 +16,6 @@ public static class AccountProviderServiceCollectionExtensions
         this IServiceCollection services,
         string microsoftClientId)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(microsoftClientId);
         services.TryAddSingleton(new AccountProviderPolicyOptions());
         services.AddSingleton<IAccountProvider>(provider => new OfflineAccountProvider(
             provider.GetRequiredService<AccountProviderPolicyOptions>()));

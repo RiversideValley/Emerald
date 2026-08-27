@@ -127,7 +127,7 @@ public sealed partial class AccountService
 
         foreach (var requirement in descriptor.EffectiveRequirements)
         {
-            if (!_accounts.Any(account => string.Equals(account.ProviderId, requirement.ProviderId, StringComparison.Ordinal)))
+            if (!HasUsableAccountForProviderCore(requirement.ProviderId))
                 return new AccountProviderUsability(false, requirement.UnavailableMessage);
         }
 
@@ -142,11 +142,21 @@ public sealed partial class AccountService
 
         foreach (var requirement in provider.Descriptor.EffectiveRequirements)
         {
-            if (!_accounts.Any(candidate => string.Equals(candidate.ProviderId, requirement.ProviderId, StringComparison.Ordinal)))
+            if (!HasUsableAccountForProviderCore(requirement.ProviderId))
                 return new AccountProviderUsability(false, requirement.UnavailableMessage);
         }
 
         return provider.GetAccountUsability(account);
+    }
+
+    private bool HasUsableAccountForProviderCore(string providerId)
+    {
+        if (!_providers.TryGetValue(providerId, out var provider))
+            return false;
+
+        return _accounts.Any(account =>
+            string.Equals(account.ProviderId, providerId, StringComparison.Ordinal)
+            && provider.GetAccountUsability(account).IsAvailable);
     }
 
     private void EnsureProviderUsableCore(string providerId)

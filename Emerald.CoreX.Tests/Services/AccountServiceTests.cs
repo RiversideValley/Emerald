@@ -8,6 +8,7 @@ using Emerald.CoreX.Services.Auth.Microsoft;
 using Emerald.CoreX.Services.Auth.Offline;
 using Emerald.CoreX.Services.Auth.OAuth;
 using Emerald.CoreX.Tests.Support;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -50,6 +51,69 @@ public sealed class AccountServiceTests
             }));
 
         Assert.Contains(AccountProviderIds.Offline, exception.Message);
+    }
+
+    [Fact]
+    public void BuiltInProviderRegistration_AllowsMissingMicrosoftClientId()
+    {
+        var services = new ServiceCollection();
+
+        var exception = Record.Exception(() => services.AddEmeraldAccountProviders(string.Empty));
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task MissingMicrosoftClientId_PreservesAccountsButMarksProviderUnavailable()
+    {
+        var settings = new InMemoryBaseSettingsService();
+        settings.Set(
+            SettingsKeys.MinecraftAccounts,
+            new List<EAccount>
+            {
+                new("Stored Microsoft", AccountType.Microsoft, "ms-uuid", "ms-id")
+                {
+                    ProviderId = AccountProviderIds.Microsoft
+                }
+            });
+        settings.Set(SettingsKeys.SelectedMinecraftAccount, "ms-id");
+
+        var microsoftClient = new FakeMicrosoftAccountClient();
+        var policyOptions = new AccountProviderPolicyOptions
+        {
+            RequireMicrosoftForOfflineAccounts = true,
+            RequireMicrosoftForElyByAccounts = false
+        };
+        var service = CreateService(
+            settings,
+            microsoftClient,
+            new FakeNotificationService(),
+            providers:
+            [
+                new OfflineAccountProvider(policyOptions),
+                new MicrosoftAccountProvider(microsoftClient, string.Empty)
+            ],
+            policyOptions: policyOptions);
+
+        await service.InitializeAsync();
+        await service.LoadAllAccountsAsync();
+
+        Assert.Null(microsoftClient.InitializedClientId);
+        var account = Assert.Single(service.Accounts);
+        Assert.Equal(AccountAvailability.Error, account.Availability);
+        Assert.Contains("not configured", account.AvailabilityMessage, StringComparison.OrdinalIgnoreCase);
+        Assert.False(service.GetProviderUsability(AccountProviderIds.Microsoft).IsAvailable);
+        Assert.False(service.GetAccountUsability(account).IsAvailable);
+        Assert.False(service.GetProviderUsability(AccountProviderIds.Offline).IsAvailable);
+        Assert.Null(service.GetSelectedAccount());
+
+        var signInException = await Assert.ThrowsAsync<InvalidOperationException>(() => SignInMicrosoftAsync(service));
+        Assert.Contains("not configured", signInException.Message, StringComparison.OrdinalIgnoreCase);
+
+        await service.RemoveAccountAsync(account);
+
+        Assert.Empty(service.Accounts);
+        Assert.Empty(microsoftClient.SignedOutIdentifiers);
     }
 
     [Fact]

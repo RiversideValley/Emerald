@@ -6,6 +6,7 @@ namespace Emerald.CoreX.Services.Auth.Microsoft;
 internal sealed class MicrosoftAccountProvider(IMicrosoftAccountClient client, string clientId) : IAccountProvider
 {
     public const string BrowserMethodId = "browser";
+    private const string MissingConfigurationMessage = "Microsoft sign-in is not configured for this build.";
 
     public AccountProviderDescriptor Descriptor { get; } = new(
         AccountProviderIds.Microsoft,
@@ -15,13 +16,32 @@ internal sealed class MicrosoftAccountProvider(IMicrosoftAccountClient client, s
                 BrowserMethodId,
                 "Using browser",
                 "Use your default browser to sign in with Microsoft",
-                IsDefault: true)]);
+                IsDefault: true)],
+        IsConfigured: !string.IsNullOrWhiteSpace(clientId),
+        ConfigurationMessage: string.IsNullOrWhiteSpace(clientId) ? MissingConfigurationMessage : null);
 
     public Task InitializeAsync(AccountProviderInitializationContext context, CancellationToken cancellationToken = default)
-        => client.InitializeAsync(clientId, context.AccountStorePath);
+        => Descriptor.IsConfigured
+            ? client.InitializeAsync(clientId, context.AccountStorePath)
+            : Task.CompletedTask;
 
     public Task<AccountProviderLoadResult> LoadAccountsAsync(IReadOnlyList<EAccount> persistedAccounts, CancellationToken cancellationToken = default)
     {
+        if (!Descriptor.IsConfigured)
+        {
+            var persistedMicrosoftAccounts = persistedAccounts
+                .Where(IsMicrosoftAccount)
+                .ToList();
+
+            foreach (var account in persistedMicrosoftAccounts)
+            {
+                account.Availability = AccountAvailability.Error;
+                account.AvailabilityMessage = MissingConfigurationMessage;
+            }
+
+            return Task.FromResult(new AccountProviderLoadResult(persistedMicrosoftAccounts));
+        }
+
         var accounts = client.GetAccounts()
             .Where(account => !string.IsNullOrWhiteSpace(account.Identifier))
             .Select(account => new EAccount(
@@ -60,6 +80,8 @@ internal sealed class MicrosoftAccountProvider(IMicrosoftAccountClient client, s
 
     public async Task<EAccount> SignInAsync(AccountSignInRequest request, CancellationToken cancellationToken = default)
     {
+        EnsureConfigured();
+
         if (request.MethodId != BrowserMethodId)
             throw new ArgumentException($"Unsupported Microsoft sign-in method '{request.MethodId}'.", nameof(request));
 
@@ -88,6 +110,7 @@ internal sealed class MicrosoftAccountProvider(IMicrosoftAccountClient client, s
 
     public async Task RefreshAsync(EAccount account, CancellationToken cancellationToken = default)
     {
+        EnsureConfigured();
         account.Availability = AccountAvailability.Refreshing;
         try
         {
@@ -104,8 +127,28 @@ internal sealed class MicrosoftAccountProvider(IMicrosoftAccountClient client, s
     }
 
     public async Task<GameAuthenticationResult> AuthenticateForLaunchAsync(EAccount account, CancellationToken cancellationToken = default)
-        => new(await client.AuthenticateAsync(account.UniqueId).WaitAsync(cancellationToken).ConfigureAwait(false));
+    {
+        EnsureConfigured();
+        return new(await client.AuthenticateAsync(account.UniqueId).WaitAsync(cancellationToken).ConfigureAwait(false));
+    }
 
     public Task RemoveAsync(EAccount account, CancellationToken cancellationToken = default)
-        => client.SignOutAsync(account.UniqueId);
+        => Descriptor.IsConfigured
+            ? client.SignOutAsync(account.UniqueId)
+            : Task.CompletedTask;
+
+    public AccountProviderUsability GetAccountUsability(EAccount account)
+        => Descriptor.IsConfigured
+            ? AccountProviderUsability.Available
+            : new AccountProviderUsability(false, MissingConfigurationMessage);
+
+    private static bool IsMicrosoftAccount(EAccount account)
+        => string.Equals(account.ProviderId, AccountProviderIds.Microsoft, StringComparison.Ordinal)
+           || (string.IsNullOrWhiteSpace(account.ProviderId) && account.Type == AccountType.Microsoft);
+
+    private void EnsureConfigured()
+    {
+        if (!Descriptor.IsConfigured)
+            throw new InvalidOperationException(MissingConfigurationMessage);
+    }
 }
