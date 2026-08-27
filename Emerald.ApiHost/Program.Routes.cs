@@ -6,6 +6,7 @@ using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
 using Emerald.CoreX.Services;
+using Emerald.CoreX.Services.Auth;
 using Emerald.CoreX.Store;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -123,10 +124,11 @@ public partial class Program
         .WithName("SelectAccount")
         .WithTags("Accounts");
 
-        api.MapPost("/accounts/offline", (OfflineAccountRequest req, IAccountService ac) =>
+        api.MapPost("/accounts/offline", async (OfflineAccountRequest req, IAccountService ac) =>
         {
             if (string.IsNullOrWhiteSpace(req.Username)) return Results.BadRequest(new { Error = "Username cannot be empty." });
-            ac.CreateOfflineAccount(req.Username);
+            var method = GetSignInMethod(ac, AccountProviderIds.Offline, AccountSignInInputKind.Username);
+            await ac.SignInAsync(AccountProviderIds.Offline, new AccountSignInRequest(method.MethodId, req.Username));
             var selected = ac.GetSelectedAccount();
             return Results.Ok(new { Message = "Offline account created and selected.", Username = selected?.Name, Identifier = selected?.UniqueId });
         })
@@ -148,7 +150,11 @@ public partial class Program
             _loginCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
             _loginTask = Task.Run(async () =>
             {
-                await ac.SignInMicrosoftAccountAsync(_loginCts.Token);
+                var method = GetSignInMethod(ac, AccountProviderIds.Microsoft, AccountSignInInputKind.None);
+                await ac.SignInAsync(
+                    AccountProviderIds.Microsoft,
+                    new AccountSignInRequest(method.MethodId),
+                    _loginCts.Token);
                 return true;
             }, _loginCts.Token);
 
@@ -181,7 +187,8 @@ public partial class Program
         {
             try
             {
-                await ac.SignInElyByAccountAsync();
+                var method = GetSignInMethod(ac, AccountProviderIds.ElyBy, AccountSignInInputKind.None);
+                await ac.SignInAsync(AccountProviderIds.ElyBy, new AccountSignInRequest(method.MethodId));
                 var selected = ac.GetSelectedAccount();
                 return Results.Ok(new { Message = "Ely.by sign-in completed.", Username = selected?.Name });
             }
@@ -194,24 +201,17 @@ public partial class Program
         .WithName("StartElyByBrowserLogin")
         .WithTags("Accounts");
 
-        api.MapPost("/accounts/login/elyby/password", async (
-            ElyByPasswordLoginRequest req,
-            IAccountService ac, ILogger<Program> logger) =>
-        {
-            try
-            {
-                await ac.SignInElyByAccountAsync(req.Login, req.Password, req.TwoFactorCode);
-                var selected = ac.GetSelectedAccount();
-                return Results.Ok(new { Message = "Ely.by sign-in completed.", Username = selected?.Name });
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Ely.by password sign-in failed");
-                return Results.Problem(ex.Message);
-            }
-        })
-        .WithName("SignInElyByWithPassword")
-        .WithTags("Accounts");
+    }
+
+    private static AccountSignInMethodDescriptor GetSignInMethod(
+        IAccountService accountService,
+        string providerId,
+        AccountSignInInputKind inputKind)
+    {
+        var provider = accountService.Providers.FirstOrDefault(candidate => candidate.ProviderId == providerId)
+            ?? throw new InvalidOperationException($"Account provider '{providerId}' is not registered.");
+        return provider.SignInMethods.FirstOrDefault(candidate => candidate.InputKind == inputKind)
+            ?? throw new InvalidOperationException($"Account provider '{providerId}' has no compatible sign-in method.");
     }
 
     private static void MapGameRoutes(RouteGroupBuilder api)
@@ -361,7 +361,7 @@ public partial class Program
 
             var account = ac.GetSelectedAccount();
             if (account == null) return Results.BadRequest(new { Error = "No account selected. Please select or create an account first." });
-            if (RequiresOfflineAccount(network, account)) return OfflineAccountRequiredResult();
+            if (RequiresOfflineAccount(network, ac, account)) return OfflineAccountRequiredResult();
 
             _ = Task.Run(() => LaunchInBackgroundAsync(game, account, runtime, logger));
 
@@ -389,9 +389,13 @@ public partial class Program
         .WithTags("Games");
     }
 
-    private static bool RequiresOfflineAccount(INetworkCapabilityService network, EAccount account)
+    private static bool RequiresOfflineAccount(
+        INetworkCapabilityService network,
+        IAccountService accountService,
+        EAccount account)
         => network.GetSnapshot(NetworkCapability.MinecraftMetadata).EffectiveState == NetworkAvailabilityState.Unavailable
-            && account.Type is AccountType.Microsoft or AccountType.ElyBy;
+            && accountService.Providers.FirstOrDefault(provider => provider.ProviderId == account.ProviderId)
+                ?.RequiresNetworkForLaunch != false;
 
     private static IResult OfflineAccountRequiredResult()
         => Results.BadRequest(new { Error = "Emerald is offline. Select an offline account before launching." });

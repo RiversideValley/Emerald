@@ -624,6 +624,9 @@
   <data name="MCWindowsSizeDescription" xml:space="preserve">
     <value>Change width, height or full screen</value>
   </data>
+  <data name="AddOfflineAccount" xml:space="preserve">
+    <value>Add an Offline Account</value>
+  </data>
   <data name="MergeAccount" xml:space="preserve">
     <value>Merge Account</value>
   </data>
@@ -717,15 +720,6 @@
   <data name="CouldNotOpenNightlyArtifacts" xml:space="preserve">
     <value>Could not open the nightly artifacts page.</value>
   </data>
-  <data name="OfflineAccount" xml:space="preserve">
-    <value>Offline account</value>
-  </data>
-  <data name="OfflineAccountNeedsMicrosoftDescription" xml:space="preserve">
-    <value>Offline account creation is unavailable until at least one Microsoft account is added.</value>
-  </data>
-  <data name="ElyByAccountNeedsMicrosoftDescription" xml:space="preserve">
-    <value>Ely.by sign-in is unavailable until at least one Microsoft account is added.</value>
-  </data>
   <data name="OfflineMode" xml:space="preserve">
     <value>Offline Mode</value>
   </data>
@@ -817,12 +811,62 @@
   <data name="SettingsPage_txtSettings.Text" xml:space="preserve">
     <value>Settings</value>
   </data>
-  <data name="SignInWithMS" xml:space="preserve">
-    <value>Sign-in with Microsoft</value>
+  <data name="AddAccount" xml:space="preserve">
+    <value>Add account</value>
   </data>
-  <data name="SignInWithElyBy" xml:space="preserve">
-    <value>Sign in with Ely.by</value>
+  <data name="RefreshAccount" xml:space="preserve">
+    <value>Refresh account</value>
   </data>
+  <data name="LastUsed" xml:space="preserve">
+    <value>Last used:</value>
+  </data>
+  <data name="RemoveAccount" xml:space="preserve">
+    <value>Remove account</value>
+  </data>
+  <data name="RemoveAccountConfirmation" xml:space="preserve">
+    <value>Are you sure you want to remove the account '{0}'? This action cannot be undone.</value>
+  </data>
+  <data name="NoAccountsFound" xml:space="preserve">
+    <value>No accounts found</value>
+  </data>
+  <data name="AddAccountHint" xml:space="preserve">
+    <value>Use Add account above to sign in or create an offline account.</value>
+  </data>
+  <data name="AccountsLoading" xml:space="preserve"><value>Loading accounts...</value></data>
+  <data name="AccountLoadFailedTitle" xml:space="preserve"><value>Account loading failed</value></data>
+  <data name="AccountLoadFailedMessage" xml:space="preserve"><value>Could not load accounts.</value></data>
+  <data name="AccountProviderMissingTitle" xml:space="preserve"><value>Provider unavailable</value></data>
+  <data name="AccountProviderMissingMessage" xml:space="preserve"><value>That account provider is no longer available.</value></data>
+  <data name="AccountProviderUnavailableTitle" xml:space="preserve"><value>Provider unavailable</value></data>
+  <data name="AccountSignInMethodMissingTitle" xml:space="preserve"><value>Sign-in method unavailable</value></data>
+  <data name="AccountSignInMethodMissingMessage" xml:space="preserve"><value>That sign-in method is no longer available.</value></data>
+  <data name="InvalidUsernameTitle" xml:space="preserve"><value>Invalid username</value></data>
+  <data name="InvalidUsernameMessage" xml:space="preserve"><value>Offline username cannot be empty.</value></data>
+  <data name="AccountAddingFormat" xml:space="preserve"><value>Adding {0} account...</value></data>
+  <data name="AccountBrowserSignInFormat" xml:space="preserve"><value>Complete {0} sign-in in your browser.</value></data>
+  <data name="AccountAddedTitle" xml:space="preserve"><value>Account added</value></data>
+  <data name="AccountAddedFormat" xml:space="preserve"><value>{0} account added successfully.</value></data>
+  <data name="SignInCanceledTitle" xml:space="preserve"><value>Sign-in canceled</value></data>
+  <data name="SignInCanceledFormat" xml:space="preserve"><value>{0} sign-in canceled.</value></data>
+  <data name="AccountSignInFailedTitle" xml:space="preserve"><value>Sign-in failed</value></data>
+  <data name="AccountSignInFailedFormat" xml:space="preserve"><value>Failed to add {0} account.</value></data>
+  <data name="AccountRefreshFailedTitle" xml:space="preserve"><value>Account refresh failed</value></data>
+  <data name="AccountRefreshFailedFormat" xml:space="preserve"><value>Could not refresh '{0}'.</value></data>
+  <data name="AccountCancelingSignIn" xml:space="preserve"><value>Canceling sign-in...</value></data>
+  <data name="AccountRemovedTitle" xml:space="preserve"><value>Account removed</value></data>
+  <data name="AccountRemovedFormat" xml:space="preserve"><value>Account '{0}' has been removed.</value></data>
+  <data name="AccountRemoveFailedTitle" xml:space="preserve"><value>Removal failed</value></data>
+  <data name="AccountRemoveFailedMessage" xml:space="preserve"><value>Could not remove the account.</value></data>
+  <data name="AccountSelectedTitle" xml:space="preserve"><value>Account selected</value></data>
+  <data name="AccountSelectedFormat" xml:space="preserve"><value>'{0}' is now selected for launches.</value></data>
+  <data name="AccountAuthenticationFailedFormat" xml:space="preserve"><value>Failed to authenticate '{0}'.</value></data>
+  <data name="AccountSelectFailedTitle" xml:space="preserve"><value>Account selection failed</value></data>
+  <data name="AccountSelectFailedFormat" xml:space="preserve"><value>Could not switch to '{0}'.</value></data>
+  <data name="AccountStatusReady" xml:space="preserve"><value>Ready</value></data>
+  <data name="AccountStatusNeedsRefresh" xml:space="preserve"><value>Refresh recommended</value></data>
+  <data name="AccountStatusRefreshing" xml:space="preserve"><value>Refreshing...</value></data>
+  <data name="AccountStatusReauthenticationRequired" xml:space="preserve"><value>Sign in again</value></data>
+  <data name="AccountStatusError" xml:space="preserve"><value>Attention required</value></data>
   <data name="CancelLogin" xml:space="preserve">
     <value>Cancel login</value>
   </data>

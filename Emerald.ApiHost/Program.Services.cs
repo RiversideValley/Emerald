@@ -6,20 +6,19 @@ using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Runtime;
 using Emerald.CoreX.Services;
 using Emerald.CoreX.Services.Auth.ElyBy;
+using Emerald.CoreX.Services.Auth;
+using Emerald.CoreX.Services.Auth.OAuth;
 using Emerald.CoreX.Store;
 using Emerald.CoreX.Store.Modrinth;
 using Emerald.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace Emerald.ApiHost;
 
 public partial class Program
 {
-    const string ElyByClientId = "emerald1";
-    const string ElyByClientSecret = "_hrxVlIoEWm1sqRlruFevD5v87mYW4EKPdmPWlraQoVP6kOXxJV9Y-qMrcm7Znk4";
-    const string ElyByRedirectUri = "http://127.0.0.1:58135/oauth/elyby/";
-    
     private static void ConfigureServices(IServiceCollection services, string basePath)
     {
         services.AddSingleton<IUiDispatcher, ThreadSafeUiDispatcher>();
@@ -50,12 +49,16 @@ public partial class Program
 
         services.AddSingleton<ElyByOAuthOptions>(_ =>
             new ElyByOAuthOptions(
-                ElyByClientId,
-                ElyByClientSecret,
-                ElyByRedirectUri));
+                GetBuildMetadata("Emerald.ElyByClientId"),
+                GetBuildMetadata("Emerald.ElyByClientSecret"),
+                GetBuildMetadata("Emerald.ElyByRedirectUri")));
         services.AddSingleton<IElyByAuthClient, ElyByAuthClient>();
         services.AddSingleton<IElyByAccountStore, ElyByAccountStore>();
-        services.AddSingleton<IElyByOAuthBrowser, HeadlessElyByOAuthBrowser>();
+        services.AddSingleton<ISystemBrowserLauncher, ProcessBrowserLauncher>();
+        services.AddSingleton<IBrowserOAuthBroker>(provider =>
+            new LoopbackBrowserOAuthBroker(
+                provider.GetRequiredService<ILogger<LoopbackBrowserOAuthBroker>>(),
+                provider.GetRequiredService<ISystemBrowserLauncher>()));
 
         services.AddSingleton<Emerald.CoreX.Services.Auth.Authlib.IAuthlibInjectorService>(provider =>
             new Emerald.CoreX.Services.Auth.Authlib.AuthlibInjectorService(
@@ -63,6 +66,12 @@ public partial class Program
                 Path.Combine(basePath, "authlib-injector")));
 
         services.AddSingleton<INotificationService, NotificationService>();
+        services.AddSingleton(new AccountProviderPolicyOptions
+        {
+            RequireMicrosoftForOfflineAccounts = true,
+            RequireMicrosoftForElyByAccounts = true
+        });
+        services.AddEmeraldAccountProviders(GetBuildMetadata("Emerald.MSFTClientId"));
 
         services.AddSingleton<IAccountService>(provider =>
         {
@@ -75,12 +84,9 @@ public partial class Program
                 logger,
                 settings,
                 dispatcher,
+                provider.GetServices<IAccountProvider>(),
                 accountsFile,
-                notificationService: provider.GetRequiredService<INotificationService>(),
-                elyByAuthClient: provider.GetRequiredService<IElyByAuthClient>(),
-                elyByAccountStore: provider.GetRequiredService<IElyByAccountStore>(),
-                elyByOAuthBrowser: provider.GetRequiredService<IElyByOAuthBrowser>(),
-                authlibInjectorService: provider.GetRequiredService<Emerald.CoreX.Services.Auth.Authlib.IAuthlibInjectorService>());
+                notificationService: provider.GetRequiredService<INotificationService>());
         });
 
         services.AddSingleton<IGameRuntimeService, GameRuntimeService>();
@@ -115,4 +121,10 @@ public partial class Program
         services.AddSingleton<Core>();
         services.AddSingleton<EventHub>();
     }
+
+    private static string GetBuildMetadata(string key)
+        => typeof(Program).Assembly
+            .GetCustomAttributes<AssemblyMetadataAttribute>()
+            .FirstOrDefault(attribute => attribute.Key == key)?.Value
+           ?? string.Empty;
 }

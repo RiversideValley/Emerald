@@ -49,8 +49,7 @@ public partial class Program
             {
                 logger.LogInformation("Initializing Emerald CoreX Headless engine...");
 
-                const string MicrosoftClientId = "dfeccda7-604a-4895-b409-9d35f1679b5d";
-                await accountService.InitializeAsync(MicrosoftClientId);
+                await accountService.InitializeAsync();
 
                 var minecraftPath = new MinecraftPath(basePath);
                 await core.InitializeLocalAsync(minecraftPath);

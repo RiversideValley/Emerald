@@ -6,6 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:cn="using:CommunityToolkit.WinUI.Controls"
     xmlns:conv="using:Emerald.Helpers.Converters"
+    xmlns:auth="using:Emerald.CoreX.Services.Auth"
     xmlns:models="using:Emerald.CoreX.Models"
     xmlns:helpers="using:Emerald.Helpers"
     mc:Ignorable="d">
@@ -15,6 +16,8 @@
     <conv:BoolToVisibility x:Key="InverseBoolToVis" Reversed="True"/>
     <conv:CountToVisibilityConverter x:Key="CountToVis"/>
     <conv:InverseBoolConverter x:Key="InverseBoolConverter"/>
+    <conv:AccountAvailabilityConverter x:Key="AccountAvailabilityConverter"/>
+    <conv:AccountLastUsedConverter x:Key="AccountLastUsedConverter"/>
 
     <DataTemplate x:Key="AccountItemTemplate" x:DataType="models:EAccount" x:DefaultBindMode="OneWay">
       <cn:SettingsCard
@@ -31,9 +34,12 @@
               <TextBlock Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind ProviderDisplayName}"/>
             </StackPanel>
             <TextBlock Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}">
-              <Run Text="Last used:"/>
-              <Run Text="{x:Bind LastUsed}"/>
+              <Run Text="{helpers:Localize KeyName=LastUsed}"/>
+              <Run Text=" "/>
+              <Run Text="{x:Bind LastUsed, Converter={StaticResource AccountLastUsedConverter}}"/>
             </TextBlock>
+            <TextBlock Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind Availability, Converter={StaticResource AccountAvailabilityConverter}}"/>
+            <TextBlock Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind AvailabilityMessage}" Visibility="{x:Bind HasAvailabilityMessage, Converter={StaticResource BoolToVis}, Mode=OneWay}" TextWrapping="WrapWholeWords"/>
           </StackPanel>
         </cn:SettingsCard.Header>
         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -45,7 +51,27 @@
             Text="{helpers:Localize KeyName=Selected}"
             Visibility="{x:Bind IsSelected, Converter={StaticResource BoolToVis}, Mode=OneWay}" />
           <Button
-            ToolTipService.ToolTip="Remove Account"
+            ToolTipService.ToolTip="{helpers:Localize KeyName=RefreshAccount}"
+            Click="RefreshAccount_Click"
+            Tag="{x:Bind}">
+            <FontIcon Glyph="&#xE72C;"/>
+          </Button>
+          <ItemsControl ItemsSource="{x:Bind ProviderActions}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" Spacing="8"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="auth:AccountProviderActionDescriptor">
+                <Button ToolTipService.ToolTip="{x:Bind DisplayName}" Click="ProviderAction_Click" Tag="{x:Bind}">
+                  <FontIcon Glyph="&#xE8A7;"/>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <Button
+            ToolTipService.ToolTip="{helpers:Localize KeyName=RemoveAccount}"
             Click="RemoveAccount_Click"
             Tag="{x:Bind}">
             <FontIcon Glyph="&#xE74D;" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
@@ -53,6 +79,7 @@
         </StackPanel>
       </cn:SettingsCard>
     </DataTemplate>
+
   </Page.Resources>
 
   <Grid>
@@ -75,43 +102,19 @@
       <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
         <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
           <CommandBar Background="Transparent" DefaultLabelPosition="Right">
-            <AppBarButton Command="{x:Bind ViewModel.AddMicrosoftAccountCommand}" Icon="Contact" Label="{helpers:Localize KeyName=SignInWithMS}" IsEnabled="{x:Bind ViewModel.CanStartMicrosoftLogin, Mode=OneWay}"/>
-            <AppBarButton Command="{x:Bind ViewModel.AddElyByAccountCommand}" Icon="World" Label="{helpers:Localize KeyName=SignInWithElyBy}" IsEnabled="{x:Bind ViewModel.CanStartElyByLogin, Mode=OneWay}"/>
-            <AppBarButton Click="AddOfflineAccount_Click" Icon="AddFriend" Label="{helpers:Localize KeyName=OfflineAccount}" IsEnabled="{x:Bind ViewModel.CanStartOfflineAccount, Mode=OneWay}"/>
-            <AppBarButton
-              Command="{x:Bind ViewModel.CancelLoginCommand}"
-              Icon="Cancel"
-              Label="{helpers:Localize KeyName=CancelLogin}"
-              Visibility="{x:Bind ViewModel.IsLoginInProgress, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+            <AppBarElementContainer>
+              <Button x:Name="AddAccountButton"
+                      Click="AddAccountButton_OnClick"
+                      Content="{helpers:Localize KeyName=AddAccount}"
+                      Visibility="{x:Bind ViewModel.IsLoginInProgress, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"/>
+            </AppBarElementContainer>
           </CommandBar>
-        </StackPanel>
-        <StackPanel Spacing="4" HorizontalAlignment="Right">
-          <TextBlock
-            HorizontalAlignment="Right"
-            MaxWidth="420"
-            Opacity="0.85"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            Text="{helpers:Localize KeyName=ElyByAccountNeedsMicrosoftDescription}"
-            TextWrapping="WrapWholeWords"
-            Visibility="{x:Bind ViewModel.ShowElyByAccountRestriction, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
-          <TextBlock
-            HorizontalAlignment="Right"
-            MaxWidth="420"
-            Opacity="0.85"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            Text="{helpers:Localize KeyName=OfflineAccountNeedsMicrosoftDescription}"
-            TextWrapping="WrapWholeWords"
-            Visibility="{x:Bind ViewModel.ShowOfflineAccountRestriction, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
         </StackPanel>
       </StackPanel>
     </Grid>
 
     <ScrollViewer Grid.Row="1" Padding="20,0,20,24" VerticalScrollBarVisibility="Auto">
       <StackPanel Spacing="16">
-        <TextBlock
-          Opacity="0.7"
-          Style="{StaticResource CaptionTextBlockStyle}"
-          Text="{helpers:Localize KeyName=SelectAccountForLaunches}" />
 
         <Border
           Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
@@ -146,8 +149,8 @@
                     HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,64,0,0" Spacing="12"
                     Visibility="{x:Bind ViewModel.Accounts.Count, Mode=OneWay, Converter={StaticResource CountToVis}, ConverterParameter=0}">
           <FontIcon Glyph="&#xE77B;" FontSize="48" Opacity="0.5"/>
-          <TextBlock Text="No accounts found" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Center"/>
-          <TextBlock Text="Use the toolbar above to add an account" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" HorizontalAlignment="Center"/>
+          <TextBlock Text="{helpers:Localize KeyName=NoAccountsFound}" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Center"/>
+          <TextBlock Text="{helpers:Localize KeyName=AddAccountHint}" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" HorizontalAlignment="Center"/>
         </StackPanel>
       </StackPanel>
     </ScrollViewer>
