@@ -65,7 +65,6 @@ public sealed partial class AccountsPage : Page
         }
         AddAccountDialog = pnl.ToContentDialog("AddAccount".Localize(), "Cancel".Localize());
         AddAccountDialog.ShowAsync();
-
     }
 
     private async void ProviderMethod_Click(object sender, RoutedEventArgs args)

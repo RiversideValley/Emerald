@@ -200,7 +200,6 @@ public partial class Program
         })
         .WithName("StartElyByBrowserLogin")
         .WithTags("Accounts");
-
     }
 
     private static AccountSignInMethodDescriptor GetSignInMethod(

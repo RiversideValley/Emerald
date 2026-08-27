@@ -150,7 +150,7 @@ internal sealed class LoopbackBrowserOAuthBroker(
     private static string ToListenerPrefix(Uri redirectUri)
     {
         var prefix = redirectUri.GetLeftPart(UriPartial.Path);
-        return prefix.EndsWith("/", StringComparison.Ordinal) ? prefix : prefix + "/";
+        return prefix.EndsWith('/') ? prefix : prefix + "/";
     }
 
     private static bool IsExpectedCallback(Uri expected, Uri? actual)
@@ -161,7 +161,7 @@ internal sealed class LoopbackBrowserOAuthBroker(
            && string.Equals(NormalizePath(actual.AbsolutePath), NormalizePath(expected.AbsolutePath), StringComparison.Ordinal);
 
     private static string NormalizePath(string path)
-        => path.EndsWith("/", StringComparison.Ordinal) ? path : path + "/";
+        => path.EndsWith('/') ? path : path + "/";
 
     private static async Task WriteResponseAsync(HttpListenerResponse response, int statusCode, string title, string body)
     {

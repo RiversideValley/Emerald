@@ -154,5 +154,4 @@ public sealed partial class AccountService : IAccountService
                 throw new ArgumentException($"Account provider '{descriptor.ProviderId}' has a blank requirement provider ID.", nameof(providers));
         }
     }
-
 }
