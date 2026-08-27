@@ -15,6 +15,7 @@ using Emerald.CoreX.Models;
 using Emerald.CoreX.Services;
 using Emerald.CoreX.Installation;
 using Emerald.Helpers;
+using Emerald.Helpers.Enums;
 using Emerald.UserControls;
 using Emerald.Views.Store;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -164,10 +165,18 @@ public sealed partial class GamesPage : Page
         }
     }
 
-    private void ForceStopGame_Click(object sender, RoutedEventArgs e)
+    private async void ForceStopGame_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is MenuFlyoutItem item && item.Tag is Game game)
+        if (sender is UIElement item && item.DataContext is Game game)
         {
+            var result = await MessageBox.Show(
+                "Force Stop",
+                "Do you really want to force stop your game? This might cause corruptions in your game files.",
+                MessageBoxButtons.YesNo);
+            
+            if(result is not MessageBoxResults.Yes) 
+                return;
+            
             _ = ViewModel.ForceStopGameCommand.ExecuteAsync(game);
         }
     }

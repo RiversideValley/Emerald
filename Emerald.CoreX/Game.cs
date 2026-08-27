@@ -42,6 +42,7 @@ public partial class Game : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanLaunch))]
+    [NotifyPropertyChangedFor(nameof(ShowDownload))]
     [NotifyPropertyChangedFor(nameof(CanStop))]
     [NotifyPropertyChangedFor(nameof(CanModify))]
     [NotifyPropertyChangedFor(nameof(RuntimeStatusText))]
@@ -50,6 +51,7 @@ public partial class Game : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanLaunch))]
+    [NotifyPropertyChangedFor(nameof(ShowDownload))]
     [NotifyPropertyChangedFor(nameof(CanStop))]
     [NotifyPropertyChangedFor(nameof(CanModify))]
     [NotifyPropertyChangedFor(nameof(RuntimeStatusText))]
@@ -75,6 +77,7 @@ public partial class Game : ObservableObject
     [NotifyPropertyChangedFor(nameof(InstallationStatusText))]
     [NotifyPropertyChangedFor(nameof(StatusText))]
     [NotifyPropertyChangedFor(nameof(CanLaunch))]
+    [NotifyPropertyChangedFor(nameof(ShowDownload))]
     [NotifyPropertyChangedFor(nameof(CanModify))]
     private InstanceInstallationState _installationState = InstanceInstallationState.Unknown;
 
@@ -100,8 +103,8 @@ public partial class Game : ObservableObject
     public int IntegrityIssueCount => IntegrityIssues.Count;
 
     public bool HasRemainingIntegrityIssues => RemainingIntegrityIssueCount > 0;
-
     public bool CanLaunch => !HasActiveSession && InstallationState is InstanceInstallationState.Ready;
+    public bool ShowDownload => InstallationState is not InstanceInstallationState.Ready && !HasActiveSession;
 
     public bool CanStop => HasActiveSession;
 

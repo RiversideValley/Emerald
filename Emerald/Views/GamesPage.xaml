@@ -63,11 +63,18 @@
                         ToolTipService.ToolTip="Stop"
                         Visibility="{x:Bind CanStop, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
           <Button
+                        Click="ForceStopGame_Click"
+                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                        Tag="{x:Bind}"
+                        Content="{helpers:FontIcon Glyph=&#xE711;}"
+                        ToolTipService.ToolTip="Force Stop"
+                        Visibility="{x:Bind CanStop, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+          <Button
                         Click="InstallGame_Click"
                         Content="{helpers:FontIcon Glyph=&#xE896;}"
                         IsEnabled="{x:Bind CanModify, Mode=OneWay}"
                         Tag="{x:Bind}"
-                        Visibility="{x:Bind CanLaunch, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
+                        Visibility="{x:Bind ShowDownload, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                         ToolTipService.ToolTip="Install/Update" />
           <DropDownButton Content="{helpers:FontIcon Glyph=&#xE712;}" ToolTipService.ToolTip="More Options">
             <DropDownButton.Flyout>
@@ -102,6 +109,7 @@
                                     Click="ManageSettings_Click"
                                     Icon="{helpers:FontIcon Glyph=&#xE713;}"
                                     Tag="{x:Bind}"
+                                    IsEnabled="{x:Bind CanModify, Mode=OneWay}"
                                     Text="Manage Settings" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
