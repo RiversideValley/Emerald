@@ -61,6 +61,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Emerald.MSFTClientId</_Parameter1>
+      <_Parameter2>$(EmeraldMSFTClientId)</_Parameter2>
+    </AssemblyAttribute>
     <PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.Sizers" />
@@ -76,6 +80,18 @@
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>Emerald.UpdateChannel</_Parameter1>
       <_Parameter2>$(EmeraldUpdateChannel)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Emerald.ElyByClientId</_Parameter1>
+      <_Parameter2>$(EmeraldElyByClientId)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Emerald.ElyByClientSecret</_Parameter1>
+      <_Parameter2>$(EmeraldElyByClientSecret)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Emerald.ElyByRedirectUri</_Parameter1>
+      <_Parameter2>$(EmeraldElyByRedirectUri)</_Parameter2>
     </AssemblyAttribute>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>Emerald.PublicVersion</_Parameter1>
