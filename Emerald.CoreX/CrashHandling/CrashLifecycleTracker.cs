@@ -278,40 +278,48 @@ public sealed class FileAppLifecycleTracker : IAppLifecycleTracker
 
     private List<LifecycleRunState> ReadUnreconciledRuns()
     {
-        var runs = new List<LifecycleRunState>();
         try
         {
-            if (Directory.Exists(_sessionsPath))
-            {
-                foreach (var path in Directory.EnumerateFiles(_sessionsPath, "*.json"))
-                {
-                    var state = TryRead(path);
-                    if (state is not null
-                        && !state.Reconciled
-                        && (!state.CleanShutdown || (state.RecoveryOnlySession && !state.StartupCompleted))
-                        && CanAcquireStaleOwnership(state.RunId))
-                    {
-                        runs.Add(state);
-                    }
-                }
-            }
-
-            // One-time compatibility read for the previous single-marker format.
-            var legacy = TryRead(_legacyMarkerPath);
-            if (legacy is not null
-                && !legacy.Reconciled
-                && (!legacy.CleanShutdown || (legacy.RecoveryOnlySession && !legacy.StartupCompleted))
-                && !runs.Any(run => run.RunId == legacy.RunId))
-            {
-                runs.Add(legacy);
-            }
+            var runs = ReadSessionRuns();
+            AddLegacyRun(runs);
+            return runs;
         }
         catch
         {
+            return [];
+        }
+    }
+
+    private List<LifecycleRunState> ReadSessionRuns()
+    {
+        var runs = new List<LifecycleRunState>();
+        if (!Directory.Exists(_sessionsPath)) return runs;
+
+        foreach (var path in Directory.EnumerateFiles(_sessionsPath, "*.json"))
+        {
+            var state = TryRead(path);
+            if (state is not null && IsUnreconciledRun(state) && CanAcquireStaleOwnership(state.RunId))
+            {
+                runs.Add(state);
+            }
         }
 
         return runs;
     }
+
+    private void AddLegacyRun(List<LifecycleRunState> runs)
+    {
+        // One-time compatibility read for the previous single-marker format.
+        var legacy = TryRead(_legacyMarkerPath);
+        if (legacy is not null && IsUnreconciledRun(legacy) && !runs.Any(run => run.RunId == legacy.RunId))
+        {
+            runs.Add(legacy);
+        }
+    }
+
+    private static bool IsUnreconciledRun(LifecycleRunState state)
+        => !state.Reconciled
+            && (!state.CleanShutdown || (state.RecoveryOnlySession && !state.StartupCompleted));
 
     private void AcquireOwnership(string runId)
     {

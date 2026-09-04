@@ -356,82 +356,113 @@ Notes
         try
         {
             await WaitForRootAsync(rootFrame);
-
-            var pendingReport = _crashCoordinator.GetUnacknowledgedReports().FirstOrDefault();
-            var showRecovery = !CrashFaultInjection.IsArmed
-                && (pendingReport is not null || _crashCoordinator.IsRecoveryMode);
-            if (showRecovery)
-            {
-                await ShowPendingCrashAtStartupAsync(rootFrame,
-                    pendingReport ?? _crashCoordinator.GetReports().FirstOrDefault());
-                if (!_normalStartupChosen)
-                {
-                    return;
-                }
-            }
-
+            var showRecovery = await ShowRecoveryIfNeededAsync(rootFrame);
+            if (showRecovery && !_normalStartupChosen) return;
             _crashCoordinator.MarkNormalStartupAttempted();
-            Host = builder.Build();
-            Ioc.Default.ConfigureServices(Host.Services);
-            NativeDispatcherFatalLoggerProvider.AttachHost(Host.Services.GetRequiredService<ILoggerFactory>());
-            _crashCoordinator.SetLogger(Host.Services.GetRequiredService<ILogger<CrashCoordinator>>());
-            this.Log().LogInformation("Application host built successfully. LogPath: {LogPath}.", _crashCoordinator.ApplicationLogPath);
-
-            SS = Ioc.Default.GetRequiredService<Services.SettingsService>();
-            SS.LoadData();
-            this.Log().LogInformation("Application settings loaded.");
-
-            var core = Ioc.Default.GetRequiredService<CoreX.Core>();
-            var configuredMinecraftPath = SS.Settings.Minecraft.Path;
-            var startupMinecraftPath = string.IsNullOrWhiteSpace(configuredMinecraftPath)
-                ? new MinecraftPath()
-                : new MinecraftPath(configuredMinecraftPath);
-            core.InitializeLocalAsync(startupMinecraftPath).GetAwaiter().GetResult();
-            if (!_crashCoordinator.IsRecoveryMode)
-            {
-                _ = RunBackgroundStartupTaskAsync(
-                    () => core.RefreshVersionCatalogAsync(),
-                    "Minecraft version catalog refresh");
-            }
-
-            var ac = Ioc.Default.GetRequiredService<CoreX.Services.IAccountService>();
-            _ = RunBackgroundStartupTaskAsync(() => ac.InitializeAsync(), "Account service initialization");
-
-            if (rootFrame.Content is not null && rootFrame.Content is not MainPage)
-            {
-                rootFrame.Content = null;
-            }
-
-            if (rootFrame.Content is null)
-            {
-                rootFrame.Navigate(typeof(MainPage), args.Arguments);
-                this.Log().LogInformation("Navigated to the main page.");
-            }
-
-            MainWindow!.Activate();
-            if (rootFrame.Content is MainPage mainPage)
-            {
-                await mainPage.ShellReady;
-            }
-
-            _crashCoordinator.MarkStartupComplete();
-            CrashFaultInjection.WriteCheckpoint("ShellReady");
-            this.Log().LogInformation("Main shell is ready.");
-            _ = Task.Run(_crashCoordinator.EnrichNativeDiagnostics);
-
-            if (!_crashCoordinator.IsRecoveryMode)
-            {
-                if (!showRecovery)
-                {
-                    await ShowReleaseNotesAtStartupAsync();
-                }
-                await CheckForUpdatesAtStartupAsync();
-            }
+            BuildHost(builder);
+            await InitializeApplicationAsync(args, rootFrame, showRecovery);
         }
         catch (Exception exception)
         {
             _crashCoordinator.CaptureAndTerminate(exception, "Startup");
         }
+    }
+
+    private async Task<bool> ShowRecoveryIfNeededAsync(Frame rootFrame)
+    {
+        var pendingReport = _crashCoordinator.GetUnacknowledgedReports().FirstOrDefault();
+        var shouldShow = !CrashFaultInjection.IsArmed
+            && (pendingReport is not null || _crashCoordinator.IsRecoveryMode);
+        if (!shouldShow) return false;
+
+        await ShowPendingCrashAtStartupAsync(rootFrame,
+            pendingReport ?? _crashCoordinator.GetReports().FirstOrDefault());
+        return true;
+    }
+
+    private void BuildHost(IApplicationBuilder builder)
+    {
+        Host = builder.Build();
+        Ioc.Default.ConfigureServices(Host.Services);
+        NativeDispatcherFatalLoggerProvider.AttachHost(Host.Services.GetRequiredService<ILoggerFactory>());
+        _crashCoordinator.SetLogger(Host.Services.GetRequiredService<ILogger<CrashCoordinator>>());
+        this.Log().LogInformation("Application host built successfully. LogPath: {LogPath}.", _crashCoordinator.ApplicationLogPath);
+    }
+
+    private async Task InitializeApplicationAsync(
+        LaunchActivatedEventArgs args,
+        Frame rootFrame,
+        bool showedRecovery)
+    {
+        LoadSettings();
+        await InitializeCoreAsync();
+        await InitializeMainShellAsync(args, rootFrame);
+        MarkShellReady();
+        await ShowOptionalStartupDialogsAsync(showedRecovery);
+    }
+
+    private void LoadSettings()
+    {
+        SS = Ioc.Default.GetRequiredService<Services.SettingsService>();
+        SS.LoadData();
+        this.Log().LogInformation("Application settings loaded.");
+    }
+
+    private async Task InitializeCoreAsync()
+    {
+        var core = Ioc.Default.GetRequiredService<CoreX.Core>();
+        var configuredMinecraftPath = SS.Settings.Minecraft.Path;
+        var startupMinecraftPath = string.IsNullOrWhiteSpace(configuredMinecraftPath)
+            ? new MinecraftPath()
+            : new MinecraftPath(configuredMinecraftPath);
+
+        await core.InitializeLocalAsync(startupMinecraftPath);
+        if (!_crashCoordinator.IsRecoveryMode)
+        {
+            _ = RunBackgroundStartupTaskAsync(
+                () => core.RefreshVersionCatalogAsync(),
+                "Minecraft version catalog refresh");
+        }
+
+        var accountService = Ioc.Default.GetRequiredService<CoreX.Services.IAccountService>();
+        _ = RunBackgroundStartupTaskAsync(
+            () => accountService.InitializeAsync(),
+            "Account service initialization");
+    }
+
+    private async Task InitializeMainShellAsync(LaunchActivatedEventArgs args, Frame rootFrame)
+    {
+        if (rootFrame.Content is not null && rootFrame.Content is not MainPage)
+        {
+            rootFrame.Content = null;
+        }
+
+        if (rootFrame.Content is null)
+        {
+            rootFrame.Navigate(typeof(MainPage), args.Arguments);
+            this.Log().LogInformation("Navigated to the main page.");
+        }
+
+        MainWindow!.Activate();
+        if (rootFrame.Content is MainPage mainPage)
+        {
+            await mainPage.ShellReady;
+        }
+    }
+
+    private void MarkShellReady()
+    {
+        _crashCoordinator.MarkStartupComplete();
+        CrashFaultInjection.WriteCheckpoint("ShellReady");
+        this.Log().LogInformation("Main shell is ready.");
+        _ = Task.Run(_crashCoordinator.EnrichNativeDiagnostics);
+    }
+
+    private async Task ShowOptionalStartupDialogsAsync(bool showedRecovery)
+    {
+        if (_crashCoordinator.IsRecoveryMode) return;
+        if (!showedRecovery) await ShowReleaseNotesAtStartupAsync();
+        await CheckForUpdatesAtStartupAsync();
     }
 
     private bool _normalStartupChosen;
@@ -611,119 +642,148 @@ Notes
     {
         try
         {
-            var openLogsButton = new Button
-            {
-                Content = "OpenCrashLogs".Localize(),
-                HorizontalAlignment = HorizontalAlignment.Left
-            };
-
-            var content = new StackPanel { Spacing = 12 };
-            content.Children.Add(new TextBlock
-            {
-                Text = _crashCoordinator.IsRecoveryMode
-                    ? "RecoveryModeDescription".Localize()
-                    : record?.Kind == CrashRecordKind.UnexpectedShutdown
-                    ? "UnexpectedShutdownDescription".Localize()
-                    : "CrashRecoveryDescription".Localize(),
-                TextWrapping = TextWrapping.WrapWholeWords
-            });
-            content.Children.Add(new TextBlock
-            {
-                Text = record is null ? string.Empty
-                    : $"{record.AppVersion} · {record.Platform} · {record.OccurredUtc.ToLocalTime():g}",
-                TextWrapping = TextWrapping.WrapWholeWords
-            });
-            content.Children.Add(openLogsButton);
-            var details = CreateRecoveryDetails(record);
-            details.Visibility = Visibility.Collapsed;
-            content.Children.Add(details);
-            var status = new TextBlock { TextWrapping = TextWrapping.WrapWholeWords };
-            content.Children.Add(status);
-
-            var dialog = new ContentDialog
-            {
-                Title = (_crashCoordinator.IsRecoveryMode ? "RecoveryMode" : "EmeraldCrashDetected").Localize(),
-                Content = content,
-                PrimaryButtonText = "ViewCrashReport".Localize(),
-                SecondaryButtonText = "ReportToGitHub".Localize(),
-                CloseButtonText = (_crashCoordinator.IsRecoveryMode ? "TryNormalStartup" : "Continue").Localize(),
-                IsPrimaryButtonEnabled = record is not null,
-                IsSecondaryButtonEnabled = record is not null,
-                DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = root.XamlRoot
-            };
-
-            void Acknowledge()
-            {
-                if (record is not null) _crashCoordinator.Acknowledge(record.Id);
-            }
-            void ViewDetails()
-            {
-                Acknowledge();
-                var show = details.Visibility != Visibility.Visible;
-                details.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
-                dialog.PrimaryButtonText = (show ? "HideCrashDetails" : "ViewCrashReport").Localize();
-                CrashFaultInjection.WriteCheckpoint("Recovery details viewed");
-            }
-            void ContinueStartup()
-            {
-                Acknowledge();
-                _normalStartupChosen = true;
-            }
-            dialog.PrimaryButtonClick += (_, args) =>
-            {
-                args.Cancel = true;
-                ViewDetails();
-            };
-            dialog.SecondaryButtonClick += async (_, args) =>
-            {
-                args.Cancel = true;
-                Acknowledge();
-                dialog.IsSecondaryButtonEnabled = false;
-                try
-                {
-                    if (record is not null) await ReportCrashOnGitHubAsync(record);
-                }
-                catch (Exception exception)
-                {
-                    status.Text = "CouldNotOpenGitHubReport".Localize();
-                    this.Log().LogWarning(exception, "Could not open GitHub from recovery.");
-                }
-                finally { dialog.IsSecondaryButtonEnabled = record is not null; }
-            };
-            dialog.CloseButtonClick += (_, _) => ContinueStartup();
-            openLogsButton.Click += async (_, _) =>
-            {
-                Acknowledge();
-                try { await OpenCrashLogsAsync(); }
-                catch (Exception exception)
-                {
-                    this.Log().LogWarning(exception, "Could not open logs from recovery.");
-                }
-            };
-            dialog.Opened += (_, _) =>
-            {
-                CrashFaultInjection.WriteCheckpoint($"Recovery dialog opened: {record?.Id ?? "none"}");
-                CrashFaultInjection.ExerciseRecoveryActions(root.DispatcherQueue, ViewDetails, () =>
-                {
-                    ContinueStartup();
-                    dialog.Hide();
-                });
-            };
-
-            await dialog.ShowAsync();
-            // Escape or programmatic cancellation is not a user acknowledgement.
-            // Keep recovery accessible inline instead of presenting another modal.
-            if (!_normalStartupChosen)
-            {
-                await ShowEmergencyRecoveryPanelAsync(root, record);
-            }
+            var context = CreateRecoveryDialog(root, record);
+            WireRecoveryDialog(context, root);
+            await context.Dialog.ShowAsync();
+            await ShowEmergencyPanelIfNeededAsync(root, record);
         }
         catch (Exception exception)
         {
             this.Log().LogWarning(exception, "Previous-crash recovery dialog failed to open.");
             await ShowEmergencyRecoveryPanelAsync(root, record);
         }
+    }
+
+    private RecoveryDialogContext CreateRecoveryDialog(FrameworkElement root, CrashRecord? record)
+    {
+        var openLogsButton = new Button
+        {
+            Content = "OpenCrashLogs".Localize(),
+            HorizontalAlignment = HorizontalAlignment.Left
+        };
+        var details = CreateRecoveryDetails(record);
+        details.Visibility = Visibility.Collapsed;
+        var status = new TextBlock { TextWrapping = TextWrapping.WrapWholeWords };
+        var content = new StackPanel { Spacing = 12 };
+        content.Children.Add(new TextBlock
+        {
+            Text = GetRecoveryDescription(record),
+            TextWrapping = TextWrapping.WrapWholeWords
+        });
+        content.Children.Add(new TextBlock
+        {
+            Text = record is null ? string.Empty
+                : $"{record.AppVersion} · {record.Platform} · {record.OccurredUtc.ToLocalTime():g}",
+            TextWrapping = TextWrapping.WrapWholeWords
+        });
+        content.Children.Add(openLogsButton);
+        content.Children.Add(details);
+        content.Children.Add(status);
+
+        var dialog = new ContentDialog
+        {
+            Title = (_crashCoordinator.IsRecoveryMode ? "RecoveryMode" : "EmeraldCrashDetected").Localize(),
+            Content = content,
+            PrimaryButtonText = "ViewCrashReport".Localize(),
+            SecondaryButtonText = "ReportToGitHub".Localize(),
+            CloseButtonText = (_crashCoordinator.IsRecoveryMode ? "TryNormalStartup" : "Continue").Localize(),
+            IsPrimaryButtonEnabled = record is not null,
+            IsSecondaryButtonEnabled = record is not null,
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = root.XamlRoot
+        };
+        return new RecoveryDialogContext(dialog, openLogsButton, details, status, record);
+    }
+
+    private string GetRecoveryDescription(CrashRecord? record)
+    {
+        if (_crashCoordinator.IsRecoveryMode) return "RecoveryModeDescription".Localize();
+        if (record?.Kind == CrashRecordKind.UnexpectedShutdown) return "UnexpectedShutdownDescription".Localize();
+        return "CrashRecoveryDescription".Localize();
+    }
+
+    private void WireRecoveryDialog(RecoveryDialogContext context, FrameworkElement root)
+    {
+        context.Dialog.PrimaryButtonClick += (_, args) =>
+        {
+            args.Cancel = true;
+            ViewRecoveryDetails(context);
+        };
+        context.Dialog.SecondaryButtonClick += async (_, args) =>
+            await ReportFromRecoveryDialogAsync(context, args);
+        context.Dialog.CloseButtonClick += (_, _) => ContinueFromRecovery(context);
+        context.OpenLogsButton.Click += async (_, _) =>
+            await OpenLogsFromRecoveryAsync(context.Record);
+        context.Dialog.Opened += (_, _) =>
+        {
+            CrashFaultInjection.WriteCheckpoint($"Recovery dialog opened: {context.Record?.Id ?? "none"}");
+            CrashFaultInjection.ExerciseRecoveryActions(root.DispatcherQueue,
+                () => ViewRecoveryDetails(context),
+                () =>
+                {
+                    ContinueFromRecovery(context);
+                    context.Dialog.Hide();
+                });
+        };
+    }
+
+    private void ViewRecoveryDetails(RecoveryDialogContext context)
+    {
+        Acknowledge(context.Record);
+        var show = context.Details.Visibility != Visibility.Visible;
+        context.Details.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        context.Dialog.PrimaryButtonText = (show ? "HideCrashDetails" : "ViewCrashReport").Localize();
+        CrashFaultInjection.WriteCheckpoint("Recovery details viewed");
+    }
+
+    private void ContinueFromRecovery(RecoveryDialogContext context)
+    {
+        Acknowledge(context.Record);
+        _normalStartupChosen = true;
+    }
+
+    private void Acknowledge(CrashRecord? record)
+    {
+        if (record is not null) _crashCoordinator.Acknowledge(record.Id);
+    }
+
+    private async Task ReportFromRecoveryDialogAsync(
+        RecoveryDialogContext context,
+        ContentDialogButtonClickEventArgs args)
+    {
+        args.Cancel = true;
+        Acknowledge(context.Record);
+        context.Dialog.IsSecondaryButtonEnabled = false;
+        try
+        {
+            if (context.Record is not null) await ReportCrashOnGitHubAsync(context.Record);
+        }
+        catch (Exception exception)
+        {
+            context.Status.Text = "CouldNotOpenGitHubReport".Localize();
+            this.Log().LogWarning(exception, "Could not open GitHub from recovery.");
+        }
+        finally
+        {
+            context.Dialog.IsSecondaryButtonEnabled = context.Record is not null;
+        }
+    }
+
+    private async Task OpenLogsFromRecoveryAsync(CrashRecord? record)
+    {
+        Acknowledge(record);
+        try { await OpenCrashLogsAsync(); }
+        catch (Exception exception)
+        {
+            this.Log().LogWarning(exception, "Could not open logs from recovery.");
+        }
+    }
+
+    private async Task ShowEmergencyPanelIfNeededAsync(FrameworkElement root, CrashRecord? record)
+    {
+        // Escape or programmatic cancellation is not a user acknowledgement.
+        // Keep recovery accessible inline instead of presenting another modal.
+        if (!_normalStartupChosen) await ShowEmergencyRecoveryPanelAsync(root, record);
     }
 
     private static FrameworkElement CreateRecoveryDetails(CrashRecord? record)
@@ -741,6 +801,18 @@ Notes
     private async Task ShowEmergencyRecoveryPanelAsync(FrameworkElement root, CrashRecord? record)
     {
         var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var panel = CreateEmergencyRecoveryPanel(record, completion);
+        if (root is Frame frame)
+        {
+            frame.Content = panel;
+        }
+        await completion.Task;
+    }
+
+    private StackPanel CreateEmergencyRecoveryPanel(
+        CrashRecord? record,
+        TaskCompletionSource completion)
+    {
         var panel = new StackPanel { Spacing = 12, Padding = new(24) };
         panel.Children.Add(new TextBlock
         {
@@ -748,69 +820,79 @@ Notes
             TextWrapping = TextWrapping.WrapWholeWords
         });
 
-        var viewButton = new Button { Content = "ViewCrashReports".Localize() };
         var details = CreateRecoveryDetails(record);
         details.Visibility = Visibility.Collapsed;
+        var viewButton = new Button { Content = "ViewCrashReports".Localize() };
         viewButton.Click += (_, _) =>
         {
-            if (record is not null)
-            {
-                _crashCoordinator.Acknowledge(record.Id);
-            }
+            Acknowledge(record);
             details.Visibility = Visibility.Visible;
         };
         panel.Children.Add(viewButton);
         panel.Children.Add(details);
 
-        if (record is not null)
+        AddEmergencyReportActions(panel, record);
+        AddEmergencyContinueAction(panel, record, completion);
+        return panel;
+    }
+
+    private void AddEmergencyReportActions(StackPanel panel, CrashRecord? record)
+    {
+        if (record is null) return;
+
+        var reportButton = new Button { Content = "ReportToGitHub".Localize() };
+        reportButton.Click += async (_, _) =>
+            await ReportFromEmergencyPanelAsync(record);
+        panel.Children.Add(reportButton);
+
+        var openLogsButton = new Button { Content = "OpenCrashLogs".Localize() };
+        openLogsButton.Click += async (_, _) =>
+            await OpenLogsFromEmergencyPanelAsync(record);
+        panel.Children.Add(openLogsButton);
+    }
+
+    private async Task ReportFromEmergencyPanelAsync(CrashRecord record)
+    {
+        try
         {
-            var reportButton = new Button { Content = "ReportToGitHub".Localize() };
-            reportButton.Click += async (_, _) =>
-            {
-                try
-                {
-                    _crashCoordinator.Acknowledge(record.Id);
-                    await ReportCrashOnGitHubAsync(record);
-                }
-                catch (Exception exception)
-                {
-                    this.Log().LogWarning(exception, "Could not report the previous crash from the recovery panel.");
-                }
-            };
-            panel.Children.Add(reportButton);
-
-            var openLogsButton = new Button { Content = "OpenCrashLogs".Localize() };
-            openLogsButton.Click += async (_, _) =>
-            {
-                try
-                {
-                    _crashCoordinator.Acknowledge(record.Id);
-                    await OpenCrashLogsAsync();
-                }
-                catch (Exception exception)
-                {
-                    this.Log().LogWarning(exception, "Could not open logs from the recovery panel.");
-                }
-            };
-            panel.Children.Add(openLogsButton);
+            Acknowledge(record);
+            await ReportCrashOnGitHubAsync(record);
         }
+        catch (Exception exception)
+        {
+            this.Log().LogWarning(exception, "Could not report the previous crash from the recovery panel.");
+        }
+    }
 
+    private async Task OpenLogsFromEmergencyPanelAsync(CrashRecord record)
+    {
+        try
+        {
+            Acknowledge(record);
+            await OpenCrashLogsAsync();
+        }
+        catch (Exception exception)
+        {
+            this.Log().LogWarning(exception, "Could not open logs from the recovery panel.");
+        }
+    }
+
+    private void AddEmergencyContinueAction(
+        StackPanel panel,
+        CrashRecord? record,
+        TaskCompletionSource completion)
+    {
         var continueButton = new Button
         {
             Content = (_crashCoordinator.IsRecoveryMode ? "TryNormalStartup" : "Continue").Localize()
         };
         continueButton.Click += (_, _) =>
         {
-            if (record is not null) _crashCoordinator.Acknowledge(record.Id);
+            Acknowledge(record);
             _normalStartupChosen = true;
             completion.TrySetResult();
         };
         panel.Children.Add(continueButton);
-        if (root is Frame frame)
-        {
-            frame.Content = panel;
-        }
-        await completion.Task;
     }
 
     private async Task ReportCrashOnGitHubAsync(CrashRecord record)
@@ -846,6 +928,20 @@ Notes
         }
 
         return Task.CompletedTask;
+    }
+
+    private sealed class RecoveryDialogContext(
+        ContentDialog dialog,
+        Button openLogsButton,
+        FrameworkElement details,
+        TextBlock status,
+        CrashRecord? record)
+    {
+        public ContentDialog Dialog { get; } = dialog;
+        public Button OpenLogsButton { get; } = openLogsButton;
+        public FrameworkElement Details { get; } = details;
+        public TextBlock Status { get; } = status;
+        public CrashRecord? Record { get; } = record;
     }
 
     #endregion
