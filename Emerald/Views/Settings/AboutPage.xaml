@@ -100,6 +100,23 @@
                 </cn:SettingsCard.Content>
             </cn:SettingsCard>
 
+            <cn:SettingsCard
+                Header="{helpers:Localize KeyName=CrashReports}"
+                Description="{helpers:Localize KeyName=CrashReportsDescription}"
+                HeaderIcon="{helpers:FontIcon Glyph=&#xE7BA;}">
+                <cn:SettingsCard.Content>
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                            Text="{x:Bind CrashReportCountText, Mode=OneWay}" />
+                        <Button
+                            Click="OpenCrashReports_Click"
+                            Content="{helpers:Localize KeyName=ViewCrashReports}" />
+                    </StackPanel>
+                </cn:SettingsCard.Content>
+            </cn:SettingsCard>
+
             <cn:SettingsExpander
                 Header="{helpers:Localize KeyName=Updates}"
                 Description="{helpers:Localize KeyName=UpdatesDescription}"

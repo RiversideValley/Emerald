@@ -1,9 +1,9 @@
 using System;
-using System.Diagnostics;
 using System.Reflection;
 using CmlLib.Core;
 using CommonServiceLocator;
 using CommunityToolkit.Mvvm.DependencyInjection;
+using Emerald.CoreX.CrashHandling;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Services.Auth;
@@ -14,6 +14,7 @@ using Emerald.CoreX.Store.Modrinth;
 using Emerald.Helpers;
 using Emerald.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 using Serilog;
 using Serilog.Sinks.File;
@@ -21,6 +22,8 @@ using Microsoft.UI.Dispatching;
 using Uno.Extensions;
 using Uno.Extensions.Hosting;
 using Uno.Resizetizer;
+using Windows.ApplicationModel.DataTransfer;
+using Launcher = Windows.System.Launcher;
 
 namespace Emerald;
 
@@ -40,7 +43,10 @@ Notes
 - You can still change the Minecraft path from Settings.
 """;
 
-    private Services.SettingsService SS;
+    private Services.SettingsService SS = null!;
+    private readonly CrashCoordinator _crashCoordinator;
+    private Task? _startupTask;
+    private int _normalShutdownStarted;
 
     /// <summary>
     /// Initializes the singleton application object. This is the first line of authored code
@@ -48,27 +54,23 @@ Notes
     /// </summary>
     public App()
     {
-        this.InitializeComponent();
-
-        // Fires BEFORE any catch block — catches swallowed exceptions
-        AppDomain.CurrentDomain.FirstChanceException += (s, e) =>
-        {
-            // Only log exceptions from your own assemblies to avoid noise
-            var ns = e.Exception.TargetSite?.DeclaringType?.Namespace ?? "";
-            if (ns.StartsWith("Emerald") || ns.StartsWith("CmlLib"))
-            {
-                Debug.WriteLine($"[FIRST CHANCE] {e.Exception.GetType().Name}: {e.Exception.Message}");
-                Debug.WriteLine($"[FIRST CHANCE STACK] {e.Exception.StackTrace}");
-            }
-        };
-
+        CrashFaultInjection.ConfigureFromArguments(Environment.GetCommandLineArgs().Skip(1));
+        _crashCoordinator = CrashBootstrap.Initialize();
         this.UnhandledException += App_UnhandledException;
-        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-        TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+        try
+        {
+            this.InitializeComponent();
+        }
+        catch (Exception exception)
+        {
+            _crashCoordinator.CaptureAndTerminate(exception, "App constructor");
+        }
     }
 
     public Window? MainWindow { get; private set; }
     protected IHost? Host { get; private set; }
+    public CrashCoordinator CrashCoordinator => _crashCoordinator;
 
     #region  Services
 
@@ -247,6 +249,7 @@ Notes
         services.AddTransient<ViewModels.NotificationListViewModel>();
         services.AddSingleton<ViewModels.AccountsPageViewModel>();
         services.AddTransient<ViewModels.LogsPageViewModel>();
+        services.AddTransient<ViewModels.CrashReportsPageViewModel>();
         services.AddTransient<ViewModels.ModrinthStorePageViewModel>();
         services.AddTransient<ViewModels.GameOptionsViewModel>();
     }
@@ -258,6 +261,8 @@ Notes
     /// </summary>
     private void ConfigureServices(IServiceCollection services)
     {
+        services.AddSingleton(_crashCoordinator);
+        services.AddSingleton<ICrashReportStore>(_crashCoordinator.Store);
         ConfigureCoreServices(services);
         ConfigureSettingsServices(services);
         ConfigureAuthServices(services);
@@ -270,7 +275,33 @@ Notes
     /// </summary>
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        var logPath = Path.Combine(DirectResoucres.LocalDataPath, "logs", "app_.log");
+        try
+        {
+            CrashFaultInjection.ConfigureFromActivationArguments(args.Arguments);
+#if DEBUG
+            if (CrashFaultInjection.IsRequested("WinAppStartup"))
+            {
+                throw new NotImplementedException("Intentional WinAppSDK startup crash test.");
+            }
+#endif
+            OnLaunchedCore(args);
+        }
+        catch (Exception exception)
+        {
+            _crashCoordinator.CaptureAndTerminate(exception, "OnLaunched");
+        }
+    }
+
+    private void OnLaunchedCore(LaunchActivatedEventArgs args)
+    {
+        var logPath = _crashCoordinator.ApplicationLogPath;
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
+        }
+        catch
+        {
+        }
 
         var builder = this.CreateBuilder(args)
             .Configure(host => host
@@ -279,6 +310,8 @@ Notes
 #endif
                 .UseSerilog(true, configureLogger: x => x
                     .MinimumLevel.Debug()
+                    .MinimumLevel.Override("Microsoft.UI", Serilog.Events.LogEventLevel.Warning)
+                    .MinimumLevel.Override("Uno", Serilog.Events.LogEventLevel.Warning)
                     .WriteTo.File(logPath,
                         rollingInterval: RollingInterval.Day,
                         retainedFileCountLimit: 7,
@@ -288,43 +321,15 @@ Notes
 
         MainWindow = builder.Window;
 #if DEBUG
-        MainWindow.UseStudio();
+        if (!CrashFaultInjection.DisableStudio)
+        {
+            MainWindow.UseStudio();
+        }
 #endif
         MainWindow.SetWindowIcon("Assets/Icon.ico");
 
-        Host = builder.Build();
-        Ioc.Default.ConfigureServices(Host.Services);
-        this.Log().LogInformation("Application host built successfully. LogPath: {LogPath}.", logPath);
-
-        SS = Ioc.Default.GetService<Services.SettingsService>();
-
-        //load settings,
-        SS.LoadData();
-        this.Log().LogInformation("Application settings loaded.");
-
-        var core = Ioc.Default.GetRequiredService<CoreX.Core>();
-        var configuredMinecraftPath = SS.Settings.Minecraft.Path;
-        var startupMinecraftPath = string.IsNullOrWhiteSpace(configuredMinecraftPath)
-            ? new MinecraftPath()
-            : new MinecraftPath(configuredMinecraftPath);
-        try
-        {
-            // Local game state is available before navigation; the catalog refresh is
-            // deliberately silent and bounded so offline startup never blocks Home.
-            core.InitializeLocalAsync(startupMinecraftPath).GetAwaiter().GetResult();
-            _ = core.RefreshVersionCatalogAsync();
-        }
-        catch (Exception ex)
-        {
-            this.Log().LogWarning(ex, "Could not initialize local Minecraft state at startup.");
-        }
-
-        var ac = Ioc.Default.GetService<CoreX.Services.IAccountService>();
-        _ = ac.InitializeAsync();
-        this.Log().LogInformation("Account service initialization requested.");
-
-        // Do not repeat app initialization when the Window already has content,
-        // just ensure that the window is active
+        // The window and blank root exist before the host and MainPage. This is the
+        // only safe place to present recovery after an early startup failure.
         if (MainWindow.Content is not Frame rootFrame)
         {
             // Create a Frame to act as the navigation context and navigate to the first page
@@ -335,20 +340,127 @@ Notes
             this.Log().LogDebug("Created a new root navigation frame for the main window.");
         }
 
-        // When the navigation stack isn't restored navigate to the first page,
-        // configuring the new page by passing required information as a navigation
-        // parameter
-        if (rootFrame.Content == null)
-        {
-            rootFrame.Navigate(typeof(MainPage), args.Arguments);
-            this.Log().LogInformation("Navigated to the main page.");
-        }
-
         MainWindow.Activate();
         MainWindow.Closed += MainWindow_Closed;
-        this.Log().LogInformation("Main window activated.");
-        _ = ShowReleaseNotesAtStartupAsync();
-        _ = CheckForUpdatesAtStartupAsync();
+        CrashBootstrap.RegisterNormalShutdown(() =>
+        {
+            CompleteNormalShutdown();
+            Environment.Exit(0);
+        });
+        MacApplicationTerminationObserver.Register(CompleteNormalShutdown);
+        _startupTask ??= ContinueStartupAsync(builder, args, rootFrame);
+    }
+
+    private async Task ContinueStartupAsync(IApplicationBuilder builder, LaunchActivatedEventArgs args, Frame rootFrame)
+    {
+        try
+        {
+            await WaitForRootAsync(rootFrame);
+
+            var pendingReport = _crashCoordinator.GetUnacknowledgedReports().FirstOrDefault();
+            var showRecovery = !CrashFaultInjection.IsArmed
+                && (pendingReport is not null || _crashCoordinator.IsRecoveryMode);
+            if (showRecovery)
+            {
+                await ShowPendingCrashAtStartupAsync(rootFrame,
+                    pendingReport ?? _crashCoordinator.GetReports().FirstOrDefault());
+                if (!_normalStartupChosen)
+                {
+                    return;
+                }
+            }
+
+            _crashCoordinator.MarkNormalStartupAttempted();
+            Host = builder.Build();
+            Ioc.Default.ConfigureServices(Host.Services);
+            NativeDispatcherFatalLoggerProvider.AttachHost(Host.Services.GetRequiredService<ILoggerFactory>());
+            _crashCoordinator.SetLogger(Host.Services.GetRequiredService<ILogger<CrashCoordinator>>());
+            this.Log().LogInformation("Application host built successfully. LogPath: {LogPath}.", _crashCoordinator.ApplicationLogPath);
+
+            SS = Ioc.Default.GetRequiredService<Services.SettingsService>();
+            SS.LoadData();
+            this.Log().LogInformation("Application settings loaded.");
+
+            var core = Ioc.Default.GetRequiredService<CoreX.Core>();
+            var configuredMinecraftPath = SS.Settings.Minecraft.Path;
+            var startupMinecraftPath = string.IsNullOrWhiteSpace(configuredMinecraftPath)
+                ? new MinecraftPath()
+                : new MinecraftPath(configuredMinecraftPath);
+            core.InitializeLocalAsync(startupMinecraftPath).GetAwaiter().GetResult();
+            if (!_crashCoordinator.IsRecoveryMode)
+            {
+                _ = RunBackgroundStartupTaskAsync(
+                    () => core.RefreshVersionCatalogAsync(),
+                    "Minecraft version catalog refresh");
+            }
+
+            var ac = Ioc.Default.GetRequiredService<CoreX.Services.IAccountService>();
+            _ = RunBackgroundStartupTaskAsync(() => ac.InitializeAsync(), "Account service initialization");
+
+            if (rootFrame.Content is not null && rootFrame.Content is not MainPage)
+            {
+                rootFrame.Content = null;
+            }
+
+            if (rootFrame.Content is null)
+            {
+                rootFrame.Navigate(typeof(MainPage), args.Arguments);
+                this.Log().LogInformation("Navigated to the main page.");
+            }
+
+            MainWindow!.Activate();
+            if (rootFrame.Content is MainPage mainPage)
+            {
+                await mainPage.ShellReady;
+            }
+
+            _crashCoordinator.MarkStartupComplete();
+            CrashFaultInjection.WriteCheckpoint("ShellReady");
+            this.Log().LogInformation("Main shell is ready.");
+            _ = Task.Run(_crashCoordinator.EnrichNativeDiagnostics);
+
+            if (!_crashCoordinator.IsRecoveryMode)
+            {
+                if (!showRecovery)
+                {
+                    await ShowReleaseNotesAtStartupAsync();
+                }
+                await CheckForUpdatesAtStartupAsync();
+            }
+        }
+        catch (Exception exception)
+        {
+            _crashCoordinator.CaptureAndTerminate(exception, "Startup");
+        }
+    }
+
+    private bool _normalStartupChosen;
+
+    private static async Task WaitForRootAsync(FrameworkElement root)
+    {
+        if (root.XamlRoot is not null)
+        {
+            return;
+        }
+
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        void OnLoaded(object sender, RoutedEventArgs args)
+        {
+            root.Loaded -= OnLoaded;
+            completion.TrySetResult();
+        }
+
+        root.Loaded += OnLoaded;
+        if (root.XamlRoot is not null)
+        {
+            root.Loaded -= OnLoaded;
+            completion.TrySetResult();
+        }
+
+        // Loaded is the readiness signal; the timeout is only a degraded-mode
+        // escape hatch for a platform that cannot provide XamlRoot. ContentDialog
+        // will then fail predictably and the inline recovery panel remains usable.
+        await Task.WhenAny(completion.Task, Task.Delay(TimeSpan.FromSeconds(5)));
     }
 
     /// <summary>
@@ -356,8 +468,49 @@ Notes
     /// </summary>
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
-        this.Log().LogInformation("Main window is closing. Persisting settings.");
-        SS.SaveData();
+        CompleteNormalShutdown();
+    }
+
+    public void CompleteNormalShutdown()
+    {
+        if (Interlocked.Exchange(ref _normalShutdownStarted, 1) != 0)
+        {
+            return;
+        }
+
+        try
+        {
+            if (SS is not null)
+            {
+                SS.FlushPendingSave();
+            }
+
+            _crashCoordinator.MarkCleanExit();
+        }
+        catch (Exception exception)
+        {
+            _crashCoordinator.CaptureAndTerminate(exception, "Normal shutdown");
+        }
+    }
+
+    private async Task RunBackgroundStartupTaskAsync(Func<Task> operation, string source)
+    {
+        try
+        {
+            await operation();
+        }
+        catch (Exception exception)
+        {
+            _crashCoordinator.ObserveBackgroundFault(exception, source);
+            try
+            {
+                this.Log().LogError(exception, "Background startup operation failed: {Source}.", source);
+            }
+            catch
+            {
+                // Logging is best effort for a recoverable background failure.
+            }
+        }
     }
 
     private async Task ShowReleaseNotesAtStartupAsync()
@@ -373,8 +526,6 @@ Notes
             {
                 return;
             }
-
-            await Task.Yield();
 
             var dialog = CreateReleaseNotesDialog();
             await dialog.ShowAsync();
@@ -453,124 +604,248 @@ Notes
 
     private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
     {
-        e.Handled = true;
-        HandleCrash(e.Exception, "UI UnhandledException");
+        _crashCoordinator.CaptureAndTerminate(e.Exception, "UI.UnhandledException");
     }
 
-    private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
-    {
-        HandleCrash((Exception)e.ExceptionObject, "AppDomain UnhandledException");
-    }
-
-    private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
-    {
-        e.SetObserved();
-        HandleCrash(e.Exception, "Task UnobservedException");
-    }
-
-    /// <summary>
-    /// Single entry point for all crashes. Writes file FIRST, then shows dialog.
-    /// </summary>
-    private void HandleCrash(Exception exception, string source)
-    {
-        Debug.WriteLine($"[CRASH] Handling crash from {source}: {exception.Message}");
-
-        // 1. Write crash file immediately — before anything else that could fail
-        var crashPath = WriteCrashFile(exception, source);
-
-        // 2. Flush Serilog so buffered logs are persisted
-        try { Log.CloseAndFlush(); } catch { }
-
-        // 3. Show dialog (best effort — crash is already saved)
-        ShowPlatformErrorDialog(
-            $"An unexpected error occurred ({source}).\nCrash report saved to:\n{crashPath}",
-            exception
-        );
-    }
-
-    /// <summary>
-    /// Writes the crash report to disk and records the fatal exception through the configured logger.
-    /// </summary>
-    private string WriteCrashFile(Exception exception, string source)
-    {
-        var crashPath = "unknown";
-        try
-        {
-            crashPath = Path.Combine(
-                DirectResoucres.LocalDataPath,
-                "crashes",
-                $"crash_{DateTime.Now:yyyyMMdd_HHmmss}.txt"
-            );
-            Directory.CreateDirectory(Path.GetDirectoryName(crashPath)!);
-
-            File.WriteAllText(crashPath, BuildCrashReport(exception, source));
-
-            // Also log to Serilog
-            this.Log().LogCritical(exception,
-                "Unhandled exception ({Source}). Platform: {Platform}",
-                source, DirectResoucres.Platform);
-        }
-        catch (Exception writeEx)
-        {
-            // Absolute last resort
-            Debug.WriteLine($"[CRASH WRITE FAILED] {writeEx}");
-            Debug.WriteLine($"[ORIGINAL CRASH] {exception}");
-        }
-        return crashPath;
-    }
-
-    /// <summary>
-    /// Builds the plain-text crash report that is written alongside fatal errors.
-    /// </summary>
-    private static string BuildCrashReport(Exception ex, string source)
-    {
-        var sb = new System.Text.StringBuilder();
-        sb.AppendLine("=== CRASH REPORT ===");
-        sb.AppendLine($"Time:     {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-        sb.AppendLine($"Platform: {DirectResoucres.Platform}");
-        sb.AppendLine($"Source:   {source}");
-        sb.AppendLine();
-        AppendException(sb, ex, 0);
-        return sb.ToString();
-    }
-
-    /// <summary>
-    /// Appends an exception and its inner exceptions to the crash report text.
-    /// </summary>
-    private static void AppendException(System.Text.StringBuilder sb, Exception? ex, int depth)
-    {
-        if (ex is null) return;
-        var indent = new string(' ', depth * 2);
-        sb.AppendLine($"{indent}--- {(depth == 0 ? "Exception" : "Inner Exception")} ---");
-        sb.AppendLine($"{indent}Type:    {ex.GetType().FullName}");
-        sb.AppendLine($"{indent}Message: {ex.Message}");
-        sb.AppendLine($"{indent}Stack:   {ex.StackTrace}");
-
-        // Recursively unwrap inner exceptions
-        if (ex is AggregateException agg)
-            foreach (var inner in agg.InnerExceptions)
-                AppendException(sb, inner, depth + 1);
-        else
-            AppendException(sb, ex.InnerException, depth + 1);
-    }
-
-    private async void ShowPlatformErrorDialog(string message, Exception ex)
+    private async Task ShowPendingCrashAtStartupAsync(FrameworkElement root, CrashRecord? record)
     {
         try
         {
-            await MessageBox.Show("AppCrash".Localize(), message, Helpers.Enums.MessageBoxButtons.Ok);
+            var openLogsButton = new Button
+            {
+                Content = "OpenCrashLogs".Localize(),
+                HorizontalAlignment = HorizontalAlignment.Left
+            };
+
+            var content = new StackPanel { Spacing = 12 };
+            content.Children.Add(new TextBlock
+            {
+                Text = _crashCoordinator.IsRecoveryMode
+                    ? "RecoveryModeDescription".Localize()
+                    : record?.Kind == CrashRecordKind.UnexpectedShutdown
+                    ? "UnexpectedShutdownDescription".Localize()
+                    : "CrashRecoveryDescription".Localize(),
+                TextWrapping = TextWrapping.WrapWholeWords
+            });
+            content.Children.Add(new TextBlock
+            {
+                Text = record is null ? string.Empty
+                    : $"{record.AppVersion} · {record.Platform} · {record.OccurredUtc.ToLocalTime():g}",
+                TextWrapping = TextWrapping.WrapWholeWords
+            });
+            content.Children.Add(openLogsButton);
+            var details = CreateRecoveryDetails(record);
+            details.Visibility = Visibility.Collapsed;
+            content.Children.Add(details);
+            var status = new TextBlock { TextWrapping = TextWrapping.WrapWholeWords };
+            content.Children.Add(status);
+
+            var dialog = new ContentDialog
+            {
+                Title = (_crashCoordinator.IsRecoveryMode ? "RecoveryMode" : "EmeraldCrashDetected").Localize(),
+                Content = content,
+                PrimaryButtonText = "ViewCrashReport".Localize(),
+                SecondaryButtonText = "ReportToGitHub".Localize(),
+                CloseButtonText = (_crashCoordinator.IsRecoveryMode ? "TryNormalStartup" : "Continue").Localize(),
+                IsPrimaryButtonEnabled = record is not null,
+                IsSecondaryButtonEnabled = record is not null,
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = root.XamlRoot
+            };
+
+            void Acknowledge()
+            {
+                if (record is not null) _crashCoordinator.Acknowledge(record.Id);
+            }
+            void ViewDetails()
+            {
+                Acknowledge();
+                var show = details.Visibility != Visibility.Visible;
+                details.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+                dialog.PrimaryButtonText = (show ? "HideCrashDetails" : "ViewCrashReport").Localize();
+                CrashFaultInjection.WriteCheckpoint("Recovery details viewed");
+            }
+            void ContinueStartup()
+            {
+                Acknowledge();
+                _normalStartupChosen = true;
+            }
+            dialog.PrimaryButtonClick += (_, args) =>
+            {
+                args.Cancel = true;
+                ViewDetails();
+            };
+            dialog.SecondaryButtonClick += async (_, args) =>
+            {
+                args.Cancel = true;
+                Acknowledge();
+                dialog.IsSecondaryButtonEnabled = false;
+                try
+                {
+                    if (record is not null) await ReportCrashOnGitHubAsync(record);
+                }
+                catch (Exception exception)
+                {
+                    status.Text = "CouldNotOpenGitHubReport".Localize();
+                    this.Log().LogWarning(exception, "Could not open GitHub from recovery.");
+                }
+                finally { dialog.IsSecondaryButtonEnabled = record is not null; }
+            };
+            dialog.CloseButtonClick += (_, _) => ContinueStartup();
+            openLogsButton.Click += async (_, _) =>
+            {
+                Acknowledge();
+                try { await OpenCrashLogsAsync(); }
+                catch (Exception exception)
+                {
+                    this.Log().LogWarning(exception, "Could not open logs from recovery.");
+                }
+            };
+            dialog.Opened += (_, _) =>
+            {
+                CrashFaultInjection.WriteCheckpoint($"Recovery dialog opened: {record?.Id ?? "none"}");
+                CrashFaultInjection.ExerciseRecoveryActions(root.DispatcherQueue, ViewDetails, () =>
+                {
+                    ContinueStartup();
+                    dialog.Hide();
+                });
+            };
+
+            await dialog.ShowAsync();
+            // Escape or programmatic cancellation is not a user acknowledgement.
+            // Keep recovery accessible inline instead of presenting another modal.
+            if (!_normalStartupChosen)
+            {
+                await ShowEmergencyRecoveryPanelAsync(root, record);
+            }
         }
-        catch (Exception dialogEx)
+        catch (Exception exception)
         {
-            // Dialog itself failed — log both errors properly
-            this.Log().LogCritical(ex, $"[DIALOG FAILED] {dialogEx}");
-            Debug.WriteLine($"[DIALOG FAILED] {dialogEx}\n[ORIGINAL ERROR] {ex}");
+            this.Log().LogWarning(exception, "Previous-crash recovery dialog failed to open.");
+            await ShowEmergencyRecoveryPanelAsync(root, record);
         }
-        finally
+    }
+
+    private static FrameworkElement CreateRecoveryDetails(CrashRecord? record)
+        => new ScrollViewer
         {
-            // Always kill — crash file is already saved at this point
-            Process.GetCurrentProcess().Kill();
+            MaxHeight = 320,
+            Content = new TextBlock
+            {
+                Text = record is null ? "UnexpectedShutdownDescription".Localize() : CrashReportFormatter.ToText(record),
+                TextWrapping = TextWrapping.WrapWholeWords,
+                IsTextSelectionEnabled = true
+            }
+        };
+
+    private async Task ShowEmergencyRecoveryPanelAsync(FrameworkElement root, CrashRecord? record)
+    {
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var panel = new StackPanel { Spacing = 12, Padding = new(24) };
+        panel.Children.Add(new TextBlock
+        {
+            Text = record is null ? "RecoveryModeDescription".Localize() : "CrashRecoveryDescription".Localize(),
+            TextWrapping = TextWrapping.WrapWholeWords
+        });
+
+        var viewButton = new Button { Content = "ViewCrashReports".Localize() };
+        var details = CreateRecoveryDetails(record);
+        details.Visibility = Visibility.Collapsed;
+        viewButton.Click += (_, _) =>
+        {
+            if (record is not null)
+            {
+                _crashCoordinator.Acknowledge(record.Id);
+            }
+            details.Visibility = Visibility.Visible;
+        };
+        panel.Children.Add(viewButton);
+        panel.Children.Add(details);
+
+        if (record is not null)
+        {
+            var reportButton = new Button { Content = "ReportToGitHub".Localize() };
+            reportButton.Click += async (_, _) =>
+            {
+                try
+                {
+                    _crashCoordinator.Acknowledge(record.Id);
+                    await ReportCrashOnGitHubAsync(record);
+                }
+                catch (Exception exception)
+                {
+                    this.Log().LogWarning(exception, "Could not report the previous crash from the recovery panel.");
+                }
+            };
+            panel.Children.Add(reportButton);
+
+            var openLogsButton = new Button { Content = "OpenCrashLogs".Localize() };
+            openLogsButton.Click += async (_, _) =>
+            {
+                try
+                {
+                    _crashCoordinator.Acknowledge(record.Id);
+                    await OpenCrashLogsAsync();
+                }
+                catch (Exception exception)
+                {
+                    this.Log().LogWarning(exception, "Could not open logs from the recovery panel.");
+                }
+            };
+            panel.Children.Add(openLogsButton);
         }
+
+        var continueButton = new Button
+        {
+            Content = (_crashCoordinator.IsRecoveryMode ? "TryNormalStartup" : "Continue").Localize()
+        };
+        continueButton.Click += (_, _) =>
+        {
+            if (record is not null) _crashCoordinator.Acknowledge(record.Id);
+            _normalStartupChosen = true;
+            completion.TrySetResult();
+        };
+        panel.Children.Add(continueButton);
+        if (root is Frame frame)
+        {
+            frame.Content = panel;
+        }
+        await completion.Task;
+    }
+
+    private async Task ReportCrashOnGitHubAsync(CrashRecord record)
+    {
+        var draft = new GitHubCrashIssueComposer("https://github.com/RiversideValley/Emerald").Compose(record);
+        try
+        {
+            var package = new DataPackage
+            {
+                RequestedOperation = DataPackageOperation.Copy
+            };
+            package.SetText(draft.FullReport);
+            Clipboard.SetContent(package);
+        }
+        catch (Exception exception)
+        {
+            this.Log().LogWarning(exception, "Could not copy the crash report to the clipboard.");
+        }
+
+        if (!Uri.TryCreate(draft.Url, UriKind.Absolute, out var uri)
+            || !await Launcher.LaunchUriAsync(uri))
+        {
+            throw new InvalidOperationException("Could not open the GitHub crash draft.");
+        }
+    }
+
+    private Task OpenCrashLogsAsync()
+    {
+        var logsPath = Path.GetDirectoryName(_crashCoordinator.ApplicationLogPath);
+        if (!PlatformFolderLauncher.TryOpen(logsPath))
+        {
+            this.Log().LogWarning("Could not open Emerald application logs at {LogsPath}.", logsPath);
+        }
+
+        return Task.CompletedTask;
     }
 
     #endregion

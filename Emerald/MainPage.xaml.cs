@@ -14,6 +14,7 @@ using Emerald.CoreX.Notifications;
 using Emerald.CoreX.Services;
 using Emerald.Helpers;
 using Emerald.Models;
+using Emerald.Services;
 using Emerald.Views;
 using Emerald.Views.Settings;
 using Emerald.Views.Store;
@@ -40,6 +41,7 @@ public sealed partial class MainPage : Page
     private readonly HashSet<EAccount> _trackedAccounts = [];
     private readonly Dictionary<string, NotificationType> _notificationTypeSnapshot = new(StringComparer.Ordinal);
     private readonly ObservableCollection<TaskToastItem> _taskToasts = [];
+    private readonly TaskCompletionSource _shellReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private SquareNavigationViewItem? _accountsNavigationItem;
     private SquareNavigationViewItem? _tasksNavigationItem;
@@ -50,6 +52,7 @@ public sealed partial class MainPage : Page
     private bool _isTasksFlyoutOpen;
 
     public ObservableCollection<TaskToastItem> TaskToasts => _taskToasts;
+    public Task ShellReady => _shellReady.Task;
 
     public MainPage()
     {
@@ -240,13 +243,43 @@ public sealed partial class MainPage : Page
 
     private async void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
-        this.Log().LogInformation("Main page loaded.");
-        Emerald.Helpers.WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
+        try
+        {
+            this.Log().LogInformation("Main page loaded.");
+            Emerald.Helpers.WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
 
-        InitializeAppearance();
-        InitializeNavView();
-        await LoadAccountsAsync();
-        Loaded -= MainPage_Loaded;
+            if (CrashFaultInjection.IsRequested("MainPage_Loaded")
+                || CrashFaultInjection.IsRequested("MainPage_Loaded_BeforeAwait"))
+            {
+                throw new NotImplementedException("Intentional MainPage crash test.");
+            }
+
+            InitializeAppearance();
+            InitializeNavView();
+            await LoadAccountsAsync();
+            if (CrashFaultInjection.IsRequested("MainPage_Loaded_AfterAwait"))
+            {
+                throw new NotImplementedException("Intentional post-await MainPage crash test.");
+            }
+
+            if (CrashFaultInjection.IsRequested("DispatcherCallback"))
+            {
+                if (!DispatcherQueue.TryEnqueue(() => throw new NotImplementedException("Intentional dispatcher crash test.")))
+                {
+                    throw new InvalidOperationException("Could not enqueue the requested dispatcher crash test.");
+                }
+            }
+
+            CrashFaultInjection.ExerciseAdditionalPaths(DispatcherQueue, this.Log());
+
+            Loaded -= MainPage_Loaded;
+            _shellReady.TrySetResult();
+        }
+        catch (Exception exception)
+        {
+            _shellReady.TrySetException(exception);
+            App.Current.CrashCoordinator.CaptureAndTerminate(exception, "MainPage.Loaded");
+        }
     }
 
     /// <summary>
@@ -288,6 +321,26 @@ public sealed partial class MainPage : Page
         this.Log().LogInformation("Navigating to tag {Tag}.", tag);
         NavView.SelectedItem = target;
         Navigate(target, parameter);
+    }
+
+    public void NavigateToCrashReports(string? reportId)
+    {
+        var items = NavView.MenuItems.Cast<object>().Concat(NavView.FooterMenuItems.Cast<object>());
+        var target = items
+            .OfType<SquareNavigationViewItem>()
+            .FirstOrDefault(item => string.Equals(item.Tag as string, "Settings", StringComparison.OrdinalIgnoreCase));
+
+        if (target is null)
+        {
+            this.Log().LogWarning("Could not navigate to crash reports because Settings navigation is unavailable.");
+            return;
+        }
+
+        HideTasksFlyout();
+        NavView.SelectedItem = target;
+        _lastNonTaskNavigationItem = target;
+        NavigateOnce(typeof(SettingsPage), new CrashReportsNavigationRequest(reportId), forceNavigate: true);
+        UpdateHeader(target);
     }
 
     /// <summary>

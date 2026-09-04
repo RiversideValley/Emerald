@@ -353,7 +353,7 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
         _ = Task.Run(async () =>
         {
             await Task.Delay(500);
-            Process.GetCurrentProcess().Kill();
+            CrashBootstrap.RequestNormalShutdown();
         });
     }
 #endif

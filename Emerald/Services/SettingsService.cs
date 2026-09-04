@@ -65,23 +65,38 @@ public class SettingsService(
 
     public void SaveData()
     {
-        try
+        lock (_saveGate)
         {
-            _suppressTracking = true;
-            Settings.LastSaved = DateTime.Now;
-            baseService.Set(SettingsKeys.Settings, Settings);
-            globalGameSettingsService.Save();
-            logger.LogInformation("Settings saved successfully.");
+            try
+            {
+                _suppressTracking = true;
+                Settings.LastSaved = DateTime.Now;
+                baseService.Set(SettingsKeys.Settings, Settings);
+                globalGameSettingsService.Save();
+                logger.LogInformation("Settings saved successfully.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error saving settings data.");
+                throw;
+            }
+            finally
+            {
+                _suppressTracking = false;
+            }
         }
-        catch (Exception ex)
+    }
+
+    public void FlushPendingSave()
+    {
+        lock (_saveGate)
         {
-            logger.LogError(ex, "Error saving settings data.");
-            throw;
+            _pendingSaveCts?.Cancel();
+            _pendingSaveCts?.Dispose();
+            _pendingSaveCts = null;
         }
-        finally
-        {
-            _suppressTracking = false;
-        }
+
+        SaveData();
     }
 
     private void AttachTracking()

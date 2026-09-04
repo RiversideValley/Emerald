@@ -1,17 +1,40 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.UI.Xaml.Navigation;
 using System;
 
 namespace Emerald.Views.Settings;
 
 public sealed partial class SettingsPage : Page
 {
+    private CrashReportsNavigationRequest? _pendingCrashReportsNavigation;
+
     public SettingsPage()
     {
         InitializeComponent();
 
-        Loaded += (_, _) => 
-                NavigateOnce(typeof(GeneralPage));
+        Loaded += SettingsPage_Loaded;
+    }
+
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        _pendingCrashReportsNavigation = e.Parameter as CrashReportsNavigationRequest;
+    }
+
+    private void SettingsPage_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (_pendingCrashReportsNavigation is not null)
+        {
+            var aboutItem = navView.MenuItems
+                .OfType<NavigationViewItem>()
+                .FirstOrDefault(item => string.Equals(item.Tag as string, "About", StringComparison.OrdinalIgnoreCase));
+            navView.SelectedItem = aboutItem;
+            NavigateOnce(typeof(CrashReportsPage), _pendingCrashReportsNavigation.ReportId);
+            return;
+        }
+
+        NavigateOnce(typeof(GeneralPage));
     }
 
     private void navView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
@@ -35,11 +58,13 @@ public sealed partial class SettingsPage : Page
         }
     }
 
-    private void NavigateOnce(Type type)
+    private void NavigateOnce(Type type, object? parameter = null)
     {
         if (contentframe.Content == null || contentframe.Content.GetType() != type)
         {
-            contentframe.Navigate(type, null, new DrillInNavigationTransitionInfo());
+            contentframe.Navigate(type, parameter, new DrillInNavigationTransitionInfo());
         }
     }
 }
+
+public sealed record CrashReportsNavigationRequest(string? ReportId);

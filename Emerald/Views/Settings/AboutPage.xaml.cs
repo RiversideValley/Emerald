@@ -173,6 +173,7 @@ public sealed partial class AboutPage : Page
 
     private readonly IAppUpdateService _updateService;
     private readonly INotificationService _notifications;
+    private readonly CrashCoordinator _crashCoordinator;
     private readonly List<ChannelOption> _availableChannels;
 
     private bool _isCheckingForUpdates;
@@ -183,6 +184,11 @@ public sealed partial class AboutPage : Page
     public string PackageVersion => DirectResoucres.PackageVersion;
     public string BuildTypeLabel => $"{DirectResoucres.BuildType} | {GetChannelLabel(DirectResoucres.ReleaseChannel)}";
     public string BuildInfo => $"{GetChannelLabel(DirectResoucres.ReleaseChannel)} {DirectResoucres.Architecture}";
+    public string CrashReportCountText
+        => string.Concat(
+            _crashCoordinator.GetUnacknowledgedReports().Count,
+            " ",
+            "CrashReportsNewCount".Localize());
 
     public IReadOnlyList<ChannelOption> AvailableChannels => _availableChannels;
     public Visibility NightlyArtifactsCardVisibility =>
@@ -217,6 +223,7 @@ public sealed partial class AboutPage : Page
         SS = Ioc.Default.GetRequiredService<Services.SettingsService>();
         _updateService = Ioc.Default.GetRequiredService<IAppUpdateService>();
         _notifications = Ioc.Default.GetRequiredService<INotificationService>();
+        _crashCoordinator = Ioc.Default.GetRequiredService<CrashCoordinator>();
 
         _availableChannels =
         [
@@ -227,6 +234,7 @@ public sealed partial class AboutPage : Page
 
         InitializeComponent();
         Bindings.Update();
+        Loaded += (_, _) => Bindings.Update();
     }
 
     private async Task CheckForUpdatesAsync()
@@ -451,6 +459,9 @@ public sealed partial class AboutPage : Page
 
     private async void CheckUpdates_Click(object sender, RoutedEventArgs e)
         => await CheckForUpdatesAsync();
+
+    private void OpenCrashReports_Click(object sender, RoutedEventArgs e)
+        => Frame?.Navigate(typeof(CrashReportsPage));
 
     private async void OpenNightlyArtifacts_Click(object sender, RoutedEventArgs e)
     {
