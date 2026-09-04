@@ -15,17 +15,66 @@
     },
     "Emerald (WinAppSDK Packaged)": {
       "commandName": "MsixPackage",
-      "compatibleTargetFramework": "windows"
+      "compatibleTargetFramework": "windows",
+      "commandLineArgs": "--emerald-test=0"
+    },
+    "Crash - MainPage (WinAppSDK Packaged)": {
+      "commandName": "MsixPackage",
+      "compatibleTargetFramework": "windows",
+      "commandLineArgs": "--emerald-test=1 --emerald-test-crash=MainPage_Loaded --emerald-test-disable-studio=1"
+    },
+    "Crash - Dispatcher (WinAppSDK Packaged)": {
+      "commandName": "MsixPackage",
+      "compatibleTargetFramework": "windows",
+      "commandLineArgs": "--emerald-test=1 --emerald-test-crash=DispatcherCallback --emerald-test-disable-studio=1"
+    },
+    "Crash - Startup (WinAppSDK Packaged)": {
+      "commandName": "MsixPackage",
+      "compatibleTargetFramework": "windows",
+      "commandLineArgs": "--emerald-test=1 --emerald-test-crash=WinAppStartup --emerald-test-disable-studio=1"
     },
     "Emerald (Desktop)": {
       "commandName": "Project",
-      "compatibleTargetFramework": "desktop"
+      "compatibleTargetFramework": "desktop",
+      "environmentVariables": {
+        "EMERALD_TEST": "0"
+      }
     },
     "Emerald (Desktop WSL2)": {
       "commandName": "WSL2",
       "commandLineArgs": "{ProjectDir}/bin/Debug/net10.0-desktop/Emerald.dll",
       "distributionName": "",
       "compatibleTargetFramework": "desktop"
+    },
+    "Crash - MainPage": {
+      "commandName": "Project",
+      "compatibleTargetFramework": "desktop",
+      "environmentVariables": {
+        "EMERALD_TEST": "1",
+        "EMERALD_TEST_DATA_ROOT": "",
+        "EMERALD_TEST_CRASH": "MainPage_Loaded",
+        "EMERALD_TEST_DISABLE_STUDIO": "1"
+      }
+    },
+    "Crash - Dispatcher": {
+      "commandName": "Project",
+      "compatibleTargetFramework": "desktop",
+      "environmentVariables": {
+        "EMERALD_TEST": "1",
+        "EMERALD_TEST_DATA_ROOT": "",
+        "EMERALD_TEST_CRASH": "DispatcherCallback",
+        "EMERALD_TEST_DISABLE_STUDIO": "1"
+      }
+    },
+    "Crash - DesktopHost": {
+      "commandName": "Project",
+      "compatibleTargetFramework": "desktop",
+      "environmentVariables": {
+        "EMERALD_TEST": "1",
+        "EMERALD_TEST_DATA_ROOT": "",
+        "EMERALD_TEST_CRASH": "DesktopHost",
+        "EMERALD_TEST_DISABLE_STUDIO": "1"
+      }
     }
   }
 }
