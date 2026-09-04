@@ -4,9 +4,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Emerald.Services;
 
 /// <summary>
-/// Uno 6.6.184 catches exceptions raised by queued callbacks and reports them only
-/// through its logger. This narrow adapter turns that one known message back into
-/// Emerald's fatal policy while leaving all other framework logs unchanged.
+/// Fallback for Uno 6.6.184, whose Desktop dispatcher catches queued callback
+/// exceptions and reports them only through this exact logger category/message.
+/// Uno's generated Application.UnhandledException handler remains enabled and is
+/// Emerald's standard UI-exception path. This bridge must never turn arbitrary
+/// framework errors into crashes.
+///
+/// Upgrade contract: when changing Uno, rerun dispatcher, async-void, and UI
+/// unhandled-exception tests and confirm this log entry still includes an exception.
 /// </summary>
 internal sealed class NativeDispatcherFatalLoggerProvider(CrashCoordinator coordinator) : ILoggerProvider
 {

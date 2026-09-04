@@ -56,11 +56,14 @@ Notes
     {
         CrashFaultInjection.ConfigureFromArguments(Environment.GetCommandLineArgs().Skip(1));
         _crashCoordinator = CrashBootstrap.Initialize();
-        this.UnhandledException += App_UnhandledException;
 
         try
         {
             this.InitializeComponent();
+            // Uno's generated handler is registered during application setup. Subscribe
+            // afterward so an attached Debugger can break there before Emerald records
+            // and terminates if execution resumes.
+            this.UnhandledException += App_UnhandledException;
         }
         catch (Exception exception)
         {
@@ -636,8 +639,17 @@ Notes
     #region UnhandledExceptions
 
     private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+        => HandleUnoUnhandledException(e.Exception);
+
+    /// <summary>
+    /// Applies Emerald's fatal policy after Uno has surfaced an unhandled UI exception.
+    /// The Debug-only fault injector shares this method to validate the policy without
+    /// pretending it can manufacture Uno framework event delivery.
+    /// </summary>
+    internal void HandleUnoUnhandledException(Exception exception)
     {
-        _crashCoordinator.CaptureAndTerminate(e.Exception, "UI.UnhandledException");
+        CrashFaultInjection.WriteCheckpoint("Uno Application.UnhandledException observed");
+        _crashCoordinator.CaptureAndTerminate(exception, "Uno.Application.UnhandledException");
     }
 
     private async Task ShowPendingCrashAtStartupAsync(FrameworkElement root, CrashRecord? record)

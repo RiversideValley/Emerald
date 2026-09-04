@@ -147,6 +147,14 @@ internal static class CrashFaultInjection
                 CrashBootstrap.Current.CaptureAndTerminate(exception, "Capture-then-terminate test");
             }
         }
+        else if (IsRequested("UnoApplicationUnhandled"))
+        {
+            // Exercises Emerald's event-policy callback. Framework delivery itself is
+            // validated manually because Uno's Desktop dispatcher logs this path in
+            // the pinned runtime rather than raising Application.UnhandledException.
+            App.Current.HandleUnoUnhandledException(
+                new NotImplementedException("Intentional Uno application-unhandled test."));
+        }
         else if (IsRequested("OrdinaryError"))
         {
             logger.LogError(new NotImplementedException("Intentional recoverable test error."), "Ordinary error test");

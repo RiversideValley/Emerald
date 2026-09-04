@@ -61,6 +61,33 @@ public sealed class CrashProfileProcessTests
         Assert.False(store.Get(newest.Id)!.IsAcknowledged);
     }
 
+    [AppProcessFact]
+    public async Task UnoApplicationUnhandled_CallbackCapturesOnce_ThenOpensRecovery()
+    {
+        using var directory = new TestDirectory();
+        await using var app = new TestApp(directory.Path, "UnoApplicationUnhandled");
+
+        await app.WaitForExitAsync();
+
+        Assert.NotEqual(0, app.ExitCode);
+        Assert.True(app.Saw("Firing UnoApplicationUnhandled"), app.Output);
+        Assert.True(app.Saw("Uno Application.UnhandledException observed"), app.Output);
+
+        var store = new FileCrashReportStore(directory.Path);
+        var report = Assert.Single(store.GetAll());
+        Assert.Equal(CrashRecordKind.ManagedCrash, report.Kind);
+        Assert.Equal("Uno.Application.UnhandledException", report.Source);
+        Assert.Equal("System.NotImplementedException", report.Exception?.Type);
+        Assert.Contains("Intentional", report.Exception?.Message ?? string.Empty);
+        Assert.False(report.IsAcknowledged);
+
+        await using var recovery = new TestApp(directory.Path, string.Empty);
+        await recovery.WaitForCheckpointAsync($"Recovery dialog opened: {report.Id}");
+        Assert.False(recovery.HasExited, recovery.Output);
+        Assert.False(recovery.Saw("ShellReady"), recovery.Output);
+        Assert.False(store.Get(report.Id)!.IsAcknowledged);
+    }
+
     [AppProcessTheory]
     [InlineData(1)]
     [InlineData(3)]

@@ -50,6 +50,11 @@
     <DefineConstants>$(DefineConstants);EMERALD_MACOS</DefineConstants>
   </PropertyGroup>
 
+  <!-- Let Uno break first while debugging Desktop unhandled UI exceptions. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug' and '$(TargetFramework)' == 'net10.0-desktop'">
+    <BreakOnUnhandledExceptions>true</BreakOnUnhandledExceptions>
+  </PropertyGroup>
+
   <PropertyGroup Condition=" '$(PublishUnsignedPackage)' == 'true' ">
     <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
     <AppxBundle>Never</AppxBundle>

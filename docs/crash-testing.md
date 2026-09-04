@@ -21,7 +21,13 @@ For automated tests, set `EMERALD_TEST_DATA_ROOT` to a writable absolute tempora
 
 Recovery uses one dialog: View shows details in place, Report and Open logs leave it open, and Continue starts the shell. After repeated startup failures, the same dialog explains recovery mode and uses an explicit Try normal startup button. There is no separate recovery launch profile or follow-up crash notification dialog.
 
-Additional `EMERALD_TEST_CRASH` values for automated validation are `MainPage_Loaded_BeforeAwait`, `MainPage_Loaded_AfterAwait`, `AsyncVoidBeforeAwait`, `AsyncVoidAfterAwait`, `WorkerThread`, and `CaptureThenTerminate`. `OrdinaryError` and `UnobservedTask` exercise nonfatal paths. `EMERALD_TEST_DISABLE_STUDIO=1` disables Studio only while test mode is enabled.
+Additional `EMERALD_TEST_CRASH` values for automated validation are `MainPage_Loaded_BeforeAwait`, `MainPage_Loaded_AfterAwait`, `AsyncVoidBeforeAwait`, `AsyncVoidAfterAwait`, `WorkerThread`, `CaptureThenTerminate`, and `UnoApplicationUnhandled`. The last value exercises Emerald's callback policy after Uno has surfaced a UI exception; it does not simulate Uno framework event delivery. `OrdinaryError` and `UnobservedTask` exercise nonfatal paths. `EMERALD_TEST_DISABLE_STUDIO=1` disables Studio only while test mode is enabled.
+
+## Uno unhandled-exception behavior
+
+Uno's generated `Application.UnhandledException` handler remains enabled; Emerald subscribes after XAML initialization so it captures and terminates only if execution continues. Debug Desktop builds set Uno's `BreakOnUnhandledExceptions` option, so an attached debugger breaks first. Release builds retain Uno's default non-breaking behavior.
+
+The `NativeDispatcherFatalLoggerProvider` is a narrow Uno 6.6.184 fallback for queued dispatcher and `async void` exceptions that Desktop logs instead of surfacing through `Application.UnhandledException`. It is not a general error-log-to-crash conversion. Whenever Uno changes, rerun the dispatcher, both `AsyncVoid` cases, and a real UI-unhandled exception on Windows MSIX, macOS, and Linux; confirm the exception is captured once, the correct source is recorded, and recovery appears on the next normal launch.
 
 ## Real application process tests
 
