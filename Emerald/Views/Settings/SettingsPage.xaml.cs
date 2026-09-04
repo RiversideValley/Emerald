@@ -60,10 +60,22 @@ public sealed partial class SettingsPage : Page
 
     private void NavigateOnce(Type type, object? parameter = null)
     {
+        ConfigureContentScrolling(type == typeof(CrashReportsPage));
+
         if (contentframe.Content == null || contentframe.Content.GetType() != type)
         {
             contentframe.Navigate(type, parameter, new DrillInNavigationTransitionInfo());
         }
+    }
+
+    private void ConfigureContentScrolling(bool usePageLevelScrolling)
+    {
+        contentScrollViewer.VerticalScrollMode = usePageLevelScrolling
+            ? ScrollMode.Disabled
+            : ScrollMode.Enabled;
+        contentScrollViewer.VerticalScrollBarVisibility = usePageLevelScrolling
+            ? ScrollBarVisibility.Disabled
+            : ScrollBarVisibility.Auto;
     }
 }
 

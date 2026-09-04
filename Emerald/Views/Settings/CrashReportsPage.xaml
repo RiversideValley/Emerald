@@ -90,6 +90,7 @@
         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
         BorderThickness="1"
         CornerRadius="8">
+      <ScrollViewer>
       <Grid RowSpacing="8">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
@@ -128,6 +129,7 @@
               IsEnabled="{x:Bind ViewModel.HasSelectedNativeDiagnostics, Mode=OneWay}" />
         </StackPanel>
       </Grid>
+      </ScrollViewer>
     </Border>
   </Grid>
 </Page>
