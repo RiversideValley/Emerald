@@ -347,7 +347,9 @@ Notes
             CompleteNormalShutdown();
             Environment.Exit(0);
         });
+#if !WINDOWS
         MacApplicationTerminationObserver.Register(CompleteNormalShutdown);
+#endif
         _startupTask ??= ContinueStartupAsync(builder, args, rootFrame);
     }
 
