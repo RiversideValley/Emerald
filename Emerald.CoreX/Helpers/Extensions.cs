@@ -130,14 +130,26 @@ public static class Extensions
 
     public static string Localize(this string resourceKey)
     {
-        var _logger = Ioc.Default.GetService<ILogger<ResourceLoader>>();
+        // Recovery UI can run before the application host and CommunityToolkit
+        // service provider have been initialized. Logging is useful here, but
+        // it must never make localization itself fail.
+        ILogger<ResourceLoader>? logger = null;
         try
         {
-            _logger.LogDebug("Localizing {resourceKey}", resourceKey);
+            logger = Ioc.Default.GetService<ILogger<ResourceLoader>>();
+        }
+        catch
+        {
+            // No host yet: continue with resource lookup and the key fallback.
+        }
+
+        try
+        {
+            logger?.LogDebug("Localizing {resourceKey}", resourceKey);
 
             if (cachedResources.TryGetValue(resourceKey, out string cached) && !string.IsNullOrEmpty(cached))
             {
-                _logger.LogDebug("Found cached {resourceKey} in cache", resourceKey);
+                logger?.LogDebug("Found cached {resourceKey} in cache", resourceKey);
                 return cached;
             }
 
@@ -147,18 +159,18 @@ public static class Extensions
 
             if (string.IsNullOrEmpty(s))
             {
-                _logger.LogWarning("ResourceLoader.GetString returned empty/null, returning defaultkey");
+                logger?.LogWarning("ResourceLoader.GetString returned empty/null, returning defaultkey");
                 return resourceKey;
             }
                 
             cachedResources.AddOrUpdate(resourceKey, s, (_, _) => s);
             
-            _logger.LogDebug("Localized {resourceKey} to {s}", resourceKey, s);
+            logger?.LogDebug("Localized {resourceKey} to {s}", resourceKey, s);
             return string.IsNullOrEmpty(s) ? resourceKey : s;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to localize {resourceKey}", resourceKey);
+            logger?.LogWarning(ex, "Failed to localize {resourceKey}", resourceKey);
             return resourceKey;
         }
     }
