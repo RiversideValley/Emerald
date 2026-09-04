@@ -347,7 +347,7 @@ Notes
             CompleteNormalShutdown();
             Environment.Exit(0);
         });
-#if !WINDOWS
+#if EMERALD_MACOS
         MacApplicationTerminationObserver.Register(CompleteNormalShutdown);
 #endif
         _startupTask ??= ContinueStartupAsync(builder, args, rootFrame);

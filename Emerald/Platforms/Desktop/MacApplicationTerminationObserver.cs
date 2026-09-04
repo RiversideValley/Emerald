@@ -1,3 +1,4 @@
+#if EMERALD_MACOS
 using System.Runtime.InteropServices;
 
 namespace Emerald;
@@ -120,3 +121,4 @@ internal static class MacApplicationTerminationObserver
     [DllImport("/usr/lib/libobjc.A.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "objc_msgSend")]
     private static extern IntPtr objc_msgSend(IntPtr receiver, IntPtr selector, IntPtr arg1, IntPtr arg2, IntPtr arg3, IntPtr arg4);
 }
+#endif
