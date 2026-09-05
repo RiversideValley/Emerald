@@ -47,6 +47,16 @@ if [ ! -x "$PUBLISH_DIR/Emerald" ]; then
   exit 1
 fi
 
+# dotnet publish may preserve executable bits on managed assemblies and assets.
+# Normalize the portable payload, then restore executable mode only where it is
+# required at runtime.
+find "$PUBLISH_DIR" -type d -exec chmod 755 {} +
+find "$PUBLISH_DIR" -type f -exec chmod 644 {} +
+chmod 755 "$PUBLISH_DIR/Emerald"
+if [ -f "$PUBLISH_DIR/createdump" ]; then
+  chmod 755 "$PUBLISH_DIR/createdump"
+fi
+
 # Include the application icon in the portable archive so the Arch recipe can
 # build a complete desktop package from the GitHub release asset alone.
 install -m644 "$PWD/Emerald/Assets/icon.png" "$PUBLISH_DIR/emerald.png"
@@ -58,13 +68,13 @@ tar -czf "$FINAL_DIR/Emerald-linux-x64.tar.gz" -C "$PUBLISH_ROOT" "Emerald-linux
 tar -tzf "$FINAL_DIR/Emerald-linux-x64.tar.gz" \
   | grep -Fx 'Emerald-linux-x64/Emerald' >/dev/null
 
-install -dm755 "$INSTALL_ROOT/opt/emerald"
-cp -a "$PUBLISH_DIR/." "$INSTALL_ROOT/opt/emerald/"
+install -dm755 "$INSTALL_ROOT/usr/lib/emerald"
+cp -a "$PUBLISH_DIR/." "$INSTALL_ROOT/usr/lib/emerald/"
 
 install -dm755 "$INSTALL_ROOT/usr/bin"
 cat > "$INSTALL_ROOT/usr/bin/emerald" <<'EOF'
 #!/usr/bin/env sh
-exec /opt/emerald/Emerald "$@"
+exec /usr/lib/emerald/Emerald "$@"
 EOF
 chmod 755 "$INSTALL_ROOT/usr/bin/emerald"
 

@@ -8,7 +8,7 @@ DEB_ROOT="$OUTPUT_ROOT/deb/root"
 FINAL_DIR="$OUTPUT_ROOT/final"
 DEB_PATH="$FINAL_DIR/emerald_${PACKAGE_VERSION}_amd64.deb"
 
-if [ ! -d "$INSTALL_ROOT/opt/emerald" ]; then
+if [ ! -d "$INSTALL_ROOT/usr/lib/emerald" ]; then
   echo "Install root was not found. Run scripts/linux/publish-linux-x64.sh first."
   exit 1
 fi
@@ -17,7 +17,7 @@ rm -rf "$DEB_ROOT"
 mkdir -p "$DEB_ROOT/DEBIAN" "$FINAL_DIR"
 cp -a "$INSTALL_ROOT/." "$DEB_ROOT/"
 
-INSTALLED_SIZE="$(du -sk "$DEB_ROOT/opt/emerald" "$DEB_ROOT/usr" | awk '{total += $1} END {print total}')"
+INSTALLED_SIZE="$(du -sk "$DEB_ROOT/usr" | awk '{print $1}')"
 
 cat > "$DEB_ROOT/DEBIAN/control" <<EOF
 Package: emerald

@@ -24,12 +24,12 @@ source=('Emerald-linux-x64.tar.gz::https://github.com/$REPOSITORY/releases/downl
 sha256sums=('$TARBALL_SHA256')
 
 package() {
-  install -dm755 "\$pkgdir/opt/emerald"
-  cp -a "\$srcdir/Emerald-linux-x64/." "\$pkgdir/opt/emerald/"
+  install -dm755 "\$pkgdir/usr/lib/emerald"
+  cp -a "\$srcdir/Emerald-linux-x64/." "\$pkgdir/usr/lib/emerald/"
 
   install -Dm755 /dev/stdin "\$pkgdir/usr/bin/emerald" <<'LAUNCHER'
 #!/usr/bin/env sh
-exec /opt/emerald/Emerald "\$@"
+exec /usr/lib/emerald/Emerald "\$@"
 LAUNCHER
 
   install -Dm644 /dev/stdin "\$pkgdir/usr/share/applications/emerald.desktop" <<'DESKTOP'
