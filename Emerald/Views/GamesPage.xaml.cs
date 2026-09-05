@@ -37,7 +37,22 @@ public sealed partial class GamesPage : Page
     protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+        // The view model is singleton-scoped while this page is recreated by the
+        // shell. Reattach the view-owned repeater after a previous page instance
+        // detached it during navigation.
+        GamesItemsRepeater.ItemsSource = ViewModel.FilteredGames;
         await ViewModel.InitializeCommand.ExecuteAsync(null);
+    }
+
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        // WinUI keeps a native CollectionChanged delegate for ItemsRepeater's
+        // ItemsSource. Leaving it attached after this page is removed lets the
+        // singleton view model call a dead COM delegate on its next projection
+        // update (0x80004005). Release the view-owned subscription before the
+        // frame tears down this page instance.
+        GamesItemsRepeater.ItemsSource = null;
+        base.OnNavigatedFrom(e);
     }
 
     private async void AddGame_Click(object sender, RoutedEventArgs e)
