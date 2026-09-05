@@ -501,27 +501,41 @@ public sealed partial class MainPage : Page
         var account = _accountService.GetSelectedAccount();
         if (account is null || _accountsNavigationItem is null)
         {
-            if (_accountsNavigationItem is not null && version == _accountsAvatarVersion)
-                _accountsNavigationItem.Avatar = null;
+            ResetAccountsAvatarIfCurrent(version);
             return;
         }
 
         try
         {
-            var skin = account.Skin ?? await _accountService.GetSkinAsync(account);
-            var avatar = await MinecraftSkinImageFactory.CreateHeadAsync(skin, 56);
-            if (version == _accountsAvatarVersion
-                && ReferenceEquals(account, _accountService.GetSelectedAccount())
-                && _accountsNavigationItem is not null)
+            var avatar = await LoadAccountsAvatarAsync(account);
+            if (IsAccountsAvatarCurrent(version, account))
             {
-                _accountsNavigationItem.Avatar = avatar;
+                _accountsNavigationItem!.Avatar = avatar;
             }
         }
         catch (Exception ex)
         {
             this.Log().LogDebug(ex, "Could not create the selected account skin avatar.");
-            if (version == _accountsAvatarVersion && _accountsNavigationItem is not null)
-                _accountsNavigationItem.Avatar = null;
+            ResetAccountsAvatarIfCurrent(version);
+        }
+    }
+
+    private async Task<ImageSource> LoadAccountsAvatarAsync(EAccount account)
+    {
+        var skin = account.Skin ?? await _accountService.GetSkinAsync(account);
+        return await MinecraftSkinImageFactory.CreateHeadAsync(skin, 56);
+    }
+
+    private bool IsAccountsAvatarCurrent(int version, EAccount account)
+        => version == _accountsAvatarVersion
+            && _accountsNavigationItem is not null
+            && ReferenceEquals(account, _accountService.GetSelectedAccount());
+
+    private void ResetAccountsAvatarIfCurrent(int version)
+    {
+        if (version == _accountsAvatarVersion && _accountsNavigationItem is not null)
+        {
+            _accountsNavigationItem.Avatar = null;
         }
     }
 
