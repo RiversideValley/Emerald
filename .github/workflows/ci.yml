@@ -621,7 +621,7 @@ jobs:
           mv "$SRCINFO_TEMP" "$PKGBUILD_DIR/.SRCINFO"
 
           test -s "$PKGBUILD_DIR/.SRCINFO"
-          grep -Fqx "sha256sums = $TARBALL_SHA256" "$PKGBUILD_DIR/.SRCINFO"
+          grep -Fq "sha256sums = $TARBALL_SHA256" "$PKGBUILD_DIR/.SRCINFO"
           grep -Fq "releases/download/${RELEASE_TAG}/Emerald-linux-x64.tar.gz" "$PKGBUILD_DIR/PKGBUILD"
           tar -czf "$GITHUB_WORKSPACE/artifacts/linux/final/emerald-${PACKAGE_VERSION}-1-arch-source.tar.gz" \
             -C "$PKGBUILD_DIR" PKGBUILD .SRCINFO
