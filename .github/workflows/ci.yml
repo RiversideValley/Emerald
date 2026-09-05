@@ -523,6 +523,20 @@ jobs:
         with:
           job-platform: linux
 
+      # The hosted Ubuntu runner has a small SSD relative to a self-contained
+      # Uno publish plus four package formats. These SDKs are not used by this
+      # job; remove them before creating the first duplicate payload archive.
+      - name: Reclaim runner disk for Linux packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Disk space before cleanup:"
+          df -h "$GITHUB_WORKSPACE"
+          sudo rm -rf -- /usr/local/lib/android /usr/share/swift /opt/ghc /opt/hostedtoolcache/CodeQL
+          docker system prune --all --force
+          echo "Disk space after cleanup:"
+          df -h "$GITHUB_WORKSPACE"
+
       - name: Publish Linux x64 payload and stage shared package files
         shell: bash
         env:
@@ -623,6 +637,20 @@ jobs:
           grep -Fq "releases/download/${RELEASE_TAG}/Emerald-linux-x64.tar.gz" "$PKGBUILD_DIR/PKGBUILD"
           tar -czf "$GITHUB_WORKSPACE/artifacts/linux/final/emerald-${PACKAGE_VERSION}-1-arch-source.tar.gz" \
             -C "$PKGBUILD_DIR" PKGBUILD .SRCINFO
+
+      - name: Reclaim staging disk before Snap packaging
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf -- \
+            "$GITHUB_WORKSPACE/AppDir" \
+            "$GITHUB_WORKSPACE/appimage-build" \
+            "$GITHUB_WORKSPACE/artifacts/linux/install-root" \
+            "$GITHUB_WORKSPACE/artifacts/linux/publish" \
+            "$GITHUB_WORKSPACE/artifacts/linux/arch"
+          docker system prune --all --force
+          echo "Disk space available for Snap packaging:"
+          df -h "$GITHUB_WORKSPACE"
 
       # Uno supports Linux Snap generation through PackageFormat=snap. Hosted
       # CI needs destructive mode because it cannot run the usual LXD workflow.
