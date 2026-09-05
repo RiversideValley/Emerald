@@ -37,5 +37,5 @@ find "$DEB_ROOT" -type d -exec chmod 755 {} +
 chmod 644 "$DEB_ROOT/DEBIAN/control"
 dpkg-deb --build --root-owner-group "$DEB_ROOT" "$DEB_PATH"
 dpkg-deb --info "$DEB_PATH"
-dpkg-deb --contents "$DEB_PATH" | grep -q 'usr/bin/emerald'
+dpkg-deb --contents "$DEB_PATH" | grep 'usr/bin/emerald' >/dev/null
 lintian --fail-on error "$DEB_PATH"

@@ -53,7 +53,10 @@ install -m644 "$PWD/Emerald/Assets/icon.png" "$PUBLISH_DIR/emerald.png"
 install -m644 "$PWD/LICENSE.md" "$PUBLISH_DIR/LICENSE.md"
 
 tar -czf "$FINAL_DIR/Emerald-linux-x64.tar.gz" -C "$PUBLISH_ROOT" "Emerald-linux-x64"
-tar -tzf "$FINAL_DIR/Emerald-linux-x64.tar.gz" | grep -qx 'Emerald-linux-x64/Emerald'
+# Do not use grep -q here: with pipefail it exits early after a match, leaving
+# tar to report a broken stdout pipe even though the archive is valid.
+tar -tzf "$FINAL_DIR/Emerald-linux-x64.tar.gz" \
+  | grep -Fx 'Emerald-linux-x64/Emerald' >/dev/null
 
 install -dm755 "$INSTALL_ROOT/opt/emerald"
 cp -a "$PUBLISH_DIR/." "$INSTALL_ROOT/opt/emerald/"
