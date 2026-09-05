@@ -1292,4 +1292,32 @@
   <data name="GameOptionsCategorySound" xml:space="preserve"><value>Sound</value></data>
   <data name="GameOptionsCategoryKeyBindings" xml:space="preserve"><value>Key Bindings</value></data>
   <data name="GameOptionsCategoryUnsupported" xml:space="preserve"><value>Unsupported</value></data>
+  <data name="CrashReports" xml:space="preserve"><value>Crash reports</value></data>
+  <data name="CrashReportsDescription" xml:space="preserve"><value>Emerald can be buggy sometimes because there's only very few developers (mainly one), So you can review Emerald launcher crashes here and report it in Github only if you want.</value></data>
+  <data name="CrashReportsCount" xml:space="preserve"><value>saved report(s)</value></data>
+  <data name="CrashReportsNewCount" xml:space="preserve"><value>new report(s)</value></data>
+  <data name="ViewCrashReports" xml:space="preserve"><value>View crash reports</value></data>
+  <data name="ViewCrashReport" xml:space="preserve"><value>View crash report</value></data>
+  <data name="Dismiss" xml:space="preserve"><value>Dismiss</value></data>
+  <data name="Continue" xml:space="preserve"><value>Continue</value></data>
+  <data name="ManagedCrash" xml:space="preserve"><value>Emerald crash</value></data>
+  <data name="UnexpectedShutdown" xml:space="preserve"><value>Unexpected shutdown</value></data>
+  <data name="CrashDetailsUnavailable" xml:space="preserve"><value>Crash details unavailable</value></data>
+  <data name="New" xml:space="preserve"><value>New</value></data>
+  <data name="CopyCrashReport" xml:space="preserve"><value>Copy report</value></data>
+  <data name="ReportToGitHub" xml:space="preserve"><value>Report on GitHub</value></data>
+  <data name="OpenCrashLogs" xml:space="preserve"><value>Open Emerald logs</value></data>
+  <data name="OpenNativeDiagnostics" xml:space="preserve"><value>Open native diagnostics</value></data>
+  <data name="DeleteAllCrashReports" xml:space="preserve"><value>Delete all reports</value></data>
+  <data name="DeleteAllCrashReportsDescription" xml:space="preserve"><value>Delete every saved crash report? This cannot be undone.</value></data>
+  <data name="DeleteCrashReport" xml:space="preserve"><value>Delete crash report</value></data>
+  <data name="DeleteCrashReportDescription" xml:space="preserve"><value>Delete this crash report? This cannot be undone.</value></data>
+  <data name="EmeraldCrashDetected" xml:space="preserve"><value>Emerald closed unexpectedly</value></data>
+  <data name="CrashRecoveryDescription" xml:space="preserve"><value>Emerald encountered a problem and saved diagnostic details. You can review the report or share it with the Emerald project.</value></data>
+  <data name="UnexpectedShutdownDescription" xml:space="preserve"><value>Emerald did not close normally. This report contains the last available diagnostics.</value></data>
+  <data name="HideCrashDetails" xml:space="preserve"><value>Hide details</value></data>
+  <data name="TryNormalStartup" xml:space="preserve"><value>Try normal startup</value></data>
+  <data name="CouldNotOpenGitHubReport" xml:space="preserve"><value>Could not open the GitHub report page.</value></data>
+  <data name="RecoveryMode" xml:space="preserve"><value>Emerald recovery mode</value></data>
+  <data name="RecoveryModeDescription" xml:space="preserve"><value>Emerald has failed during startup several times. Nonessential startup work was skipped so you can inspect crash reports before continuing.</value></data>
 </root>

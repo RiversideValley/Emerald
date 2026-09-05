@@ -1,5 +1,6 @@
 using Emerald.Helpers;
 using Emerald.Models;
+using Emerald.Services;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Windows.UI;
@@ -45,11 +46,63 @@ public static class DirectResoucres
     {
         get
         {
+#if DEBUG
+            // Process-level crash tests must not touch a developer's real profile.
+            if (CrashFaultInjection.IsEnabled)
+            {
+                var testDataRoot = Environment.GetEnvironmentVariable("EMERALD_TEST_DATA_ROOT");
+                if (!string.IsNullOrWhiteSpace(testDataRoot))
+                {
+                    return testDataRoot;
+                }
+            }
+#endif
 #if WINDOWS
             return Windows.Storage.ApplicationData.Current.LocalFolder.Path;
 #else
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Emerald");
 #endif
+        }
+    }
+
+    public static string SafeLocalDataPath
+    {
+        get
+        {
+#if DEBUG
+            if (CrashFaultInjection.IsEnabled)
+            {
+                var testDataRoot = Environment.GetEnvironmentVariable("EMERALD_TEST_DATA_ROOT");
+                if (!string.IsNullOrWhiteSpace(testDataRoot))
+                {
+                    return testDataRoot;
+                }
+            }
+#endif
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(LocalDataPath))
+                {
+                    return LocalDataPath;
+                }
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                var localApplicationData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                if (!string.IsNullOrWhiteSpace(localApplicationData))
+                {
+                    return Path.Combine(localApplicationData, "Emerald");
+                }
+            }
+            catch
+            {
+            }
+
+            return Path.Combine(Path.GetTempPath(), "Emerald");
         }
     }
     public static string BuildType

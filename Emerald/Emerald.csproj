@@ -45,6 +45,16 @@
     </UnoFeatures>
   </PropertyGroup>
 
+  <!-- net10.0-desktop is shared by macOS and Linux, so define this explicitly. -->
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX')) Or '$(RuntimeIdentifier)' == 'osx-arm64'">
+    <DefineConstants>$(DefineConstants);EMERALD_MACOS</DefineConstants>
+  </PropertyGroup>
+
+  <!-- Let Uno break first while debugging Desktop unhandled UI exceptions. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug' and '$(TargetFramework)' == 'net10.0-desktop'">
+    <BreakOnUnhandledExceptions>true</BreakOnUnhandledExceptions>
+  </PropertyGroup>
+
   <PropertyGroup Condition=" '$(PublishUnsignedPackage)' == 'true' ">
     <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
     <AppxBundle>Never</AppxBundle>

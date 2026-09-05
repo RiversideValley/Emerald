@@ -72,7 +72,7 @@
             Background="{ThemeResource LayerFillColorDefaultBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0,1,0,0">
-      <ScrollViewer>
+      <ScrollViewer x:Name="contentScrollViewer">
         <Frame Padding="16" x:Name="contentframe" />
       </ScrollViewer>
     </Grid>

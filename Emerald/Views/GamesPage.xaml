@@ -256,6 +256,7 @@
                             Style="{ThemeResource AccentButtonStyle}" />
           </StackPanel>
           <ItemsRepeater
+                        x:Name="GamesItemsRepeater"
                         ItemTemplate="{StaticResource GameItemTemplate}"
                         ItemsSource="{x:Bind ViewModel.FilteredGames, Mode=OneWay}"
                         Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
