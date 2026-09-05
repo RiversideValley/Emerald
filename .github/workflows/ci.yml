@@ -557,6 +557,7 @@ jobs:
         shell: bash
         env:
           PACKAGE_VERSION: ${{ needs.ci-filter.outputs.package_version }}
+          BUILD_TIMESTAMP_UTC: ${{ needs.ci-filter.outputs.build_timestamp_utc }}
         run: scripts/linux/build-deb.sh
 
       - name: Verify Linux AppDir staging
