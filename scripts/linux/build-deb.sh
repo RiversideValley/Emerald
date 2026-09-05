@@ -47,11 +47,11 @@ CHANGELOG_DATE="$(date --date="$BUILD_TIMESTAMP_UTC" --rfc-email)"
 
 cat > "$DEB_ROOT/usr/share/lintian/overrides/emerald" <<'EOF'
 # Uno's self-contained .NET publish intentionally carries these native runtime libraries.
-emerald: embedded-library freetype [usr/lib/emerald/libSkiaSharp.so]
-emerald: embedded-library libjpeg [usr/lib/emerald/libSkiaSharp.so]
-emerald: embedded-library libpng [usr/lib/emerald/libSkiaSharp.so]
-emerald: embedded-library zlib [usr/lib/emerald/libSystem.IO.Compression.Native.so]
-emerald: unstripped-binary-or-object [usr/lib/emerald/libSkiaSharp.so]
+emerald: embedded-library freetype usr/lib/emerald/libSkiaSharp.so
+emerald: embedded-library libjpeg usr/lib/emerald/libSkiaSharp.so
+emerald: embedded-library libpng usr/lib/emerald/libSkiaSharp.so
+emerald: embedded-library zlib usr/lib/emerald/libSystem.IO.Compression.Native.so
+emerald: unstripped-binary-or-object usr/lib/emerald/libSkiaSharp.so
 EOF
 
 find "$DEB_ROOT" -type d -exec chmod 755 {} +
