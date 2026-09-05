@@ -7,7 +7,7 @@ using Microsoft.Web.WebView2.Core;
 
 namespace Emerald.Controls;
 
-internal enum MinecraftSkinViewerAnimation
+public enum MinecraftSkinViewerAnimation
 {
     None,
     Idle,
@@ -20,15 +20,16 @@ internal enum MinecraftSkinViewerAnimation
     Swim
 }
 
-internal enum MinecraftSkinViewerBackEquipment
+public enum MinecraftSkinViewerBackEquipment
 {
+    None,
     Cape,
     Elytra
 }
 
-internal sealed record MinecraftSkinViewerLayer(bool Inner = true, bool Outer = true);
+public sealed record MinecraftSkinViewerLayer(bool Inner = true, bool Outer = true);
 
-internal sealed record MinecraftSkinViewerLayers(
+public sealed record MinecraftSkinViewerLayers(
     MinecraftSkinViewerLayer Head,
     MinecraftSkinViewerLayer Body,
     MinecraftSkinViewerLayer RightArm,
@@ -45,31 +46,34 @@ internal sealed record MinecraftSkinViewerLayers(
         new MinecraftSkinViewerLayer());
 }
 
-internal sealed record MinecraftSkinViewerSettings(
+public sealed record MinecraftSkinViewerSettings(
     MinecraftSkinViewerAnimation Animation,
     double AnimationSpeed,
     bool AutoRotate,
     double AutoRotateSpeed,
     MinecraftSkinViewerBackEquipment BackEquipment,
-    MinecraftSkinViewerLayers Layers)
+    MinecraftSkinViewerLayers Layers,
+    string? CapeUrl = null)
 {
     public static MinecraftSkinViewerSettings Default { get; } = new(
         MinecraftSkinViewerAnimation.Idle,
         1d,
         true,
         Math.PI / 18d,
-        MinecraftSkinViewerBackEquipment.Cape,
-        MinecraftSkinViewerLayers.AllVisible);
+        MinecraftSkinViewerBackEquipment.None,
+        MinecraftSkinViewerLayers.AllVisible,
+        null);
 }
 
 /// <summary>
 /// C# host for Emerald's packaged skinview3d page. All 3D rendering, animation,
 /// layer handling, camera controls, and WebGL lifecycle are owned by skinview3d.
 /// </summary>
-internal sealed class MinecraftSkinWebView : Grid
+public sealed class MinecraftSkinWebView : Grid
 {
     private const string HtmlResourceName = "Emerald.SkinViewer.index.html";
     private const string BundleResourceName = "Emerald.SkinViewer.skinview3d.bundle.js";
+    private const string DefaultCapeResourceName = "Emerald.SkinViewer.15th_Anniversary_Cape.png";
     private const string BundlePlaceholder = "/*__EMERALD_SKINVIEW3D_BUNDLE__*/";
     private static readonly TimeSpan ViewerLoadTimeout = TimeSpan.FromSeconds(15);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
@@ -77,6 +81,9 @@ internal sealed class MinecraftSkinWebView : Grid
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
     };
     private static readonly Lazy<string> ViewerDocument = new(CreateViewerDocument);
+    private static readonly Lazy<string> DefaultCapeDataUrl = new(CreateDefaultCapeDataUrl);
+
+    public static string GetDefaultCapeDataUrl() => DefaultCapeDataUrl.Value;
 
     private readonly WebView2 _webView = new()
     {
@@ -270,6 +277,17 @@ internal sealed class MinecraftSkinWebView : Grid
             ?? throw new InvalidOperationException($"The embedded skin viewer resource '{resourceName}' is missing.");
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
+    }
+
+    private static string CreateDefaultCapeDataUrl()
+    {
+        var assembly = typeof(MinecraftSkinWebView).Assembly;
+        using var stream = assembly.GetManifestResourceStream(DefaultCapeResourceName)
+            ?? assembly.GetManifestResourceStream("Emerald.Assets.Web.SkinViewer.15th_Anniversary_Cape.png")
+            ?? throw new InvalidOperationException($"The embedded default cape resource '{DefaultCapeResourceName}' is missing.");
+        using var memoryStream = new MemoryStream();
+        stream.CopyTo(memoryStream);
+        return $"data:image/png;base64,{Convert.ToBase64String(memoryStream.ToArray())}";
     }
 
     private sealed record ViewerState(string Skin, string Model, MinecraftSkinViewerSettings Options);

@@ -112,7 +112,9 @@
           return Number.isFinite(number) ? Math.min(maximum, Math.max(minimum, number)) : fallback;
         };
 
-        const applySettings = settings => {
+        let activeCapeUrl = null;
+
+        const applySettings = async settings => {
           if (disposed) return;
 
           const selectedAnimation = animations[settings.animation || "idle"] || animations.idle;
@@ -125,8 +127,29 @@
           viewer.autoRotate = settings.autoRotate !== false;
           viewer.autoRotateSpeed = clamp(settings.autoRotateSpeed, 0, 4, Math.PI / 18);
 
-          const equipment = settings.backEquipment === "elytra" ? "elytra" : "cape";
-          viewer.playerObject.backEquipment = equipment;
+          const backEquip = String(settings.backEquipment || "none").toLowerCase();
+          const targetEquipment = backEquip === "elytra" ? "elytra" : (backEquip === "cape" ? "cape" : null);
+
+          if (!targetEquipment || !settings.capeUrl) {
+            if (activeCapeUrl !== null || !targetEquipment) {
+              viewer.resetCape();
+              activeCapeUrl = null;
+            }
+          }
+
+          if (targetEquipment && settings.capeUrl) {
+            if (settings.capeUrl !== activeCapeUrl) {
+              activeCapeUrl = settings.capeUrl;
+              try {
+                await viewer.loadCape(settings.capeUrl, { backEquipment: targetEquipment });
+              } catch (_) {
+                activeCapeUrl = null;
+                viewer.resetCape();
+              }
+            } else {
+              viewer.playerObject.backEquipment = targetEquipment;
+            }
+          }
 
           const layers = settings.layers || {};
           for (const partName of partNames) {
@@ -142,9 +165,9 @@
             try {
               if (disposed) return;
               const options = state.options || {};
-              applySettings(options);
+              await applySettings(options);
               await viewer.loadSkin(state.skin, { model: state.model || "default" });
-              applySettings(options);
+              await applySettings(options);
               postMessage({ type: "skin-loaded" });
             } catch (error) {
               postMessage({ type: "error", message: String(error && error.message || error) });
@@ -154,7 +177,13 @@
             if (disposed) return;
             viewer.renderPaused = !!paused;
           },
-          applySettings,
+          async applySettings(settings) {
+            try {
+              await applySettings(settings);
+            } catch (error) {
+              postMessage({ type: "error", message: String(error && error.message || error) });
+            }
+          },
           dispose() {
             if (disposed) return;
             disposed = true;

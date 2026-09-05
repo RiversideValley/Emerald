@@ -1,4 +1,4 @@
-﻿<Project Sdk="Uno.Sdk">
+<Project Sdk="Uno.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net10.0-windows10.0.26100;net10.0-desktop</TargetFrameworks>
     <OutputType>Exe</OutputType>
@@ -142,6 +142,9 @@
                       LogicalName="Emerald.SkinViewer.index.html" />
     <EmbeddedResource Include="Assets\Web\SkinViewer\skinview3d.bundle.js"
                       LogicalName="Emerald.SkinViewer.skinview3d.bundle.js" />
+    <Content Remove="Assets\Web\SkinViewer\15th_Anniversary_Cape.png" />
+    <EmbeddedResource Include="Assets\Web\SkinViewer\15th_Anniversary_Cape.png"
+                      LogicalName="Emerald.SkinViewer.15th_Anniversary_Cape.png" />
   </ItemGroup>
 
 </Project>

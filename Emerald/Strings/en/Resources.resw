@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     Microsoft ResX Schema
@@ -1326,4 +1326,45 @@
   <data name="SkinFallback" xml:space="preserve"><value>Showing the default Steve skin because this skin is unavailable.</value></data>
   <data name="Skin3DUnavailable" xml:space="preserve"><value>3D preview is unavailable on this device.</value></data>
   <data name="SkinDragHint" xml:space="preserve"><value>Drag to rotate</value></data>
+  <data name="SkinViewerShowSettings" xml:space="preserve"><value>Settings</value></data>
+  <data name="SkinViewerHideSettings" xml:space="preserve"><value>Hide settings</value></data>
+  <data name="SkinViewerAnimation" xml:space="preserve"><value>Animation</value></data>
+  <data name="SkinViewerAnimationDescription" xml:space="preserve"><value>Player model pose and movement</value></data>
+  <data name="SkinViewerAnimationSpeed" xml:space="preserve"><value>Animation speed</value></data>
+  <data name="SkinViewerAnimationSpeedDescription" xml:space="preserve"><value>Adjust the animation playback speed</value></data>
+  <data name="SkinViewerAnimationNone" xml:space="preserve"><value>None</value></data>
+  <data name="SkinViewerAnimationIdle" xml:space="preserve"><value>Idle</value></data>
+  <data name="SkinViewerAnimationWalk" xml:space="preserve"><value>Walking</value></data>
+  <data name="SkinViewerAnimationRun" xml:space="preserve"><value>Running</value></data>
+  <data name="SkinViewerAnimationFly" xml:space="preserve"><value>Flying</value></data>
+  <data name="SkinViewerAnimationWave" xml:space="preserve"><value>Waving</value></data>
+  <data name="SkinViewerAnimationCrouch" xml:space="preserve"><value>Crouching</value></data>
+  <data name="SkinViewerAnimationHit" xml:space="preserve"><value>Taking damage</value></data>
+  <data name="SkinViewerAnimationSwim" xml:space="preserve"><value>Swimming</value></data>
+  <data name="SkinViewerAppearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="SkinViewerAppearanceDescription" xml:space="preserve"><value>Player rotation and back equipment</value></data>
+  <data name="SkinViewerRotation" xml:space="preserve"><value>Auto-rotate</value></data>
+  <data name="SkinViewerRotationDescription" xml:space="preserve"><value>Continuously rotate the character</value></data>
+  <data name="SkinViewerRotationSpeed" xml:space="preserve"><value>Rotation speed</value></data>
+  <data name="SkinViewerRotationSpeedDescription" xml:space="preserve"><value>Adjust the auto-rotation speed</value></data>
+  <data name="SkinViewerBackEquipment" xml:space="preserve"><value>Back equipment</value></data>
+  <data name="SkinViewerBackEquipmentDescription" xml:space="preserve"><value>Equipment attached to the player back</value></data>
+  <data name="SkinViewerCape" xml:space="preserve"><value>Cape</value></data>
+  <data name="SkinViewerElytra" xml:space="preserve"><value>Elytra</value></data>
+  <data name="SkinViewerLayers" xml:space="preserve"><value>Skin layers</value></data>
+  <data name="SkinViewerLayersDescription" xml:space="preserve"><value>Toggle individual inner and outer clothing layers</value></data>
+  <data name="SkinViewerHead" xml:space="preserve"><value>Head</value></data>
+  <data name="SkinViewerBody" xml:space="preserve"><value>Body</value></data>
+  <data name="SkinViewerRightArm" xml:space="preserve"><value>R. Arm</value></data>
+  <data name="SkinViewerLeftArm" xml:space="preserve"><value>L. Arm</value></data>
+  <data name="SkinViewerRightLeg" xml:space="preserve"><value>R. Leg</value></data>
+  <data name="SkinViewerLeftLeg" xml:space="preserve"><value>L. Leg</value></data>
+  <data name="SkinViewerInner" xml:space="preserve"><value>Inner</value></data>
+  <data name="SkinViewerOuter" xml:space="preserve"><value>Outer</value></data>
+  <data name="SkinViewerBackEquipmentNone" xml:space="preserve"><value>None</value></data>
+  <data name="SkinViewerCapeTexture" xml:space="preserve"><value>Cape texture</value></data>
+  <data name="SkinViewerCapeTextureDescription" xml:space="preserve"><value>Load a custom cape from file or URL</value></data>
+  <data name="SkinViewerCapeUrlPlaceholder" xml:space="preserve"><value>Default: 15th Anniversary Cape</value></data>
+  <data name="SkinViewerBrowseCape" xml:space="preserve"><value>Browse image file</value></data>
+  <data name="SkinViewerClearCape" xml:space="preserve"><value>Clear cape</value></data>
 </root>
