@@ -88,6 +88,8 @@ public sealed class GameRuntimeServiceTests
         public Task LoadAllAccountsAsync() => Task.CompletedTask;
         public Task<EAccount> SignInAsync(string providerId, AccountSignInRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task RefreshAccountAsync(EAccount account, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<AccountSkinData> GetSkinAsync(EAccount account, bool forceRefresh = false, CancellationToken cancellationToken = default)
+            => Task.FromResult(MinecraftSkinTextures.CreateSteveFallback());
         public Task RemoveAccountAsync(EAccount account) => throw new NotSupportedException();
         public Task<GameAuthenticationResult> AuthenticateAccountAsync(EAccount account) => AuthenticateAsync();
         public Task<GameAuthenticationResult> AuthenticateLaunchAccountAsync(EAccount account, bool useOfflineFallback) => AuthenticateAsync();

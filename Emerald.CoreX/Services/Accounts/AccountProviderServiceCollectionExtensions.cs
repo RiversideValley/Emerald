@@ -21,7 +21,8 @@ public static class AccountProviderServiceCollectionExtensions
             provider.GetRequiredService<AccountProviderPolicyOptions>()));
         services.AddSingleton<IAccountProvider>(provider => new MicrosoftAccountProvider(
             new CmlLibMicrosoftAccountClient(provider.GetRequiredService<ILogger<AccountService>>()),
-            microsoftClientId));
+            microsoftClientId,
+            provider.GetRequiredService<HttpClient>()));
         services.AddSingleton<IAccountProvider>(provider => new ElyByAccountProvider(
             provider.GetRequiredService<IElyByAccountStore>(),
             provider.GetRequiredService<IElyByAuthClient>(),
@@ -29,7 +30,8 @@ public static class AccountProviderServiceCollectionExtensions
             provider.GetRequiredService<IAuthlibInjectorService>(),
             provider.GetRequiredService<ElyByOAuthOptions>(),
             provider.GetRequiredService<AccountProviderPolicyOptions>(),
-            provider.GetRequiredService<ILogger<ElyByAccountProvider>>()));
+            provider.GetRequiredService<ILogger<ElyByAccountProvider>>(),
+            provider.GetRequiredService<HttpClient>()));
         return services;
     }
 }

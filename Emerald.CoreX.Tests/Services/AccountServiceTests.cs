@@ -40,6 +40,54 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
+    public async Task GetSkinAsync_OfflineAccount_ReturnsBundledClassicSteve()
+    {
+        var service = CreateService(new InMemoryBaseSettingsService());
+        var account = await SignInOfflineAsync(service, "Alpha");
+
+        var skin = await service.GetSkinAsync(account);
+
+        Assert.True(skin.IsFallback);
+        Assert.Equal(MinecraftSkinVariant.Classic, skin.Variant);
+        Assert.True(MinecraftSkinTextures.IsSupportedSkinPng(skin.PngBytes));
+        Assert.Same(skin, account.Skin);
+    }
+
+    [Fact]
+    public async Task GetSkinAsync_CoalescesRequestsAndInvalidatesOnForceRefresh()
+    {
+        var provider = new RecordingAccountProvider
+        {
+            Skin = MinecraftSkinTextures.CreateSteveFallback("Test skin") with { IsFallback = false }
+        };
+        var service = CreateService(new InMemoryBaseSettingsService(), new IAccountProvider[] { provider });
+        var account = await service.SignInAsync("test", new AccountSignInRequest("test-browser"));
+
+        await Task.WhenAll(service.GetSkinAsync(account), service.GetSkinAsync(account));
+        await service.GetSkinAsync(account, forceRefresh: true);
+
+        Assert.Equal(2, provider.SkinRequests);
+        Assert.False(account.Skin!.IsFallback);
+    }
+
+    [Fact]
+    public async Task GetSkinAsync_InvalidProviderTextureFallsBackWithoutChangingAccountAvailability()
+    {
+        var provider = new RecordingAccountProvider
+        {
+            Skin = new AccountSkinData([1, 2, 3], MinecraftSkinVariant.Slim, "Invalid provider")
+        };
+        var service = CreateService(new InMemoryBaseSettingsService(), new IAccountProvider[] { provider });
+        var account = await service.SignInAsync("test", new AccountSignInRequest("test-browser"));
+        account.Availability = AccountAvailability.Ready;
+
+        var skin = await service.GetSkinAsync(account);
+
+        Assert.True(skin.IsFallback);
+        Assert.Equal(AccountAvailability.Ready, account.Availability);
+    }
+
+    [Fact]
     public void DuplicateProviderIds_AreRejected()
     {
         var settings = new InMemoryBaseSettingsService();
@@ -896,6 +944,8 @@ public sealed class AccountServiceTests
         public bool Refreshed { get; private set; }
         public bool Authenticated { get; private set; }
         public bool Removed { get; private set; }
+        public AccountSkinData? Skin { get; set; }
+        public int SkinRequests { get; private set; }
 
         public Task InitializeAsync(AccountProviderInitializationContext context, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task<AccountProviderLoadResult> LoadAccountsAsync(IReadOnlyList<EAccount> persistedAccounts, CancellationToken cancellationToken = default)
@@ -914,6 +964,12 @@ public sealed class AccountServiceTests
         {
             Refreshed = true;
             return Task.CompletedTask;
+        }
+
+        public Task<AccountSkinData?> GetSkinAsync(EAccount account, CancellationToken cancellationToken = default)
+        {
+            SkinRequests++;
+            return Task.FromResult(Skin);
         }
 
         public Task<GameAuthenticationResult> AuthenticateForLaunchAsync(EAccount account, CancellationToken cancellationToken = default)

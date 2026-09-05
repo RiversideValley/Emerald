@@ -1,5 +1,6 @@
 using CmlLib.Core.Auth;
 using CmlLib.Core.ProcessBuilder;
+using System.Text.Json;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Services.Auth.Authlib;
 using Emerald.CoreX.Services.Auth.OAuth;
@@ -14,7 +15,8 @@ internal sealed class ElyByAccountProvider(
     IAuthlibInjectorService authlibInjectorService,
     ElyByOAuthOptions oauthOptions,
     AccountProviderPolicyOptions policyOptions,
-    global::Microsoft.Extensions.Logging.ILogger<ElyByAccountProvider> logger) : IAccountProvider
+    global::Microsoft.Extensions.Logging.ILogger<ElyByAccountProvider> logger,
+    HttpClient? skinHttpClient = null) : IAccountProvider
 {
     public const string BrowserMethodId = "browser";
 
@@ -116,6 +118,31 @@ internal sealed class ElyByAccountProvider(
                 UserType = "msa"
             },
             new AccountRuntimeAuthOptions([new MArgument(agent)]));
+    }
+
+    public async Task<AccountSkinData?> GetSkinAsync(EAccount account, CancellationToken cancellationToken = default)
+    {
+        var endpoint = new Uri($"https://skinsystem.ely.by/textures/{Uri.EscapeDataString(account.Name)}?version=2");
+        var httpClient = skinHttpClient ?? new HttpClient();
+        using var response = await httpClient.GetAsync(endpoint, cancellationToken).ConfigureAwait(false);
+        if (response.StatusCode == System.Net.HttpStatusCode.NoContent || !response.IsSuccessStatusCode)
+            return null;
+
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+        if (!document.RootElement.TryGetProperty("SKIN", out var skin)
+            || !skin.TryGetProperty("url", out var urlNode)
+            || !Uri.TryCreate(urlNode.GetString(), UriKind.Absolute, out var url))
+            return null;
+
+        var variant = skin.TryGetProperty("metadata", out var metadata)
+                      && metadata.TryGetProperty("model", out var model)
+                      && string.Equals(model.GetString(), "slim", StringComparison.OrdinalIgnoreCase)
+            ? MinecraftSkinVariant.Slim
+            : MinecraftSkinVariant.Classic;
+
+        return await AccountSkinDownload.DownloadAsync(
+            httpClient, url, variant, Descriptor.DisplayName, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task RemoveAsync(EAccount account, CancellationToken cancellationToken = default)
