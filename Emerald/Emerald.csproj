@@ -41,7 +41,9 @@
       Localization;
       LoggingSerilog;
       ThemeService;
+      Skia;
       SkiaRenderer;
+      WebView;
     </UnoFeatures>
   </PropertyGroup>
 
@@ -133,6 +135,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Emerald.CoreX\Emerald.CoreX.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\Web\SkinViewer\index.html"
+                      LogicalName="Emerald.SkinViewer.index.html" />
+    <EmbeddedResource Include="Assets\Web\SkinViewer\skinview3d.bundle.js"
+                      LogicalName="Emerald.SkinViewer.skinview3d.bundle.js" />
   </ItemGroup>
 
 </Project>

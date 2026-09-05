@@ -1320,4 +1320,10 @@
   <data name="CouldNotOpenGitHubReport" xml:space="preserve"><value>Could not open the GitHub report page.</value></data>
   <data name="RecoveryMode" xml:space="preserve"><value>Emerald recovery mode</value></data>
   <data name="RecoveryModeDescription" xml:space="preserve"><value>Emerald has failed during startup several times. Nonessential startup work was skipped so you can inspect crash reports before continuing.</value></data>
+  <data name="ViewSkin" xml:space="preserve"><value>View skin</value></data>
+  <data name="SkinViewerTitle" xml:space="preserve"><value>{0}'s skin</value></data>
+  <data name="SkinLoading" xml:space="preserve"><value>Loading skin…</value></data>
+  <data name="SkinFallback" xml:space="preserve"><value>Showing the default Steve skin because this skin is unavailable.</value></data>
+  <data name="Skin3DUnavailable" xml:space="preserve"><value>3D preview is unavailable on this device.</value></data>
+  <data name="SkinDragHint" xml:space="preserve"><value>Drag to rotate</value></data>
 </root>

@@ -104,6 +104,12 @@
                                 Height="28"
                                 Visibility="{x:Bind ImageVisibility}"
                                 Source="{x:Bind Thumbnail}" />
+              <Image
+                                Width="28"
+                                Height="28"
+                                Stretch="Uniform"
+                                Visibility="{x:Bind AvatarVisibility}"
+                                Source="{x:Bind Avatar}" />
               <FontIcon
                                 Visibility="{x:Bind FontIconVisibility}"
                                 FontSize="22"
