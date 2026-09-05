@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
-using System.IO.Compression;
+using System.Linq;
+using System.Reflection;
 
 namespace Emerald.CoreX.Models;
 
@@ -24,9 +25,10 @@ public sealed record AccountSkinData(
 public static class MinecraftSkinTextures
 {
     public const int MaxTextureBytes = 1024 * 1024;
+    private const string SteveResourceName = "Emerald.SkinViewer.skin_Steve_Default.png";
 
     private static readonly byte[] PngSignature = [137, 80, 78, 71, 13, 10, 26, 10];
-    private static readonly Lazy<byte[]> SteveTexture = new(CreateSteveTexture);
+    private static readonly Lazy<byte[]> SteveTexture = new(LoadSteveTexture);
 
     public static AccountSkinData CreateSteveFallback(string source = "Steve")
         => new(SteveTexture.Value, MinecraftSkinVariant.Classic, source, IsFallback: true);
@@ -45,108 +47,46 @@ public static class MinecraftSkinTextures
         return width == 64 && (height == 32 || height == 64);
     }
 
-    // The default texture is generated once so CoreX remains independent of a UI
-    // image library and can always provide an offline Steve-compatible fallback.
-    private static byte[] CreateSteveTexture()
+    private static byte[] LoadSteveTexture()
     {
-        const int size = 64;
-        var pixels = new byte[size * size * 4];
-        var transparent = new Rgba(0, 0, 0, 0);
-        Fill(0, 0, size, size, transparent);
+        var stream = typeof(MinecraftSkinTextures).Assembly.GetManifestResourceStream(SteveResourceName)
+            ?? Assembly.GetEntryAssembly()?.GetManifestResourceStream(SteveResourceName);
 
-        var skin = new Rgba(214, 165, 111, 255);
-        var hair = new Rgba(75, 48, 30, 255);
-        var shirt = new Rgba(76, 119, 155, 255);
-        var trousers = new Rgba(58, 77, 126, 255);
-        var shoes = new Rgba(55, 43, 36, 255);
-
-        // Head atlas (top/under/bottom/right/front/left), then its front hair.
-        Fill(0, 0, 32, 16, skin);
-        Fill(0, 0, 32, 8, hair);
-        Fill(8, 8, 8, 2, hair);
-        Fill(8, 10, 1, 5, hair);
-        Fill(15, 10, 1, 5, hair);
-
-        // Torso, right arm, and right leg regions in the classic 64x64 atlas.
-        Fill(16, 16, 24, 16, shirt);
-        Fill(40, 16, 16, 16, shirt);
-        Fill(0, 16, 16, 16, trousers);
-        Fill(4, 28, 8, 4, shoes);
-
-        // The lower half stores the independent left limb regions on modern skins.
-        Fill(16, 48, 16, 16, shirt);
-        Fill(0, 48, 16, 16, trousers);
-        Fill(4, 60, 8, 4, shoes);
-
-        var raw = new byte[(size * 4 + 1) * size];
-        for (var y = 0; y < size; y++)
+        if (stream is null)
         {
-            var target = y * (size * 4 + 1);
-            raw[target] = 0; // PNG filter: none
-            Buffer.BlockCopy(pixels, y * size * 4, raw, target + 1, size * 4);
-        }
-
-        using var output = new MemoryStream();
-        output.Write(PngSignature);
-        Span<byte> header = stackalloc byte[13];
-        BinaryPrimitives.WriteInt32BigEndian(header, size);
-        BinaryPrimitives.WriteInt32BigEndian(header[4..], size);
-        header[8] = 8; // RGBA, 8-bit
-        header[9] = 6;
-        WriteChunk(output, "IHDR"u8, header);
-
-        using var compressed = new MemoryStream();
-        using (var zlib = new ZLibStream(compressed, CompressionLevel.SmallestSize, leaveOpen: true))
-            zlib.Write(raw);
-        WriteChunk(output, "IDAT"u8, compressed.ToArray());
-        WriteChunk(output, "IEND"u8, []);
-        return output.ToArray();
-
-        void Fill(int x, int y, int width, int height, Rgba color)
-        {
-            for (var row = y; row < y + height; row++)
-            for (var column = x; column < x + width; column++)
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                var index = (row * size + column) * 4;
-                pixels[index] = color.R;
-                pixels[index + 1] = color.G;
-                pixels[index + 2] = color.B;
-                pixels[index + 3] = color.A;
+                if (assembly.IsDynamic) continue;
+                stream = assembly.GetManifestResourceStream(SteveResourceName);
+                if (stream != null) break;
             }
         }
-    }
 
-    private static void WriteChunk(Stream output, ReadOnlySpan<byte> type, ReadOnlySpan<byte> data)
-    {
-        Span<byte> length = stackalloc byte[4];
-        BinaryPrimitives.WriteInt32BigEndian(length, data.Length);
-        output.Write(length);
-        output.Write(type);
-        output.Write(data);
-        Span<byte> crc = stackalloc byte[4];
-        BinaryPrimitives.WriteUInt32BigEndian(crc, Crc32(type, data));
-        output.Write(crc);
-    }
-
-    private static uint Crc32(ReadOnlySpan<byte> first, ReadOnlySpan<byte> second)
-    {
-        var crc = 0xffffffffu;
-        foreach (var value in first)
+        if (stream is null)
         {
-            crc ^= value;
-            for (var bit = 0; bit < 8; bit++)
-                crc = (crc >> 1) ^ ((crc & 1) == 0 ? 0u : 0xedb88320u);
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (assembly.IsDynamic) continue;
+                var match = assembly.GetManifestResourceNames()
+                    .FirstOrDefault(name => name.EndsWith("skin_Steve_Default.png", StringComparison.OrdinalIgnoreCase));
+                if (match != null)
+                {
+                    stream = assembly.GetManifestResourceStream(match);
+                    if (stream != null) break;
+                }
+            }
         }
 
-        foreach (var value in second)
+        if (stream is null)
         {
-            crc ^= value;
-            for (var bit = 0; bit < 8; bit++)
-                crc = (crc >> 1) ^ ((crc & 1) == 0 ? 0u : 0xedb88320u);
+            throw new InvalidOperationException($"The embedded Steve skin resource '{SteveResourceName}' could not be found.");
         }
 
-        return ~crc;
+        using (stream)
+        using (var memoryStream = new MemoryStream())
+        {
+            stream.CopyTo(memoryStream);
+            return memoryStream.ToArray();
+        }
     }
-
-    private readonly record struct Rgba(byte R, byte G, byte B, byte A);
 }

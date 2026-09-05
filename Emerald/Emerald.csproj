@@ -145,6 +145,9 @@
     <Content Remove="Assets\Web\SkinViewer\15th_Anniversary_Cape.png" />
     <EmbeddedResource Include="Assets\Web\SkinViewer\15th_Anniversary_Cape.png"
                       LogicalName="Emerald.SkinViewer.15th_Anniversary_Cape.png" />
+    <Content Remove="Assets\Web\SkinViewer\skin_Steve_Default.png" />
+    <EmbeddedResource Include="Assets\Web\SkinViewer\skin_Steve_Default.png"
+                      LogicalName="Emerald.SkinViewer.skin_Steve_Default.png" />
   </ItemGroup>
 
 </Project>
