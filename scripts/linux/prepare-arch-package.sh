@@ -44,6 +44,6 @@ Categories=Game;
 DESKTOP
 
   install -Dm644 "\$srcdir/Emerald-linux-x64/emerald.png" "\$pkgdir/usr/share/icons/hicolor/256x256/apps/emerald.png"
-  install -Dm644 "\$srcdir/Emerald-linux-x64/LICENSE.md" "\$pkgdir/usr/share/licenses/emerald/LICENSE.md"
+  install -Dm644 "\$srcdir/Emerald-linux-x64/LICENSE.md" "\$pkgdir/usr/share/licenses/emerald-bin/LICENSE.md"
 }
 EOF

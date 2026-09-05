@@ -612,12 +612,13 @@ jobs:
           scripts/linux/prepare-arch-package.sh
 
           PKGBUILD_DIR="$GITHUB_WORKSPACE/artifacts/linux/arch/pkgbuild"
+          SRCINFO_TEMP="$(mktemp)"
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/workspace" \
-            -w /workspace/artifacts/linux/arch/pkgbuild \
-            archlinux:base-devel \
-            bash -lc 'useradd -m builder && chown -R builder:builder /workspace/artifacts/linux/arch && su builder -c "makepkg --printsrcinfo"' \
-            > "$PKGBUILD_DIR/.SRCINFO"
+            archlinux:base-devel@sha256:84cd9ef000b3cff245ec028e87965b84724f4bf1cc63fc2741ba927b88515ed6 \
+            bash -lc 'useradd --create-home builder && install -d -o builder -g builder /home/builder/pkgbuild && install -o builder -g builder /workspace/artifacts/linux/arch/pkgbuild/PKGBUILD /home/builder/pkgbuild/PKGBUILD && runuser --user builder -- makepkg --printsrcinfo --dir /home/builder/pkgbuild' \
+            | tee "$SRCINFO_TEMP"
+          mv "$SRCINFO_TEMP" "$PKGBUILD_DIR/.SRCINFO"
 
           test -s "$PKGBUILD_DIR/.SRCINFO"
           grep -Fqx "sha256sums = $TARBALL_SHA256" "$PKGBUILD_DIR/.SRCINFO"
