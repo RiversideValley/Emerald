@@ -60,7 +60,14 @@ public sealed partial class AboutPage : Page
                     "https://github.com/mono/SkiaSharp",
                     "MIT",
                     "https://licenses.nuget.org/MIT",
-                    "SkiaSharp, SkiaSharp.Views.Uno.WinUI, SkiaSharp.Skottie")
+                    "SkiaSharp, SkiaSharp.Views.Uno.WinUI, SkiaSharp.Skottie"),
+                new(
+                "skinview3d",
+                "The rendering backend for the 3D Minecraft skins.",
+                "https://github.com/bs-community/skinview3d",
+                "MIT",
+                "https://licenses.nuget.org/MIT",
+                "skinview3d.bundle.js")
             ]),
         new(
             "Launcher core",
