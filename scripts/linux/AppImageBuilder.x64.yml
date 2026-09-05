@@ -1,0 +1,53 @@
+version: 1
+
+AppDir:
+  path: ./AppDir
+  app_info:
+    id: com.riversidevalley.Emerald
+    name: Emerald
+    icon: emerald
+    version: !ENV ${EMERALD_PACKAGE_VERSION}
+    exec: usr/lib/emerald/Emerald
+    exec_args: $@
+  runtime:
+    env:
+      APPDIR_LIBRARY_PATH: '$APPDIR/usr/lib/emerald:$APPDIR/usr/lib:$APPDIR/usr/lib/x86_64-linux-gnu:$APPDIR/lib/x86_64-linux-gnu'
+      GTK_THEME: Default
+  apt:
+    arch: amd64
+    sources:
+      - sourceline: deb https://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse
+        key_url: 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x871920D1991BC93C'
+      - sourceline: deb https://archive.ubuntu.com/ubuntu/ jammy-updates main restricted universe multiverse
+      - sourceline: deb https://security.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse
+    include:
+      - libgtk-3-0
+      - libgtk-3-bin
+      - libgtk-3-common
+      - libx11-6
+      - libfontconfig1
+      - libfreetype6
+      - libgcc-s1
+      - libstdc++6
+      - libcanberra-gtk3-module
+    exclude:
+      - hicolor-icon-theme
+      - humanity-icon-theme
+  files:
+    exclude:
+      - usr/share/man
+      - usr/share/doc/*/README.*
+      - usr/share/doc/*/changelog.*
+      - usr/share/doc/*/NEWS.*
+      - usr/share/doc/*/TODO.*
+      - usr/bin/kernel-install
+      - usr/lib/kernel
+      - usr/share/bug
+      - lib/systemd
+      - etc/init.d
+
+AppImage:
+  arch: x86_64
+  file_name: !ENV ${EMERALD_APPIMAGE_NAME}
+  update-information: None
+  sign-key: None

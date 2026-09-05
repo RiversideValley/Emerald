@@ -26,4 +26,4 @@ runs:
       if: runner.os == 'Linux' && inputs.job-platform == 'linux'
       run: |
         sudo apt-get update
-        sudo apt-get install -y libgtk-3-0
+        sudo apt-get install -y desktop-file-utils libgtk-3-0 lintian

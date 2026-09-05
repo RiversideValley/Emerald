@@ -505,24 +505,12 @@ jobs:
           path: ${{ github.workspace }}/Emerald-macOS-arm64-app.zip
           retention-days: 14
 
-  # Snap packages are built natively on each architecture — Uno Platform does not
-  # support cross-compilation for snap targets as of the current SDK version.
   publish-linux:
-    name: Linux Snap (${{ matrix.arch }})
+    name: Linux x64 Packages
     needs: ci-filter
     if: ${{ needs.ci-filter.outputs.run_linux == 'true' }}
-    runs-on: ${{ matrix.runner }}
-    timeout-minutes: 60
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: x64
-            runner: ubuntu-22.04
-            runtime: linux-x64
-          - arch: arm64
-            runner: ubuntu-22.04-arm
-            runtime: linux-arm64
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
 
     steps:
       - name: Checkout code
@@ -535,12 +523,109 @@ jobs:
         with:
           job-platform: linux
 
-      # Snapcraft is installed after the base dependencies so that the snap daemon
-      # is ready before we invoke dotnet publish with PackageFormat=snap.
-      # core22 matches the Ubuntu 22.04 runner base used by both matrix legs.
-      # --destructive-mode is required in CI because LXD/Multipass are unavailable
-      # on single-use GitHub-hosted runners; it is safe here because the environment
-      # is ephemeral and discarded after the job completes.
+      - name: Publish Linux x64 payload and stage shared package files
+        shell: bash
+        env:
+          PACKAGE_VERSION: ${{ needs.ci-filter.outputs.package_version }}
+          PUBLIC_VERSION: ${{ needs.ci-filter.outputs.public_version }}
+          UPDATE_CHANNEL: ${{ needs.ci-filter.outputs.release_channel }}
+          RELEASE_TAG: ${{ needs.ci-filter.outputs.release_tag }}
+          COMMIT_SHA: ${{ github.sha }}
+          BUILD_TIMESTAMP_UTC: ${{ needs.ci-filter.outputs.build_timestamp_utc }}
+          ACCOUNT_PROVIDER_SECRETS_REQUIRED: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+          EMERALD_MSFT_CLIENT_ID: ${{ secrets.EMERALD_MSFT_CLIENT_ID }}
+          EMERALD_ELYBY_CLIENT_ID: ${{ secrets.EMERALD_ELYBY_CLIENT_ID }}
+          EMERALD_ELYBY_CLIENT_SECRET: ${{ secrets.EMERALD_ELYBY_CLIENT_SECRET }}
+          EMERALD_ELYBY_REDIRECT_URI: ${{ secrets.EMERALD_ELYBY_REDIRECT_URI }}
+        run: |
+          if [ "$ACCOUNT_PROVIDER_SECRETS_REQUIRED" = "true" ]; then
+            for secret_name in \
+              EMERALD_MSFT_CLIENT_ID \
+              EMERALD_ELYBY_CLIENT_ID \
+              EMERALD_ELYBY_CLIENT_SECRET \
+              EMERALD_ELYBY_REDIRECT_URI; do
+              if [ -z "${!secret_name}" ]; then
+                echo "Account-provider build secret is missing: $secret_name"
+                exit 1
+              fi
+            done
+          fi
+
+          scripts/linux/publish-linux-x64.sh
+
+      - name: Build and inspect Linux Debian package
+        shell: bash
+        env:
+          PACKAGE_VERSION: ${{ needs.ci-filter.outputs.package_version }}
+        run: scripts/linux/build-deb.sh
+
+      - name: Verify Linux AppDir staging
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x "$GITHUB_WORKSPACE/AppDir/usr/lib/emerald/Emerald"
+          test -x "$GITHUB_WORKSPACE/AppDir/usr/bin/emerald"
+          test -f "$GITHUB_WORKSPACE/AppDir/usr/share/applications/emerald.desktop"
+          test -f "$GITHUB_WORKSPACE/AppDir/usr/share/applications/com.riversidevalley.Emerald.desktop"
+          test -f "$GITHUB_WORKSPACE/AppDir/usr/share/icons/hicolor/256x256/apps/emerald.png"
+
+      - name: Build and inspect Linux AppImage
+        shell: bash
+        env:
+          EMERALD_PACKAGE_VERSION: ${{ needs.ci-filter.outputs.package_version }}
+          EMERALD_APPIMAGE_NAME: Emerald-linux-x64.AppImage
+          APPIMAGE_BUILDER_IMAGE: appimagecrafters/appimage-builder:1.1.0
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -e "EMERALD_PACKAGE_VERSION=$EMERALD_PACKAGE_VERSION" \
+            -e "EMERALD_APPIMAGE_NAME=$EMERALD_APPIMAGE_NAME" \
+            -v "$GITHUB_WORKSPACE:/github/workspace" \
+            -w /github/workspace \
+            "$APPIMAGE_BUILDER_IMAGE" \
+            bash -lc 'apt-get update && apt-get install -y squashfs-tools && appimage-builder --recipe=scripts/linux/AppImageBuilder.x64.yml --skip-test'
+
+          APPIMAGE_FILE="$(find "$GITHUB_WORKSPACE" -maxdepth 1 -name '*.AppImage' -type f -print -quit)"
+          if [ -z "$APPIMAGE_FILE" ]; then
+            echo "No AppImage file found after appimage-builder completed"
+            exit 1
+          fi
+
+          STAGED="$GITHUB_WORKSPACE/artifacts/linux/final/Emerald-linux-x64.AppImage"
+          cp "$APPIMAGE_FILE" "$STAGED"
+          chmod +x "$STAGED"
+          "$STAGED" --appimage-extract >/dev/null
+          test -x squashfs-root/AppRun
+          rm -rf squashfs-root
+
+      - name: Generate and validate Arch source recipe
+        shell: bash
+        env:
+          PACKAGE_VERSION: ${{ needs.ci-filter.outputs.package_version }}
+          RELEASE_TAG: ${{ needs.ci-filter.outputs.release_tag }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TARBALL="$GITHUB_WORKSPACE/artifacts/linux/final/Emerald-linux-x64.tar.gz"
+          export TARBALL_SHA256="$(sha256sum "$TARBALL" | awk '{print $1}')"
+          scripts/linux/prepare-arch-package.sh
+
+          PKGBUILD_DIR="$GITHUB_WORKSPACE/artifacts/linux/arch/pkgbuild"
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace/artifacts/linux/arch/pkgbuild \
+            archlinux:base-devel \
+            bash -lc 'useradd -m builder && chown -R builder:builder /workspace/artifacts/linux/arch && su builder -c "makepkg --printsrcinfo"' \
+            > "$PKGBUILD_DIR/.SRCINFO"
+
+          test -s "$PKGBUILD_DIR/.SRCINFO"
+          grep -Fqx "sha256sums = $TARBALL_SHA256" "$PKGBUILD_DIR/.SRCINFO"
+          grep -Fq "releases/download/${RELEASE_TAG}/Emerald-linux-x64.tar.gz" "$PKGBUILD_DIR/PKGBUILD"
+          tar -czf "$GITHUB_WORKSPACE/artifacts/linux/final/emerald-${PACKAGE_VERSION}-1-arch-source.tar.gz" \
+            -C "$PKGBUILD_DIR" PKGBUILD .SRCINFO
+
+      # Uno supports Linux Snap generation through PackageFormat=snap. Hosted
+      # CI needs destructive mode because it cannot run the usual LXD workflow.
       - name: Install Snapcraft and Multipass
         shell: bash
         run: |
@@ -550,7 +635,7 @@ jobs:
           sudo snap install snapcraft --classic
           sudo snap install multipass
 
-      - name: Publish Linux Snap (${{ matrix.arch }})
+      - name: Publish Linux x64 Snap
         shell: bash
         env:
           # Modern Snapcraft equivalent to --destructive-mode
@@ -577,7 +662,7 @@ jobs:
           dotnet publish ./Emerald/Emerald.csproj \
             -c Release \
             -f net10.0-desktop \
-            -r "${{ matrix.runtime }}" \
+            -r linux-x64 \
             -p:SelfContained=true \
             -p:PackageFormat=snap \
             -p:UnoSnapBuildProvider=none \
@@ -599,37 +684,67 @@ jobs:
             -p:EmeraldElyByClientSecret="$EMERALD_ELYBY_CLIENT_SECRET" \
             -p:EmeraldElyByRedirectUri="$EMERALD_ELYBY_REDIRECT_URI"
 
-      - name: Locate and stage snap artifact
+      - name: Locate and stage Linux Snap artifact
         id: locate
         shell: bash
         run: |
-          # Uno places the .snap in the publish output folder; find it regardless
-          # of the exact versioned filename that snapcraft generates.
-          SNAP_FILE="$(find . -name '*.snap' -not -path '*/.git/*' -type f | head -n 1)"
+          SNAP_FILE="$(find "$GITHUB_WORKSPACE/Emerald/bin/Release" -path '*/linux-x64/publish/*.snap' -type f -print -quit)"
           if [ -z "$SNAP_FILE" ]; then
             echo "No .snap file found after publish"
             exit 1
           fi
           echo "Found snap: $SNAP_FILE"
 
-          STAGED="$GITHUB_WORKSPACE/Emerald-linux-${{ matrix.arch }}.snap"
+          STAGED="$GITHUB_WORKSPACE/artifacts/linux/final/Emerald-linux-x64.snap"
           cp "$SNAP_FILE" "$STAGED"
           echo "snap_path=$STAGED" >> "$GITHUB_OUTPUT"
 
-      - name: Upload CI Linux Snap artifact (${{ matrix.arch }})
+      - name: Upload CI Linux Snap artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Emerald-linux-${{ matrix.arch }}-snap
+          name: Emerald-linux-x64-snap
           path: ${{ steps.locate.outputs.snap_path }}
           if-no-files-found: error
           retention-days: 14
 
-      - name: Upload release Linux Snap transfer artifact (${{ matrix.arch }})
+      - name: Upload CI Linux portable tar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-x64-tar
+          path: ${{ github.workspace }}/artifacts/linux/final/Emerald-linux-x64.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload CI Linux AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-x64-appimage
+          path: ${{ github.workspace }}/artifacts/linux/final/Emerald-linux-x64.AppImage
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload CI Linux Debian artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-x64-deb
+          path: ${{ github.workspace }}/artifacts/linux/final/emerald_${{ needs.ci-filter.outputs.package_version }}_amd64.deb
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload CI Linux Arch source artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emerald-linux-x64-arch-source
+          path: ${{ github.workspace }}/artifacts/linux/final/emerald-${{ needs.ci-filter.outputs.package_version }}-1-arch-source.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload release Linux package transfer artifact
         if: ${{ needs.ci-filter.outputs.is_release_flow == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: Emerald-linux-${{ matrix.arch }}-ReleaseDraft-Snap
-          path: ${{ steps.locate.outputs.snap_path }}
+          name: Emerald-linux-x64-ReleaseDraft-Assets
+          path: ${{ github.workspace }}/artifacts/linux/final/*
           if-no-files-found: error
           retention-days: 14
 
@@ -660,16 +775,10 @@ jobs:
           name: Emerald-macOS-arm64-app
           path: release-assets/macos
 
-      - name: Download Linux x64 Snap artifact
+      - name: Download Linux x64 package assets
         uses: actions/download-artifact@v4
         with:
-          name: Emerald-linux-x64-ReleaseDraft-Snap
-          path: release-assets/linux
-
-      - name: Download Linux arm64 Snap artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: Emerald-linux-arm64-ReleaseDraft-Snap
+          name: Emerald-linux-x64-ReleaseDraft-Assets
           path: release-assets/linux
 
       - name: Build release metadata files
