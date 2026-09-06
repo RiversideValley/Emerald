@@ -42,19 +42,19 @@ internal static class MinecraftSkinImageFactory
         using var image = SKImage.FromBitmap(bitmap);
         using var encoded = image.Encode(SKEncodedImageFormat.Png, 100);
         using var stream = new InMemoryRandomAccessStream();
+        var imageSource = new BitmapImage();
         using (var writer = new DataWriter(stream))
         {
             writer.WriteBytes(encoded.ToArray());
             await writer.StoreAsync();
-            // On Windows, disposing DataWriter closes its attached stream unless
-            // ownership is detached first. BitmapImage needs the stream to remain
-            // seekable until SetSourceAsync has consumed it.
-            writer.DetachStream();
+
+            // DataWriter owns its attached stream on Windows. Keep both alive
+            // until BitmapImage has consumed the encoded bytes, then let the
+            // using scopes dispose them together.
+            stream.Seek(0);
+            await imageSource.SetSourceAsync(stream);
         }
 
-        stream.Seek(0);
-        var imageSource = new BitmapImage();
-        await imageSource.SetSourceAsync(stream);
         return imageSource;
     }
 
