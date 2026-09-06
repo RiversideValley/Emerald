@@ -51,6 +51,12 @@
             Text="{helpers:Localize KeyName=Selected}"
             Visibility="{x:Bind IsSelected, Converter={StaticResource BoolToVis}, Mode=OneWay}" />
           <Button
+            ToolTipService.ToolTip="{helpers:Localize KeyName=ViewSkin}"
+            Click="ViewSkin_Click"
+            Tag="{x:Bind}">
+            <FontIcon Glyph="&#xE7B3;"/>
+          </Button>
+          <Button
             ToolTipService.ToolTip="{helpers:Localize KeyName=RefreshAccount}"
             Click="RefreshAccount_Click"
             Tag="{x:Bind}">

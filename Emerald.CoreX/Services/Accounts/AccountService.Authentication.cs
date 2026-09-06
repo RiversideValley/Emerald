@@ -11,6 +11,7 @@ public sealed partial class AccountService
         _logger.LogInformation("Removing account '{Name}' ({Type}).", account.Name, account.Type);
 
         await EnsureInitializedAsync().ConfigureAwait(false);
+        InvalidateSkin(account);
         await GetProvider(account).RemoveAsync(account).ConfigureAwait(false);
 
         var wasSelected = false;
@@ -135,6 +136,7 @@ public sealed partial class AccountService
         EnsureProviderId(account);
         _uiDispatcher.Invoke(() => EnsureAccountUsableCore(account));
         await GetProvider(account).RefreshAsync(account, cancellationToken).ConfigureAwait(false);
+        InvalidateSkin(account);
         PersistAccounts();
     }
 

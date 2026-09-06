@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
+  <title>Emerald skin viewer</title>
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: Canvas;
+      background:
+        radial-gradient(circle at 50% 38%, color-mix(in srgb, Highlight 16%, Canvas) 0%, Canvas 58%),
+        Canvas;
+    }
+    @media (prefers-color-scheme: dark) {
+      html, body { background: #2B2B2B; }
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      left: 50%;
+      bottom: 8%;
+      width: 42%;
+      height: 6%;
+      border-radius: 50%;
+      transform: translateX(-50%);
+      background: color-mix(in srgb, CanvasText 15%, transparent);
+      filter: blur(10px);
+      pointer-events: none;
+    }
+    canvas {
+      position: relative;
+      z-index: 1;
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+      outline: none;
+      touch-action: none;
+    }
+    canvas:active { cursor: grabbing; }
+  </style>
+</head>
+<body>
+  <canvas id="skin-canvas" aria-label="Minecraft skin preview"></canvas>
+  <script>/*__EMERALD_SKINVIEW3D_BUNDLE__*/</script>
+  <script>
+    (() => {
+      "use strict";
+
+      const postMessage = message => {
+        try {
+          if (window.chrome && chrome.webview) {
+            chrome.webview.postMessage(message);
+          } else if (window.unoWebView) {
+            unoWebView.postMessage(JSON.stringify(message));
+          } else if (window.webkit && window.webkit.messageHandlers) {
+            window.webkit.messageHandlers.unoWebView.postMessage(JSON.stringify(message));
+          }
+        } catch (_) {
+          // The viewer still works when hosted outside Uno for local debugging.
+        }
+      };
+
+      const canvas = document.getElementById("skin-canvas");
+      let viewer;
+      let disposed = false;
+
+      try {
+        viewer = new skinview3d.SkinViewer({
+          canvas,
+          width: Math.max(1, document.documentElement.clientWidth),
+          height: Math.max(1, document.documentElement.clientHeight),
+          zoom: 0.82,
+          fov: 50,
+          enableControls: true,
+          animation: new skinview3d.IdleAnimation(),
+          pixelRatio: "match-device"
+        });
+        viewer.autoRotate = true;
+        viewer.autoRotateSpeed = Math.PI / 18;
+
+        const resize = () => {
+          const bounds = document.documentElement.getBoundingClientRect();
+          viewer.setSize(Math.max(1, Math.floor(bounds.width)), Math.max(1, Math.floor(bounds.height)));
+        };
+        new ResizeObserver(resize).observe(document.documentElement);
+        resize();
+
+        const animations = {
+          idle: () => new skinview3d.IdleAnimation(),
+          walk: () => new skinview3d.WalkingAnimation(),
+          run: () => new skinview3d.RunningAnimation(),
+          fly: () => new skinview3d.FlyingAnimation(),
+          wave: () => new skinview3d.WaveAnimation(),
+          crouch: () => new skinview3d.CrouchAnimation(),
+          hit: () => new skinview3d.HitAnimation(),
+          swim: () => new skinview3d.SwimAnimation(),
+          none: () => null
+        };
+
+        const partNames = ["head", "body", "rightArm", "leftArm", "rightLeg", "leftLeg"];
+
+        const clamp = (value, minimum, maximum, fallback) => {
+          const number = Number(value);
+          return Number.isFinite(number) ? Math.min(maximum, Math.max(minimum, number)) : fallback;
+        };
+
+        let activeCapeUrl = null;
+
+        const applySettings = async settings => {
+          if (disposed) return;
+
+          const selectedAnimation = animations[settings.animation || "idle"] || animations.idle;
+          const animation = selectedAnimation();
+          if (animation) {
+            animation.speed = clamp(settings.animationSpeed, 0, 10, 1);
+          }
+          viewer.animation = animation;
+
+          viewer.autoRotate = settings.autoRotate !== false;
+          viewer.autoRotateSpeed = clamp(settings.autoRotateSpeed, 0, 4, Math.PI / 18);
+
+          const backEquip = String(settings.backEquipment || "none").toLowerCase();
+          const targetEquipment = backEquip === "elytra" ? "elytra" : (backEquip === "cape" ? "cape" : null);
+
+          if (!targetEquipment || !settings.capeUrl) {
+            if (activeCapeUrl !== null || !targetEquipment) {
+              viewer.resetCape();
+              activeCapeUrl = null;
+            }
+          }
+
+          if (targetEquipment && settings.capeUrl) {
+            if (settings.capeUrl !== activeCapeUrl) {
+              activeCapeUrl = settings.capeUrl;
+              try {
+                await viewer.loadCape(settings.capeUrl, { backEquipment: targetEquipment });
+              } catch (_) {
+                activeCapeUrl = null;
+                viewer.resetCape();
+              }
+            } else {
+              viewer.playerObject.backEquipment = targetEquipment;
+            }
+          }
+
+          const layers = settings.layers || {};
+          for (const partName of partNames) {
+            const part = viewer.playerObject.skin[partName];
+            const partLayers = layers[partName] || {};
+            part.innerLayer.visible = partLayers.inner !== false;
+            part.outerLayer.visible = partLayers.outer !== false;
+          }
+        };
+
+        window.emeraldSkinViewer = {
+          async setState(state) {
+            try {
+              if (disposed) return;
+              const options = state.options || {};
+              await applySettings(options);
+              await viewer.loadSkin(state.skin, { model: state.model || "default" });
+              await applySettings(options);
+              postMessage({ type: "skin-loaded" });
+            } catch (error) {
+              postMessage({ type: "error", message: String(error && error.message || error) });
+            }
+          },
+          setPaused(paused) {
+            if (disposed) return;
+            viewer.renderPaused = !!paused;
+          },
+          async applySettings(settings) {
+            try {
+              await applySettings(settings);
+            } catch (error) {
+              postMessage({ type: "error", message: String(error && error.message || error) });
+            }
+          },
+          dispose() {
+            if (disposed) return;
+            disposed = true;
+            viewer.dispose();
+          }
+        };
+
+        document.addEventListener("visibilitychange", () => {
+          if (!disposed) viewer.renderPaused = document.hidden;
+        });
+        window.addEventListener("beforeunload", () => window.emeraldSkinViewer.dispose(), { once: true });
+        window.addEventListener("contextmenu", event => event.preventDefault());
+        postMessage({ type: "ready" });
+      } catch (error) {
+        postMessage({ type: "error", message: String(error && error.message || error) });
+      }
+    })();
+  </script>
+</body>
+</html>
