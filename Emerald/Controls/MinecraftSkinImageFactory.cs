@@ -46,6 +46,10 @@ internal static class MinecraftSkinImageFactory
         {
             writer.WriteBytes(encoded.ToArray());
             await writer.StoreAsync();
+            // On Windows, disposing DataWriter closes its attached stream unless
+            // ownership is detached first. BitmapImage needs the stream to remain
+            // seekable until SetSourceAsync has consumed it.
+            writer.DetachStream();
         }
 
         stream.Seek(0);
