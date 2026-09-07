@@ -654,7 +654,10 @@ public sealed class AccountServiceTests
         Assert.Equal([("expired-access", "ely-client")], elyByClient.ValidateCalls);
         Assert.Equal(["elyby:ely-alpha-uuid"], elyByClient.RefreshCalls);
         Assert.Equal(1, authlibInjector.Calls);
-        Assert.Contains(result.RuntimeOptions.ExtraJvmArguments, argument => argument.Values.Contains("-javaagent:/fake/authlib-injector.jar=ely.by"));
+        Assert.Contains(result.RuntimeOptions.ExtraJvmArguments, argument =>
+            argument.Values.Contains("-javaagent:/fake/authlib-injector.jar=https://account.ely.by/api/authlib-injector"));
+        Assert.Contains(result.RuntimeOptions.ExtraJvmArguments, argument =>
+            argument.Values.Contains("-Dauthlibinjector.yggdrasil.prefetched=e30="));
 
         var storedElyAccounts = baseSettingsService.Peek<List<ElyByStoredAccount>>(SettingsKeys.ElyByAccounts);
         Assert.NotNull(storedElyAccounts);

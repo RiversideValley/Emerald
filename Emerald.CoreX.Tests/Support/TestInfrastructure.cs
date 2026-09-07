@@ -277,14 +277,26 @@ internal sealed class FakeElyByOAuthBrowser : IBrowserOAuthBroker
 
 internal sealed class FakeAuthlibInjectorService : IAuthlibInjectorService
 {
-    public string JavaAgentArgument { get; set; } = "-javaagent:/fake/authlib-injector.jar=ely.by";
+    public AuthlibInjectorLaunchConfiguration LaunchConfiguration { get; set; } = new(
+        "1.2.8",
+        56,
+        "/fake/authlib-injector.jar",
+        new Uri("https://account.ely.by/api/authlib-injector"),
+        [
+            "-javaagent:/fake/authlib-injector.jar=https://account.ely.by/api/authlib-injector",
+            "-Dauthlibinjector.yggdrasil.prefetched=e30="
+        ],
+        false);
     public int Calls { get; private set; }
 
-    public Task<string> GetJavaAgentArgumentAsync(CancellationToken cancellationToken = default)
+    public Task<AuthlibInjectorLaunchConfiguration> PrepareLaunchAsync(CancellationToken cancellationToken = default)
     {
         Calls++;
-        return Task.FromResult(JavaAgentArgument);
+        return Task.FromResult(LaunchConfiguration);
     }
+
+    public Task<IReadOnlyList<AuthlibInjectorVersion>> GetAvailableVersionsAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult<IReadOnlyList<AuthlibInjectorVersion>>([new(56, "1.2.8")]);
 }
 
 internal sealed class FakeNotificationService : INotificationService

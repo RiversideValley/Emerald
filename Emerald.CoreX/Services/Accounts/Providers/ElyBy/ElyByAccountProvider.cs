@@ -107,7 +107,7 @@ internal sealed class ElyByAccountProvider(
         await RefreshAsync(account, cancellationToken).ConfigureAwait(false);
         var stored = accountStore.Find(account.UniqueId)
             ?? throw new InvalidOperationException($"Ely.by account '{account.Name}' is no longer signed in.");
-        var agent = await authlibInjectorService.GetJavaAgentArgumentAsync(cancellationToken).ConfigureAwait(false);
+        var authlib = await authlibInjectorService.PrepareLaunchAsync(cancellationToken).ConfigureAwait(false);
         return new GameAuthenticationResult(
             new MSession
             {
@@ -117,7 +117,7 @@ internal sealed class ElyByAccountProvider(
                 ClientToken = stored.ClientToken,
                 UserType = "msa"
             },
-            new AccountRuntimeAuthOptions([new MArgument(agent)]));
+            new AccountRuntimeAuthOptions(authlib.JvmArguments.Select(argument => new MArgument(argument)).ToArray()));
     }
 
     public async Task<AccountSkinData?> GetSkinAsync(EAccount account, CancellationToken cancellationToken = default)
