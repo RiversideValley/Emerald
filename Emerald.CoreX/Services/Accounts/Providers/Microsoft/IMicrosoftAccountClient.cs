@@ -1,4 +1,5 @@
 using CmlLib.Core.Auth;
+using Emerald.CoreX.Models;
 
 namespace Emerald.CoreX.Services.Auth.Microsoft;
 
@@ -21,7 +22,9 @@ internal sealed record MicrosoftAccountInfo(
     string Identifier,
     string Name,
     string UUID,
-    DateTime LastAccess);
+    DateTime LastAccess,
+    string? SkinUrl = null,
+    MinecraftSkinVariant SkinVariant = MinecraftSkinVariant.Classic);
 
 internal sealed record MicrosoftInteractiveSignInResult(
     string? Identifier,

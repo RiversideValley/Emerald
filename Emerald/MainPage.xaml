@@ -10,6 +10,7 @@
       xmlns:helpers="using:Emerald.Helpers">
   <Page.Resources>
     <conv:BoolToVisibility x:Key="BoolToVisibilty"/>
+    <conv:ImageUrlToImageSourceConverter x:Key="NavigationThumbnailToImageSource" />
     <conv:NotificationTypeToBrushConverter
       x:Key="TaskToastTypeToBrush"
       ErrorBrush="{StaticResource SystemFillColorCriticalBrush}"
@@ -103,7 +104,13 @@
                                 Width="28"
                                 Height="28"
                                 Visibility="{x:Bind ImageVisibility}"
-                                Source="{x:Bind Thumbnail}" />
+                                Source="{x:Bind Thumbnail, Converter={StaticResource NavigationThumbnailToImageSource}}" />
+              <Image
+                                Width="28"
+                                Height="28"
+                                Stretch="Uniform"
+                                Visibility="{x:Bind AvatarVisibility}"
+                                Source="{x:Bind Avatar}" />
               <FontIcon
                                 Visibility="{x:Bind FontIconVisibility}"
                                 FontSize="22"

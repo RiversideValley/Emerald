@@ -61,6 +61,9 @@ internal sealed class OfflineAccountProvider(AccountProviderPolicyOptions policy
         return Task.CompletedTask;
     }
 
+    public Task<AccountSkinData?> GetSkinAsync(EAccount account, CancellationToken cancellationToken = default)
+        => Task.FromResult<AccountSkinData?>(MinecraftSkinTextures.CreateSteveFallback("Offline"));
+
     public Task<GameAuthenticationResult> AuthenticateForLaunchAsync(EAccount account, CancellationToken cancellationToken = default)
         => Task.FromResult(new GameAuthenticationResult(MSession.CreateOfflineSession(account.Name)));
 

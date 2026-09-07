@@ -3,7 +3,7 @@ using Emerald.CoreX.Models;
 namespace Emerald.CoreX.Services.Auth.Microsoft;
 
 /// <summary>Adapts CmlLib's Microsoft account store to Emerald's provider contract.</summary>
-internal sealed class MicrosoftAccountProvider(IMicrosoftAccountClient client, string clientId) : IAccountProvider
+internal sealed class MicrosoftAccountProvider(IMicrosoftAccountClient client, string clientId, HttpClient? skinHttpClient = null) : IAccountProvider
 {
     public const string BrowserMethodId = "browser";
     private const string MissingConfigurationMessage = "Microsoft sign-in is not configured for this build.";
@@ -130,6 +130,17 @@ internal sealed class MicrosoftAccountProvider(IMicrosoftAccountClient client, s
     {
         EnsureConfigured();
         return new(await client.AuthenticateAsync(account.UniqueId).WaitAsync(cancellationToken).ConfigureAwait(false));
+    }
+
+    public async Task<AccountSkinData?> GetSkinAsync(EAccount account, CancellationToken cancellationToken = default)
+    {
+        var skin = client.GetAccounts().FirstOrDefault(candidate =>
+            string.Equals(candidate.Identifier, account.UniqueId, StringComparison.Ordinal));
+        if (skin is null || !Uri.TryCreate(skin.SkinUrl, UriKind.Absolute, out var skinUri))
+            return null;
+
+        return await AccountSkinDownload.DownloadAsync(
+            skinHttpClient ?? new HttpClient(), skinUri, skin.SkinVariant, Descriptor.DisplayName, cancellationToken).ConfigureAwait(false);
     }
 
     public Task RemoveAsync(EAccount account, CancellationToken cancellationToken = default)

@@ -32,6 +32,10 @@ public interface IAccountProvider
 
     Task RefreshAsync(EAccount account, CancellationToken cancellationToken = default);
 
+    /// <summary>Returns a provider-owned skin when available; null delegates to Emerald's Steve fallback.</summary>
+    Task<AccountSkinData?> GetSkinAsync(EAccount account, CancellationToken cancellationToken = default)
+        => Task.FromResult<AccountSkinData?>(null);
+
     Task<GameAuthenticationResult> AuthenticateForLaunchAsync(
         EAccount account,
         CancellationToken cancellationToken = default);

@@ -1,6 +1,7 @@
 using CmlLib.Core.Auth;
 using CmlLib.Core.Auth.Microsoft;
 using CmlLib.Core.Auth.Microsoft.Sessions;
+using Emerald.CoreX.Models;
 using Emerald.CoreX.Services;
 using Microsoft.Extensions.Logging;
 using XboxAuthNet.Game.Msal;
@@ -39,11 +40,22 @@ internal sealed class CmlLibMicrosoftAccountClient(ILogger<AccountService> logge
             .GetAccounts()
             .OfType<JEGameAccount>()
             .Where(account => !string.IsNullOrWhiteSpace(account.Identifier))
-            .Select(account => new MicrosoftAccountInfo(
-                account.Identifier,
-                account.Profile?.Username ?? "Microsoft Account",
-                account.Profile?.UUID ?? account.Identifier,
-                account.LastAccess))
+            .Select(account =>
+            {
+                var skin = account.Profile?.Skins?
+                    .FirstOrDefault(candidate => string.Equals(candidate.State?.ToString(), "ACTIVE", StringComparison.OrdinalIgnoreCase))
+                    ?? account.Profile?.Skins?.FirstOrDefault();
+                var variant = string.Equals(skin?.Variant?.ToString(), "SLIM", StringComparison.OrdinalIgnoreCase)
+                    ? MinecraftSkinVariant.Slim
+                    : MinecraftSkinVariant.Classic;
+                return new MicrosoftAccountInfo(
+                    account.Identifier,
+                    account.Profile?.Username ?? "Microsoft Account",
+                    account.Profile?.UUID ?? account.Identifier,
+                    account.LastAccess,
+                    skin?.Url?.ToString(),
+                    variant);
+            })
             .ToList();
     }
 

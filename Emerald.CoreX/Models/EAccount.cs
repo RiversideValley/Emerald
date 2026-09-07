@@ -63,6 +63,11 @@ public partial class EAccount
     [ObservableProperty]
     private IReadOnlyList<AccountProviderActionDescriptor> _providerActions = [];
 
+    /// <summary>Runtime-only skin data used by launcher presentation surfaces.</summary>
+    [JsonIgnore]
+    [ObservableProperty]
+    private AccountSkinData? _skin;
+
     public bool HasAvailabilityMessage => !string.IsNullOrWhiteSpace(AvailabilityMessage);
 
     public EAccount() { }

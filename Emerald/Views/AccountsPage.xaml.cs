@@ -2,6 +2,7 @@ using System;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Models;
+using Emerald.CoreX.Services;
 using Emerald.CoreX.Services.Auth;
 using Emerald.Helpers;
 using Emerald.ViewModels;
@@ -130,6 +131,18 @@ public sealed partial class AccountsPage : Page
     {
         if ((sender as FrameworkElement)?.Tag is EAccount account)
             await ViewModel.RefreshAccountAsync(account);
+    }
+
+    private async void ViewSkin_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not EAccount account || XamlRoot is null)
+            return;
+
+        var accountService = Ioc.Default.GetService<IAccountService>();
+        if (accountService is null)
+            return;
+
+        await new SkinViewerDialog(accountService, account, XamlRoot).ShowAsync();
     }
 
     private async void ProviderAction_Click(object sender, RoutedEventArgs e)

@@ -18,6 +18,7 @@ using Emerald.Services;
 using Emerald.Views;
 using Emerald.Views.Settings;
 using Emerald.Views.Store;
+using Emerald.Controls;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -50,6 +51,7 @@ public sealed partial class MainPage : Page
     private Flyout? _tasksFlyout;
     private int _pendingTaskUpdates;
     private bool _isTasksFlyoutOpen;
+    private int _accountsAvatarVersion;
 
     public ObservableCollection<TaskToastItem> TaskToasts => _taskToasts;
     public Task ShellReady => _shellReady.Task;
@@ -205,7 +207,7 @@ public sealed partial class MainPage : Page
 
         _accountsNavigationItem = new SquareNavigationViewItem(GetAccountsNavigationItemName())
         {
-            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/store.png",
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/account.png",
             Tag = "Accounts",
             FontIconGlyph = "\xE77B",
             SolidFontIconGlyph = "\xE77B",
@@ -455,7 +457,7 @@ public sealed partial class MainPage : Page
 
     private void Account_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(EAccount.IsSelected) or nameof(EAccount.Name))
+        if (e.PropertyName is nameof(EAccount.IsSelected) or nameof(EAccount.Name) or nameof(EAccount.Skin))
         {
             UpdateAccountsNavigationItem();
         }
@@ -486,10 +488,55 @@ public sealed partial class MainPage : Page
         }
 
         _accountsNavigationItem.Name = GetAccountsNavigationItemName();
+        _ = UpdateAccountsNavigationAvatarAsync();
 
         if (ReferenceEquals(NavView.SelectedItem, _accountsNavigationItem))
         {
             UpdateHeader(_accountsNavigationItem);
+        }
+    }
+
+    private async Task UpdateAccountsNavigationAvatarAsync()
+    {
+        var version = ++_accountsAvatarVersion;
+        var account = _accountService.GetSelectedAccount();
+        if (account is null || _accountsNavigationItem is null)
+        {
+            ResetAccountsAvatarIfCurrent(version);
+            return;
+        }
+
+        try
+        {
+            var avatar = await LoadAccountsAvatarAsync(account);
+            if (IsAccountsAvatarCurrent(version, account))
+            {
+                _accountsNavigationItem!.Avatar = avatar;
+            }
+        }
+        catch (Exception ex)
+        {
+            this.Log().LogDebug(ex, "Could not create the selected account skin avatar.");
+            ResetAccountsAvatarIfCurrent(version);
+        }
+    }
+
+    private async Task<ImageSource> LoadAccountsAvatarAsync(EAccount account)
+    {
+        var skin = account.Skin ?? await _accountService.GetSkinAsync(account);
+        return await MinecraftSkinImageFactory.CreateHeadAsync(skin, 56);
+    }
+
+    private bool IsAccountsAvatarCurrent(int version, EAccount account)
+        => version == _accountsAvatarVersion
+            && _accountsNavigationItem is not null
+            && ReferenceEquals(account, _accountService.GetSelectedAccount());
+
+    private void ResetAccountsAvatarIfCurrent(int version)
+    {
+        if (version == _accountsAvatarVersion && _accountsNavigationItem is not null)
+        {
+            _accountsNavigationItem.Avatar = null;
         }
     }
 
