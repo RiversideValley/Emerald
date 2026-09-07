@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ public sealed partial class SkinViewerDialog : ContentDialog
     private readonly IAccountService? _accountService;
     private readonly EAccount? _account;
     private readonly CancellationTokenSource _cancellationSource = new();
+    private AccountSkinData? _skin;
     private bool _isSettingsOpen;
 
     public SkinViewerDialog()
@@ -64,6 +66,8 @@ public sealed partial class SkinViewerDialog : ContentDialog
             UpdateResponsiveLayout(RootGrid.ActualWidth, RootGrid.ActualHeight);
 
             var skin = await _accountService.GetSkinAsync(_account, cancellationToken: _cancellationSource.Token);
+            _skin = skin;
+            DownloadSkinButton.IsEnabled = true;
             FallbackPreview.Source = await MinecraftSkinImageFactory.CreateBodyPreviewAsync(skin);
             await SkinWebView.SetSkinAsync(skin, cancellationToken: _cancellationSource.Token);
             _cancellationSource.Token.ThrowIfCancellationRequested();
@@ -195,6 +199,40 @@ public sealed partial class SkinViewerDialog : ContentDialog
     {
         CapeUrlBox.Text = string.Empty;
         BackEquipmentComboBox.SelectedIndex = 0; // None
+    }
+
+    private async void DownloadSkin_Click(object sender, RoutedEventArgs e)
+    {
+        if (_skin is null)
+            return;
+
+        try
+        {
+            var picker = new FileSavePicker
+            {
+                CommitButtonText = "Save".Localize(),
+                SuggestedStartLocation = PickerLocationId.Downloads,
+                SuggestedFileName = $"{_account?.Name ?? "skin"}-skin"
+            };
+            picker.FileTypeChoices.Add("PNG", new List<string> { ".png" });
+
+#if WINDOWS
+            if (App.Current.MainWindow is not null)
+            {
+                WinRT.Interop.InitializeWithWindow.Initialize(
+                    picker,
+                    WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
+            }
+#endif
+
+            var destination = await picker.PickSaveFileAsync();
+            if (destination is not null)
+                await File.WriteAllBytesAsync(destination.Path, _skin.PngBytes);
+        }
+        catch (Exception ex)
+        {
+            this.Log().LogError(ex, "Failed to download skin");
+        }
     }
 
     private async void ApplyViewerSettings()

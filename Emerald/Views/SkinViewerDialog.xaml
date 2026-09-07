@@ -93,6 +93,23 @@
                 Text="{helpers:Localize KeyName=SkinLoading}"
                 TextAlignment="Center" />
           </StackPanel>
+          <Button
+              x:Name="DownloadSkinButton"
+              HorizontalAlignment="Left"
+              VerticalAlignment="Bottom"
+              Margin="16"
+              BorderBrush="Transparent"
+              Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+              Padding="12,8"
+              IsEnabled="False"
+              Canvas.ZIndex="2"
+              Click="DownloadSkin_Click"
+              ToolTipService.ToolTip="{helpers:Localize KeyName=Download}"
+              AutomationProperties.Name="{helpers:Localize KeyName=Download}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <FontIcon Glyph="&#xE896;" />
+            </StackPanel>
+          </Button>
         </Grid>
 
         <!-- Settings Area: Normal Grid, positioned on right or stacked below on narrow windows -->
