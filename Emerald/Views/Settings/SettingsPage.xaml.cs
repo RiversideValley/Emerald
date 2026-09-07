@@ -49,6 +49,9 @@ public sealed partial class SettingsPage : Page
             case "Appearance":
                 NavigateOnce(typeof(AppearancePage));
                 break;
+            case "Advanced":
+                NavigateOnce(typeof(AdvancedPage));
+                break;
             case "About":
                 NavigateOnce(typeof(AboutPage));
                 break;

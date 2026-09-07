@@ -60,6 +60,10 @@
                     Content="{helpers:Localize KeyName=Appearance}"
                     Tag="Appearance" />
         <NavigationViewItem
+          Icon="{helpers:FontIcon Glyph=&#xE713;}"
+                    Content="{helpers:Localize KeyName=Advanced}"
+                    Tag="Advanced" />
+        <NavigationViewItem
           Icon="{helpers:FontIcon Glyph=&#xE946;}"
                     Content="{helpers:Localize KeyName=About}"
                     Tag="About" />

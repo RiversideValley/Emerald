@@ -45,6 +45,18 @@ public class SettingsService(
                 baseService.Set(SettingsKeys.Settings, loadedSettings);
             }
 
+            // These global advanced settings were added without a settings API bump.
+            // Normalize older JSON documents instead of discarding unrelated preferences.
+            loadedSettings.App ??= new();
+            loadedSettings.App.Advanced ??= new();
+            loadedSettings.App.Advanced.AuthlibInjector ??= new();
+            loadedSettings.App.Updates ??= new();
+            if (!Enum.IsDefined(loadedSettings.App.Advanced.AuthlibInjector.VersionMode))
+            {
+                loadedSettings.App.Advanced.AuthlibInjector.VersionMode =
+                    CoreX.Services.Auth.Authlib.AuthlibInjectorVersionMode.Recommended;
+            }
+
             if (loadedSettings.App.Updates.PreferredChannel == AppReleaseChannel.Nightly
                 && DirectResoucres.ReleaseChannel != AppReleaseChannel.Nightly)
             {
@@ -106,6 +118,8 @@ public class SettingsService(
         Track(Settings.Minecraft.MCVerionsConfiguration);
         Track(Settings.Minecraft.JVM);
         Track(Settings.App);
+        Track(Settings.App.Advanced);
+        Track(Settings.App.Advanced.AuthlibInjector);
         Track(Settings.App.Appearance);
         Track(Settings.App.Tasks);
         Track(Settings.App.NewsFilter);

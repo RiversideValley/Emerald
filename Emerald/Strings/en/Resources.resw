@@ -1326,4 +1326,22 @@
   <data name="CouldNotOpenGitHubReport" xml:space="preserve"><value>Could not open the GitHub report page.</value></data>
   <data name="RecoveryMode" xml:space="preserve"><value>Emerald recovery mode</value></data>
   <data name="RecoveryModeDescription" xml:space="preserve"><value>Emerald has failed during startup several times. Nonessential startup work was skipped so you can inspect crash reports before continuing.</value></data>
+  <data name="Advanced" xml:space="preserve"><value>Advanced</value></data>
+  <data name="AuthlibInjectorVersion" xml:space="preserve"><value>Ely.by authlib-injector version</value></data>
+  <data name="AuthlibInjectorGlobalDescription" xml:space="preserve"><value>Applies globally to every Ely.by Minecraft launch. Emerald verifies the selected injector before every use.</value></data>
+  <data name="AuthlibModeRecommendedFormat" xml:space="preserve"><value>Emerald recommended ({0})</value></data>
+  <data name="AuthlibModeLatest" xml:space="preserve"><value>Latest release</value></data>
+  <data name="AuthlibModeCustom" xml:space="preserve"><value>Choose a version</value></data>
+  <data name="AuthlibCustomVersion" xml:space="preserve"><value>Official version</value></data>
+  <data name="AuthlibCustomVersionDescription" xml:space="preserve"><value>Choose an exact release from the official authlib-injector catalog.</value></data>
+  <data name="AuthlibVersionFormat" xml:space="preserve"><value>{0} (build {1})</value></data>
+  <data name="AuthlibSavedVersionUnavailableFormat" xml:space="preserve"><value>{0} (saved; catalog unavailable)</value></data>
+  <data name="AuthlibCatalogError" xml:space="preserve"><value>The official version catalog is unavailable. Your saved selection is preserved.</value></data>
+  <data name="AuthlibCheckConfiguration" xml:space="preserve"><value>Check configuration</value></data>
+  <data name="AuthlibCheckConfigurationDescription" xml:space="preserve"><value>Resolve and verify the injector, then fetch fresh Ely.by launch metadata.</value></data>
+  <data name="AuthlibChecking" xml:space="preserve"><value>Checking authlib-injector and Ely.by metadata…</value></data>
+  <data name="AuthlibCheckSuccessTitle" xml:space="preserve"><value>Ely.by configuration is ready</value></data>
+  <data name="AuthlibCheckSuccessFormat" xml:space="preserve"><value>Resolved {0} (build {1}) using {2}.</value></data>
+  <data name="AuthlibCheckFailureTitle" xml:space="preserve"><value>Ely.by configuration check failed</value></data>
+  <data name="AuthlibCheckFailureFormat" xml:space="preserve"><value>{0}</value></data>
 </root>

@@ -106,11 +106,19 @@ Notes
                 provider.GetRequiredService<ILogger<CoreX.Services.Auth.OAuth.LoopbackBrowserOAuthBroker>>(),
                 provider.GetRequiredService<CoreX.Services.Auth.OAuth.ISystemBrowserLauncher>()));
 
-        //authLib
+        var authlibOptions = new CoreX.Services.Auth.Authlib.AuthlibInjectorOptions(
+            GetBuildMetadata("Emerald.AuthlibInjectorRecommendedVersion"));
+        services.AddSingleton(authlibOptions);
+
+        // Launcher-owned authlib-injector preparation and verified cache.
         services.AddSingleton<CoreX.Services.Auth.Authlib.IAuthlibInjectorService>(provider =>
             new CoreX.Services.Auth.Authlib.AuthlibInjectorService(
                 provider.GetRequiredService<ILogger<CoreX.Services.Auth.Authlib.AuthlibInjectorService>>(),
-                Path.Combine(DirectResoucres.LocalDataPath, "authlib-injector")));
+                provider.GetRequiredService<CoreX.Services.Auth.Authlib.IAuthlibInjectorSettings>(),
+                provider.GetRequiredService<CoreX.Services.Auth.Authlib.AuthlibInjectorOptions>(),
+                Path.Combine(DirectResoucres.LocalDataPath, "authlib-injector"),
+                provider.GetRequiredService<HttpClient>(),
+                provider.GetRequiredService<DownloadTimeouts>()));
 
         services.AddSingleton(new CoreX.Services.Auth.AccountProviderPolicyOptions
         {
@@ -233,6 +241,7 @@ Notes
         services.AddSingleton<Services.IAppUpdateService, Services.AppUpdateService>();
         services.AddSingleton<CoreX.Services.IGlobalGameSettingsService, CoreX.Services.GlobalGameSettingsService>();
         services.AddSingleton<CoreX.Runtime.IGameRuntimeSettings, Services.GameRuntimeSettingsAdapter>();
+        services.AddSingleton<CoreX.Services.Auth.Authlib.IAuthlibInjectorSettings, Services.AuthlibInjectorSettingsAdapter>();
         services.AddSingleton<CoreX.Services.IJavaRuntimeProbe, CoreX.Services.ProcessJavaRuntimeProbe>();
         services.AddSingleton<CoreX.Services.IJavaRuntimeCatalogService, CoreX.Services.JavaRuntimeCatalogService>();
     }
@@ -255,6 +264,7 @@ Notes
         services.AddTransient<ViewModels.CrashReportsPageViewModel>();
         services.AddTransient<ViewModels.ModrinthStorePageViewModel>();
         services.AddTransient<ViewModels.GameOptionsViewModel>();
+        services.AddTransient<ViewModels.AdvancedSettingsPageViewModel>();
     }
     
     #endregion

@@ -12,6 +12,7 @@
     <EmeraldReleaseTag Condition="'$(EmeraldReleaseTag)' == ''">nightly-local</EmeraldReleaseTag>
     <EmeraldCommitSha Condition="'$(EmeraldCommitSha)' == ''">local</EmeraldCommitSha>
     <EmeraldBuildTimestampUtc Condition="'$(EmeraldBuildTimestampUtc)' == ''">1970-01-01T00:00:00Z</EmeraldBuildTimestampUtc>
+    <EmeraldAuthlibInjectorRecommendedVersion Condition="'$(EmeraldAuthlibInjectorRecommendedVersion)' == ''">1.2.8</EmeraldAuthlibInjectorRecommendedVersion>
 
     <Version Condition="'$(Version)' == ''">$(EmeraldPackageVersion)</Version>
     <FileVersion Condition="'$(FileVersion)' == ''">$(EmeraldPackageVersion)</FileVersion>
@@ -90,6 +91,10 @@
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>Emerald.UpdateChannel</_Parameter1>
       <_Parameter2>$(EmeraldUpdateChannel)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Emerald.AuthlibInjectorRecommendedVersion</_Parameter1>
+      <_Parameter2>$(EmeraldAuthlibInjectorRecommendedVersion)</_Parameter2>
     </AssemblyAttribute>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>Emerald.ElyByClientId</_Parameter1>

@@ -14,6 +14,7 @@ using Emerald.CoreX.Store.Modrinth;
 using Emerald.CoreX.Helpers;
 using Emerald.Models;
 using System.IO;
+using Emerald.CoreX.Services.Auth.Authlib;
 namespace Emerald.Helpers.Settings.JSON;
 
 public class JSON : Models.Model
@@ -53,7 +54,8 @@ public partial class Settings : JSON
             Updates = new()
             {
                 PreferredChannel = DirectResoucres.ReleaseChannel
-            }
+            },
+            Advanced = new()
         },
         Minecraft = new()
         {
@@ -187,6 +189,7 @@ public partial class App : JSON
     public NewsFilter NewsFilter { get; set; } = new();
     public Store Store { get; set; } = new();
     public Updates Updates { get; set; } = new();
+    public Advanced Advanced { get; set; } = new();
 
     [ObservableProperty]
     private bool _autoClose;
@@ -197,6 +200,21 @@ public partial class App : JSON
     [ObservableProperty]
     private bool _windowsHello;
 }
+
+public partial class Advanced : JSON
+{
+    public AuthlibInjectorSettings AuthlibInjector { get; set; } = new();
+}
+
+public partial class AuthlibInjectorSettings : JSON
+{
+    [ObservableProperty]
+    private AuthlibInjectorVersionMode _versionMode = AuthlibInjectorVersionMode.Recommended;
+
+    [ObservableProperty]
+    private string? _customVersion;
+}
+
 public partial class Updates : JSON
 {
     [ObservableProperty]
