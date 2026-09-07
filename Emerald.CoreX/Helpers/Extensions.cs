@@ -36,9 +36,9 @@ public static class Extensions
     //        tip.CloseButtonClick += (_, _) => tip.IsOpen = false;
     //    }
     //}
-    public static void RevealInFinder(this string FilePath)
+    public static bool RevealInFinder(this string fileOrFolderPath)
     {
-        FileManager.Reveal(FilePath);
+        return FileManager.Reveal(fileOrFolderPath);
     }
 
     public static int? GetMemoryGB()
