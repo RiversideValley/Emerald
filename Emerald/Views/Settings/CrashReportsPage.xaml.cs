@@ -132,8 +132,8 @@ public sealed partial class CrashReportsPage : Page
     }
 
     private void OpenLogs_Click(object sender, RoutedEventArgs e)
-        => PlatformFolderLauncher.TryOpen(Path.GetDirectoryName(ViewModel.ApplicationLogPath));
+        => Path.GetDirectoryName(ViewModel.ApplicationLogPath)?.RevealInFinder();
 
     private void OpenNativeDiagnostics_Click(object sender, RoutedEventArgs e)
-        => PlatformFolderLauncher.TryOpen(Path.GetDirectoryName(ViewModel.SelectedNativeDiagnosticsPath));
+        => Path.GetDirectoryName(ViewModel.SelectedNativeDiagnosticsPath)?.RevealInFinder();
 }

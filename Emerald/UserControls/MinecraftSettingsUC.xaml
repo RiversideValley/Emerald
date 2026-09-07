@@ -46,19 +46,30 @@
           Header="{helpers:Localize KeyName=MinecraftPath}"
           Description="{helpers:Localize KeyName=MinecraftPathDescription}">
           <DropDownButton
+            Background="Transparent"
+            BorderBrush="Transparent"
             ToolTipService.ToolTip="{x:Bind SS.Settings.Minecraft.Path, Mode=OneWay}">
             <TextBlock
               MaxWidth="250"
+              Opacity="0.7"
               VerticalAlignment="Center"
               Text="{x:Bind SS.Settings.Minecraft.Path, Mode=OneWay}"
               TextTrimming="CharacterEllipsis" />
             <DropDownButton.Flyout>
-              <MenuFlyout>
-                <MenuFlyoutItem x:Name="CopyPath" Text="{helpers:Localize KeyName=CopyPath}" Click="CopyPath_OnClick"/>
+              <MenuFlyout Placement="Bottom">
+                <MenuFlyoutItem
+                  x:Name="CopyPath"
+                  Text="{helpers:Localize KeyName=CopyPath}"
+                  Click="CopyPath_OnClick"/>
                 <MenuFlyoutItem
                   Visibility="{x:Bind ShowMainSettings, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                   Text="{helpers:Localize KeyName=ChangePath}"
                   Click="ChangePath_OnClick"/>
+                <MenuFlyoutItem
+                  x:Name="OpenPath"
+                  Text="{helpers:Localize KeyName=OpenInFinder}"
+                  Click="OpenPath_OnClick"
+                  />
               </MenuFlyout>
             </DropDownButton.Flyout>
             </DropDownButton>

@@ -947,6 +947,12 @@ public sealed partial class MinecraftSettingsUC : UserControl
             SS.Settings.Minecraft.SavedJavaPaths.Remove(match);
         }
     }
+
+    private void OpenPath_OnClick(object sender, RoutedEventArgs e)
+    {
+        var path = ShowMainSettings ? SS.Settings.Minecraft.Path : Path.Combine(SS.Settings.Minecraft.Path, CoreX.Core.GamesFolderName);
+        path.RevealInFinder();
+    }
 }
 
 public sealed class SharedStoreLinkModeOption(StoreLinkMode value, string displayName)

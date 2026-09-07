@@ -646,10 +646,10 @@
     <value>Microsoft or offline</value>
   </data>
   <data name="MinecraftPath" xml:space="preserve">
-    <value>Minecraft Path</value>
+    <value>Minecraft Instances Folder</value>
   </data>
   <data name="MinecraftPathDescription" xml:space="preserve">
-    <value>The path of the minecraft client</value>
+    <value>Pick the folder Emerald uses to keep your instances, game versions, and assets.</value>
   </data>
   <data name="MinecraftSettings" xml:space="preserve">
     <value>Minecraft Settings</value>
@@ -790,8 +790,14 @@
   <data name="SelectNone" xml:space="preserve">
     <value>Select None</value>
   </data>
-  <data name="SetDifMCPath" xml:space="preserve">
-    <value>Change Path</value>
+  <data name="ChangePath" xml:space="preserve">
+    <value>Change Location</value>
+  </data>
+  <data name="CopyPath" xml:space="preserve">
+    <value>Copy Path</value>
+  </data>
+  <data name="OpenInFinder" xml:space="preserve">
+    <value>Show in File Manager</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Settings</value>
