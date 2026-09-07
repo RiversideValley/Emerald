@@ -60,10 +60,17 @@ public partial class Program
                 provider.GetRequiredService<ILogger<LoopbackBrowserOAuthBroker>>(),
                 provider.GetRequiredService<ISystemBrowserLauncher>()));
 
+        services.AddSingleton<Emerald.CoreX.Services.Auth.Authlib.IAuthlibInjectorSettings, HeadlessAuthlibInjectorSettings>();
+        services.AddSingleton(new Emerald.CoreX.Services.Auth.Authlib.AuthlibInjectorOptions(
+            GetBuildMetadata("Emerald.AuthlibInjectorRecommendedVersion")));
         services.AddSingleton<Emerald.CoreX.Services.Auth.Authlib.IAuthlibInjectorService>(provider =>
             new Emerald.CoreX.Services.Auth.Authlib.AuthlibInjectorService(
                 provider.GetRequiredService<ILogger<Emerald.CoreX.Services.Auth.Authlib.AuthlibInjectorService>>(),
-                Path.Combine(basePath, "authlib-injector")));
+                provider.GetRequiredService<Emerald.CoreX.Services.Auth.Authlib.IAuthlibInjectorSettings>(),
+                provider.GetRequiredService<Emerald.CoreX.Services.Auth.Authlib.AuthlibInjectorOptions>(),
+                Path.Combine(basePath, "authlib-injector"),
+                provider.GetRequiredService<HttpClient>(),
+                provider.GetRequiredService<DownloadTimeouts>()));
 
         services.AddSingleton<INotificationService, NotificationService>();
         services.AddSingleton(new AccountProviderPolicyOptions

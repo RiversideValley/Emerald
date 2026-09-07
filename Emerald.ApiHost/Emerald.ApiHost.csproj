@@ -4,12 +4,17 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+    <EmeraldAuthlibInjectorRecommendedVersion Condition="'$(EmeraldAuthlibInjectorRecommendedVersion)' == ''">1.2.8</EmeraldAuthlibInjectorRecommendedVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>Emerald.MSFTClientId</_Parameter1>
       <_Parameter2>$(EmeraldMSFTClientId)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Emerald.AuthlibInjectorRecommendedVersion</_Parameter1>
+      <_Parameter2>$(EmeraldAuthlibInjectorRecommendedVersion)</_Parameter2>
     </AssemblyAttribute>
     <ProjectReference Include="..\Emerald.CoreX\Emerald.CoreX.csproj" />
   </ItemGroup>

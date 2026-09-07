@@ -1305,32 +1305,35 @@ Ely.by needs authlib-injector so Minecraft uses Ely's auth/session endpoints.
 Ely provider:
 
 ```csharp
-var javaAgentArgument = await authlibInjectorService.GetJavaAgentArgumentAsync(cancellationToken).ConfigureAwait(false);
-var runtimeOptions = new AccountRuntimeAuthOptions([new MArgument(javaAgentArgument)]);
+var authlib = await authlibInjectorService.PrepareLaunchAsync(cancellationToken).ConfigureAwait(false);
+var runtimeOptions = new AccountRuntimeAuthOptions(
+    authlib.JvmArguments.Select(argument => new MArgument(argument)).ToArray());
 ```
 
 Line by line:
 
-- Gets or downloads authlib-injector jar.
-- Returns a JVM `-javaagent` argument targeting Ely.
-- Wraps it as a CmlLib `MArgument`.
+- Resolves an official authlib-injector build and verifies its SHA-256 hash.
+- Fetches fresh Ely.by API metadata, using Ely.by discovery first and the account endpoint as fallback.
+- Returns both the `-javaagent` and prefetched-metadata JVM arguments.
+- Wraps both as CmlLib `MArgument` values.
 - Packs that into `AccountRuntimeAuthOptions`.
 
 Authlib service:
 
 ```csharp
-public async Task<string> GetJavaAgentArgumentAsync(CancellationToken cancellationToken = default)
+var arguments = new[]
 {
-    var jarPath = await EnsureJarAsync(cancellationToken).ConfigureAwait(false);
-    return $"-javaagent:{jarPath}=ely.by";
-}
+    $"-javaagent:{jarPath}={metadata.ApiRoot.AbsoluteUri}",
+    $"-Dauthlibinjector.yggdrasil.prefetched={Convert.ToBase64String(metadata.Bytes)}"
+};
 ```
 
 Line by line:
 
-- `EnsureJarAsync`: makes sure jar exists locally.
-- returns `-javaagent:<path>=ely.by`.
-- That exact string is later appended to CmlLib launch JVM args.
+- The selected build comes from the official artifact API and is cached by build number.
+- The cached jar is SHA-256 checked on every use.
+- Metadata bytes are passed exactly as received, encoded as Base64, so authlib-injector does not fetch Ely.by metadata at JVM startup.
+- Both strings are later appended to CmlLib launch JVM args.
 
 Game process build:
 
@@ -1505,4 +1508,3 @@ First Ely launch may need network to download authlib-injector. If that fails, E
 8. ViewModel catches cancellation as a normal user action.
 9. ViewModel clears login state.
 10. No account is added from the canceled flow.
-
