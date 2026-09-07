@@ -936,7 +936,7 @@ Notes
     private Task OpenCrashLogsAsync()
     {
         var logsPath = Path.GetDirectoryName(_crashCoordinator.ApplicationLogPath);
-        if (!PlatformFolderLauncher.TryOpen(logsPath))
+        if (!logsPath.RevealInFinder())
         {
             this.Log().LogWarning("Could not open Emerald application logs at {LogsPath}.", logsPath);
         }
