@@ -30,6 +30,7 @@ public partial class Game : ObservableObject
 
     public Versions.Version Version { get; set; } = new();
     public MinecraftPath Path { get; private set; }
+    public Guid InstanceId { get; }
 
     public string? SharedMinecraftBasePath => _sharedMinecraftBasePath;
     public bool IsLauncherOfflineMode => _launcherOfflineMode;
@@ -182,7 +183,8 @@ public partial class Game : ObservableObject
         bool usesCustomGameSettings = false,
         Models.GameSettings? customGameSettings = null,
         string? sharedMinecraftBasePath = null,
-        IGlobalGameSettingsService? globalGameSettingsService = null)
+        IGlobalGameSettingsService? globalGameSettingsService = null,
+        Guid? instanceId = null)
     {
         _notify = Ioc.Default.GetService<Notifications.INotificationService>()
             ?? throw new InvalidOperationException("Notification service is required before creating games.");
@@ -192,6 +194,7 @@ public partial class Game : ObservableObject
             ?? throw new InvalidOperationException("Global game settings service is required before creating games.");
         _instanceBasePath = path.BasePath;
         _sharedMinecraftBasePath = sharedMinecraftBasePath;
+        InstanceId = instanceId is { } id && id != Guid.Empty ? id : Guid.NewGuid();
 
         Launcher = new MinecraftLauncher();
         Version = version;
@@ -313,12 +316,14 @@ public partial class Game : ObservableObject
     public async Task<Process> BuildProcess(
         string version,
         CmlLib.Core.Auth.MSession session,
-        AccountRuntimeAuthOptions? runtimeAuthOptions = null)
+        AccountRuntimeAuthOptions? runtimeAuthOptions = null,
+        MinecraftLaunchTarget? target = null)
     {
         _logger.LogInformation("Building process for version: {Version}", version);
         CreateMCLauncher(true);
         var launchOpt = EffectiveSettings.ToMLaunchOption();
         launchOpt.Session = session;
+        ApplyLaunchTarget(launchOpt, target ?? MinecraftLaunchTarget.Configured);
 
         if (runtimeAuthOptions?.ExtraJvmArguments.Count > 0)
         {
@@ -349,6 +354,31 @@ public partial class Game : ObservableObject
 
         _logger.LogDebug("Preparing launch options for {Version}. FullScreen: {FullScreen}. DockName: {DockName}.", version, EffectiveSettings.FullScreen, EffectiveSettings.DockName);
         return await Launcher.BuildProcessAsync(version, launchOpt);
+    }
+
+    internal static void ApplyLaunchTarget(MLaunchOption option, MinecraftLaunchTarget target)
+    {
+        if (target.Kind == MinecraftLaunchTargetKind.Configured) return;
+
+        option.ServerIp = null;
+        option.ServerPort = 25565;
+        option.QuickPlaySingleplayer = null;
+        option.QuickPlayRealms = null;
+
+        switch (target.Kind)
+        {
+            case MinecraftLaunchTargetKind.MainMenu:
+                break;
+            case MinecraftLaunchTargetKind.Server:
+                ArgumentException.ThrowIfNullOrWhiteSpace(target.ServerHost);
+                option.ServerIp = target.ServerHost;
+                option.ServerPort = target.ServerPort ?? 25565;
+                break;
+            case MinecraftLaunchTargetKind.World:
+                ArgumentException.ThrowIfNullOrWhiteSpace(target.WorldFolderName);
+                option.QuickPlaySingleplayer = target.WorldFolderName;
+                break;
+        }
     }
 
     partial void OnUsesCustomGameSettingsChanged(bool value)

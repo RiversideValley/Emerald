@@ -44,6 +44,7 @@
     <PackageReference Include="CmlLib.Core" />
     <PackageReference Include="CmlLib.Core.Auth.Microsoft" />
     <PackageReference Include="CmlLib.Core.Installer.Forge" />
+    <PackageReference Include="fNbt" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Newtonsoft.Json" />

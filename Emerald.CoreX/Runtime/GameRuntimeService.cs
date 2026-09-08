@@ -30,6 +30,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
         public Process? Process { get; set; }
         public bool ProcessStarted { get; set; }
+        public DateTimeOffset? ProcessStartedAt { get; set; }
         public bool CanReadStandardStreams { get; set; }
         public bool ExitHandled { get; set; }
         public GameStopMode? RequestedStopMode { get; set; }
@@ -46,6 +47,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
     private readonly IUiDispatcher _dispatcher;
     private readonly IInstanceInstallationService _installationService;
     private readonly INetworkCapabilityService _networkCapabilityService;
+    private readonly IInstancePlaytimeService _instancePlaytimeService;
     private readonly object _syncRoot = new();
     private readonly Dictionary<string, ActiveSessionRuntime> _activeSessions = new(StringComparer.OrdinalIgnoreCase);
 
@@ -61,7 +63,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
         IGameRuntimeSettings settings,
         IUiDispatcher dispatcher,
         IInstanceInstallationService installationService,
-        INetworkCapabilityService networkCapabilityService)
+        INetworkCapabilityService networkCapabilityService,
+        IInstancePlaytimeService instancePlaytimeService)
     {
         _logger = logger;
         _notificationService = notificationService;
@@ -70,6 +73,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
         _dispatcher = dispatcher;
         _installationService = installationService;
         _networkCapabilityService = networkCapabilityService;
+        _instancePlaytimeService = instancePlaytimeService;
         _logger.LogInformation("Game runtime service initialized.");
     }
 
@@ -121,8 +125,14 @@ public sealed class GameRuntimeService : IGameRuntimeService
     /// <summary>
     /// Launches the supplied game and starts tracking its runtime session.
     /// </summary>
-    public async Task<GameSession?> LaunchAsync(Game game, EAccount? account = null)
+    public Task<GameSession?> LaunchAsync(Game game, EAccount? account = null)
+        => LaunchAsync(new GameLaunchRequest(game, account));
+
+    public async Task<GameSession?> LaunchAsync(GameLaunchRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
+        var game = request.Game;
+        var account = request.Account;
         if (!TryValidateLaunchRequest(game, ref account))
         {
             return null;
@@ -146,7 +156,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
         }
 
         var realVersion = game.Version.RealVersion!;
-        var runtime = CreateRuntimeSessionOrGetExisting(game, out var created);
+        var runtime = CreateRuntimeSessionOrGetExisting(game, request.EffectiveTarget, request.QuickProfileId, out var created);
         if (!created)
         {
             return runtime.Session;
@@ -162,7 +172,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
         try
         {
-            await StartRuntimeProcessAsync(game, realVersion, account, runtime);
+            await StartRuntimeProcessAsync(game, realVersion, account, request.EffectiveTarget, runtime);
             return runtime.Session;
         }
         catch (OperationCanceledException)
@@ -223,7 +233,11 @@ public sealed class GameRuntimeService : IGameRuntimeService
         return true;
     }
 
-    private ActiveSessionRuntime CreateRuntimeSessionOrGetExisting(Game game, out bool created)
+    private ActiveSessionRuntime CreateRuntimeSessionOrGetExisting(
+        Game game,
+        MinecraftLaunchTarget target,
+        Guid? quickProfileId,
+        out bool created)
     {
         lock (_syncRoot)
         {
@@ -238,19 +252,21 @@ public sealed class GameRuntimeService : IGameRuntimeService
                 return existingRuntime;
             }
 
-            var runtime = CreateRuntimeSession(game, pathKey);
+            var runtime = CreateRuntimeSession(game, pathKey, target, quickProfileId);
             _activeSessions[pathKey] = runtime;
             created = true;
             return runtime;
         }
     }
 
-    private ActiveSessionRuntime CreateRuntimeSession(Game game, string pathKey)
+    private ActiveSessionRuntime CreateRuntimeSession(Game game, string pathKey, MinecraftLaunchTarget target, Guid? quickProfileId)
     {
         var session = new GameSession(game, DateTimeOffset.Now)
         {
             State = GameRunState.Launching,
-            CaptureMode = _settings.IsLogCaptureEnabled ? GameCaptureMode.StandardOutputOnly : GameCaptureMode.LifecycleOnly
+            CaptureMode = _settings.IsLogCaptureEnabled ? GameCaptureMode.StandardOutputOnly : GameCaptureMode.LifecycleOnly,
+            Target = target,
+            QuickProfileId = quickProfileId
         };
 
         return new ActiveSessionRuntime
@@ -288,6 +304,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
         Game game,
         string realVersion,
         EAccount account,
+        MinecraftLaunchTarget target,
         ActiveSessionRuntime runtime)
     {
         _logger.LogDebug("Authenticating launch account for {GameName}.", game.Version.DisplayName);
@@ -299,7 +316,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
         var process = await game.BuildProcess(
             realVersion,
             authenticationResult.Session,
-            authenticationResult.RuntimeOptions);
+            authenticationResult.RuntimeOptions,
+            target);
         runtime.Process = process;
 
         _logger.LogDebug(
@@ -323,6 +341,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
         }
 
         runtime.ProcessStarted = true;
+        runtime.ProcessStartedAt = DateTimeOffset.Now;
         if (runtime.CanReadStandardStreams)
         {
             process.BeginOutputReadLine();
@@ -599,16 +618,18 @@ public sealed class GameRuntimeService : IGameRuntimeService
                 finalState == GameRunState.Failed ? GameLogLevel.Error : GameLogLevel.Info,
                 $"Process exited with code {exitCode}.");
 
+            var endedAt = DateTimeOffset.Now;
             RunOnUI(() =>
             {
                 runtime.Session.State = finalState;
-                runtime.Session.EndedAt = DateTimeOffset.Now;
+                runtime.Session.EndedAt = endedAt;
                 runtime.Session.ExitCode = exitCode;
                 runtime.Session.HasCrashReport = crashReports.Count > 0;
                 runtime.Session.CrashReportPath = crashReports.FirstOrDefault();
 
                 ApplyInactiveState(runtime.Session.Game, runtime.Session);
             });
+            RecordPlaytime(runtime.Session, runtime.ProcessStartedAt ?? runtime.Session.StartedAt, endedAt);
 
             _logger.LogInformation(
                 "Process exit finalized for {GameName}. ExitCode: {ExitCode}. FinalState: {FinalState}. CrashReports: {CrashReportCount}.",
@@ -620,12 +641,14 @@ public sealed class GameRuntimeService : IGameRuntimeService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed while finalizing process exit for {GameName}", runtime.Session.DisplayName);
+            var endedAt = DateTimeOffset.Now;
             RunOnUI(() =>
             {
                 runtime.Session.State = GameRunState.Failed;
-                runtime.Session.EndedAt = DateTimeOffset.Now;
+                runtime.Session.EndedAt = endedAt;
                 ApplyInactiveState(runtime.Session.Game, runtime.Session);
             });
+            RecordPlaytime(runtime.Session, runtime.ProcessStartedAt ?? runtime.Session.StartedAt, endedAt);
         }
         finally
         {
@@ -921,6 +944,31 @@ public sealed class GameRuntimeService : IGameRuntimeService
         game.RunState = session.State;
         game.LastExitCode = session.ExitCode;
         game.LastRunEndedAt = session.EndedAt;
+    }
+
+    private void RecordPlaytime(GameSession session, DateTimeOffset startedAt, DateTimeOffset endedAt)
+    {
+        try
+        {
+            _instancePlaytimeService.RecordSession(new InstancePlaytimeSession
+            {
+                Id = session.SessionId,
+                InstanceId = session.Game.InstanceId,
+                BasePathSnapshot = session.Game.SharedMinecraftBasePath ?? string.Empty,
+                InstancePath = session.GamePath,
+                InstanceNameSnapshot = session.DisplayName,
+                StartedAt = startedAt,
+                EndedAt = endedAt,
+                TargetKind = session.Target.Kind,
+                TargetDisplayNameSnapshot = session.TargetDisplayName,
+                QuickProfileId = session.QuickProfileId,
+                Crashed = session.State == GameRunState.Failed || session.HasCrashReport
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to record playtime for {GameName}", session.DisplayName);
+        }
     }
 
     /// <summary>

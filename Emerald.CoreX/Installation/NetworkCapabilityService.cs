@@ -3,7 +3,7 @@ using System.Net.NetworkInformation;
 
 namespace Emerald.CoreX.Installation;
 
-public enum NetworkCapability { MinecraftMetadata, MinecraftFiles, LoaderMetadata, Modrinth, Authentication }
+public enum NetworkCapability { MinecraftMetadata, MinecraftFiles, LoaderMetadata, Modrinth, Authentication, ServerDirectory, ServerStatus }
 public enum NetworkAvailabilityState { Unknown, Checking, Available, Degraded, Unavailable }
 
 public sealed record NetworkCapabilitySnapshot(
@@ -42,7 +42,9 @@ public sealed class NetworkCapabilityService : INetworkCapabilityService
         [NetworkCapability.MinecraftFiles] = new("https://resources.download.minecraft.net/"),
         [NetworkCapability.LoaderMetadata] = new("https://meta.fabricmc.net/v2/versions/loader"),
         [NetworkCapability.Modrinth] = new("https://api.modrinth.com/v2/tag/project_type"),
-        [NetworkCapability.Authentication] = new("https://login.live.com/")
+        [NetworkCapability.Authentication] = new("https://login.live.com/"),
+        [NetworkCapability.ServerDirectory] = new("https://minecraftserve.rs/api/servers?edition=java&per_page=1"),
+        [NetworkCapability.ServerStatus] = new("https://api.mcsrvstat.us/3/mc.hypixel.net")
     };
 
     private readonly HttpClient _httpClient;

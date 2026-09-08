@@ -18,6 +18,8 @@ namespace Emerald.CoreX;
 
 public sealed class SavedGame
 {
+    public Guid InstanceId { get; set; }
+
     public string Path { get; set; } = string.Empty;
 
     public Versions.Version Version { get; set; } = new();
@@ -36,11 +38,13 @@ public sealed class SavedGame
             UsesCustomGameSettings || GameOptions != null,
             CustomGameSettings ?? GameOptions,
             sharedMinecraftBasePath,
-            globalGameSettingsService);
+            globalGameSettingsService,
+            InstanceId);
 
     public static SavedGame FromGame(Game game)
         => new()
         {
+            InstanceId = game.InstanceId,
             Path = game.Path.BasePath,
             Version = game.Version,
             UsesCustomGameSettings = game.UsesCustomGameSettings,
@@ -137,6 +141,7 @@ public partial class Core(
 
         PrepareBaseScopedServices();
         var savedGames = LoadOrMigrateSavedGames();
+        var identitiesChanged = RepairInstanceIdentities(savedGames);
         var generation = Interlocked.Increment(ref _gamesGeneration);
         lock (_auditGate)
         {
@@ -165,7 +170,29 @@ public partial class Core(
             }
         }
 
+        if (identitiesChanged)
+        {
+            SaveGames();
+        }
+
+
         _logger.LogInformation("Loaded {count} games from", Games.Count);
+    }
+
+    private static bool RepairInstanceIdentities(IEnumerable<SavedGame> savedGames)
+    {
+        var changed = false;
+        var seen = new HashSet<Guid>();
+        foreach (var savedGame in savedGames)
+        {
+            if (savedGame.InstanceId == Guid.Empty || !seen.Add(savedGame.InstanceId))
+            {
+                savedGame.InstanceId = Guid.NewGuid();
+                seen.Add(savedGame.InstanceId);
+                changed = true;
+            }
+        }
+        return changed;
     }
     public void SaveGames()
     {

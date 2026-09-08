@@ -33,7 +33,8 @@ public sealed class GameRuntimeServiceTests
             new TestRuntimeSettings(),
             new ImmediateUiDispatcher(),
             installer,
-            network);
+            network,
+            new RecordingPlaytimeService());
         var game = new Game(
             new MinecraftPath(Path.Combine(Path.GetTempPath(), "emerald-runtime-tests", Guid.NewGuid().ToString("N"))),
             new Emerald.CoreX.Versions.Version
@@ -126,5 +127,12 @@ public sealed class GameRuntimeServiceTests
             PrepareLaunchCalls++;
             throw new Xunit.Sdk.XunitException("Launch preflight should not run after the offline-account guard.");
         }
+    }
+
+    private sealed class RecordingPlaytimeService : IInstancePlaytimeService
+    {
+        public IReadOnlyList<InstancePlaytimeSession> GetSessions(string instancePath) => [];
+        public TimeSpan GetTotalPlaytime(string instancePath) => TimeSpan.Zero;
+        public void RecordSession(InstancePlaytimeSession session) { }
     }
 }

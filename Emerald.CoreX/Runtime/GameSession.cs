@@ -9,6 +9,7 @@ namespace Emerald.CoreX.Runtime;
 /// </summary>
 public partial class GameSession(Game game, DateTimeOffset startedAt) : ObservableObject
 {
+    public Guid SessionId { get; } = Guid.NewGuid();
     public Game Game { get; } = game;
 
     public ObservableCollection<GameLogEntry> Entries { get; } = new();
@@ -16,6 +17,16 @@ public partial class GameSession(Game game, DateTimeOffset startedAt) : Observab
     public string GamePath => Game.Path.BasePath;
 
     public string DisplayName => Game.Version.DisplayName;
+
+    public MinecraftLaunchTarget Target { get; internal set; } = MinecraftLaunchTarget.Configured;
+    public Guid? QuickProfileId { get; internal set; }
+    public string TargetDisplayName => Target.DisplayName ?? Target.Kind switch
+    {
+        MinecraftLaunchTargetKind.Server => Target.ServerHost ?? "Server",
+        MinecraftLaunchTargetKind.World => Target.WorldFolderName ?? "World",
+        MinecraftLaunchTargetKind.MainMenu => "Main menu",
+        _ => "Configured"
+    };
 
     public string VersionText
     {
