@@ -1391,4 +1391,67 @@
   <data name="AuthlibCheckSuccessFormat" xml:space="preserve"><value>Resolved {0} (build {1}) using {2}.</value></data>
   <data name="AuthlibCheckFailureTitle" xml:space="preserve"><value>Ely.by configuration check failed</value></data>
   <data name="AuthlibCheckFailureFormat" xml:space="preserve"><value>{0}</value></data>
+  <data name="Instances" xml:space="preserve"><value>Instances</value></data>
+  <data name="Playtime" xml:space="preserve"><value>Playtime</value></data>
+  <data name="Servers" xml:space="preserve"><value>Servers</value></data>
+  <data name="LocalWorlds" xml:space="preserve"><value>Local worlds</value></data>
+  <data name="Instance" xml:space="preserve"><value>Instance</value></data>
+  <data name="AllEmerald" xml:space="preserve"><value>All Emerald</value></data>
+  <data name="Sessions" xml:space="preserve"><value>Sessions</value></data>
+  <data name="Stop" xml:space="preserve"><value>Stop</value></data>
+  <data name="ForceStop" xml:space="preserve"><value>Force stop</value></data>
+  <data name="Play" xml:space="preserve"><value>Play</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Discover" xml:space="preserve"><value>Discover</value></data>
+  <data name="Favorites" xml:space="preserve"><value>Favorites</value></data>
+  <data name="BackToHome" xml:space="preserve"><value>Back to Home</value></data>
+  <data name="ManageMinecraftAccounts" xml:space="preserve"><value>Manage Minecraft accounts</value></data>
+  <data name="HomeReadyWhenYouAre" xml:space="preserve"><value>Ready when you are</value></data>
+  <data name="InstanceUpper" xml:space="preserve"><value>INSTANCE</value></data>
+  <data name="DestinationUpper" xml:space="preserve"><value>DESTINATION</value></data>
+  <data name="ChooseInstalledInstance" xml:space="preserve"><value>Choose an installed instance</value></data>
+  <data name="SelectedMinecraftInstance" xml:space="preserve"><value>Selected Minecraft instance</value></data>
+  <data name="LaunchDestination" xml:space="preserve"><value>Launch destination</value></data>
+  <data name="ChooseFavoriteServer" xml:space="preserve"><value>Choose a favorite server</value></data>
+  <data name="ChooseRecentWorld" xml:space="preserve"><value>Choose a recent world</value></data>
+  <data name="ManageInstance" xml:space="preserve"><value>Manage instance</value></data>
+  <data name="ThisWeek" xml:space="preserve"><value>This week</value></data>
+  <data name="PlaytimeCardHint" xml:space="preserve"><value>Click for daily patterns, streaks, and session history</value></data>
+  <data name="QuickProfiles" xml:space="preserve"><value>Quick profiles</value></data>
+  <data name="NewProfile" xml:space="preserve"><value>+ New profile</value></data>
+  <data name="ProfileOptions" xml:space="preserve"><value>Profile options</value></data>
+  <data name="LaunchNow" xml:space="preserve"><value>Launch now</value></data>
+  <data name="ServersCardHint" xml:space="preserve"><value>Discover, favorite, check status, and join</value></data>
+  <data name="WorldsCardHint" xml:space="preserve"><value>Browse saves and jump back into a world</value></data>
+  <data name="RecentActivity" xml:space="preserve"><value>Recent activity</value></data>
+  <data name="HomeNoInstancesTitle" xml:space="preserve"><value>Build your first Minecraft instance</value></data>
+  <data name="HomeNoInstancesDescription" xml:space="preserve"><value>Home becomes your launch cockpit once an instance is installed.</value></data>
+  <data name="OpenInstances" xml:space="preserve"><value>Open Instances</value></data>
+  <data name="ServersPageDescription" xml:space="preserve"><value>Discover Java servers, keep favorites, and launch directly</value></data>
+  <data name="AddCustomServer" xml:space="preserve"><value>Add custom server</value></data>
+  <data name="SearchServers" xml:space="preserve"><value>Search servers</value></data>
+  <data name="SearchPublicServers" xml:space="preserve"><value>Search public servers</value></data>
+  <data name="AnyTag" xml:space="preserve"><value>Any tag</value></data>
+  <data name="AnyVersion" xml:space="preserve"><value>Any version</value></data>
+  <data name="WorldsPageDescription" xml:space="preserve"><value>Browse Java saves and launch compatible worlds directly</value></data>
+  <data name="SearchWorlds" xml:space="preserve"><value>Search worlds</value></data>
+  <data name="SearchLocalWorlds" xml:space="preserve"><value>Search local worlds</value></data>
+  <data name="RevealInFileManager" xml:space="preserve"><value>Reveal in file manager</value></data>
+  <data name="WorldDetails" xml:space="preserve"><value>World details</value></data>
+  <data name="PlaytimePageDescription" xml:space="preserve"><value>Your Minecraft rhythm, without guesswork</value></data>
+  <data name="PlaytimeScope" xml:space="preserve"><value>Playtime scope</value></data>
+  <data name="DateRange" xml:space="preserve"><value>Date range</value></data>
+  <data name="DailyPlaytime" xml:space="preserve"><value>Daily playtime</value></data>
+  <data name="WhenYouPlay" xml:space="preserve"><value>When you play</value></data>
+  <data name="HeatmapHint" xml:space="preserve"><value>Each tile is a weekday and hour. Stronger accent means more time.</value></data>
+  <data name="Patterns" xml:space="preserve"><value>Patterns</value></data>
+  <data name="InstanceRanking" xml:space="preserve"><value>Instance ranking</value></data>
+  <data name="AddFavorite" xml:space="preserve"><value>Add favorite</value></data>
+  <data name="Details" xml:space="preserve"><value>Details</value></data>
+  <data name="Previous" xml:space="preserve"><value>Previous</value></data>
+  <data name="NoFavoriteServerYet" xml:space="preserve"><value>No favorite server yet</value></data>
+  <data name="NoLocalWorldsYet" xml:space="preserve"><value>No local worlds yet</value></data>
+  <data name="FavoriteServerOnlineFormat" xml:space="preserve"><value>{0} · {1:N0}/{2:N0} online</value></data>
+  <data name="FavoriteServerStateFormat" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="FavoriteServerUnavailableFormat" xml:space="preserve"><value>{0} · Status unavailable</value></data>
 </root>

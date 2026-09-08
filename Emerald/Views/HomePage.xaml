@@ -1,0 +1,127 @@
+<Page
+    x:Class="Emerald.Views.HomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:conv="using:Emerald.Helpers.Converters"
+    xmlns:core="using:Emerald.CoreX"
+    xmlns:runtime="using:Emerald.CoreX.Runtime"
+    xmlns:servers="using:Emerald.CoreX.Services.Servers"
+    xmlns:vm="using:Emerald.ViewModels"
+    xmlns:helpers="using:Emerald.Helpers"
+    Background="Transparent">
+  <Page.Resources>
+    <conv:BoolToVisibility x:Key="BoolToVisibility" />
+  </Page.Resources>
+  <ScrollViewer>
+    <Grid x:Name="LayoutRoot" Padding="24,12,24,36" RowSpacing="16">
+      <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup>
+          <VisualState x:Name="Wide">
+            <VisualState.StateTriggers><AdaptiveTrigger MinWindowWidth="1050" /></VisualState.StateTriggers>
+            <VisualState.Setters>
+              <Setter Target="HeroGrid.ColumnDefinitions[0].Width" Value="2*" />
+              <Setter Target="HeroGrid.ColumnDefinitions[1].Width" Value="*" />
+              <Setter Target="PlaytimeCard.(Grid.Column)" Value="1" />
+              <Setter Target="PlaytimeCard.(Grid.Row)" Value="0" />
+              <Setter Target="HeroGrid.RowDefinitions[1].Height" Value="0" />
+            </VisualState.Setters>
+          </VisualState>
+          <VisualState x:Name="Narrow">
+            <VisualState.StateTriggers><AdaptiveTrigger MinWindowWidth="0" /></VisualState.StateTriggers>
+            <VisualState.Setters>
+              <Setter Target="HeroGrid.ColumnDefinitions[0].Width" Value="*" />
+              <Setter Target="HeroGrid.ColumnDefinitions[1].Width" Value="0" />
+              <Setter Target="PlaytimeCard.(Grid.Column)" Value="0" />
+              <Setter Target="PlaytimeCard.(Grid.Row)" Value="1" />
+              <Setter Target="HeroGrid.RowDefinitions[1].Height" Value="Auto" />
+            </VisualState.Setters>
+          </VisualState>
+        </VisualStateGroup>
+      </VisualStateManager.VisualStateGroups>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+
+      <Grid x:Name="HeroGrid" ColumnSpacing="16" RowSpacing="16">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="2*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="0" /></Grid.RowDefinitions>
+        <Border Padding="24" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="16">
+          <Grid RowSpacing="16">
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+            <Grid ColumnSpacing="12">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+              <Border Width="52" Height="52" Background="{ThemeResource AccentFillColorSecondaryBrush}" CornerRadius="26"><FontIcon Glyph="&#xE77B;" FontSize="24" /></Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="{helpers:Localize KeyName=HomeReadyWhenYouAre}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <TextBlock Text="{x:Bind ViewModel.AccountName, Mode=OneWay}" Style="{ThemeResource SubtitleTextBlockStyle}" />
+              </StackPanel>
+              <Button Grid.Column="2" Content="{helpers:Localize KeyName=Accounts}" Click="Accounts_Click" AutomationProperties.Name="{helpers:Localize KeyName=ManageMinecraftAccounts}" />
+            </Grid>
+            <StackPanel Grid.Row="1" Spacing="6">
+              <TextBlock Text="{helpers:Localize KeyName=InstanceUpper}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+              <ComboBox ItemsSource="{x:Bind ViewModel.Games}" SelectedItem="{x:Bind ViewModel.SelectedGame, Mode=TwoWay}" DisplayMemberPath="Version.DisplayName" PlaceholderText="{helpers:Localize KeyName=ChooseInstalledInstance}" HorizontalAlignment="Stretch" AutomationProperties.Name="{helpers:Localize KeyName=SelectedMinecraftInstance}" />
+              <TextBlock Text="{x:Bind ViewModel.InstanceDetails, Mode=OneWay}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+            <Grid Grid.Row="2" ColumnSpacing="12">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+              <StackPanel Spacing="6"><TextBlock Text="{helpers:Localize KeyName=DestinationUpper}" Style="{ThemeResource CaptionTextBlockStyle}" /><ComboBox ItemsSource="{x:Bind ViewModel.DestinationOptions}" SelectedItem="{x:Bind ViewModel.SelectedDestination, Mode=TwoWay}" HorizontalAlignment="Stretch" AutomationProperties.Name="{helpers:Localize KeyName=LaunchDestination}" /></StackPanel>
+              <Grid Grid.Column="1">
+                <ComboBox ItemsSource="{x:Bind ViewModel.FavoriteServers}" SelectedItem="{x:Bind ViewModel.SelectedServer, Mode=TwoWay}" DisplayMemberPath="Name" PlaceholderText="{helpers:Localize KeyName=ChooseFavoriteServer}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Visibility="{x:Bind ViewModel.IsServerDestination, Converter={StaticResource BoolToVisibility}, Mode=OneWay}" />
+                <ComboBox ItemsSource="{x:Bind ViewModel.RecentWorlds}" SelectedItem="{x:Bind ViewModel.SelectedWorld, Mode=TwoWay}" DisplayMemberPath="DisplayName" PlaceholderText="{helpers:Localize KeyName=ChooseRecentWorld}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Visibility="{x:Bind ViewModel.IsWorldDestination, Converter={StaticResource BoolToVisibility}, Mode=OneWay}" />
+              </Grid>
+            </Grid>
+            <TextBlock Grid.Row="3" Text="{x:Bind ViewModel.LaunchMessage, Mode=OneWay}" Foreground="{ThemeResource SystemFillColorCautionBrush}" TextWrapping="Wrap" />
+            <Grid Grid.Row="4" ColumnSpacing="8">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+              <Button Content="{x:Bind ViewModel.PrimaryButtonText, Mode=OneWay}" Click="Primary_Click" Style="{ThemeResource AccentButtonStyle}" Padding="28,10" AutomationProperties.Name="Launch selected Minecraft destination" />
+              <Button Grid.Column="1" Content="{helpers:Localize KeyName=ManageInstance}" Click="Instances_Click" />
+              <Button Grid.Column="2" Content="{helpers:Localize KeyName=Logs}" Click="Logs_Click" />
+              <TextBlock Grid.Column="3" Text="{x:Bind ViewModel.RuntimeElapsedText, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Right" AutomationProperties.LiveSetting="Polite" />
+              <Button Grid.Column="4" Content="{helpers:Localize KeyName=Stop}" Command="{x:Bind ViewModel.StopCommand}" Visibility="{x:Bind ViewModel.SelectedGame.HasActiveSession, Converter={StaticResource BoolToVisibility}, Mode=OneWay}" />
+              <Button Grid.Column="5" Content="{helpers:Localize KeyName=ForceStop}" Command="{x:Bind ViewModel.ForceStopCommand}" Visibility="{x:Bind ViewModel.SelectedGame.HasActiveSession, Converter={StaticResource BoolToVisibility}, Mode=OneWay}" />
+            </Grid>
+          </Grid>
+        </Border>
+
+        <Border x:Name="PlaytimeCard" Grid.Column="1" Padding="20" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="16" Tapped="PlaytimeCard_Tapped" AutomationProperties.Name="Open detailed playtime analytics">
+          <StackPanel Spacing="12">
+            <Grid><TextBlock Text="{helpers:Localize KeyName=Playtime}" Style="{ThemeResource SubtitleTextBlockStyle}" /><ToggleSwitch HorizontalAlignment="Right" OffContent="{helpers:Localize KeyName=Instance}" OnContent="{helpers:Localize KeyName=AllEmerald}" IsOn="{x:Bind ViewModel.ShowAllEmeraldPlaytime, Mode=TwoWay}" /></Grid>
+            <TextBlock Text="{x:Bind ViewModel.TotalPlaytimeText, Mode=OneWay}" FontSize="36" FontWeight="SemiBold" />
+            <Grid ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{helpers:Localize KeyName=ThisWeek}" Style="{ThemeResource CaptionTextBlockStyle}" /><TextBlock Text="{x:Bind ViewModel.WeekPlaytimeText, Mode=OneWay}" /></StackPanel><StackPanel Grid.Column="1"><TextBlock Text="{helpers:Localize KeyName=Sessions}" Style="{ThemeResource CaptionTextBlockStyle}" /><TextBlock Text="{x:Bind ViewModel.SessionCountText, Mode=OneWay}" /></StackPanel></Grid>
+            <TextBlock Text="{helpers:Localize KeyName=PlaytimeCardHint}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            <ItemsControl ItemsSource="{x:Bind ViewModel.HomeDailyBars, Mode=OneWay}" HorizontalAlignment="Stretch">
+              <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:PlaytimeBarViewModel"><StackPanel Width="22" Height="50" VerticalAlignment="Bottom"><Border Height="{x:Bind Height}" Background="{ThemeResource AccentFillColorDefaultBrush}" CornerRadius="2" VerticalAlignment="Bottom" ToolTipService.ToolTip="{x:Bind Duration}" /><TextBlock Text="{x:Bind Label}" FontSize="9" HorizontalAlignment="Center" /></StackPanel></DataTemplate></ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <StackPanel Grid.Row="1" Spacing="10">
+        <Grid><TextBlock Text="{helpers:Localize KeyName=QuickProfiles}" Style="{ThemeResource SubtitleTextBlockStyle}" /><Button HorizontalAlignment="Right" Content="{helpers:Localize KeyName=NewProfile}" Click="AddProfile_Click" /></Grid>
+        <ItemsRepeater ItemsSource="{x:Bind ViewModel.QuickProfiles, Mode=OneWay}">
+          <ItemsRepeater.Layout><UniformGridLayout MinItemWidth="240" MinItemHeight="84" MinColumnSpacing="12" MinRowSpacing="12" ItemsStretch="Fill" /></ItemsRepeater.Layout>
+          <ItemsRepeater.ItemTemplate>
+            <DataTemplate x:DataType="vm:QuickProfileCardViewModel">
+              <Border Width="240" Margin="0,0,12,12" Padding="14" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="12">
+                <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><Button Tag="{x:Bind Profile}" Click="ProfileSelect_Click" Background="Transparent" Padding="0" HorizontalContentAlignment="Stretch"><Grid ColumnSpacing="10"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><FontIcon Glyph="{x:Bind Glyph}" FontSize="22" /><StackPanel Grid.Column="1"><TextBlock Text="{x:Bind Name}" Style="{ThemeResource BodyStrongTextBlockStyle}" /><TextBlock Text="{x:Bind Status}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" /></StackPanel></Grid></Button><Button Grid.Column="1" Tag="{x:Bind Profile}" Click="ProfileMenu_Click" ToolTipService.ToolTip="{helpers:Localize KeyName=ProfileOptions}"><FontIcon Glyph="&#xE712;" /></Button><Button Grid.Column="2" Tag="{x:Bind Profile}" Click="ProfilePlay_Click" ToolTipService.ToolTip="{helpers:Localize KeyName=LaunchNow}"><FontIcon Glyph="&#xE768;" /></Button></Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
+      </StackPanel>
+
+      <Grid Grid.Row="2" ColumnSpacing="12">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+        <Button HorizontalContentAlignment="Stretch" Click="Servers_Click"><StackPanel Padding="8" Spacing="6"><FontIcon Glyph="&#xE968;" HorizontalAlignment="Left" /><TextBlock Text="{helpers:Localize KeyName=Servers}" Style="{ThemeResource BodyStrongTextBlockStyle}" /><TextBlock Text="{x:Bind ViewModel.FavoriteServerStatus, Mode=OneWay}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" /></StackPanel></Button>
+        <Button Grid.Column="1" HorizontalContentAlignment="Stretch" Click="Worlds_Click"><StackPanel Padding="8" Spacing="6"><FontIcon Glyph="&#xE909;" HorizontalAlignment="Left" /><TextBlock Text="{helpers:Localize KeyName=LocalWorlds}" Style="{ThemeResource BodyStrongTextBlockStyle}" /><TextBlock Text="{x:Bind ViewModel.MostRecentWorldText, Mode=OneWay}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" /></StackPanel></Button>
+        <Button Grid.Column="2" HorizontalContentAlignment="Stretch" Click="Logs_Click"><StackPanel Padding="8" Spacing="6"><FontIcon Glyph="&#xE756;" HorizontalAlignment="Left" /><TextBlock Text="{helpers:Localize KeyName=RecentActivity}" Style="{ThemeResource BodyStrongTextBlockStyle}" /><TextBlock Text="{x:Bind ViewModel.RuntimeStatus, Mode=OneWay}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" /></StackPanel></Button>
+      </Grid>
+
+      <Border Grid.Row="3" Padding="24" CornerRadius="16" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" Visibility="{x:Bind ViewModel.HasGames, Converter={StaticResource BoolToVisibility}, ConverterParameter=reversed, Mode=OneWay}"><StackPanel Spacing="10"><TextBlock Text="{helpers:Localize KeyName=HomeNoInstancesTitle}" Style="{ThemeResource SubtitleTextBlockStyle}" /><TextBlock Text="{helpers:Localize KeyName=HomeNoInstancesDescription}" /><Button Content="{helpers:Localize KeyName=OpenInstances}" HorizontalAlignment="Left" Click="Instances_Click" /></StackPanel></Border>
+    </Grid>
+  </ScrollViewer>
+</Page>

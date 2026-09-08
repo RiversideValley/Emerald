@@ -164,7 +164,7 @@
         <ColumnDefinition Width="Auto" />
       </Grid.ColumnDefinitions>
       <StackPanel Grid.Column="0">
-        <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Games" />
+        <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Instances" />
         <TextBlock
                     Opacity="0.7"
                     Style="{StaticResource CaptionTextBlockStyle}"
@@ -221,7 +221,7 @@
                 MaxWidth="400"
                 Margin="0,0,0,12"
                 HorizontalAlignment="Stretch"
-                PlaceholderText="Search games..."
+                PlaceholderText="Search instances..."
                 QueryIcon="Find"
                 Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay}" />
       <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
@@ -243,7 +243,7 @@
             <TextBlock
                             HorizontalAlignment="Center"
                             Style="{StaticResource SubtitleTextBlockStyle}"
-                            Text="No games found" />
+                            Text="No instances found" />
             <TextBlock
                             HorizontalAlignment="Center"
                             Opacity="0.7"
