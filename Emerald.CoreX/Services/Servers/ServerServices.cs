@@ -227,11 +227,12 @@ public sealed class ServerDirectoryService(HttpClient httpClient, INetworkCapabi
     private static string SortName(ServerDirectorySort sort) => sort switch { ServerDirectorySort.Players => "players", ServerDirectorySort.Rating => "rating", ServerDirectorySort.Newest => "new", ServerDirectorySort.Name => "name", _ => "votes" };
 }
 
-public enum ServerStatusState { Loading, Online, Offline, Stale, Unavailable }
-public sealed record ServerStatusSnapshot(ServerStatusState State, DateTimeOffset CheckedAt, MinecraftServerAddress RequestedAddress, string? ResolvedIp = null, int? ResolvedPort = null, string? Version = null, int? Protocol = null, string? Software = null, string? Motd = null, int Players = 0, int MaxPlayers = 0, string? Map = null, bool? EulaBlocked = null, string? IconDataUrl = null, IReadOnlyList<string>? Plugins = null, IReadOnlyList<string>? Mods = null, string? Error = null);
+public enum ServerStatusState { Loading, Online, Offline, Stale, Unavailable, NoResponse }
+public enum ServerStatusSource { Public, Local }
+public sealed record ServerStatusSnapshot(ServerStatusState State, DateTimeOffset CheckedAt, MinecraftServerAddress RequestedAddress, string? ResolvedIp = null, int? ResolvedPort = null, string? Version = null, int? Protocol = null, string? Software = null, string? Motd = null, int Players = 0, int MaxPlayers = 0, string? Map = null, bool? EulaBlocked = null, string? IconDataUrl = null, IReadOnlyList<string>? Plugins = null, IReadOnlyList<string>? Mods = null, string? Error = null, ServerStatusSource Source = ServerStatusSource.Public, long? LatencyMilliseconds = null);
 public interface IServerStatusService { Task<ServerStatusSnapshot> GetStatusAsync(MinecraftServerAddress address, bool forceRefresh = false, CancellationToken cancellationToken = default); }
 
-public sealed class ServerStatusService(HttpClient httpClient, INetworkCapabilityService network, ILogger<ServerStatusService> logger) : IServerStatusService
+public sealed class ServerStatusService(HttpClient httpClient, INetworkCapabilityService network, ILogger<ServerStatusService> logger, IServerAddressClassifier? classifier = null) : IServerStatusService
 {
     private sealed record CacheEntry(DateTimeOffset At, ServerStatusSnapshot Snapshot);
     private readonly Dictionary<string, CacheEntry> _cache = new();
@@ -239,10 +240,21 @@ public sealed class ServerStatusService(HttpClient httpClient, INetworkCapabilit
     private readonly object _gate = new();
     public async Task<ServerStatusSnapshot> GetStatusAsync(MinecraftServerAddress address, bool forceRefresh = false, CancellationToken cancellationToken = default)
     {
-        lock (_gate) if (!forceRefresh && _cache.TryGetValue(address.CanonicalKey, out var hit) && DateTimeOffset.UtcNow - hit.At < TimeSpan.FromMinutes(5)) return hit.Snapshot;
+        lock (_gate) if (!forceRefresh && _cache.TryGetValue(address.CanonicalKey, out var hit) && DateTimeOffset.UtcNow - hit.At < (hit.Snapshot.Source == ServerStatusSource.Local ? TimeSpan.FromSeconds(30) : TimeSpan.FromMinutes(5))) return hit.Snapshot;
         await _limit.WaitAsync(cancellationToken);
+        var local = false;
         try
         {
+            using var localDeadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            localDeadline.CancelAfter(TimeSpan.FromSeconds(3));
+            local = await (classifier?.IsLocalAsync(address.Host, localDeadline.Token) ?? LocalJavaServerStatus.IsLocalAsync(address.Host, localDeadline.Token));
+            if (local)
+            {
+                var result = await LocalJavaServerStatus.QueryAsync(address, localDeadline.Token);
+                cancellationToken.ThrowIfCancellationRequested();
+                lock (_gate) _cache[address.CanonicalKey] = new(DateTimeOffset.UtcNow, result);
+                return result;
+            }
             using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.mcsrvstat.us/3/" + Uri.EscapeDataString(address.DisplayAddress));
             request.Headers.UserAgent.ParseAdd("Emerald-Launcher/1.0 (Minecraft launcher; status lookup)");
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken); deadline.CancelAfter(TimeSpan.FromSeconds(12));
@@ -252,12 +264,13 @@ public sealed class ServerStatusService(HttpClient httpClient, INetworkCapabilit
             lock (_gate) _cache[address.CanonicalKey] = new(DateTimeOffset.UtcNow, snapshot);
             network.ReportSuccess(NetworkCapability.ServerStatus); return snapshot;
         }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException or System.Net.Sockets.SocketException or IOException)
         {
-            network.ReportFailure(NetworkCapability.ServerStatus, ex);
+            if (!local && ex is HttpRequestException) network.ReportFailure(NetworkCapability.ServerStatus, ex);
             lock (_gate) if (_cache.TryGetValue(address.CanonicalKey, out var old)) return old.Snapshot with { State = ServerStatusState.Stale, Error = ex.Message };
             logger.LogWarning(ex, "Status lookup failed for a private server address.");
-            return new(ServerStatusState.Unavailable, DateTimeOffset.UtcNow, address, Error: ex.Message);
+            return new(local ? ServerStatusState.NoResponse : ServerStatusState.Unavailable, DateTimeOffset.UtcNow, address, Error: ex.Message, Source: local ? ServerStatusSource.Local : ServerStatusSource.Public);
         }
         finally { _limit.Release(); }
     }

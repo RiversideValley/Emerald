@@ -342,6 +342,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
         runtime.ProcessStarted = true;
         runtime.ProcessStartedAt = DateTimeOffset.Now;
+        runtime.Session.ProcessStartedAt = runtime.ProcessStartedAt;
         if (runtime.CanReadStandardStreams)
         {
             process.BeginOutputReadLine();

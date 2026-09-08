@@ -82,6 +82,7 @@ public partial class GameSession(Game game, DateTimeOffset startedAt) : Observab
     private string? _lastMessagePreview;
 
     public DateTimeOffset StartedAt { get; } = startedAt;
+    public DateTimeOffset? ProcessStartedAt { get; internal set; }
 
     public bool IsActive => State is GameRunState.Launching or GameRunState.Running or GameRunState.Stopping;
 

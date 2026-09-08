@@ -98,7 +98,7 @@ public sealed class HomeFeatureCoreTests
     public async Task StatusService_UsesRequiredUserAgentAndResolvedEndpoint()
     {
         var handler = new RecordingHandler("""{"online":true,"ip":"10.0.0.2","port":25580,"version":"1.21.4","players":{"online":3,"max":20},"motd":{"clean":["Hello"]}}""");
-        var service = new ServerStatusService(new HttpClient(handler), new FakeNetworkCapabilityService(), NullLogger<ServerStatusService>.Instance);
+        var service = new ServerStatusService(new HttpClient(handler), new FakeNetworkCapabilityService(), NullLogger<ServerStatusService>.Instance, new PublicAddressClassifier());
         var result = await service.GetStatusAsync(new("play.example.net", 25565));
         Assert.Equal(ServerStatusState.Online, result.State); Assert.Equal("10.0.0.2", result.ResolvedIp); Assert.Equal(25580, result.ResolvedPort); Assert.Contains("Emerald-Launcher", handler.LastRequest!.Headers.UserAgent.ToString()); Assert.EndsWith("play.example.net", handler.LastRequest.RequestUri!.AbsoluteUri);
     }
@@ -125,6 +125,7 @@ public sealed class HomeFeatureCoreTests
         public void LoadForBasePath(string basePath) { }
         public void Save() { }
     }
+    private sealed class PublicAddressClassifier : IServerAddressClassifier { public Task<bool> IsLocalAsync(string host, CancellationToken token) => Task.FromResult(false); }
     private sealed class RecordingHandler(string json) : HttpMessageHandler
     {
         public int Calls { get; private set; }

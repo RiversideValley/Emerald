@@ -26,8 +26,10 @@ public partial class MinecraftWorld : ObservableObject
     public string? Warning { get; init; }
     [ObservableProperty] private long? _sizeBytes;
     [ObservableProperty] private bool _canQuickLaunch;
-    public string SizeText => SizeBytes is long size ? FormatSize(size) : "Calculating…";
+    [ObservableProperty] private bool _sizeUnavailable;
+    public string SizeText => SizeBytes is long size ? FormatSize(size) : SizeUnavailable ? "Unavailable" : "Calculating…";
 
+    partial void OnSizeUnavailableChanged(bool value) => OnPropertyChanged(nameof(SizeText));
     partial void OnSizeBytesChanged(long? value) => OnPropertyChanged(nameof(SizeText));
     private static string FormatSize(long bytes)
     {
@@ -45,7 +47,7 @@ public interface IMinecraftWorldService
     Task<long?> CalculateSizeAsync(MinecraftWorld world, CancellationToken cancellationToken = default);
 }
 
-public sealed class MinecraftWorldService(ILogger<MinecraftWorldService> logger) : IMinecraftWorldService
+public sealed class MinecraftWorldService(ILogger<MinecraftWorldService> logger, Emerald.CoreX.Services.IUiDispatcher? dispatcher = null) : IMinecraftWorldService
 {
     private const long MaxMetadataBytes = 16 * 1024 * 1024;
     private readonly SemaphoreSlim _sizeQueue = new(2);
@@ -76,7 +78,7 @@ public sealed class MinecraftWorldService(ILogger<MinecraftWorldService> logger)
 
     public async Task<long?> CalculateSizeAsync(MinecraftWorld world, CancellationToken cancellationToken = default)
     {
-        if (world.IsLinked) return null;
+        if (world.IsLinked) { world.SizeUnavailable = true; return null; }
         await _sizeQueue.WaitAsync(cancellationToken);
         try
         {
@@ -100,11 +102,11 @@ public sealed class MinecraftWorldService(ILogger<MinecraftWorldService> logger)
                         if (!info.Attributes.HasFlag(System.IO.FileAttributes.ReparsePoint)) pending.Push(child);
                     }
                 }
-                world.SizeBytes = total;
+                (dispatcher ?? new Emerald.CoreX.Services.InlineUiDispatcher()).Invoke(() => world.SizeBytes = total);
                 return (long?)total;
             }, cancellationToken);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { logger.LogDebug(ex, "Could not calculate world size."); return null; }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { logger.LogDebug(ex, "Could not calculate world size."); (dispatcher ?? new Emerald.CoreX.Services.InlineUiDispatcher()).Invoke(() => world.SizeUnavailable = true); return null; }
         finally { _sizeQueue.Release(); }
     }
 
@@ -143,8 +145,8 @@ public sealed class MinecraftWorldService(ILogger<MinecraftWorldService> logger)
             LastPlayed = lastPlayedValue is > 0 ? DateTimeOffset.FromUnixTimeMilliseconds(lastPlayedValue.Value) : null,
             GameMode = ToMode(data.Get<NbtInt>("GameType")?.Value),
             Difficulty = data.Get<NbtByte>("Difficulty")?.Value,
-            Hardcore = data.Get<NbtByte>("hardcore")?.Value != 0,
-            CheatsEnabled = data.Get<NbtByte>("allowCommands")?.Value != 0,
+            Hardcore = data.Get<NbtByte>("hardcore")?.Value is > 0,
+            CheatsEnabled = data.Get<NbtByte>("allowCommands")?.Value is > 0,
             DataVersion = data.Get<NbtInt>("DataVersion")?.Value,
             MinecraftVersion = version?.Get<NbtString>("Name")?.Value,
             Seed = seed,

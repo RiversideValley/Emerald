@@ -63,7 +63,7 @@ public interface IInstancePlaytimeService
     TimeSpan GetTotalPlaytime(string instancePath);
     void RecordSession(InstancePlaytimeSession session);
     IReadOnlyList<InstancePlaytimeSession> GetSessions(PlaytimeScope scope) => [];
-    PlaytimeAnalyticsSnapshot GetAnalytics(PlaytimeScope scope, PlaytimeRange range, DateTimeOffset? now = null, TimeZoneInfo? timeZone = null) => new();
+    PlaytimeAnalyticsSnapshot GetAnalytics(PlaytimeScope scope, PlaytimeRange range, DateTimeOffset? now = null, TimeZoneInfo? timeZone = null, IReadOnlyList<InstancePlaytimeSession>? activeSessions = null) => new();
 }
 
 internal sealed class PlaytimeHistoryEnvelope
@@ -129,7 +129,7 @@ public sealed class InstancePlaytimeService : IInstancePlaytimeService
         HistoryChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    public PlaytimeAnalyticsSnapshot GetAnalytics(PlaytimeScope scope, PlaytimeRange range, DateTimeOffset? now = null, TimeZoneInfo? timeZone = null)
+    public PlaytimeAnalyticsSnapshot GetAnalytics(PlaytimeScope scope, PlaytimeRange range, DateTimeOffset? now = null, TimeZoneInfo? timeZone = null, IReadOnlyList<InstancePlaytimeSession>? activeSessions = null)
     {
         var instant = now ?? DateTimeOffset.Now;
         var zone = timeZone ?? TimeZoneInfo.Local;
@@ -141,10 +141,15 @@ public sealed class InstancePlaytimeService : IInstancePlaytimeService
             PlaytimeRange.NinetyDays => DateOnly.FromDateTime(localNow.Date).AddDays(-89),
             _ => DateOnly.MinValue
         };
-        var sessions = GetSessions(scope).Where(x => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(x.EndedAt, zone).Date) >= firstDate).ToArray();
+        var sessions = GetSessions(scope).Where(x => x.StartedAt <= instant && DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(x.EndedAt, zone).Date) >= firstDate).ToArray();
+        var completedIds = sessions.Select(x => x.Id).ToHashSet();
+        var active = (activeSessions ?? []).Where(x => !completedIds.Contains(x.Id)
+            && (scope.Kind == PlaytimeScopeKind.AllEmerald || PathsEqual(x.BasePathSnapshot, scope.BasePath))
+            && (scope.Kind != PlaytimeScopeKind.Instance || x.InstanceId == scope.InstanceId)).ToArray();
+        var contributions = sessions.Concat(active).ToArray();
         var dayDurations = new Dictionary<DateOnly, TimeSpan>();
         var heat = new Dictionary<(DayOfWeek, int), TimeSpan>();
-        foreach (var session in sessions) SplitSession(session, zone, firstDate, localNow, dayDurations, heat);
+        foreach (var session in contributions) SplitSession(session, zone, firstDate, localNow, dayDurations, heat);
         var daily = dayDurations.OrderBy(x => x.Key).Select(x => new PlaytimeDayBucket(x.Key, x.Value)).ToArray();
         var total = daily.Aggregate(TimeSpan.Zero, (sum, x) => sum + x.Duration);
         var weekStart = DateOnly.FromDateTime(localNow.Date).AddDays(-(((int)localNow.DayOfWeek + 6) % 7));
@@ -156,9 +161,18 @@ public sealed class InstancePlaytimeService : IInstancePlaytimeService
         var (currentStreak, longestStreak) = CalculateStreaks(activeDates, DateOnly.FromDateTime(localNow.Date));
         var weekday = daily.GroupBy(x => x.Date.DayOfWeek).OrderByDescending(g => g.Sum(x => x.Duration.Ticks)).FirstOrDefault()?.Key;
         var peak = heat.OrderByDescending(x => x.Value).Select(x => (int?)x.Key.Item2).FirstOrDefault();
-        var ranking = sessions.GroupBy(x => (x.InstanceId, x.BasePathSnapshot, x.InstanceNameSnapshot))
-            .Select(g => new InstancePlaytimeRanking(g.Key.InstanceId, g.Key.BasePathSnapshot, g.Key.InstanceNameSnapshot, TimeSpan.FromTicks(g.Sum(x => x.Playtime.Ticks)), g.Count()))
+        var ranking = contributions.GroupBy(x => (x.InstanceId, Base: OperatingSystem.IsWindows() ? x.BasePathSnapshot.ToUpperInvariant() : x.BasePathSnapshot))
+            .Select(g => new InstancePlaytimeRanking(g.Key.InstanceId, g.First().BasePathSnapshot,
+                g.OrderByDescending(x => x.StartedAt).First().InstanceNameSnapshot,
+                g.Aggregate(TimeSpan.Zero, (sum, session) => sum + Contribution(session)),
+                g.Count(x => completedIds.Contains(x.Id))))
             .OrderByDescending(x => x.Duration).ToArray();
+        TimeSpan Contribution(InstancePlaytimeSession session)
+        {
+            var allocated = new Dictionary<DateOnly, TimeSpan>();
+            SplitSession(session, zone, firstDate, localNow, allocated, new());
+            return allocated.Values.Aggregate(TimeSpan.Zero, (sum, value) => sum + value);
+        }
         return new()
         {
             TotalPlaytime = total,
@@ -211,7 +225,7 @@ public sealed class InstancePlaytimeService : IInstancePlaytimeService
                 var key = (cursor.DayOfWeek, cursor.Hour);
                 hours[key] = hours.GetValueOrDefault(key) + duration;
             }
-            cursor = segmentEnd;
+            cursor = TimeZoneInfo.ConvertTime(segmentEnd, zone);
         }
     }
 
@@ -233,6 +247,6 @@ public sealed class InstancePlaytimeService : IInstancePlaytimeService
     }
 
     private static TimeSpan Divide(TimeSpan value, int divisor) => divisor <= 0 ? TimeSpan.Zero : TimeSpan.FromTicks(value.Ticks / divisor);
-    private static bool PathsEqual(string left, string? right) => !string.IsNullOrWhiteSpace(left) && !string.IsNullOrWhiteSpace(right) && string.Equals(NormalizePath(left), NormalizePath(right), StringComparison.OrdinalIgnoreCase);
+    private static bool PathsEqual(string left, string? right) => !string.IsNullOrWhiteSpace(left) && !string.IsNullOrWhiteSpace(right) && string.Equals(NormalizePath(left), NormalizePath(right), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     private static string NormalizePath(string path) { ArgumentException.ThrowIfNullOrWhiteSpace(path); return PlaytimeScope.Normalize(path); }
 }
