@@ -216,15 +216,19 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:PlaytimeBarViewModel">
-                  <StackPanel Width="22" Height="50" VerticalAlignment="Bottom">
+                  <Grid Width="22" Height="50">
+                    <Grid.RowDefinitions>
+                      <RowDefinition Height="*"/>
+                      <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
                     <Border
                         Height="{x:Bind Height}"
                         Background="{ThemeResource AccentFillColorDefaultBrush}"
                         CornerRadius="2"
                         VerticalAlignment="Bottom"
                         ToolTipService.ToolTip="{x:Bind Duration}"/>
-                    <TextBlock Text="{x:Bind Label}" FontSize="9" HorizontalAlignment="Center"/>
-                  </StackPanel>
+                    <TextBlock Grid.Row="1" Text="{x:Bind Label}" FontSize="9" HorizontalAlignment="Center"/>
+                  </Grid>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>

@@ -253,18 +253,19 @@ public partial class HomePageViewModel : ObservableObject
     {
         if (SelectedDestination == "Server")
         {
-            if (SelectedServer == null)
+            var selectedServer = SelectedServer;
+            if (selectedServer == null)
             {
                 LaunchMessage = "Choose a favorite server or browse servers.";
                 return null;
             }
 
-            var address = new MinecraftServerAddress(SelectedServer.Host, SelectedServer.Port);
+            var address = new MinecraftServerAddress(selectedServer.Host, selectedServer.Port);
             var snapshot = await _status.GetStatusAsync(address);
             var host = snapshot.ResolvedIp ?? address.Host;
             var port = snapshot.ResolvedPort ?? address.Port;
-            _servers.MarkLaunched(SelectedServer.Id);
-            return MinecraftLaunchTarget.ForServer(host, port, SelectedServer.Name);
+            _servers.MarkLaunched(selectedServer.Id);
+            return MinecraftLaunchTarget.ForServer(host, port, selectedServer.Name);
         }
 
         if (SelectedDestination == "World")
@@ -361,7 +362,13 @@ public partial class HomePageViewModel : ObservableObject
     private void OnHistoryChanged(object? sender, EventArgs e) => RefreshAnalytics();
     private void OnRepositoryChanged(object? sender, EventArgs e)
     {
+        var selectedServerId = SelectedServer?.Id;
         FavoriteServers.ReplaceWith(_servers.GetAll());
+        if (selectedServerId is Guid id)
+        {
+            SelectedServer = FavoriteServers.FirstOrDefault(x => x.Id == id);
+        }
+
         _ = RefreshFavoriteStatusAsync();
         RefreshProfiles();
     }
