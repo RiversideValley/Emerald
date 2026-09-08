@@ -1,234 +1,65 @@
 using CommunityToolkit.Mvvm.DependencyInjection;
+using Emerald.Controls;
+using Emerald.CoreX.Runtime;
 using Emerald.CoreX.Services.Servers;
 using Emerald.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.ApplicationModel.DataTransfer;
-
 namespace Emerald.Views;
-
 public sealed partial class ServersPage : Page
 {
-    private CancellationTokenSource? _searchCancellation;
-
-    public ServersPageViewModel ViewModel { get; } = Ioc.Default.GetRequiredService<ServersPageViewModel>();
-
-    public ServersPage() => InitializeComponent();
-
-    protected override async void OnNavigatedTo(NavigationEventArgs e)
-    {
-        base.OnNavigatedTo(e);
-        await ViewModel.InitializeAsync();
-
-        if (e.Parameter is CoreX.Game game)
-        {
-            ViewModel.SelectedGame = game;
-        }
-    }
-
-    protected override void OnNavigatedFrom(NavigationEventArgs e)
-    {
-        _searchCancellation?.Cancel();
-        base.OnNavigatedFrom(e);
-    }
-
-    private void Back_Click(object sender, RoutedEventArgs e)
-    {
-        if (Frame.CanGoBack)
-        {
-            Frame.GoBack();
-        }
-        else
-        {
-            Frame.Navigate(typeof(HomePage));
-        }
-    }
-
-    private async void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-    {
-        if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput)
-        {
-            return;
-        }
-
-        _searchCancellation?.Cancel();
-        var cancellation = _searchCancellation = new CancellationTokenSource();
-
-        try
-        {
-            await Task.Delay(350, cancellation.Token);
-            ViewModel.Page = 1;
-            await ViewModel.SearchAsync(cancellation.Token);
-        }
-        catch (OperationCanceledException)
-        {
-        }
-    }
-
-    private async void DiscoverPlay_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { Tag: ServerDirectoryEntry server })
-        {
-            await ViewModel.LaunchAsync(server);
-        }
-    }
-
-    private void DiscoverFavorite_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { Tag: ServerDirectoryEntry server })
-        {
-            ViewModel.Favorite(server);
-        }
-    }
-
-    private async void PreviousPage_Click(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel.Page > 1)
-        {
-            ViewModel.Page--;
-            await ViewModel.SearchAsync();
-        }
-    }
-
-    private async void NextPage_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.Page++;
-        await ViewModel.SearchAsync();
-    }
-
-    private async void FavoritePlay_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { Tag: SavedServer server })
-        {
-            await ViewModel.LaunchAsync(server);
-        }
-    }
-
-    private async void DiscoverDetails_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { Tag: ServerDirectoryEntry server })
-        {
-            await ShowDetailsAsync(server.Name, server.Address, server.Motd, server.Version, server.PlayerText, server.TagsText);
-        }
-    }
-
-    private async void FavoriteDetails_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not FrameworkElement { Tag: SavedServer server })
-        {
-            return;
-        }
-
-        var snapshot = await ViewModel.GetStatusAsync(server);
-        await ShowDetailsAsync(
-            server.Name,
-            server.Address,
-            snapshot.Motd,
-            snapshot.Version,
-            $"{snapshot.Players:N0} / {snapshot.MaxPlayers:N0} players",
-            $"{snapshot.State} • checked {snapshot.CheckedAt.ToLocalTime():g}\n{snapshot.Software}\nMap: {snapshot.Map}\nEULA blocked: {snapshot.EulaBlocked}");
-    }
-
-    private async Task ShowDetailsAsync(string name, string address, string? motd, string? version, string players, string? extra)
-    {
-        var copy = new Button
-        {
-            Content = "Copy address",
-            HorizontalAlignment = HorizontalAlignment.Left
-        };
-        copy.Click += (_, _) =>
-        {
-            var package = new DataPackage();
-            package.SetText(address);
-            Clipboard.SetContent(package);
-        };
-
-        var content = new StackPanel { Spacing = 8 };
-        content.Children.Add(new TextBlock
-        {
-            Text = address,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
-        });
-        content.Children.Add(copy);
-        content.Children.Add(new TextBlock { Text = motd, TextWrapping = TextWrapping.Wrap });
-        content.Children.Add(new TextBlock
-        {
-            Text = $"{version} • {players}\n{extra}",
-            TextWrapping = TextWrapping.Wrap
-        });
-
-        await new ContentDialog
-        {
-            XamlRoot = XamlRoot,
-            Title = name,
-            Content = content,
-            CloseButtonText = "Close",
-            FullSizeDesired = true
-        }.ShowAsync();
-    }
-
-    private async void AddCustom_Click(object sender, RoutedEventArgs e)
-    {
-        var name = new TextBox { Header = "Name" };
-        var address = new TextBox
-        {
-            Header = "Address",
-            PlaceholderText = "play.example.net:25565"
-        };
-        var error = new TextBlock
-        {
-            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorCriticalBrush"]
-        };
-        var panel = new StackPanel { Spacing = 10 };
-        panel.Children.Add(name);
-        panel.Children.Add(address);
-        panel.Children.Add(error);
-
-        var dialog = new ContentDialog
-        {
-            XamlRoot = XamlRoot,
-            Title = "Add custom server",
-            Content = panel,
-            PrimaryButtonText = "Add",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Primary
-        };
-        dialog.PrimaryButtonClick += (_, args) =>
-        {
-            if (!MinecraftServerAddressParser.TryParse(address.Text, out var parsedAddress, out var message))
-            {
-                args.Cancel = true;
-                error.Text = message;
-            }
-        };
-
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-        {
-            ViewModel.AddCustom(name.Text, address.Text);
-        }
-    }
-
-    private async void RemoveFavorite_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not FrameworkElement { Tag: SavedServer server })
-        {
-            return;
-        }
-
-        var dialog = new ContentDialog
-        {
-            XamlRoot = XamlRoot,
-            Title = "Remove favorite?",
-            Content = $"Profiles using {server.Name} will be marked as needing attention.",
-            PrimaryButtonText = "Remove",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Close
-        };
-
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-        {
-            ViewModel.Remove(server);
-        }
-    }
+ public ServersPageViewModel ViewModel { get; } = Ioc.Default.GetRequiredService<ServersPageViewModel>();
+ public ServersPage() => InitializeComponent();
+ protected override async void OnNavigatedTo(NavigationEventArgs e) { base.OnNavigatedTo(e); await ViewModel.InitializeAsync(e.Parameter as CoreX.Game); }
+ protected override void OnNavigatedFrom(NavigationEventArgs e) { ViewModel.Cancel(); base.OnNavigatedFrom(e); }
+ private void Back_Click(object sender, RoutedEventArgs e) { if (Frame.CanGoBack) Frame.GoBack(); else Frame.Navigate(typeof(HomePage)); }
+ private async void Select_Row(object? sender, EventArgs e)
+ {
+  if (sender is ServerRow { Model: { } row } && ViewModel.SelectedGame is { } game)
+  { await Ioc.Default.GetRequiredService<HomePageViewModel>().ApplySelectionAsync(new(game, MinecraftLaunchTargetKind.Server, ViewModel.EnsureSaved(row))); Back_Click(this, new()); }
+ }
+ private async void Play_Row(object? sender, EventArgs e) { if (sender is ServerRow { Model: { } row }) await ViewModel.LaunchAsync(row); }
+ private async void Favorite_Row(object? sender, EventArgs e)
+ {
+  if (sender is not ServerRow { Model: { } row }) return;
+  if (row.IsFavorite && await new ContentDialog { XamlRoot = XamlRoot, Title = DashboardText.Get("RemoveFavorite"), Content = DashboardText.Get("RemoveFavoriteHint"), PrimaryButtonText = DashboardText.Get("Remove"), CloseButtonText = DashboardText.Get("Cancel"), DefaultButton = ContentDialogButton.Close }.ShowAsync() != ContentDialogResult.Primary) return;
+  ViewModel.ToggleFavorite(row);
+ }
+ private void Options_Row(object? sender, EventArgs e)
+ {
+  if (sender is not ServerRow { Model: { } row } anchor) return;
+  var menu = new MenuFlyout();
+  void Add(string key, Action action) { var item = new MenuFlyoutItem { Text = DashboardText.Get(key) }; item.Click += (_, _) => action(); menu.Items.Add(item); }
+  Add("CopyAddress", () => { var package = new DataPackage(); package.SetText(row.Address); Clipboard.SetContent(package); });
+  if (row.Saved != null) Add("RefreshStatus", async () => await ViewModel.RefreshStatusAsync(true));
+  if (row.Saved?.SourceKind == SavedServerSourceKind.Custom) Add("Edit", async () => await ShowCustomAsync(row.Saved));
+  var source = row.Saved?.SourcePageUrl ?? row.Directory?.PageUrl;
+  if (Uri.TryCreate(source, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https") Add("SourcePage", async () => await Windows.System.Launcher.LaunchUriAsync(uri));
+  menu.ShowAt(anchor);
+ }
+ private void Discover_Click(object sender, RoutedEventArgs e) { ViewModel.TabIndex = 0; ((Microsoft.UI.Xaml.Controls.Primitives.ToggleButton)sender).IsChecked = true; }
+ private void Favorites_Click(object sender, RoutedEventArgs e) { ViewModel.TabIndex = 1; ((Microsoft.UI.Xaml.Controls.Primitives.ToggleButton)sender).IsChecked = true; }
+ private async void Refresh_Click(object sender, RoutedEventArgs e) { if (ViewModel.IsDiscover) await ViewModel.SearchAsync(); else await ViewModel.RefreshStatusAsync(true); }
+ private void ClearFilters_Click(object sender, RoutedEventArgs e) => ViewModel.ClearFilters();
+ private async void Previous_Click(object sender, RoutedEventArgs e) => await ViewModel.PageAsync(-1);
+ private async void Next_Click(object sender, RoutedEventArgs e) => await ViewModel.PageAsync(1);
+ private async void AddCustom_Click(object sender, RoutedEventArgs e) => await ShowCustomAsync(null);
+ private async Task ShowCustomAsync(SavedServer? original)
+ {
+  var name = new TextBox { Header = DashboardText.Get("Name"), Text = original?.Name ?? string.Empty };
+  var address = new TextBox { Header = DashboardText.Get("Address"), Text = original?.Address ?? string.Empty, PlaceholderText = "play.example.net:25565" };
+  var error = new TextBlock { TextWrapping = TextWrapping.Wrap };
+  var panel = new StackPanel { Spacing = 12 }; panel.Children.Add(name); panel.Children.Add(address); panel.Children.Add(error);
+  var dialog = new ContentDialog { XamlRoot = XamlRoot, Title = DashboardText.Get(original == null ? "AddServer" : "EditServer"), Content = panel, PrimaryButtonText = DashboardText.Get("Save"), CloseButtonText = DashboardText.Get("Cancel"), DefaultButton = ContentDialogButton.Primary };
+  dialog.PrimaryButtonClick += (_, args) => { if (!MinecraftServerAddressParser.TryParse(address.Text, out var _, out var message)) { args.Cancel = true; error.Text = message; } };
+  if (await dialog.ShowAsync() == ContentDialogResult.Primary) { ViewModel.SaveCustom(name.Text, address.Text, original); if (ViewModel.IsFavorites) await ViewModel.RefreshStatusAsync(); }
+ }
+ private void Layout_SizeChanged(object sender, SizeChangedEventArgs e)
+ {
+  var compact = e.NewSize.Width < 640; LayoutRoot.Padding = new Thickness(compact ? 16 : 24);
+  Grid.SetRow(InstancePicker, compact ? 1 : 0); Grid.SetColumn(InstancePicker, compact ? 0 : 3); Grid.SetColumnSpan(InstancePicker, compact ? 3 : 1);
+  Filters.ColumnDefinitions[3].Width = compact ? new GridLength(0) : new GridLength(220);
+ }
 }

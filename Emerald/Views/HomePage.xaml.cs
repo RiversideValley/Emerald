@@ -18,7 +18,8 @@ public sealed partial class HomePage : Page
     public HomePage()
     {
         InitializeComponent();
-        _timer.Tick += (_, _) => ViewModel.RefreshRuntime();
+        var ticks = 0;
+        _timer.Tick += (_, _) => { ViewModel.RefreshRuntime(); if (++ticks % 30 == 0) ViewModel.RefreshAnalytics(); };
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)
@@ -46,6 +47,7 @@ public sealed partial class HomePage : Page
             return;
         }
 
+        if (ViewModel.SelectedGame?.CanLaunch != true && ViewModel.SelectedGame?.HasActiveSession != true) { Instances_Click(sender, e); return; }
         ViewModel.LaunchCommand.Execute(null);
     }
 
@@ -57,7 +59,18 @@ public sealed partial class HomePage : Page
 
     private void Worlds_Click(object sender, RoutedEventArgs e) => Frame.Navigate(typeof(WorldsPage), ViewModel.SelectedGame);
 
-    private void PlaytimeCard_Tapped(object sender, TappedRoutedEventArgs e) => Frame.Navigate(typeof(PlaytimePage));
+    private void PlaytimeCard_Click(object sender, RoutedEventArgs e) => Frame.Navigate(typeof(PlaytimePage), new PlaytimeNavigation(ViewModel.CurrentPlaytimeScope, PlaytimeRange.SevenDays));
+    private void MainMenu_Click(object sender, RoutedEventArgs e) => ViewModel.SelectedDestination = MinecraftLaunchTargetKind.MainMenu;
+    private void Layout_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        var wide = e.NewSize.Width >= 1000; var compact = e.NewSize.Width < 640;
+        HeroGrid.ColumnDefinitions[0].Width = new GridLength(wide ? 2 : 1, GridUnitType.Star);
+        HeroGrid.ColumnDefinitions[1].Width = wide ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+        Grid.SetColumn(PlaytimeCard, wide ? 1 : 0); Grid.SetRow(PlaytimeCard, wide ? 0 : 1);
+        LayoutRoot.Padding = new Thickness(compact ? 16 : 24);
+        for (var i = 0; i < ShortcutGrid.Children.Count; i++) { Grid.SetColumn(ShortcutGrid.Children[i], compact ? 0 : i); Grid.SetRow(ShortcutGrid.Children[i], compact ? i : 0); }
+        ShortcutGrid.ColumnDefinitions[1].Width = ShortcutGrid.ColumnDefinitions[2].Width = compact ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
+    }
 
     private async void ProfileSelect_Click(object sender, RoutedEventArgs e)
     {
@@ -82,31 +95,31 @@ public sealed partial class HomePage : Page
         if (sender is not FrameworkElement { Tag: QuickProfile profile } anchor) return;
 
         var flyout = new MenuFlyout();
-        Add("Edit", async () => await ShowProfileEditorAsync(profile));
-        Add("Duplicate", () =>
+        Add(DashboardText.Get("Edit"), async () => await ShowProfileEditorAsync(profile));
+        Add(DashboardText.Get("Duplicate"), () =>
         {
             Ioc.Default.GetRequiredService<IQuickProfileService>().Duplicate(profile.Id);
             ViewModel.ReloadProfiles();
         });
-        Add("Move left", () =>
+        Add(DashboardText.Get("MoveEarlier"), () =>
         {
             Ioc.Default.GetRequiredService<IQuickProfileService>().Move(profile.Id, -1);
             ViewModel.ReloadProfiles();
         });
-        Add("Move right", () =>
+        Add(DashboardText.Get("MoveLater"), () =>
         {
             Ioc.Default.GetRequiredService<IQuickProfileService>().Move(profile.Id, 1);
             ViewModel.ReloadProfiles();
         });
-        Add("Delete", async () =>
+        Add(DashboardText.Get("Delete"), async () =>
         {
             var dialog = new ContentDialog
             {
                 XamlRoot = XamlRoot,
-                Title = "Delete quick profile?",
+                Title = DashboardText.Get("DeleteProfile"),
                 Content = profile.Name,
-                PrimaryButtonText = "Delete",
-                CloseButtonText = "Cancel"
+                PrimaryButtonText = DashboardText.Get("Delete"),
+                CloseButtonText = DashboardText.Get("Cancel")
             };
 
             if (await dialog.ShowAsync() == ContentDialogResult.Primary)
@@ -119,7 +132,9 @@ public sealed partial class HomePage : Page
 
         void Add(string text, Action action)
         {
-            var item = new MenuFlyoutItem { Text = text };
+            var profiles = ViewModel.QuickProfiles.Select(x => x.Profile.Id).ToList();
+            var index = profiles.IndexOf(profile.Id);
+            var item = new MenuFlyoutItem { Text = text, IsEnabled = text == DashboardText.Get("MoveEarlier") ? index > 0 : text == DashboardText.Get("MoveLater") ? index < profiles.Count - 1 : true };
             item.Click += (_, _) => action();
             flyout.Items.Add(item);
         }
@@ -127,161 +142,21 @@ public sealed partial class HomePage : Page
 
     private async Task ShowProfileEditorAsync(QuickProfile? existing)
     {
-        var accounts = Ioc.Default.GetRequiredService<IAccountService>();
-        var instance = existing == null
-            ? ViewModel.SelectedGame
-            : ViewModel.Games.FirstOrDefault(x => x.InstanceId == existing.InstanceId);
-        var account = existing == null
-            ? accounts.GetSelectedAccount()
-            : accounts.Accounts.FirstOrDefault(x => x.UniqueId == existing.AccountUniqueId);
-
-        var name = new TextBox
-        {
-            Header = "Name",
-            Text = existing?.Name ?? (instance == null ? "Quick play" : $"{instance.Version.DisplayName} quick play")
-        };
-        var glyph = new ComboBox
-        {
-            Header = "Icon",
-            ItemsSource = new[] { "Play", "Server", "World", "Adventure", "Build" },
-            SelectedItem = existing?.GlyphKey ?? "Play",
-            HorizontalAlignment = HorizontalAlignment.Stretch
-        };
-        var accent = new ComboBox
-        {
-            Header = "Accent",
-            ItemsSource = new[] { "Emerald", "Blue", "Purple", "Orange", "Rose" },
-            SelectedIndex = 0,
-            HorizontalAlignment = HorizontalAlignment.Stretch
-        };
-        var instances = new ComboBox
-        {
-            Header = "Instance",
-            ItemsSource = ViewModel.Games,
-            DisplayMemberPath = "Version.DisplayName",
-            SelectedItem = instance,
-            HorizontalAlignment = HorizontalAlignment.Stretch
-        };
-        var accountBox = new ComboBox
-        {
-            Header = "Account",
-            ItemsSource = accounts.Accounts,
-            DisplayMemberPath = "Name",
-            SelectedItem = account,
-            HorizontalAlignment = HorizontalAlignment.Stretch
-        };
-        var destination = new ComboBox
-        {
-            Header = "Destination",
-            ItemsSource = new[] { "Main menu", "Server", "World" },
-            SelectedItem = existing?.TargetKind == MinecraftLaunchTargetKind.Server
-                ? "Server"
-                : existing?.TargetKind == MinecraftLaunchTargetKind.World ? "World" : "Main menu",
-            HorizontalAlignment = HorizontalAlignment.Stretch
-        };
-        var server = new ComboBox
-        {
-            Header = "Favorite server",
-            ItemsSource = ViewModel.FavoriteServers,
-            DisplayMemberPath = "Name",
-            SelectedItem = ViewModel.FavoriteServers.FirstOrDefault(x => x.Id == existing?.SavedServerId),
-            HorizontalAlignment = HorizontalAlignment.Stretch
-        };
-        var world = new ComboBox
-        {
-            Header = "World",
-            ItemsSource = ViewModel.RecentWorlds,
-            DisplayMemberPath = "DisplayName",
-            SelectedItem = ViewModel.RecentWorlds.FirstOrDefault(x => x.FolderName == existing?.WorldFolderName),
-            HorizontalAlignment = HorizontalAlignment.Stretch
-        };
-        var preview = new Border
-        {
-            Padding = new Thickness(14),
-            Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"],
-            CornerRadius = new CornerRadius(10),
-            Child = new TextBlock
-            {
-                Text = "Quick profile preview",
-                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
-            }
-        };
-        var error = new TextBlock
-        {
-            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorCriticalBrush"],
-            TextWrapping = TextWrapping.Wrap
-        };
-        var panel = new StackPanel { Spacing = 10 };
-        foreach (var control in new UIElement[] { name, glyph, accent, instances, accountBox, destination, server, world, preview, error })
-        {
-            panel.Children.Add(control);
-        }
-
-        void UpdateDestination()
-        {
-            server.Visibility = (string?)destination.SelectedItem == "Server" ? Visibility.Visible : Visibility.Collapsed;
-            world.Visibility = (string?)destination.SelectedItem == "World" ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        destination.SelectionChanged += (_, _) => UpdateDestination();
-        UpdateDestination();
-
+        var root = XamlRoot;
+        if (root == null) return;
+        var draft = new QuickProfileEditorViewModel(ViewModel,
+            Ioc.Default.GetRequiredService<IAccountService>(), Ioc.Default.GetRequiredService<IQuickProfileService>(),
+            Ioc.Default.GetRequiredService<CoreX.Services.Worlds.IMinecraftWorldService>(), existing);
+        var editor = new Controls.QuickProfileEditor(draft);
         var dialog = new ContentDialog
         {
-            XamlRoot = XamlRoot,
-            Title = existing == null ? "New quick profile" : "Edit quick profile",
-            Content = new ScrollViewer { Content = panel, MaxHeight = 620 },
-            PrimaryButtonText = "Save",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Primary,
-            FullSizeDesired = true
+            XamlRoot = XamlRoot, Title = DashboardText.Get(existing == null ? "NewProfile" : "EditProfile"),
+            Content = new ScrollViewer { Content = editor, Width = Math.Min(472, Math.Max(240, root.Size.Width - 96)), MaxHeight = Math.Max(160, root.Size.Height - 220) },
+            PrimaryButtonText = DashboardText.Get("Save"), CloseButtonText = DashboardText.Get("Cancel"),
+            DefaultButton = ContentDialogButton.Primary, IsPrimaryButtonEnabled = draft.CanSave
         };
-        QuickProfile? candidate = null;
-        dialog.PrimaryButtonClick += (_, args) =>
-        {
-            var chosenInstance = instances.SelectedItem as CoreX.Game;
-            var chosenAccount = accountBox.SelectedItem as CoreX.Models.EAccount;
-            var chosenServer = server.SelectedItem as CoreX.Services.Servers.SavedServer;
-            var chosenWorld = world.SelectedItem as CoreX.Services.Worlds.MinecraftWorld;
-            var destinationKind = (string?)destination.SelectedItem;
-
-            candidate = new QuickProfile
-            {
-                Id = existing?.Id ?? Guid.NewGuid(),
-                CreatedAt = existing?.CreatedAt ?? DateTimeOffset.UtcNow,
-                Name = name.Text,
-                GlyphKey = (string?)glyph.SelectedItem ?? "Play",
-                AccentArgb = (string?)accent.SelectedItem switch
-                {
-                    "Blue" => 0xFF0067C0,
-                    "Purple" => 0xFF744DA9,
-                    "Orange" => 0xFFCA5010,
-                    "Rose" => 0xFFC239B3,
-                    _ => 0xFF107C10
-                },
-                InstanceId = chosenInstance?.InstanceId ?? Guid.Empty,
-                AccountUniqueId = chosenAccount?.UniqueId ?? string.Empty,
-                TargetKind = destinationKind == "Server"
-                    ? MinecraftLaunchTargetKind.Server
-                    : destinationKind == "World" ? MinecraftLaunchTargetKind.World : MinecraftLaunchTargetKind.MainMenu,
-                SavedServerId = chosenServer?.Id,
-                WorldFolderName = chosenWorld?.FolderName,
-                TargetDisplayNameSnapshot = chosenServer?.Name ?? chosenWorld?.DisplayName ?? "Main menu"
-            };
-
-            var validation = Ioc.Default.GetRequiredService<IQuickProfileService>()
-                .Validate(candidate, ViewModel.Games, accounts.Accounts, ViewModel.FavoriteServers);
-            if (!validation.IsValid)
-            {
-                args.Cancel = true;
-                error.Text = string.Join(Environment.NewLine, validation.Messages);
-            }
-        };
-
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary && candidate != null)
-        {
-            Ioc.Default.GetRequiredService<IQuickProfileService>().Save(candidate);
-            ViewModel.ReloadProfiles();
-        }
+        draft.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(draft.CanSave)) dialog.IsPrimaryButtonEnabled = draft.CanSave; };
+        try { if (await dialog.ShowAsync() == ContentDialogResult.Primary && draft.CanSave) { Ioc.Default.GetRequiredService<IQuickProfileService>().Save(draft.CreateProfile()); ViewModel.ReloadProfiles(); } }
+        finally { draft.CancelLoading(); }
     }
 }

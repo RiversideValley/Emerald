@@ -1454,4 +1454,163 @@
   <data name="FavoriteServerOnlineFormat" xml:space="preserve"><value>{0} · {1:N0}/{2:N0} online</value></data>
   <data name="FavoriteServerStateFormat" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="FavoriteServerUnavailableFormat" xml:space="preserve"><value>{0} · Status unavailable</value></data>
+  <data name="RefineAccent" xml:space="preserve"><value>Accent</value></data>
+  <data name="RefineAccount" xml:space="preserve"><value>Account</value></data>
+  <data name="RefineActiveDays" xml:space="preserve"><value>Active Days</value></data>
+  <data name="RefineAddServer" xml:space="preserve"><value>Add Server</value></data>
+  <data name="RefineAddress" xml:space="preserve"><value>Address</value></data>
+  <data name="RefineAdventure" xml:space="preserve"><value>Adventure</value></data>
+  <data name="RefineAllEmerald" xml:space="preserve"><value>All Emerald</value></data>
+  <data name="RefineAllTime" xml:space="preserve"><value>All time</value></data>
+  <data name="RefineAppearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="RefineAverageSession" xml:space="preserve"><value>Average Session</value></data>
+  <data name="RefineBack" xml:space="preserve"><value>Back</value></data>
+  <data name="RefineBlue" xml:space="preserve"><value>Blue</value></data>
+  <data name="RefineBrowseServers" xml:space="preserve"><value>Browse Servers</value></data>
+  <data name="RefineBrowseWorlds" xml:space="preserve"><value>Browse Worlds</value></data>
+  <data name="RefineBuild" xml:space="preserve"><value>Build</value></data>
+  <data name="RefineCalculating" xml:space="preserve"><value>Calculating…</value></data>
+  <data name="RefineCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="RefineChooseAccount" xml:space="preserve"><value>Choose an account</value></data>
+  <data name="RefineChooseInstance" xml:space="preserve"><value>Choose an instance</value></data>
+  <data name="RefineChooseServer" xml:space="preserve"><value>Choose a server</value></data>
+  <data name="RefineChooseWorld" xml:space="preserve"><value>Choose a world</value></data>
+  <data name="RefineClearFilters" xml:space="preserve"><value>Clear Filters</value></data>
+  <data name="RefineClose" xml:space="preserve"><value>Close</value></data>
+  <data name="RefineCopySeed" xml:space="preserve"><value>Copy Seed</value></data>
+  <data name="RefineCreative" xml:space="preserve"><value>Creative</value></data>
+  <data name="RefineCurrentBase" xml:space="preserve"><value>Current Base</value></data>
+  <data name="RefineCurrentStreak" xml:space="preserve"><value>Current Streak</value></data>
+  <data name="RefineCustom" xml:space="preserve"><value>Custom</value></data>
+  <data name="RefineDailyPlaytime" xml:space="preserve"><value>Daily Playtime</value></data>
+  <data name="RefineDateRange" xml:space="preserve"><value>Date Range</value></data>
+  <data name="RefineDays" xml:space="preserve"><value>{0} days</value></data>
+  <data name="RefineDelete" xml:space="preserve"><value>Delete</value></data>
+  <data name="RefineDeleteProfile" xml:space="preserve"><value>Delete quick profile?</value></data>
+  <data name="RefineDestination" xml:space="preserve"><value>Destination</value></data>
+  <data name="RefineDetails" xml:space="preserve"><value>Details</value></data>
+  <data name="RefineDirectoryStatus" xml:space="preserve"><value>Status reported by the server directory</value></data>
+  <data name="RefineDiscover" xml:space="preserve"><value>Discover</value></data>
+  <data name="RefineDuplicate" xml:space="preserve"><value>Duplicate</value></data>
+  <data name="RefineEdit" xml:space="preserve"><value>Edit</value></data>
+  <data name="RefineEditProfile" xml:space="preserve"><value>Edit Profile</value></data>
+  <data name="RefineEditServer" xml:space="preserve"><value>Edit Server</value></data>
+  <data name="RefineEmerald" xml:space="preserve"><value>Emerald</value></data>
+  <data name="RefineEnterName" xml:space="preserve"><value>Enter a profile name.</value></data>
+  <data name="RefineFavoriteCount" xml:space="preserve"><value>{0} favorites</value></data>
+  <data name="RefineFavoriteDay" xml:space="preserve"><value>Favorite Day</value></data>
+  <data name="RefineFavorites" xml:space="preserve"><value>Favorites</value></data>
+  <data name="RefineFiltersCount" xml:space="preserve"><value>Filters ({0})</value></data>
+  <data name="RefineForceStop" xml:space="preserve"><value>Force Stop</value></data>
+  <data name="RefineGameMode" xml:space="preserve"><value>Game Mode</value></data>
+  <data name="RefineHoursMinutes" xml:space="preserve"><value>{0}h {1}m</value></data>
+  <data name="RefineIcon" xml:space="preserve"><value>Icon</value></data>
+  <data name="RefineInstance" xml:space="preserve"><value>Instance</value></data>
+  <data name="RefineInstanceRanking" xml:space="preserve"><value>Instance Ranking</value></data>
+  <data name="RefineInstanceUnavailable" xml:space="preserve"><value>Manage or repair this instance before launching.</value></data>
+  <data name="RefineJoinServer" xml:space="preserve"><value>Join Server</value></data>
+  <data name="RefineLastPlayed" xml:space="preserve"><value>Last Played</value></data>
+  <data name="RefineLaunchNow" xml:space="preserve"><value>Launch Now</value></data>
+  <data name="RefineLaunchSetup" xml:space="preserve"><value>Launch Setup</value></data>
+  <data name="RefineLess" xml:space="preserve"><value>Less</value></data>
+  <data name="RefineLifetime" xml:space="preserve"><value>Lifetime</value></data>
+  <data name="RefineLoading" xml:space="preserve"><value>Checking…</value></data>
+  <data name="RefineLocalWorlds" xml:space="preserve"><value>Local Worlds</value></data>
+  <data name="RefineLongestSession" xml:space="preserve"><value>Longest Session</value></data>
+  <data name="RefineMainMenu" xml:space="preserve"><value>Main menu</value></data>
+  <data name="RefineMainMenuHint" xml:space="preserve"><value>Open Minecraft without joining a world or server</value></data>
+  <data name="RefineManageInstance" xml:space="preserve"><value>Manage Instance</value></data>
+  <data name="RefineMatchInstance" xml:space="preserve"><value>Match selected instance version</value></data>
+  <data name="RefineMinutes" xml:space="preserve"><value>{0}m</value></data>
+  <data name="RefineMonthlyPlaytime" xml:space="preserve"><value>Monthly Playtime</value></data>
+  <data name="RefineMore" xml:space="preserve"><value>More</value></data>
+  <data name="RefineMostPlayedDate" xml:space="preserve"><value>Most Played Date</value></data>
+  <data name="RefineMoveEarlier" xml:space="preserve"><value>Move Earlier</value></data>
+  <data name="RefineMoveLater" xml:space="preserve"><value>Move Later</value></data>
+  <data name="RefineName" xml:space="preserve"><value>Name</value></data>
+  <data name="RefineNeedsAttention" xml:space="preserve"><value>Needs Attention</value></data>
+  <data name="RefineNewProfile" xml:space="preserve"><value>New Profile</value></data>
+  <data name="RefineNewest" xml:space="preserve"><value>Newest</value></data>
+  <data name="RefineNext" xml:space="preserve"><value>Next</value></data>
+  <data name="RefineNinetyDays" xml:space="preserve"><value>90 days</value></data>
+  <data name="RefineNo" xml:space="preserve"><value>No</value></data>
+  <data name="RefineNoInstances" xml:space="preserve"><value>Install an instance to start playing.</value></data>
+  <data name="RefineNoMatches" xml:space="preserve"><value>No matching items.</value></data>
+  <data name="RefineNoPatterns" xml:space="preserve"><value>Not enough activity yet</value></data>
+  <data name="RefineNoProfiles" xml:space="preserve"><value>Save your favorite instance, account, and destination as a quick profile.</value></data>
+  <data name="RefineNoResponse" xml:space="preserve"><value>No response</value></data>
+  <data name="RefineNoSessions" xml:space="preserve"><value>No sessions yet</value></data>
+  <data name="RefineNoWorlds" xml:space="preserve"><value>No local worlds in this instance.</value></data>
+  <data name="RefineOffline" xml:space="preserve"><value>Offline</value></data>
+  <data name="RefineOnline" xml:space="preserve"><value>Online</value></data>
+  <data name="RefineOpenInstances" xml:space="preserve"><value>Open Instances</value></data>
+  <data name="RefineOrange" xml:space="preserve"><value>Orange</value></data>
+  <data name="RefinePage" xml:space="preserve"><value>Page {0}</value></data>
+  <data name="RefinePageCount" xml:space="preserve"><value>{0}–{1} of {2}</value></data>
+  <data name="RefinePatterns" xml:space="preserve"><value>Patterns</value></data>
+  <data name="RefinePeakHour" xml:space="preserve"><value>Peak Hour</value></data>
+  <data name="RefinePlay" xml:space="preserve"><value>Play</value></data>
+  <data name="RefinePlayWorld" xml:space="preserve"><value>Play World</value></data>
+  <data name="RefinePlayers" xml:space="preserve"><value>{0:N0} / {1:N0} players</value></data>
+  <data name="RefinePlayingAs" xml:space="preserve"><value>Playing as</value></data>
+  <data name="RefinePlaytime" xml:space="preserve"><value>Playtime</value></data>
+  <data name="RefinePlaytimeScope" xml:space="preserve"><value>Playtime Scope</value></data>
+  <data name="RefinePreparing" xml:space="preserve"><value>Preparing…</value></data>
+  <data name="RefinePrevious" xml:space="preserve"><value>Previous</value></data>
+  <data name="RefineProfileOptions" xml:space="preserve"><value>Profile Options</value></data>
+  <data name="RefineProfileRepair" xml:space="preserve"><value>This profile needs attention. Edit it to replace missing launch choices.</value></data>
+  <data name="RefinePurple" xml:space="preserve"><value>Purple</value></data>
+  <data name="RefineQuickPlay" xml:space="preserve"><value>Quick Play</value></data>
+  <data name="RefineQuickProfiles" xml:space="preserve"><value>Quick Profiles</value></data>
+  <data name="RefineRating" xml:space="preserve"><value>Rating</value></data>
+  <data name="RefineRecent" xml:space="preserve"><value>Recent</value></data>
+  <data name="RefineRecentActivity" xml:space="preserve"><value>Recent Activity</value></data>
+  <data name="RefineRefresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="RefineRemove" xml:space="preserve"><value>Remove</value></data>
+  <data name="RefineRemoveFavorite" xml:space="preserve"><value>Remove favorite?</value></data>
+  <data name="RefineRemoveFavoriteHint" xml:space="preserve"><value>Profiles using this server will need a replacement.</value></data>
+  <data name="RefineReveal" xml:space="preserve"><value>Reveal in file manager</value></data>
+  <data name="RefineRose" xml:space="preserve"><value>Rose</value></data>
+  <data name="RefineRunning" xml:space="preserve"><value>Running</value></data>
+  <data name="RefineRuntimeOptions" xml:space="preserve"><value>Runtime Options</value></data>
+  <data name="RefineSave" xml:space="preserve"><value>Save</value></data>
+  <data name="RefineSearchServers" xml:space="preserve"><value>Search Servers</value></data>
+  <data name="RefineSearchWorlds" xml:space="preserve"><value>Search Worlds</value></data>
+  <data name="RefineSeconds" xml:space="preserve"><value>{0}s</value></data>
+  <data name="RefineSelectHome" xml:space="preserve"><value>Select to use on Home</value></data>
+  <data name="RefineServer" xml:space="preserve"><value>Server</value></data>
+  <data name="RefineServerOptions" xml:space="preserve"><value>Server Options</value></data>
+  <data name="RefineServers" xml:space="preserve"><value>Servers</value></data>
+  <data name="RefineSessionCount" xml:space="preserve"><value>{0} sessions</value></data>
+  <data name="RefineSessions" xml:space="preserve"><value>Sessions</value></data>
+  <data name="RefineSevenDays" xml:space="preserve"><value>7 days</value></data>
+  <data name="RefineSize" xml:space="preserve"><value>Size</value></data>
+  <data name="RefineSort" xml:space="preserve"><value>Sort</value></data>
+  <data name="RefineSpectator" xml:space="preserve"><value>Spectator</value></data>
+  <data name="RefineStale" xml:space="preserve"><value>Last known status · stale</value></data>
+  <data name="RefineStop" xml:space="preserve"><value>Stop</value></data>
+  <data name="RefineSurvival" xml:space="preserve"><value>Survival</value></data>
+  <data name="RefineTag" xml:space="preserve"><value>Tag</value></data>
+  <data name="RefineThirtyDays" xml:space="preserve"><value>30 days</value></data>
+  <data name="RefineThisInstance" xml:space="preserve"><value>This instance</value></data>
+  <data name="RefineThisWeek" xml:space="preserve"><value>This Week</value></data>
+  <data name="RefineTodayAt" xml:space="preserve"><value>Today, {0}</value></data>
+  <data name="RefineToggleFavorite" xml:space="preserve"><value>Toggle Favorite</value></data>
+  <data name="RefineTotalPlaytime" xml:space="preserve"><value>Total Playtime</value></data>
+  <data name="RefineUnavailable" xml:space="preserve"><value>Unavailable</value></data>
+  <data name="RefineUnderSecond" xml:space="preserve"><value>&lt;1s</value></data>
+  <data name="RefineUnknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="RefineVersion" xml:space="preserve"><value>Version</value></data>
+  <data name="RefineViewPlaytime" xml:space="preserve"><value>View Playtime</value></data>
+  <data name="RefineVotes" xml:space="preserve"><value>Votes</value></data>
+  <data name="RefineWeeklyPlaytime" xml:space="preserve"><value>Weekly Playtime</value></data>
+  <data name="RefineWhenYouPlay" xml:space="preserve"><value>When You Play</value></data>
+  <data name="RefineWorld" xml:space="preserve"><value>World</value></data>
+  <data name="RefineWorldLoadFailed" xml:space="preserve"><value>Could not load worlds. Choose another instance or try again.</value></data>
+  <data name="RefineWorldMissing" xml:space="preserve"><value>This world is no longer available.</value></data>
+  <data name="RefineWorldOptions" xml:space="preserve"><value>World Options</value></data>
+  <data name="RefineWorldUnavailable" xml:space="preserve"><value>Direct launch is unavailable for this world and instance.</value></data>
+  <data name="RefineWorldWarning" xml:space="preserve"><value>World needs attention · see details</value></data>
+  <data name="RefineYes" xml:space="preserve"><value>Yes</value></data>
+  <data name="RefineYesterdayAt" xml:space="preserve"><value>Yesterday, {0}</value></data>
 </root>
