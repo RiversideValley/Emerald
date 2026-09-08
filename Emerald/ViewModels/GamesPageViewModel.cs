@@ -59,7 +59,7 @@ public partial class GamesPageViewModel : ObservableObject
     private bool _isLoading;
 
     [ObservableProperty]
-    private string _gamesLoadingMessage = "Loading games...";
+    private string _gamesLoadingMessage = "Loading instances...";
 
     [ObservableProperty]
     private string _searchQuery = string.Empty;
@@ -791,7 +791,7 @@ public partial class GamesPageViewModel : ObservableObject
         {
             if (!IsDownloadingModpack)
             {
-                GamesLoadingMessage = "Loading games...";
+                GamesLoadingMessage = "Loading instances...";
                 IsLoading = true;
             }
 
@@ -1228,7 +1228,7 @@ public partial class GamesPageViewModel : ObservableObject
             {
                 IsDownloadingModpack = false;
                 IsLoading = false;
-                GamesLoadingMessage = "Loading games...";
+                GamesLoadingMessage = "Loading instances...";
                 OnPropertyChanged(nameof(CanDownloadModpack));
                 DownloadModpackCommand.NotifyCanExecuteChanged();
             });

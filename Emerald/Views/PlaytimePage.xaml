@@ -1,0 +1,205 @@
+<Page
+    x:Class="Emerald.Views.PlaytimePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:helpers="using:Emerald.Helpers"
+    xmlns:runtime="using:Emerald.CoreX.Runtime"
+    xmlns:vm="using:Emerald.ViewModels"
+    Background="Transparent">
+  <ScrollViewer>
+    <StackPanel Padding="24,12,24,36" Spacing="16">
+      <Grid ColumnSpacing="12">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Button
+            Content="&#xE72B;"
+            FontFamily="Segoe Fluent Icons"
+            Click="Back_Click"
+            AutomationProperties.Name="{helpers:Localize KeyName=BackToHome}"/>
+        <StackPanel Grid.Column="1">
+          <TextBlock Text="{helpers:Localize KeyName=Playtime}" Style="{ThemeResource TitleTextBlockStyle}"/>
+          <TextBlock Text="{helpers:Localize KeyName=PlaytimePageDescription}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+        </StackPanel>
+        <ComboBox
+            Grid.Column="2"
+            ItemsSource="{x:Bind ViewModel.Scopes}"
+            SelectedItem="{x:Bind ViewModel.SelectedScope, Mode=TwoWay}"
+            MinWidth="160"
+            AutomationProperties.Name="{helpers:Localize KeyName=PlaytimeScope}"/>
+        <ComboBox
+            Grid.Column="3"
+            ItemsSource="{x:Bind ViewModel.Ranges}"
+            SelectedItem="{x:Bind ViewModel.SelectedRange, Mode=TwoWay}"
+            MinWidth="120"
+            AutomationProperties.Name="{helpers:Localize KeyName=DateRange}"/>
+      </Grid>
+      <ItemsRepeater ItemsSource="{x:Bind ViewModel.Kpis, Mode=OneWay}">
+        <ItemsRepeater.Layout>
+          <UniformGridLayout MinItemWidth="150" MinItemHeight="86" MinColumnSpacing="10" MinRowSpacing="10" ItemsStretch="Fill"/>
+        </ItemsRepeater.Layout>
+        <ItemsRepeater.ItemTemplate>
+          <DataTemplate x:DataType="vm:PlaytimeKpiViewModel">
+            <Border
+                Padding="16"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="12">
+              <StackPanel>
+                <TextBlock Text="{x:Bind Label}" Style="{ThemeResource CaptionTextBlockStyle}"/>
+                <TextBlock Text="{x:Bind Value}" FontSize="24" FontWeight="SemiBold"/>
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsRepeater.ItemTemplate>
+      </ItemsRepeater>
+      <Border
+          Padding="20"
+          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+          BorderThickness="1"
+          CornerRadius="14">
+        <StackPanel Spacing="14">
+          <TextBlock Text="{helpers:Localize KeyName=DailyPlaytime}" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+          <ScrollViewer HorizontalScrollBarVisibility="Auto" HorizontalScrollMode="Enabled">
+            <ItemsControl ItemsSource="{x:Bind ViewModel.DailyBars, Mode=OneWay}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="8"/>
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:PlaytimeBarViewModel">
+                  <StackPanel Width="40" Height="155" VerticalAlignment="Bottom">
+                    <Grid Height="116">
+                      <Border Height="{x:Bind Height}" Background="{ThemeResource AccentFillColorDefaultBrush}" CornerRadius="4" VerticalAlignment="Bottom" ToolTipService.ToolTip="{x:Bind Duration}"/>
+                    </Grid>
+                    <TextBlock Text="{x:Bind Label}" FontSize="10" HorizontalAlignment="Center"/>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </StackPanel>
+      </Border>
+      <Grid ColumnSpacing="12">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="2*"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Border Padding="20" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="14">
+          <StackPanel Spacing="10">
+            <TextBlock Text="{helpers:Localize KeyName=WhenYouPlay}" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+            <TextBlock Text="{helpers:Localize KeyName=HeatmapHint}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            <ItemsRepeater ItemsSource="{x:Bind ViewModel.Heatmap, Mode=OneWay}">
+              <ItemsRepeater.Layout>
+                <StackLayout Spacing="2"/>
+              </ItemsRepeater.Layout>
+              <ItemsRepeater.ItemTemplate>
+                <DataTemplate x:DataType="vm:PlaytimeHeatRowViewModel">
+                  <StackPanel Orientation="Horizontal" Spacing="2">
+                    <TextBlock Width="24" Text="{x:Bind Label}" FontSize="10" VerticalAlignment="Center"/>
+                    <ItemsRepeater ItemsSource="{x:Bind Cells}">
+                      <ItemsRepeater.Layout>
+                        <StackLayout Orientation="Horizontal" Spacing="2"/>
+                      </ItemsRepeater.Layout>
+                      <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PlaytimeHeatCellViewModel">
+                      <Border
+                          Width="18"
+                          Height="18"
+                          Opacity="{x:Bind Opacity}"
+                          Background="{ThemeResource AccentFillColorDefaultBrush}"
+                          CornerRadius="2"
+                          AutomationProperties.Name="{x:Bind HelpText}"
+                          ToolTipService.ToolTip="{x:Bind HelpText}"/>
+                        </DataTemplate>
+                      </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+          </StackPanel>
+        </Border>
+        <Border
+            Grid.Column="1"
+            Padding="20"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="14">
+          <StackPanel Spacing="8">
+            <TextBlock Text="{helpers:Localize KeyName=Patterns}" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+            <TextBlock Text="{x:Bind ViewModel.PatternsText, Mode=OneWay}" TextWrapping="Wrap"/>
+          </StackPanel>
+        </Border>
+      </Grid>
+      <Grid ColumnSpacing="12">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
+        <Border
+            Padding="20"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="14">
+          <StackPanel Spacing="8">
+            <TextBlock Text="{helpers:Localize KeyName=InstanceRanking}" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+            <ListView ItemsSource="{x:Bind ViewModel.Rankings, Mode=OneWay}">
+              <ListView.ItemTemplate>
+                <DataTemplate x:DataType="runtime:InstancePlaytimeRanking">
+                  <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{x:Bind DisplayName}"/>
+                    <TextBlock Grid.Column="1" Text="{x:Bind Duration}"/>
+                  </Grid>
+                </DataTemplate>
+              </ListView.ItemTemplate>
+            </ListView>
+          </StackPanel>
+        </Border>
+        <Border
+            Grid.Column="1"
+            Padding="20"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="14">
+          <StackPanel Spacing="8">
+            <TextBlock Text="{helpers:Localize KeyName=Sessions}" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+            <ListView ItemsSource="{x:Bind ViewModel.Sessions, Mode=OneWay}">
+              <ListView.ItemTemplate>
+                <DataTemplate x:DataType="runtime:InstancePlaytimeSession">
+                  <Grid ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                      <TextBlock Text="{x:Bind InstanceNameSnapshot}" Style="{ThemeResource BodyStrongTextBlockStyle}"/>
+                      <TextBlock Text="{x:Bind TargetDisplayNameSnapshot}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1">
+                      <TextBlock Text="{x:Bind Playtime}" HorizontalAlignment="Right"/>
+                      <TextBlock Text="{x:Bind StartedAt}" Style="{ThemeResource CaptionTextBlockStyle}"/>
+                    </StackPanel>
+                  </Grid>
+                </DataTemplate>
+              </ListView.ItemTemplate>
+            </ListView>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </StackPanel>
+  </ScrollViewer>
+</Page>

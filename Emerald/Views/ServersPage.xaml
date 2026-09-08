@@ -1,0 +1,151 @@
+<Page
+    x:Class="Emerald.Views.ServersPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:servers="using:Emerald.CoreX.Services.Servers"
+    xmlns:helpers="using:Emerald.Helpers"
+    Background="Transparent">
+  <Grid Padding="24,12,24,24" RowSpacing="14">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+    <Grid ColumnSpacing="12">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+      <Button Content="&#xE72B;" FontFamily="Segoe Fluent Icons" Click="Back_Click" AutomationProperties.Name="{helpers:Localize KeyName=BackToHome}"/>
+      <StackPanel Grid.Column="1">
+        <TextBlock Text="{helpers:Localize KeyName=Servers}" Style="{ThemeResource TitleTextBlockStyle}"/>
+        <TextBlock Text="{helpers:Localize KeyName=ServersPageDescription}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+      </StackPanel>
+      <Button Grid.Column="2" Content="{helpers:Localize KeyName=AddCustomServer}" Click="AddCustom_Click"/>
+    </Grid>
+    <Grid Grid.Row="1" ColumnSpacing="8">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+      <AutoSuggestBox
+          x:Name="SearchBox"
+          PlaceholderText="{helpers:Localize KeyName=SearchServers}"
+          Text="{x:Bind ViewModel.SearchText, Mode=TwoWay}"
+          TextChanged="SearchBox_TextChanged"
+          AutomationProperties.Name="{helpers:Localize KeyName=SearchPublicServers}"/>
+      <TextBox Grid.Column="1" Width="120" PlaceholderText="{helpers:Localize KeyName=AnyTag}" Text="{x:Bind ViewModel.TagFilter, Mode=TwoWay}"/>
+      <TextBox Grid.Column="2" Width="130" PlaceholderText="{helpers:Localize KeyName=AnyVersion}" Text="{x:Bind ViewModel.VersionFilter, Mode=TwoWay}"/>
+      <ComboBox Grid.Column="3" ItemsSource="{x:Bind ViewModel.Sorts}" SelectedItem="{x:Bind ViewModel.SelectedSort, Mode=TwoWay}"/>
+      <ComboBox
+          Grid.Column="4"
+          MinWidth="170"
+          ItemsSource="{x:Bind ViewModel.Games}"
+          SelectedItem="{x:Bind ViewModel.SelectedGame, Mode=TwoWay}"
+          DisplayMemberPath="Version.DisplayName"/>
+    </Grid>
+    <Pivot Grid.Row="2">
+      <PivotItem Header="{helpers:Localize KeyName=Discover}">
+        <Grid>
+          <ListView ItemsSource="{x:Bind ViewModel.DiscoverServers, Mode=OneWay}" SelectionMode="None" Padding="0,0,0,48">
+            <ListView.ItemTemplate>
+              <DataTemplate x:DataType="servers:ServerDirectoryEntry">
+                <Border
+                    Margin="0,0,0,10"
+                    Padding="16"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                  <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="48"/>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                      <ColumnDefinition Width="Auto"/>
+                      <ColumnDefinition Width="Auto"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Width="48" Height="48" CornerRadius="8" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                      <Grid>
+                        <FontIcon Glyph="&#xE968;"/>
+                        <Image Source="{x:Bind IconUrl}" Stretch="UniformToFill"/>
+                      </Grid>
+                    </Border>
+                    <StackPanel Grid.Column="1" Spacing="3">
+                      <TextBlock Text="{x:Bind Name}" Style="{ThemeResource BodyStrongTextBlockStyle}"/>
+                      <TextBlock Text="{x:Bind Motd}" TextWrapping="Wrap" MaxLines="2"/>
+                      <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="{x:Bind Address}" Style="{ThemeResource CaptionTextBlockStyle}"/>
+                        <TextBlock Text="{x:Bind Version}" Style="{ThemeResource CaptionTextBlockStyle}"/>
+                        <TextBlock Text="{x:Bind TagsText}" Style="{ThemeResource CaptionTextBlockStyle}"/>
+                      </StackPanel>
+                    </StackPanel>
+                    <TextBlock Grid.Column="2" Text="{x:Bind PlayerText}" VerticalAlignment="Center"/>
+                    <Button Grid.Column="3" Tag="{x:Bind}" Click="DiscoverFavorite_Click" ToolTipService.ToolTip="{helpers:Localize KeyName=AddFavorite}">
+                      <FontIcon Glyph="&#xE734;"/>
+                    </Button>
+                    <Button Grid.Column="4" Tag="{x:Bind}" Click="DiscoverDetails_Click" ToolTipService.ToolTip="{helpers:Localize KeyName=Details}">
+                      <FontIcon Glyph="&#xE946;"/>
+                    </Button>
+                    <Button Grid.Column="5" Tag="{x:Bind}" Click="DiscoverPlay_Click" Style="{ThemeResource AccentButtonStyle}" Content="{helpers:Localize KeyName=Play}"/>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ListView.ItemTemplate>
+          </ListView>
+          <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          <TextBlock
+              Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+              Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Bottom"/>
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+            <Button Content="{helpers:Localize KeyName=Previous}" Click="PreviousPage_Click"/>
+            <TextBlock Text="{x:Bind ViewModel.Page, Mode=OneWay}" VerticalAlignment="Center"/>
+            <Button Content="{helpers:Localize KeyName=Next}" Click="NextPage_Click"/>
+          </StackPanel>
+        </Grid>
+      </PivotItem>
+      <PivotItem Header="{helpers:Localize KeyName=Favorites}">
+        <ListView ItemsSource="{x:Bind ViewModel.FavoriteServers, Mode=OneWay}" SelectionMode="None">
+          <ListView.ItemTemplate>
+            <DataTemplate x:DataType="servers:SavedServer">
+              <Border
+                  Margin="0,0,0,10"
+                  Padding="16"
+                  Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                  BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                  BorderThickness="1"
+                  CornerRadius="12">
+                <Grid ColumnSpacing="12">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <StackPanel>
+                    <TextBlock Text="{x:Bind Name}" Style="{ThemeResource BodyStrongTextBlockStyle}"/>
+                    <TextBlock Text="{x:Bind Address}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                  </StackPanel>
+                  <Button Grid.Column="1" Tag="{x:Bind}" Click="FavoriteDetails_Click">
+                    <FontIcon Glyph="&#xE946;"/>
+                  </Button>
+                  <Button Grid.Column="2" Tag="{x:Bind}" Click="RemoveFavorite_Click">
+                    <FontIcon Glyph="&#xE74D;"/>
+                  </Button>
+                  <Button Grid.Column="3" Tag="{x:Bind}" Click="FavoritePlay_Click" Style="{ThemeResource AccentButtonStyle}" Content="Play"/>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ListView.ItemTemplate>
+        </ListView>
+      </PivotItem>
+    </Pivot>
+  </Grid>
+</Page>

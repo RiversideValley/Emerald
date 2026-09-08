@@ -161,6 +161,10 @@ Notes
             return client;
         });
         services.AddSingleton<INetworkCapabilityService, NetworkCapabilityService>();
+        services.AddSingleton<CoreX.Runtime.IMinecraftLaunchCapabilityResolver, CoreX.Runtime.MinecraftLaunchCapabilityResolver>();
+        services.AddSingleton<CoreX.Services.Servers.IServerDirectoryService, CoreX.Services.Servers.ServerDirectoryService>();
+        services.AddSingleton<CoreX.Services.Servers.IServerStatusService, CoreX.Services.Servers.ServerStatusService>();
+        services.AddSingleton<CoreX.Services.Worlds.IMinecraftWorldService, CoreX.Services.Worlds.MinecraftWorldService>();
         services.AddSingleton<IDownloadActivityService, DownloadActivityService>();
         services.AddSingleton<DownloadTimeouts>();
         services.AddSingleton<CoreX.Services.IUiDispatcher>(_ =>
@@ -186,7 +190,8 @@ Notes
                 runtimeSettings,
                 new Services.DispatcherQueueUiDispatcher(dispatcherQueue),
                 provider.GetRequiredService<IInstanceInstallationService>(),
-                provider.GetRequiredService<INetworkCapabilityService>());
+                provider.GetRequiredService<INetworkCapabilityService>(),
+                provider.GetRequiredService<CoreX.Runtime.IInstancePlaytimeService>());
         });
 
         //Mod Loaders
@@ -238,6 +243,10 @@ Notes
             return new BaseSettingsService(logger, path);
         });
         services.AddSingleton<CoreX.Services.IMinecraftBaseSettingsService, CoreX.Services.MinecraftBaseSettingsService>();
+        services.AddSingleton<CoreX.Runtime.IInstancePlaytimeService, CoreX.Runtime.InstancePlaytimeService>();
+        services.AddSingleton<CoreX.Services.IHomePreferencesService, CoreX.Services.HomePreferencesService>();
+        services.AddSingleton<CoreX.Services.IQuickProfileService, CoreX.Services.QuickProfileService>();
+        services.AddSingleton<CoreX.Services.Servers.ISavedServerService, CoreX.Services.Servers.SavedServerService>();
         services.AddSingleton<Services.IAppUpdateService, Services.AppUpdateService>();
         services.AddSingleton<CoreX.Services.IGlobalGameSettingsService, CoreX.Services.GlobalGameSettingsService>();
         services.AddSingleton<CoreX.Runtime.IGameRuntimeSettings, Services.GameRuntimeSettingsAdapter>();
@@ -258,6 +267,10 @@ Notes
 
         //ViewModels
         services.AddSingleton<ViewModels.GamesPageViewModel>();
+        services.AddSingleton<ViewModels.HomePageViewModel>();
+        services.AddTransient<ViewModels.PlaytimePageViewModel>();
+        services.AddTransient<ViewModels.ServersPageViewModel>();
+        services.AddTransient<ViewModels.WorldsPageViewModel>();
         services.AddTransient<ViewModels.NotificationListViewModel>();
         services.AddSingleton<ViewModels.AccountsPageViewModel>();
         services.AddTransient<ViewModels.LogsPageViewModel>();

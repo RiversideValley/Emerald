@@ -163,6 +163,15 @@ public sealed partial class MainPage : Page
         };
         NavView.MenuItems.Add(homeNavigationItem);
 
+        NavView.MenuItems.Add(new SquareNavigationViewItem("Instances".Localize())
+        {
+            Thumbnail = "ms-appx:///Assets/NavigationViewIcons/tasks.png",
+            Tag = "Instances",
+            FontIconGlyph = "\xE8B7",
+            SolidFontIconGlyph = "\xE8B7",
+            IsSelected = false
+        });
+
         NavView.MenuItems.Add(new SquareNavigationViewItem("Store".Localize())
         {
             Thumbnail = "ms-appx:///Assets/NavigationViewIcons/store.png",
@@ -380,7 +389,10 @@ public sealed partial class MainPage : Page
         switch (item.Tag)
         {
             case "Home":
-                NavigateOnce(typeof(GamesPage), parameter);
+                NavigateOnce(typeof(HomePage), parameter);
+                break;
+            case "Instances":
+                NavigateOnce(typeof(GamesPage), parameter, forceNavigate: parameter != null);
                 break;
             case "Accounts":
                 NavigateOnce(typeof(AccountsPage), parameter);
