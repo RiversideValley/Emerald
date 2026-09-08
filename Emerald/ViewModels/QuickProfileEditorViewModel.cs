@@ -1,0 +1,97 @@
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using Emerald.CoreX;
+using Emerald.CoreX.Models;
+using Emerald.CoreX.Runtime;
+using Emerald.CoreX.Services;
+using Emerald.CoreX.Services.Servers;
+using Emerald.CoreX.Services.Worlds;
+namespace Emerald.ViewModels;
+public partial class QuickProfileEditorViewModel : ObservableObject
+{
+ private readonly IQuickProfileService _profiles;
+ private readonly IMinecraftWorldService _worlds;
+ private readonly QuickProfile? _original;
+ private CancellationTokenSource? _load;
+ private bool _initializing;
+ public ObservableCollection<Game> Games { get; }
+ public ObservableCollection<EAccount> Accounts { get; }
+ public ObservableCollection<SavedServer> Servers { get; }
+ public ObservableCollection<MinecraftWorld> Worlds { get; } = [];
+ public IReadOnlyList<Choice<MinecraftLaunchTargetKind>> Destinations { get; } = new[] { MinecraftLaunchTargetKind.MainMenu, MinecraftLaunchTargetKind.World, MinecraftLaunchTargetKind.Server }.Select(x => new Choice<MinecraftLaunchTargetKind>(x, DashboardText.Target(x))).ToArray();
+ public IReadOnlyList<Choice<string>> Icons { get; } = new[] { "Play", "Server", "World", "Adventure", "Build" }.Select(x => new Choice<string>(x, DashboardText.Get(x))).ToArray();
+ public IReadOnlyList<Choice<uint>> Colors { get; private set; }
+ [ObservableProperty] private string _name = string.Empty;
+ [ObservableProperty] private Game? _selectedGame;
+ [ObservableProperty] private EAccount? _selectedAccount;
+ [ObservableProperty] private SavedServer? _selectedServer;
+ [ObservableProperty] private MinecraftWorld? _selectedWorld;
+ [ObservableProperty] private Choice<MinecraftLaunchTargetKind>? _destination;
+ [ObservableProperty] private Choice<string>? _icon;
+ [ObservableProperty] private Choice<uint>? _accent;
+ [ObservableProperty] private bool _isLoading;
+ [ObservableProperty] private string _error = string.Empty;
+ [ObservableProperty] private QuickProfileCardViewModel? _preview;
+ public bool IsServer => Destination?.Value == MinecraftLaunchTargetKind.Server;
+ public bool IsWorld => Destination?.Value == MinecraftLaunchTargetKind.World;
+ public bool CanSave => !IsLoading && string.IsNullOrEmpty(Error);
+ public bool HasError => !string.IsNullOrEmpty(Error);
+ public string SetupSummary => string.Join(" · ", new[] { SelectedGame?.Version.DisplayName, SelectedAccount?.Name, Preview?.Target }.Where(x => !string.IsNullOrWhiteSpace(x)));
+ public QuickProfileEditorViewModel(HomePageViewModel home, IAccountService accounts, IQuickProfileService profiles, IMinecraftWorldService worlds, QuickProfile? original)
+ {
+  _initializing = true; _profiles = profiles; _worlds = worlds; _original = original;
+  Games = new(home.Games); Accounts = new(accounts.Accounts); Servers = new(home.FavoriteServers);
+  Colors = new[] { new Choice<uint>(0xFF107C10, DashboardText.Get("Emerald")), new(0xFF0067C0, DashboardText.Get("Blue")), new(0xFF744DA9, DashboardText.Get("Purple")), new(0xFFCA5010, DashboardText.Get("Orange")), new(0xFFC239B3, DashboardText.Get("Rose")) };
+  if (original != null && Colors.All(x => x.Value != original.AccentArgb)) Colors = Colors.Append(new(original.AccentArgb, DashboardText.Get("Custom"))).ToArray();
+  SelectedGame = original == null ? home.SelectedGame : Games.FirstOrDefault(x => x.InstanceId == original.InstanceId);
+  SelectedAccount = original == null ? accounts.GetSelectedAccount() : Accounts.FirstOrDefault(x => x.UniqueId == original.AccountUniqueId);
+  Destination = Destinations.First(x => x.Value == (original?.TargetKind ?? home.SelectedDestination));
+  SelectedServer = original == null ? home.SelectedServer : Servers.FirstOrDefault(x => x.Id == original.SavedServerId);
+  Icon = Icons.FirstOrDefault(x => x.Value == original?.GlyphKey) ?? Icons.First(x => x.Value == (IsWorld ? "World" : IsServer ? "Server" : "Play"));
+  Accent = Colors.First(x => x.Value == (original?.AccentArgb ?? 0xFF107C10));
+  Name = original?.Name ?? (IsServer ? SelectedServer?.Name : IsWorld ? home.SelectedWorld?.DisplayName : SelectedGame?.Version.DisplayName) ?? DashboardText.Get("QuickPlay");
+  _initializing = false; Update();
+  _ = LoadWorldsAsync(original?.WorldFolderName ?? home.SelectedWorld?.FolderName);
+ }
+ partial void OnSelectedGameChanged(Game? value) { if (!_initializing) { SelectedWorld = null; _ = LoadWorldsAsync(null); } Update(); }
+ private async Task LoadWorldsAsync(string? folder)
+ {
+  _load?.Cancel(); var load = _load = new(); var game = SelectedGame; IsLoading = true;
+  try { var worlds = game == null ? [] : await _worlds.ScanAsync(game, load.Token); if (load.IsCancellationRequested) return; Worlds.ReplaceWith(worlds.Where(x => x.IsReadable)); SelectedWorld = Worlds.FirstOrDefault(x => x.FolderName == folder); }
+  catch (OperationCanceledException) { }
+  catch (Exception) { Error = DashboardText.Get("WorldLoadFailed"); }
+  finally { if (ReferenceEquals(_load, load)) { IsLoading = false; Update(); } }
+ }
+ public void CancelLoading() => _load?.Cancel();
+ partial void OnNameChanged(string value) => Update();
+ partial void OnSelectedAccountChanged(EAccount? value) => Update();
+ partial void OnSelectedServerChanged(SavedServer? value) => Update();
+ partial void OnSelectedWorldChanged(MinecraftWorld? value) => Update();
+ partial void OnIconChanged(Choice<string>? value) => Update();
+ partial void OnAccentChanged(Choice<uint>? value) => Update();
+ partial void OnIsLoadingChanged(bool value) => OnPropertyChanged(nameof(CanSave));
+ partial void OnDestinationChanged(Choice<MinecraftLaunchTargetKind>? value)
+ {
+  if (!_initializing) { if (!IsServer) SelectedServer = null; if (!IsWorld) SelectedWorld = null; }
+  OnPropertyChanged(nameof(IsServer)); OnPropertyChanged(nameof(IsWorld)); Update();
+ }
+ public QuickProfile CreateProfile() => new()
+ {
+  Id = _original?.Id ?? Guid.NewGuid(), CreatedAt = _original?.CreatedAt ?? DateTimeOffset.UtcNow,
+  Name = Name.Trim(), GlyphKey = Icon?.Value ?? "Play", AccentArgb = Accent?.Value ?? 0xFF107C10,
+  InstanceId = SelectedGame?.InstanceId ?? Guid.Empty, AccountUniqueId = SelectedAccount?.UniqueId ?? string.Empty,
+  TargetKind = Destination?.Value ?? MinecraftLaunchTargetKind.MainMenu,
+  SavedServerId = IsServer ? SelectedServer?.Id : null, WorldFolderName = IsWorld ? SelectedWorld?.FolderName : null,
+  TargetDisplayNameSnapshot = IsServer ? SelectedServer?.Name : IsWorld ? SelectedWorld?.DisplayName : DashboardText.Get("MainMenu")
+ };
+ private void Update()
+ {
+  if (_initializing) return;
+  var profile = CreateProfile(); var validation = _profiles.Validate(profile, Games, Accounts, Servers);
+  Error = string.IsNullOrWhiteSpace(Name) ? DashboardText.Get("EnterName") : SelectedGame == null ? DashboardText.Get("ChooseInstance")
+    : SelectedAccount == null ? DashboardText.Get("ChooseAccount") : IsServer && SelectedServer == null ? DashboardText.Get("ChooseServer")
+    : IsWorld && SelectedWorld == null ? DashboardText.Get("ChooseWorld") : !validation.IsValid ? DashboardText.Get("ProfileRepair") : string.Empty;
+  Preview = new(profile, validation, SelectedGame?.Version.DisplayName, SelectedAccount?.Name);
+  OnPropertyChanged(nameof(CanSave)); OnPropertyChanged(nameof(HasError)); OnPropertyChanged(nameof(SetupSummary));
+ }
+}

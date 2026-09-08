@@ -1,0 +1,19 @@
+<UserControl x:Class="Emerald.Controls.QuickProfileEditor" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:settings="using:CommunityToolkit.WinUI.Controls" xmlns:local="using:Emerald.Controls" xmlns:helpers="using:Emerald.Helpers" xmlns:conv="using:Emerald.Helpers.Converters">
+ <UserControl.Resources><conv:BoolToVisibility x:Key="Visible"/></UserControl.Resources>
+ <StackPanel Spacing="16">
+  <Border CornerRadius="12" BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"><local:QuickProfileContent Profile="{Binding Preview}"/></Border>
+  <TextBox Header="{helpers:Localize KeyName=RefineName}" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+  <settings:SettingsExpander x:Name="Setup" Header="{helpers:Localize KeyName=RefineLaunchSetup}" Description="{Binding SetupSummary}" HorizontalAlignment="Stretch"><settings:SettingsExpander.HeaderIcon><FontIcon Glyph="&#xE768;"/></settings:SettingsExpander.HeaderIcon><settings:SettingsExpander.Items>
+   <StackPanel Spacing="12">
+    <ComboBox Header="{helpers:Localize KeyName=RefineInstance}" ItemsSource="{Binding Games}" SelectedItem="{Binding SelectedGame, Mode=TwoWay}" DisplayMemberPath="Version.DisplayName" HorizontalAlignment="Stretch"/>
+    <ComboBox Header="{helpers:Localize KeyName=RefineAccount}" ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedAccount, Mode=TwoWay}" DisplayMemberPath="Name" HorizontalAlignment="Stretch"/>
+    <ComboBox Header="{helpers:Localize KeyName=RefineDestination}" ItemsSource="{Binding Destinations}" SelectedItem="{Binding Destination, Mode=TwoWay}" DisplayMemberPath="Label" HorizontalAlignment="Stretch"/>
+    <ComboBox Header="{helpers:Localize KeyName=RefineServer}" ItemsSource="{Binding Servers}" SelectedItem="{Binding SelectedServer, Mode=TwoWay}" DisplayMemberPath="Name" HorizontalAlignment="Stretch" Visibility="{Binding IsServer, Converter={StaticResource Visible}}"/>
+    <ComboBox Header="{helpers:Localize KeyName=RefineWorld}" ItemsSource="{Binding Worlds}" SelectedItem="{Binding SelectedWorld, Mode=TwoWay}" DisplayMemberPath="DisplayName" HorizontalAlignment="Stretch" Visibility="{Binding IsWorld, Converter={StaticResource Visible}}"/>
+   </StackPanel></settings:SettingsExpander.Items>
+  </settings:SettingsExpander>
+  <settings:SettingsExpander Header="{helpers:Localize KeyName=RefineAppearance}" HorizontalAlignment="Stretch"><settings:SettingsExpander.HeaderIcon><FontIcon Glyph="&#xE790;"/></settings:SettingsExpander.HeaderIcon><settings:SettingsExpander.Items><StackPanel Spacing="12"><TextBlock Text="{helpers:Localize KeyName=RefineIcon}"/><StackPanel x:Name="IconChoices" Orientation="Horizontal" Spacing="8"/><TextBlock Text="{helpers:Localize KeyName=RefineAccent}"/><Grid x:Name="ColorChoices" ColumnSpacing="8" RowSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions></Grid></StackPanel></settings:SettingsExpander.Items></settings:SettingsExpander>
+  <ProgressBar IsIndeterminate="True" Visibility="{Binding IsLoading, Converter={StaticResource Visible}}"/>
+  <TextBlock Text="{Binding Error}" Visibility="{Binding HasError, Converter={StaticResource Visible}}" TextWrapping="Wrap" Foreground="{ThemeResource SystemFillColorCautionBrush}"/>
+ </StackPanel>
+</UserControl>
