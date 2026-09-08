@@ -1613,4 +1613,17 @@
   <data name="RefineWorldWarning" xml:space="preserve"><value>World needs attention · see details</value></data>
   <data name="RefineYes" xml:space="preserve"><value>Yes</value></data>
   <data name="RefineYesterdayAt" xml:space="preserve"><value>Yesterday, {0}</value></data>
+  <data name="RefineChooseIcon" xml:space="preserve"><value>Choose a profile icon.</value></data>
+  <data name="RefineCustomColor" xml:space="preserve"><value>Custom color</value></data>
+  <data name="RefineDownload" xml:space="preserve"><value>Download</value></data>
+  <data name="RefineFavorite" xml:space="preserve"><value>Favorite</value></data>
+  <data name="RefineGlyphs" xml:space="preserve"><value>Glyphs</value></data>
+  <data name="RefineHome" xml:space="preserve"><value>Home</value></data>
+  <data name="RefineLibrary" xml:space="preserve"><value>Library</value></data>
+  <data name="RefineMinecraftBlocks" xml:space="preserve"><value>Minecraft blocks</value></data>
+  <data name="RefineMultiplayer" xml:space="preserve"><value>Multiplayer</value></data>
+  <data name="RefinePageOf" xml:space="preserve"><value>Page {0} of {1}</value></data>
+  <data name="RefineSearch" xml:space="preserve"><value>Search</value></data>
+  <data name="RefineSearchIcons" xml:space="preserve"><value>Search glyphs or Minecraft blocks</value></data>
+  <data name="RefineStore" xml:space="preserve"><value>Store</value></data>
 </root>

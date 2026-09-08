@@ -35,6 +35,8 @@ public sealed class QuickProfile
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
     public string GlyphKey { get; set; } = "Play";
+    public QuickProfileIconKind IconKind { get; set; } = QuickProfileIconKind.Glyph;
+    public string? BlockIconFileName { get; set; }
     public uint AccentArgb { get; set; } = 0xFF107C10;
     public Guid InstanceId { get; set; }
     public string AccountUniqueId { get; set; } = string.Empty;
@@ -44,6 +46,12 @@ public sealed class QuickProfile
     public string? TargetDisplayNameSnapshot { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+}
+
+public enum QuickProfileIconKind
+{
+    Glyph,
+    Block
 }
 
 public sealed record QuickProfileValidation(bool IsValid, IReadOnlyList<string> Messages);
@@ -76,7 +84,7 @@ public sealed class QuickProfileService(IMinecraftBaseSettingsService settings, 
     public QuickProfile Duplicate(Guid id)
     {
         var source = GetAll().First(x => x.Id == id);
-        return Save(new QuickProfile { Name = source.Name + " copy", GlyphKey = source.GlyphKey, AccentArgb = source.AccentArgb, InstanceId = source.InstanceId, AccountUniqueId = source.AccountUniqueId, TargetKind = source.TargetKind, SavedServerId = source.SavedServerId, WorldFolderName = source.WorldFolderName, TargetDisplayNameSnapshot = source.TargetDisplayNameSnapshot });
+        return Save(new QuickProfile { Name = source.Name + " copy", GlyphKey = source.GlyphKey, IconKind = source.IconKind, BlockIconFileName = source.BlockIconFileName, AccentArgb = source.AccentArgb, InstanceId = source.InstanceId, AccountUniqueId = source.AccountUniqueId, TargetKind = source.TargetKind, SavedServerId = source.SavedServerId, WorldFolderName = source.WorldFolderName, TargetDisplayNameSnapshot = source.TargetDisplayNameSnapshot });
     }
     public bool Remove(Guid id) { bool removed; lock (_gate) { var value = Read(); if (_isReadOnly) return false; removed = value.Profiles.RemoveAll(x => x.Id == id) > 0; if (removed) Write(value); } if (removed) Changed?.Invoke(this, EventArgs.Empty); return removed; }
     public void Move(Guid id, int offset) { lock (_gate) { var value = Read(); if (_isReadOnly) return; var from = value.Profiles.FindIndex(x => x.Id == id); if (from < 0) return; var to = Math.Clamp(from + offset, 0, value.Profiles.Count - 1); var item = value.Profiles[from]; value.Profiles.RemoveAt(from); value.Profiles.Insert(to, item); Write(value); } Changed?.Invoke(this, EventArgs.Empty); }
@@ -88,6 +96,7 @@ public sealed class QuickProfileService(IMinecraftBaseSettingsService settings, 
         if (!accounts.Any(x => x.UniqueId == profile.AccountUniqueId)) messages.Add("The account is no longer available.");
         if (profile.TargetKind == MinecraftLaunchTargetKind.Server && (profile.SavedServerId == null || !servers.Any(x => x.Id == profile.SavedServerId))) messages.Add("Choose a saved server.");
         if (profile.TargetKind == MinecraftLaunchTargetKind.World && (game == null || string.IsNullOrWhiteSpace(profile.WorldFolderName) || !Directory.Exists(Path.Combine(game.Path.BasePath, "saves", profile.WorldFolderName)))) messages.Add("Choose an available world.");
+        if (profile.IconKind == QuickProfileIconKind.Block && (string.IsNullOrWhiteSpace(profile.BlockIconFileName) || Path.GetFileName(profile.BlockIconFileName) != profile.BlockIconFileName)) messages.Add("Choose an icon.");
         if (string.IsNullOrWhiteSpace(profile.Name)) messages.Add("Enter a profile name.");
         return new(messages.Count == 0, messages);
     }

@@ -37,6 +37,7 @@ public partial class HomePageViewModel : ObservableObject
     public ObservableCollection<QuickProfileCardViewModel> QuickProfiles { get; } = [];
     public ObservableCollection<PlaytimeBarViewModel> HomeDailyBars { get; } = [];
     private CancellationTokenSource? _worldCancellation;
+    private CancellationTokenSource? _serverStatusCancellation;
     private int _selectionVersion;
     private bool _initialized;
     private string? _initializedBase;
@@ -48,10 +49,17 @@ public partial class HomePageViewModel : ObservableObject
         ? PlaytimeScope.ForInstance(_core.BasePath.BasePath, SelectedGame.InstanceId) : PlaytimeScope.AllEmerald;
     public string DestinationTitle => SelectedDestination == MinecraftLaunchTargetKind.Server ? SelectedServer?.Name ?? DashboardText.Get("ChooseServer")
         : SelectedDestination == MinecraftLaunchTargetKind.World ? SelectedWorld?.DisplayName ?? DashboardText.Get("ChooseWorld") : DashboardText.Get("MainMenu");
-    public string DestinationSubtitle => SelectedDestination == MinecraftLaunchTargetKind.Server ? SelectedServer?.Address ?? DashboardText.Get("BrowseServers")
+    public string DestinationSubtitle => SelectedDestination == MinecraftLaunchTargetKind.Server ? SelectedServerStatus?.Motd ?? SelectedServer?.Address ?? DashboardText.Get("BrowseServers")
         : SelectedDestination == MinecraftLaunchTargetKind.World ? DashboardText.Get("World") : DashboardText.Get("MainMenuHint");
     public string DestinationGlyph => DashboardText.Glyph(SelectedDestination);
     public string? DestinationImage => SelectedDestination == MinecraftLaunchTargetKind.World ? SelectedWorld?.IconPath : null;
+    public string? DestinationServerIcon => SelectedServerStatus?.IconDataUrl ?? SelectedServer?.IconUrl;
+    public string DestinationServerMetadata => string.Join(" · ", new[] { string.IsNullOrWhiteSpace(SelectedServerStatus?.Motd) ? null : SelectedServer?.Address, SelectedServerStatus?.Version }.Where(x => !string.IsNullOrWhiteSpace(x)));
+    public string DestinationServerStatus => IsSelectedServerStatusLoading ? DashboardText.Get("Loading") : SelectedServerStatus is { } status
+        ? status.State == ServerStatusState.Online
+            ? DashboardText.Format("Players", status.Players, status.MaxPlayers) + (status.LatencyMilliseconds is long latency ? $" · {latency} ms" : string.Empty)
+            : DashboardText.Get(status.State.ToString())
+        : string.Empty;
     public bool HasLaunchMessage => !string.IsNullOrWhiteSpace(LaunchMessage);
     public bool HasProfiles => QuickProfiles.Count > 0;
     public bool CanPlay => !IsBusy && SelectedGame?.HasActiveSession != true
@@ -63,6 +71,8 @@ public partial class HomePageViewModel : ObservableObject
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsServerDestination))] [NotifyPropertyChangedFor(nameof(IsWorldDestination))] private MinecraftLaunchTargetKind _selectedDestination = MinecraftLaunchTargetKind.MainMenu;
     [ObservableProperty] private SavedServer? _selectedServer;
     [ObservableProperty] private MinecraftWorld? _selectedWorld;
+    [ObservableProperty] private ServerStatusSnapshot? _selectedServerStatus;
+    [ObservableProperty] private bool _isSelectedServerStatusLoading;
     [ObservableProperty] private Guid? _activeQuickProfileId;
     [ObservableProperty] private string _totalPlaytimeText = "0m";
     [ObservableProperty] private string _weekPlaytimeText = "0m";
@@ -175,10 +185,25 @@ public partial class HomePageViewModel : ObservableObject
         ActiveQuickProfileId = null;
         LaunchMessage = null;
         SelectionChanged();
+        if (value == MinecraftLaunchTargetKind.Server) _ = RefreshSelectedServerStatusAsync();
+        else
+        {
+            _serverStatusCancellation?.Cancel();
+            SelectedServerStatus = null;
+            IsSelectedServerStatusLoading = false;
+        }
     }
 
-    partial void OnSelectedServerChanged(SavedServer? value) { ++_selectionVersion; ActiveQuickProfileId = null; SelectionChanged(); }
+    partial void OnSelectedServerChanged(SavedServer? value)
+    {
+        ++_selectionVersion;
+        ActiveQuickProfileId = null;
+        SelectionChanged();
+        if (IsServerDestination) _ = RefreshSelectedServerStatusAsync();
+    }
     partial void OnSelectedWorldChanged(MinecraftWorld? value) { ++_selectionVersion; ActiveQuickProfileId = null; SelectionChanged(); }
+    partial void OnSelectedServerStatusChanged(ServerStatusSnapshot? value) => SelectionChanged();
+    partial void OnIsSelectedServerStatusLoadingChanged(bool value) => SelectionChanged();
 
     partial void OnShowAllEmeraldPlaytimeChanged(bool value)
     {
@@ -192,7 +217,32 @@ public partial class HomePageViewModel : ObservableObject
     partial void OnIsBusyChanged(bool value) { OnPropertyChanged(nameof(CanPlay)); OnPropertyChanged(nameof(PrimaryButtonText)); }
     private void SelectionChanged()
     {
-        foreach (var name in new[] { nameof(DestinationTitle), nameof(DestinationSubtitle), nameof(DestinationGlyph), nameof(DestinationImage), nameof(CanPlay), nameof(PrimaryButtonText) }) OnPropertyChanged(name);
+        foreach (var name in new[] { nameof(DestinationTitle), nameof(DestinationSubtitle), nameof(DestinationGlyph), nameof(DestinationImage), nameof(DestinationServerIcon), nameof(DestinationServerMetadata), nameof(DestinationServerStatus), nameof(CanPlay), nameof(PrimaryButtonText) }) OnPropertyChanged(name);
+    }
+
+    private async Task RefreshSelectedServerStatusAsync()
+    {
+        _serverStatusCancellation?.Cancel();
+        var request = _serverStatusCancellation = new CancellationTokenSource();
+        var server = SelectedServer;
+        SelectedServerStatus = null;
+        IsSelectedServerStatusLoading = server != null;
+        if (server == null) return;
+        try
+        {
+            var snapshot = await _status.GetStatusAsync(new MinecraftServerAddress(server.Host, server.Port), cancellationToken: request.Token);
+            if (!request.IsCancellationRequested && SelectedServer?.Id == server.Id) SelectedServerStatus = snapshot;
+        }
+        catch (OperationCanceledException) { }
+        catch
+        {
+            if (!request.IsCancellationRequested && SelectedServer?.Id == server.Id)
+                SelectedServerStatus = new(ServerStatusState.Unavailable, DateTimeOffset.UtcNow, new(server.Host, server.Port));
+        }
+        finally
+        {
+            if (ReferenceEquals(_serverStatusCancellation, request)) IsSelectedServerStatusLoading = false;
+        }
     }
     [RelayCommand]
     private async Task LaunchAsync()

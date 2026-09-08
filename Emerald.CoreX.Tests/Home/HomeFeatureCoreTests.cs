@@ -112,6 +112,20 @@ public sealed class HomeFeatureCoreTests
         Assert.False(validation.IsValid); Assert.Contains(validation.Messages, x => x.Contains("instance")); Assert.Contains(profile, service.GetAll());
     }
 
+    [Fact]
+    public void QuickProfiles_DuplicateBlockAppearance()
+    {
+        using var temp = new TemporaryDirectory(); var settings = new InMemoryMinecraftBaseSettingsService(); settings.UseBasePath(temp.Path); var service = new QuickProfileService(settings, NullLogger<QuickProfileService>.Instance);
+        var source = service.Save(new QuickProfile { Name = "Builder", IconKind = QuickProfileIconKind.Block, BlockIconFileName = "CraftingTableNew.png", GlyphKey = "Build", AccentArgb = 0xFFCA5010 });
+
+        var duplicate = service.Duplicate(source.Id);
+
+        Assert.Equal(QuickProfileIconKind.Block, duplicate.IconKind);
+        Assert.Equal("CraftingTableNew.png", duplicate.BlockIconFileName);
+        Assert.Equal(source.GlyphKey, duplicate.GlyphKey);
+        Assert.Equal(source.AccentArgb, duplicate.AccentArgb);
+    }
+
     private sealed class TemporaryDirectory : IDisposable
     {
         public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"emerald-home-tests-{Guid.NewGuid():N}");

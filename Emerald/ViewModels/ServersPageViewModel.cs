@@ -11,7 +11,7 @@ public partial class ServerRowViewModel : ObservableObject
  public SavedServer? Saved { get; }
  public string Name => Saved?.Name ?? Directory!.Name;
  public string Address => Saved?.Address ?? Directory!.Address;
- public string? Icon => Saved?.IconUrl ?? Directory?.IconUrl;
+ public string? Icon => Snapshot?.IconDataUrl ?? Saved?.IconUrl ?? Directory?.IconUrl;
  public string Metadata => string.Join(" · ", new[] { Address, Snapshot?.Version ?? Directory?.Version, Directory?.TagsText }.Where(x => !string.IsNullOrWhiteSpace(x)));
  public string? Motd => Snapshot?.Motd ?? Directory?.Motd;
  [ObservableProperty] private bool _isFavorite;
@@ -23,7 +23,7 @@ public partial class ServerRowViewModel : ObservableObject
  public ServerRowViewModel(ServerDirectoryEntry entry, bool favorite) { Directory = entry; IsFavorite = favorite; }
  public ServerRowViewModel(SavedServer saved) { Saved = saved; IsFavorite = true; }
  partial void OnIsFavoriteChanged(bool value) => OnPropertyChanged(nameof(FavoriteGlyph));
- partial void OnSnapshotChanged(ServerStatusSnapshot? value) { foreach (var key in new[] { nameof(Status), nameof(StatusHelp), nameof(Motd), nameof(Metadata) }) OnPropertyChanged(key); }
+ partial void OnSnapshotChanged(ServerStatusSnapshot? value) { foreach (var key in new[] { nameof(Icon), nameof(Status), nameof(StatusHelp), nameof(Motd), nameof(Metadata) }) OnPropertyChanged(key); }
 }
 public partial class ServersPageViewModel(Core core, IAccountService accounts, IServerDirectoryService directory, ISavedServerService saved, IServerStatusService status, IGameRuntimeService runtime) : ObservableObject
 {
