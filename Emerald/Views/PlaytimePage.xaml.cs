@@ -9,6 +9,10 @@ namespace Emerald.Views;
 public sealed partial class PlaytimePage : Page
 {
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(30) };
+    private bool? _wideLayout;
+    private bool? _compactLayout;
+    private bool _active;
+    private bool _refreshQueued;
     public PlaytimePageViewModel ViewModel { get; } = Ioc.Default.GetRequiredService<PlaytimePageViewModel>();
 
     public PlaytimePage()
@@ -18,7 +22,7 @@ public sealed partial class PlaytimePage : Page
         {
             if (ViewModel.HasActive)
             {
-                ViewModel.Refresh();
+                QueueRefresh();
             }
         };
     }
@@ -27,6 +31,7 @@ public sealed partial class PlaytimePage : Page
     {
         base.OnNavigatedTo(e);
         ViewModel.Initialize(e.Parameter as PlaytimeNavigation);
+        _active = true;
         ViewModel.DataChanged += Changed;
         ViewModel.Activate();
         _timer.Start();
@@ -34,12 +39,30 @@ public sealed partial class PlaytimePage : Page
 
     private void Changed(object? sender, EventArgs e)
     {
-        DispatcherQueue.TryEnqueue(() => ViewModel.Refresh());
+        DispatcherQueue.TryEnqueue(QueueRefresh);
+    }
+
+    private void QueueRefresh()
+    {
+        if (!_active || _refreshQueued)
+        {
+            return;
+        }
+
+        _refreshQueued = DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+        {
+            _refreshQueued = false;
+            if (_active)
+            {
+                ViewModel.Refresh();
+            }
+        });
     }
 
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         _timer.Stop();
+        _active = false;
         ViewModel.Deactivate();
         ViewModel.DataChanged -= Changed;
         base.OnNavigatedFrom(e);
@@ -79,13 +102,24 @@ public sealed partial class PlaytimePage : Page
 
     private void Heatmap_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        HeatmapContent.Width = Math.Max(320, e.NewSize.Width);
+        var width = Math.Max(320, e.NewSize.Width);
+        if (HeatmapContent.Width != width)
+        {
+            HeatmapContent.Width = width;
+        }
     }
 
     private void Layout_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         var wide = e.NewSize.Width >= 1000;
         var compact = e.NewSize.Width < 640;
+        if (_wideLayout == wide && _compactLayout == compact)
+        {
+            return;
+        }
+
+        _wideLayout = wide;
+        _compactLayout = compact;
         LayoutRoot.Padding = new Thickness(compact ? 16 : 24);
 
         foreach (var grid in new[] { PatternGrid, HistoryGrid })

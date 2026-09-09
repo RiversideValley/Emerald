@@ -10,9 +10,36 @@
       <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
       <Setter Property="BorderThickness" Value="1" />
     </Style>
+    <!-- Chart marks keep keyboard focus and tooltips without the standard button chrome. -->
+    <Style x:Key="ChartMark" TargetType="Button">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="UseSystemFocusVisuals" Value="True" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <ContentPresenter Content="{TemplateBinding Content}" Background="Transparent"
+                              HorizontalContentAlignment="Stretch" />
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="HeatmapMark" TargetType="Button" BasedOn="{StaticResource ChartMark}">
+      <Setter Property="Height" Value="22" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border Height="18" VerticalAlignment="Center" CornerRadius="2"
+                    Background="{TemplateBinding Background}" />
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
     <DataTemplate x:Key="BarTemplate" x:DataType="vm:PlaytimeBarViewModel">
-      <Button Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="Transparent"
-              BorderThickness="0" AutomationProperties.Name="{x:Bind Duration}"
+      <Button Style="{StaticResource ChartMark}" AutomationProperties.Name="{x:Bind Duration}"
               ToolTipService.ToolTip="{x:Bind Duration}">
         <Grid Height="164">
           <Grid.RowDefinitions>
@@ -136,14 +163,11 @@
                           </ItemsControl.ItemsPanel>
                           <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:PlaytimeHeatCellViewModel">
-                              <Button Padding="0" MinWidth="0" Height="22" MinHeight="0" HorizontalAlignment="Stretch"
-                                      HorizontalContentAlignment="Stretch" Background="Transparent" BorderThickness="0"
+                              <Button Style="{StaticResource HeatmapMark}"
+                                      Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                      Opacity="{x:Bind Opacity}"
                                       AutomationProperties.Name="{x:Bind HelpText}"
-                                      ToolTipService.ToolTip="{x:Bind HelpText}">
-                                <Border Height="18" HorizontalAlignment="Stretch" CornerRadius="2"
-                                        Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                        Opacity="{x:Bind Opacity}" />
-                              </Button>
+                                      ToolTipService.ToolTip="{x:Bind HelpText}" />
                             </DataTemplate>
                           </ItemsControl.ItemTemplate>
                         </ItemsControl>

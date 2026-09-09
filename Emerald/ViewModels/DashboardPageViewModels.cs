@@ -28,7 +28,7 @@ public sealed record PlaytimeBarViewModel(string Label, string Duration, double 
 
 public sealed record PlaytimeHeatCellViewModel(string Label, double Opacity, string HelpText);
 
-public sealed record PlaytimeHeatRowViewModel(string Label, IReadOnlyList<PlaytimeHeatCellViewModel> Cells);
+public sealed record PlaytimeHeatRowViewModel(string Label, ObservableCollection<PlaytimeHeatCellViewModel> Cells);
 
 public sealed record PlaytimeKpiViewModel(string Label, string Value);
 

@@ -120,7 +120,7 @@ public partial class PlaytimePageViewModel(Core core, IInstancePlaytimeService p
         _result = playtime.GetAnalytics(SelectedScope?.Value ?? PlaytimeScope.AllEmerald, range, now,
             activeSessions: DashboardText.Active(core, runtime, now));
         var r = _result;
-        Kpis.ReplaceWith([
+        UpdateItems(Kpis, [
             new PlaytimeKpiViewModel(DashboardText.Get("TotalPlaytime"), DashboardText.Duration(r.TotalPlaytime)),
             new PlaytimeKpiViewModel(DashboardText.Get("AverageSession"),
                 DashboardText.Duration(r.AverageCompletedSession)),
@@ -137,21 +137,35 @@ public partial class PlaytimePageViewModel(Core core, IInstancePlaytimeService p
                 (DayOfWeek)((i + (int)System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek) %
                             7))
             .ToArray();
-        Heatmap.ReplaceWith(weekdays.Select(day => new PlaytimeHeatRowViewModel(
-            System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedDayName(day), Enumerable
-                .Range(0, 24).Select(hour =>
-                {
-                    var duration = heat.GetValueOrDefault((day, hour))?.Duration ?? TimeSpan.Zero;
-                    return new PlaytimeHeatCellViewModel($"{day} {hour:00}", 0.08 + (0.92 * duration.TotalSeconds / max),
-                        $"{System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(day)} {hour:00}:00 · {DashboardText.Duration(duration)}");
-                }).ToArray())));
+        // Keep row containers alive; only replace cells whose displayed values changed.
+        for (var index = 0; index < weekdays.Length; index++)
+        {
+            var weekday = weekdays[index];
+            var label = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedDayName(weekday);
+            if (index >= Heatmap.Count)
+            {
+                Heatmap.Add(new PlaytimeHeatRowViewModel(label, []));
+            }
+            else if (Heatmap[index].Label != label)
+            {
+                Heatmap[index] = new PlaytimeHeatRowViewModel(label, []);
+            }
+
+            UpdateItems(Heatmap[index].Cells, Enumerable.Range(0, 24).Select(hour =>
+            {
+                var duration = heat.GetValueOrDefault((weekday, hour))?.Duration ?? TimeSpan.Zero;
+                return new PlaytimeHeatCellViewModel($"{weekday} {hour:00}", 0.08 + (0.92 * duration.TotalSeconds / max),
+                    $"{System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(weekday)} {hour:00}:00 · {DashboardText.Duration(duration)}");
+            }));
+        }
+
         var weekdayTotals = weekdays.Select(day => new
         {
             Day = day,
             Duration = TimeSpan.FromTicks(r.DailyBuckets.Where(x => x.Date.DayOfWeek == day).Sum(x => x.Duration.Ticks))
         }).ToArray();
         var dayMax = Math.Max(1, weekdayTotals.Max(x => x.Duration.TotalSeconds));
-        WeekdayBars.ReplaceWith(weekdayTotals.Select(x =>
+        UpdateItems(WeekdayBars, weekdayTotals.Select(x =>
             new PlaytimeBarViewModel(
                 System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedDayName(x.Day),
                 DashboardText.Duration(x.Duration), 48 * (x.Duration.TotalSeconds / dayMax))));
@@ -200,12 +214,37 @@ public partial class PlaytimePageViewModel(Core core, IInstancePlaytimeService p
             }).ToArray();
         var max = Math.Max(1, values.Select(x => x.Duration.TotalSeconds).DefaultIfEmpty().Max());
         ChartScale = DashboardText.Duration(TimeSpan.FromSeconds(max));
-        DailyBars.ReplaceWith(values.Select((x, i) => new PlaytimeBarViewModel(
+        UpdateItems(DailyBars, values.Select((x, i) => new PlaytimeBarViewModel(
             i % Math.Max(1, (int)Math.Ceiling(values.Length / 7d)) == 0
                 ? x.Start.ToString(mode == 2 ? "MMM yy" : "MMM d")
                 : string.Empty,
             $"{x.Start:d}" + (x.End != x.Start ? $" – {x.End:d}" : string.Empty) +
             $" · {DashboardText.Duration(x.Duration)}", 136 * (x.Duration.TotalSeconds / max))));
+    }
+
+    // These bounded, ordered projections use record equality. Avoid Reset/Add storms on
+    // live refreshes, preserving unchanged item containers, tooltips, and keyboard focus.
+    private static void UpdateItems<T>(ObservableCollection<T> target, IEnumerable<T> values)
+    {
+        var index = 0;
+        foreach (var value in values)
+        {
+            if (index == target.Count)
+            {
+                target.Add(value);
+            }
+            else if (!EqualityComparer<T>.Default.Equals(target[index], value))
+            {
+                target[index] = value;
+            }
+
+            index++;
+        }
+
+        while (target.Count > index)
+        {
+            target.RemoveAt(target.Count - 1);
+        }
     }
 
     private static string PageText(int page, int size, int count)
@@ -229,12 +268,12 @@ public partial class PlaytimePageViewModel(Core core, IInstancePlaytimeService p
 
     private void UpdatePages()
     {
-        Sessions.ReplaceWith(_result.Sessions.Skip(_sessionPage * 10).Take(10).Select(s =>
+        UpdateItems(Sessions, _result.Sessions.Skip(_sessionPage * 10).Take(10).Select(s =>
             new PlaytimeSessionRow(s.InstanceNameSnapshot,
                 s.TargetDisplayNameSnapshot ?? DashboardText.Target(s.TargetKind), DashboardText.Glyph(s.TargetKind),
                 DashboardText.Duration(s.Playtime), DashboardText.Relative(s.StartedAt))));
         var max = Math.Max(1, _result.InstanceRanking.Select(x => x.Duration.TotalSeconds).DefaultIfEmpty().Max());
-        Rankings.ReplaceWith(_result.InstanceRanking.Skip(_rankingPage * 5).Take(5).Select((s, i) =>
+        UpdateItems(Rankings, _result.InstanceRanking.Skip(_rankingPage * 5).Take(5).Select((s, i) =>
             new PlaytimeRankingRow(_rankingPage * 5 + i + 1, s.DisplayName, DashboardText.Duration(s.Duration),
                 100 * (s.Duration.TotalSeconds / max))));
         foreach (var name in new[]
