@@ -1,10 +1,10 @@
+using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Emerald.CoreX.Services;
 using Emerald.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Storage;
@@ -15,13 +15,15 @@ namespace Emerald.Controls;
 public sealed partial class QuickProfileEditor : UserControl
 {
     private const int BlockPageSize = 36;
-    private readonly List<ToggleButton> _colorButtons = [];
-    private IReadOnlyList<BlockIconOption> _blocks = [];
+    private IReadOnlyList<BlockIconOption> _allBlocks = [];
     private int _blockPage;
     private bool _settingColor;
     private bool _loadedBlocks;
 
     public QuickProfileEditorViewModel ViewModel { get; }
+    public ObservableCollection<QuickProfileGlyphOption> GlyphItems { get; } = [];
+    public ObservableCollection<BlockIconOption> BlockItems { get; } = [];
+    public ObservableCollection<ProfileColorOption> ColorItems { get; } = [];
 
     public QuickProfileEditor(QuickProfileEditorViewModel viewModel)
     {
@@ -29,11 +31,10 @@ public sealed partial class QuickProfileEditor : UserControl
         InitializeComponent();
         DataContext = ViewModel;
         Setup.IsExpanded = ViewModel.HasError;
-        SizeChanged += (_, _) => UpdatePickerLayout();
-        BuildColorChoices();
+        BuildColorItems();
         SetPickerColor(ViewModel.Accent?.Value ?? 0xFF107C10);
         UpdateIconType();
-        RenderGlyphs();
+        UpdateGlyphItems();
     }
 
     private async void Editor_Loaded(object sender, RoutedEventArgs e)
@@ -44,49 +45,28 @@ public sealed partial class QuickProfileEditor : UserControl
         {
             var file = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/blocks/blocks.json"));
             await using var stream = await file.OpenStreamForReadAsync();
-            _blocks = await JsonSerializer.DeserializeAsync<List<BlockIconOption>>(stream) ?? [];
+            _allBlocks = await JsonSerializer.DeserializeAsync<List<BlockIconOption>>(stream) ?? [];
             if (ViewModel.IsBlockIcon && ViewModel.BlockIconFileName is { } selected)
             {
-                var index = FilteredBlocks().ToList().FindIndex(x => x.FileName == selected);
+                var index = _allBlocks.ToList().FindIndex(x => x.FileName == selected);
                 if (index >= 0) _blockPage = index / BlockPageSize;
             }
         }
         catch
         {
-            _blocks = [];
+            _allBlocks = [];
         }
 
-        RenderBlocks();
+        UpdateBlockItems();
+        SelectCurrentItems();
     }
 
-    private void BuildColorChoices()
+    private void BuildColorItems()
     {
-        ColorChoices.Children.Clear();
-        _colorButtons.Clear();
-        ColorChoices.ColumnDefinitions.Clear();
-        var columns = PickerColumns(144);
-        for (var i = 0; i < columns; i++) ColorChoices.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
-        ColorChoices.RowDefinitions.Clear();
-        for (var i = 0; i < (ViewModel.Colors.Count + columns - 1) / columns; i++)
-            ColorChoices.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        ColorItems.Clear();
         foreach (var color in ViewModel.Colors)
-        {
-            var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-            row.Children.Add(new Border { Width = 18, Height = 18, CornerRadius = new(9), Background = Brush(color.Value) });
-            row.Children.Add(new TextBlock { Text = color.Label });
-            var button = new ToggleButton { Content = row, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Left, IsChecked = ViewModel.Accent?.Value == color.Value };
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, color.Label);
-            button.Click += (_, _) =>
-            {
-                ViewModel.SetAccent(color.Value);
-                SetPickerColor(color.Value);
-                UpdateColorSelection();
-            };
-            Grid.SetColumn(button, ColorChoices.Children.Count % columns);
-            Grid.SetRow(button, ColorChoices.Children.Count / columns);
-            ColorChoices.Children.Add(button);
-            _colorButtons.Add(button);
-        }
+            ColorItems.Add(new ProfileColorOption(color.Value, color.Label));
+        SelectCurrentItems();
     }
 
     private void GlyphType_Click(object sender, RoutedEventArgs e)
@@ -107,66 +87,33 @@ public sealed partial class QuickProfileEditor : UserControl
         BlockTypeButton.IsChecked = ViewModel.IsBlockIcon;
         GlyphChoices.Visibility = ViewModel.IsGlyphIcon ? Visibility.Visible : Visibility.Collapsed;
         BlockPicker.Visibility = ViewModel.IsBlockIcon ? Visibility.Visible : Visibility.Collapsed;
-        if (ViewModel.IsGlyphIcon) RenderGlyphs(); else RenderBlocks();
+        SelectCurrentItems();
     }
 
     private void IconSearch_TextChanged(object sender, TextChangedEventArgs e)
     {
         _blockPage = 0;
-        RenderGlyphs();
-        RenderBlocks();
+        UpdateGlyphItems();
+        UpdateBlockItems();
+        SelectCurrentItems();
     }
 
-    private void RenderGlyphs()
+    private void UpdateGlyphItems()
     {
-        if (GlyphChoices == null) return;
-        var columns = PickerColumns(144);
-        PrepareGrid(GlyphChoices, columns, ViewModel.Icons.Count);
+        GlyphItems.Clear();
         var query = IconSearch?.Text?.Trim() ?? string.Empty;
-        var icons = ViewModel.Icons.Where(x => Matches(x.Key, query) || Matches(x.Label, query)).ToArray();
-        for (var index = 0; index < icons.Length; index++)
-        {
-            var icon = icons[index];
-            var content = new StackPanel { Spacing = 4, HorizontalAlignment = HorizontalAlignment.Center };
-            content.Children.Add(new FontIcon { Glyph = icon.Glyph, FontSize = 22 });
-            content.Children.Add(new TextBlock { Text = icon.Label, TextTrimming = TextTrimming.CharacterEllipsis, HorizontalAlignment = HorizontalAlignment.Center });
-            var button = new ToggleButton { Content = content, Height = 64, HorizontalAlignment = HorizontalAlignment.Stretch, IsChecked = ViewModel.IsGlyphIcon && ViewModel.Icon?.Key == icon.Key };
-            ToolTipService.SetToolTip(button, icon.Label);
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, icon.Label);
-            button.Click += (_, _) => { ViewModel.SelectGlyph(icon); UpdateIconType(); };
-            Grid.SetColumn(button, index % columns);
-            Grid.SetRow(button, index / columns);
-            GlyphChoices.Children.Add(button);
-        }
+        foreach (var icon in ViewModel.Icons.Where(x => Matches(x.Key, query) || Matches(x.Label, query)))
+            GlyphItems.Add(icon);
     }
 
-    private void RenderBlocks()
+    private void UpdateBlockItems()
     {
-        if (BlockChoices == null || BlockPageText == null) return;
-        var columns = PickerColumns(176);
-        PrepareGrid(BlockChoices, columns, BlockPageSize);
+        BlockItems.Clear();
         var matches = FilteredBlocks().ToArray();
         var pageCount = Math.Max(1, (int)Math.Ceiling(matches.Length / (double)BlockPageSize));
         _blockPage = Math.Clamp(_blockPage, 0, pageCount - 1);
-        var page = matches.Skip(_blockPage * BlockPageSize).Take(BlockPageSize).ToArray();
-        for (var index = 0; index < page.Length; index++)
-        {
-            var block = page[index];
-            var content = new Grid { ColumnSpacing = 8 };
-            content.ColumnDefinitions.Add(new() { Width = new GridLength(40) });
-            content.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
-            content.Children.Add(new Image { Source = new BitmapImage(BlockUri(block.FileName)), Width = 40, Height = 40, Stretch = Stretch.Uniform, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center });
-            var label = new TextBlock { Text = block.Name, MaxLines = 2, TextWrapping = TextWrapping.Wrap, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center };
-            Grid.SetColumn(label, 1);
-            content.Children.Add(label);
-            var button = new ToggleButton { Content = content, MinHeight = 72, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, IsChecked = ViewModel.IsBlockIcon && ViewModel.BlockIconFileName == block.FileName };
-            ToolTipService.SetToolTip(button, block.Name);
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, block.Name);
-            button.Click += (_, _) => { ViewModel.SelectBlock(block.FileName); UpdateIconType(); };
-            Grid.SetColumn(button, index % columns);
-            Grid.SetRow(button, index / columns);
-            BlockChoices.Children.Add(button);
-        }
+        foreach (var block in matches.Skip(_blockPage * BlockPageSize).Take(BlockPageSize))
+            BlockItems.Add(block);
 
         BlockPageText.Text = matches.Length == 0 ? DashboardText.Get("NoMatches") : DashboardText.Format("PageOf", _blockPage + 1, pageCount);
         PreviousBlockButton.IsEnabled = _blockPage > 0;
@@ -176,11 +123,59 @@ public sealed partial class QuickProfileEditor : UserControl
     private IEnumerable<BlockIconOption> FilteredBlocks()
     {
         var query = IconSearch?.Text?.Trim() ?? string.Empty;
-        return _blocks.Where(x => Matches(x.Name, query) || Matches(x.FileName, query));
+        return _allBlocks.Where(x => Matches(x.Name, query) || Matches(x.FileName, query));
     }
 
-    private void PreviousBlock_Click(object sender, RoutedEventArgs e) { _blockPage--; RenderBlocks(); }
-    private void NextBlock_Click(object sender, RoutedEventArgs e) { _blockPage++; RenderBlocks(); }
+    private void GlyphChoices_ItemClick(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is QuickProfileGlyphOption icon)
+        {
+            ViewModel.SelectGlyph(icon);
+            SelectCurrentItems();
+        }
+    }
+
+    private void BlockChoices_ItemClick(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is BlockIconOption block)
+        {
+            ViewModel.SelectBlock(block.FileName);
+            SelectCurrentItems();
+        }
+    }
+
+    private void ColorChoices_ItemClick(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is ProfileColorOption color)
+        {
+            ViewModel.SetAccent(color.Value);
+            SetPickerColor(color.Value);
+            SelectCurrentItems();
+        }
+    }
+
+    private void SelectCurrentItems()
+    {
+        if (GlyphChoices == null) return;
+        GlyphChoices.SelectedItem = GlyphItems.FirstOrDefault(x => ViewModel.IsGlyphIcon && x.Key == ViewModel.Icon?.Key);
+        BlockChoices.SelectedItem = BlockItems.FirstOrDefault(x => ViewModel.IsBlockIcon && x.FileName == ViewModel.BlockIconFileName);
+        ColorChoices.SelectedItem = ColorItems.FirstOrDefault(x => x.Value == ViewModel.Accent?.Value);
+    }
+
+    private void PreviousBlock_Click(object sender, RoutedEventArgs e)
+    {
+        if (_blockPage <= 0) return;
+        _blockPage--;
+        UpdateBlockItems();
+        SelectCurrentItems();
+    }
+
+    private void NextBlock_Click(object sender, RoutedEventArgs e)
+    {
+        _blockPage++;
+        UpdateBlockItems();
+        SelectCurrentItems();
+    }
 
     private void CustomColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
     {
@@ -189,7 +184,7 @@ public sealed partial class QuickProfileEditor : UserControl
         var argb = 0xFF000000u | ((uint)color.R << 16) | ((uint)color.G << 8) | color.B;
         ViewModel.SetAccent(argb);
         CustomColorSwatch.Background = Brush(argb);
-        UpdateColorSelection();
+        SelectCurrentItems();
     }
 
     private void SetPickerColor(uint argb)
@@ -200,38 +195,32 @@ public sealed partial class QuickProfileEditor : UserControl
         _settingColor = false;
     }
 
-    private void UpdateColorSelection()
-    {
-        for (var index = 0; index < _colorButtons.Count; index++)
-            _colorButtons[index].IsChecked = ViewModel.Accent?.Value == ViewModel.Colors[index].Value;
-    }
-
-    private int PickerColumns(double minimumWidth) => Math.Max(1, (int)(Math.Min(1000, Math.Max(240, ActualWidth - 32)) / minimumWidth));
-
-    private double _pickerWidth;
-    private void UpdatePickerLayout()
-    {
-        if (Math.Abs(ActualWidth - _pickerWidth) < 1) return;
-        _pickerWidth = ActualWidth;
-        BuildColorChoices();
-        RenderGlyphs();
-        RenderBlocks();
-    }
-
-    private static void PrepareGrid(Grid grid, int columns, int count)
-    {
-        grid.Children.Clear();
-        grid.ColumnDefinitions.Clear();
-        grid.RowDefinitions.Clear();
-        for (var column = 0; column < columns; column++) grid.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
-        for (var row = 0; row < (count + columns - 1) / columns; row++) grid.RowDefinitions.Add(new() { Height = GridLength.Auto });
-    }
-
     private static bool Matches(string value, string query) => string.IsNullOrWhiteSpace(query) || value.Contains(query, StringComparison.OrdinalIgnoreCase);
-    private static Uri BlockUri(string fileName) => new($"ms-appx:///Assets/blocks/{Uri.EscapeDataString(Path.GetFileName(fileName))}");
     private static SolidColorBrush Brush(uint argb) => new(Color.FromArgb(255, (byte)(argb >> 16), (byte)(argb >> 8), (byte)argb));
+}
 
-    private sealed record BlockIconOption(
-        [property: JsonPropertyName("fileName")] string FileName,
-        [property: JsonPropertyName("name")] string Name);
+public sealed class ProfileColorOption
+{
+    public uint Value { get; }
+    public string Label { get; }
+    public SolidColorBrush Brush { get; }
+
+    public ProfileColorOption(uint value, string label)
+    {
+        Value = value;
+        Label = label;
+        Brush = new(Color.FromArgb(255, (byte)(value >> 16), (byte)(value >> 8), (byte)value));
+    }
+}
+
+public sealed class BlockIconOption
+{
+    [JsonPropertyName("fileName")]
+    public string FileName { get; set; } = string.Empty;
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonIgnore]
+    public BitmapImage Image => new(new Uri($"ms-appx:///Assets/blocks/{Uri.EscapeDataString(Path.GetFileName(FileName))}"));
 }
