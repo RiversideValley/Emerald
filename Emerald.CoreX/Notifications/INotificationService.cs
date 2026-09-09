@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Emerald.CoreX.Notifications;
+
 public interface INotificationService
 {
     ObservableCollection<Notification> ActiveNotifications { get; }
@@ -36,7 +37,8 @@ public interface INotificationService
     /// <param name="message">The updated message content of the notification. Optional.</param>
     /// <param name="progress">The updated progress value of the notification, ranging from 0 to 1. Optional.</param>
     /// <param name="isIndeterminate">Indicates whether the progress is set to indeterminate. Optional.</param>
-    void Update(string? id = null, string? title = null, string? message = null, double? progress = null, bool? isIndeterminate = null);
+    void Update(string? id = null, string? title = null, string? message = null, double? progress = null,
+        bool? isIndeterminate = null);
 
     /// <summary>
     /// Completes a notification with the specified ID, indicating success or failure, and includes

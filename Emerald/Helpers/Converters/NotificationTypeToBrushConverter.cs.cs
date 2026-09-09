@@ -11,11 +11,11 @@ namespace Emerald.Helpers.Converters;
 
 public class NotificationTypeToBrushConverter : IValueConverter
 {
-    public SolidColorBrush InfoBrush { get; set; } = new SolidColorBrush(Colors.LightBlue);
-    public SolidColorBrush WarningBrush { get; set; } = new SolidColorBrush(Colors.LightGoldenrodYellow);
-    public SolidColorBrush ErrorBrush { get; set; } = new SolidColorBrush(Colors.LightCoral);
-    public SolidColorBrush SuccessBrush { get; set; } = new SolidColorBrush(Colors.LightGreen);
-    public SolidColorBrush ProgressBrush { get; set; } = new SolidColorBrush(Colors.LightGray);
+    public SolidColorBrush InfoBrush { get; set; } = new(Colors.LightBlue);
+    public SolidColorBrush WarningBrush { get; set; } = new(Colors.LightGoldenrodYellow);
+    public SolidColorBrush ErrorBrush { get; set; } = new(Colors.LightCoral);
+    public SolidColorBrush SuccessBrush { get; set; } = new(Colors.LightGreen);
+    public SolidColorBrush ProgressBrush { get; set; } = new(Colors.LightGray);
 
     public object Convert(object value, Type targetType, object parameter, string language)
     {
@@ -28,11 +28,15 @@ public class NotificationTypeToBrushConverter : IValueConverter
                 NotificationType.Error => ErrorBrush,
                 NotificationType.Success => SuccessBrush,
                 NotificationType.Progress => ProgressBrush,
-                _ => new SolidColorBrush(Colors.Transparent),
+                _ => new SolidColorBrush(Colors.Transparent)
             };
         }
+
         return new SolidColorBrush(Colors.Transparent);
     }
 
-    public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+    {
+        throw new NotImplementedException();
+    }
 }

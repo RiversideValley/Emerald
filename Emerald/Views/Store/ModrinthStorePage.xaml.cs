@@ -74,7 +74,7 @@ public sealed partial class ModrinthStorePage : Page
         }
     }
 
-    private void ModrinthStorePage_Unloaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    private void ModrinthStorePage_Unloaded(object sender, RoutedEventArgs e)
     {
         ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
         Unloaded -= ModrinthStorePage_Unloaded;

@@ -40,7 +40,8 @@ public sealed partial class ModrinthStoreInstalledPage : Page
         {
             XamlRoot = XamlRoot,
             Title = "Repair shared item?",
-            Content = $"Emerald can redownload \"{item.DisplayName}\" or remove its broken link and tracking reference.",
+            Content =
+                $"Emerald can redownload \"{item.DisplayName}\" or remove its broken link and tracking reference.",
             PrimaryButtonText = "Redownload",
             SecondaryButtonText = "Remove Reference",
             CloseButtonText = "Cancel",

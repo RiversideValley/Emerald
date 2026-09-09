@@ -18,6 +18,7 @@ using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.System;
+using CmlLib.Core;
 
 namespace Emerald.UserControls;
 
@@ -39,7 +40,8 @@ public sealed partial class MinecraftSettingsUC : UserControl
     }
 
     public static readonly DependencyProperty ShowMainSettingsProperty =
-        DependencyProperty.Register(nameof(ShowMainSettings), typeof(bool), typeof(MinecraftSettingsUC), new PropertyMetadata(false, OnShowMainSettingsChanged));
+        DependencyProperty.Register(nameof(ShowMainSettings), typeof(bool), typeof(MinecraftSettingsUC),
+            new PropertyMetadata(false, OnShowMainSettingsChanged));
 
     public Game? Game
     {
@@ -48,7 +50,8 @@ public sealed partial class MinecraftSettingsUC : UserControl
     }
 
     public static readonly DependencyProperty GameProperty =
-        DependencyProperty.Register(nameof(Game), typeof(Game), typeof(MinecraftSettingsUC), new PropertyMetadata(null, OnGameChanged));
+        DependencyProperty.Register(nameof(Game), typeof(Game), typeof(MinecraftSettingsUC),
+            new PropertyMetadata(null, OnGameChanged));
 
     public GameSettings? GameSettings
     {
@@ -57,7 +60,8 @@ public sealed partial class MinecraftSettingsUC : UserControl
     }
 
     public static readonly DependencyProperty GameSettingsProperty =
-        DependencyProperty.Register(nameof(GameSettings), typeof(GameSettings), typeof(MinecraftSettingsUC), new PropertyMetadata(null, OnGameSettingsChanged));
+        DependencyProperty.Register(nameof(GameSettings), typeof(GameSettings), typeof(MinecraftSettingsUC),
+            new PropertyMetadata(null, OnGameSettingsChanged));
 
     public Services.SettingsService SS { get; }
 
@@ -187,8 +191,9 @@ public sealed partial class MinecraftSettingsUC : UserControl
         var selectedMode = settingsService?.Settings.WindowsLinkMode ?? StoreLinkMode.HardLink;
 
         _isInitializingSharedStoreLinkMode = true;
-        SelectedSharedStoreLinkModeOption = SharedStoreLinkModeOptions.FirstOrDefault(option => option.Value == selectedMode)
-                                            ?? SharedStoreLinkModeOptions.FirstOrDefault();
+        SelectedSharedStoreLinkModeOption =
+            SharedStoreLinkModeOptions.FirstOrDefault(option => option.Value == selectedMode)
+            ?? SharedStoreLinkModeOptions.FirstOrDefault();
         _isInitializingSharedStoreLinkMode = false;
     }
 
@@ -203,7 +208,8 @@ public sealed partial class MinecraftSettingsUC : UserControl
         {
             XamlRoot = XamlRoot,
             Title = "Windows symbolic links",
-            Content = "Symbolic links may require Developer Mode or administrator permission on Windows. If linking fails, Emerald will fall back to copying the file.",
+            Content =
+                "Symbolic links may require Developer Mode or administrator permission on Windows. If linking fails, Emerald will fall back to copying the file.",
             CloseButtonText = "OK",
             DefaultButton = ContentDialogButton.Close
         };
@@ -220,7 +226,8 @@ public sealed partial class MinecraftSettingsUC : UserControl
 
         if (DirectResoucres.Platform == "Windows")
         {
-            WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
+            WinRT.Interop.InitializeWithWindow.Initialize(picker,
+                WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
         }
 
         var folder = await picker.PickSingleFolderAsync();
@@ -233,29 +240,33 @@ public sealed partial class MinecraftSettingsUC : UserControl
 
         var path = folder.Path;
         this.Log().LogInformation("New Minecraft path: {path}", path);
-        var core = Ioc.Default.GetService<CoreX.Core>();
+        var core = Ioc.Default.GetService<Core>();
         try
         {
-            await core.InitializeLocalAsync(new(path));
+            await core.InitializeLocalAsync(new MinecraftPath(path));
             SS.Settings.Minecraft.Path = path;
             _ = core.RefreshVersionCatalogAsync();
             await RefreshJavaOptionsAsync();
         }
         catch (InvalidOperationException ex)
         {
-            Ioc.Default.GetService<CoreX.Notifications.INotificationService>()
+            Ioc.Default.GetService<INotificationService>()
                 ?.Warning("Minecraft path unchanged", ex.Message);
         }
     }
 
     private async void ChangePath_OnClick(object sender, RoutedEventArgs e)
-        => await PickMinecraftFolderAsync();
+    {
+        await PickMinecraftFolderAsync();
+    }
 
     private void CopyPath_OnClick(object sender, RoutedEventArgs e)
     {
         try
         {
-            var path = ShowMainSettings ? SS.Settings.Minecraft.Path : Path.Combine(SS.Settings.Minecraft.Path, CoreX.Core.GamesFolderName);
+            var path = ShowMainSettings
+                ? SS.Settings.Minecraft.Path
+                : Path.Combine(SS.Settings.Minecraft.Path, Core.GamesFolderName);
             var dp = new DataPackage();
             dp.SetText(path);
             Clipboard.SetContent(dp);
@@ -277,9 +288,15 @@ public sealed partial class MinecraftSettingsUC : UserControl
         GameSettings.MaximumRamMb = Math.Clamp(newValue, MinRamMb, MaxRamMb);
     }
 
-    private void btnRamPlus_Click(object sender, RoutedEventArgs e) => AdjustRam(64);
+    private void btnRamPlus_Click(object sender, RoutedEventArgs e)
+    {
+        AdjustRam(64);
+    }
 
-    private void btnRamMinus_Click(object sender, RoutedEventArgs e) => AdjustRam(-64);
+    private void btnRamMinus_Click(object sender, RoutedEventArgs e)
+    {
+        AdjustRam(-64);
+    }
 
     private void GameOverrideToggle_Toggled(object sender, RoutedEventArgs e)
     {
@@ -313,7 +330,9 @@ public sealed partial class MinecraftSettingsUC : UserControl
     }
 
     private static void OnGameSettingsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        => ((MinecraftSettingsUC)d).HandleGameSettingsChanged(e.OldValue as GameSettings, e.NewValue as GameSettings);
+    {
+        ((MinecraftSettingsUC)d).HandleGameSettingsChanged(e.OldValue as GameSettings, e.NewValue as GameSettings);
+    }
 
     private void HandleGameSettingsChanged(GameSettings? oldSettings, GameSettings? newSettings)
     {
@@ -336,7 +355,8 @@ public sealed partial class MinecraftSettingsUC : UserControl
 
     private void UpdateOverrideState()
     {
-        if (GameOverrideCard == null || GameOverrideToggle == null || PerGameEditablePanel == null || UsingMainSettingsHint == null)
+        if (GameOverrideCard == null || GameOverrideToggle == null || PerGameEditablePanel == null ||
+            UsingMainSettingsHint == null)
         {
             return;
         }
@@ -364,7 +384,9 @@ public sealed partial class MinecraftSettingsUC : UserControl
     }
 
     private async void MinecraftSettingsUC_Loaded(object sender, RoutedEventArgs e)
-        => await RefreshJavaOptionsAsync();
+    {
+        await RefreshJavaOptionsAsync();
+    }
 
     private void MinecraftSettingsUC_Unloaded(object sender, RoutedEventArgs e)
     {
@@ -380,7 +402,9 @@ public sealed partial class MinecraftSettingsUC : UserControl
     }
 
     private async void RefreshJavaPaths_OnClick(object sender, RoutedEventArgs e)
-        => await RefreshJavaOptionsAsync();
+    {
+        await RefreshJavaOptionsAsync();
+    }
 
     private async void AddJavaFolder_OnClick(object sender, RoutedEventArgs e)
     {
@@ -389,7 +413,8 @@ public sealed partial class MinecraftSettingsUC : UserControl
 
         if (DirectResoucres.Platform == "Windows")
         {
-            WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
+            WinRT.Interop.InitializeWithWindow.Initialize(picker,
+                WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
         }
 
         var folder = await picker.PickSingleFolderAsync();
@@ -408,7 +433,8 @@ public sealed partial class MinecraftSettingsUC : UserControl
 
         if (DirectResoucres.Platform == "Windows")
         {
-            WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
+            WinRT.Interop.InitializeWithWindow.Initialize(picker,
+                WinRT.Interop.WindowNative.GetWindowHandle(App.Current.MainWindow));
         }
 
         var file = await picker.PickSingleFileAsync();
@@ -522,7 +548,8 @@ public sealed partial class MinecraftSettingsUC : UserControl
         var validation = await JavaCatalog().ValidateAsync(candidatePath);
         if (!validation.IsValid || string.IsNullOrWhiteSpace(validation.NormalizedPath))
         {
-            Notifications().Warning("JavaValidationFailed".Localize(), validation.ErrorMessage ?? "JavaValidationFailedMessage".Localize());
+            Notifications().Warning("JavaValidationFailed".Localize(),
+                validation.ErrorMessage ?? "JavaValidationFailedMessage".Localize());
             return;
         }
 
@@ -549,7 +576,8 @@ public sealed partial class MinecraftSettingsUC : UserControl
         var validation = await JavaCatalog().ValidateAsync(option.Path);
         if (!validation.IsValid || string.IsNullOrWhiteSpace(validation.NormalizedPath))
         {
-            Notifications().Warning("JavaValidationFailed".Localize(), validation.ErrorMessage ?? "JavaValidationFailedMessage".Localize());
+            Notifications().Warning("JavaValidationFailed".Localize(),
+                validation.ErrorMessage ?? "JavaValidationFailedMessage".Localize());
             await RefreshJavaOptionsAsync();
             return;
         }
@@ -570,7 +598,8 @@ public sealed partial class MinecraftSettingsUC : UserControl
 
         try
         {
-            var runtimes = await JavaCatalog().DiscoverAsync(GetCurrentMinecraftRootPath(), SS.Settings.Minecraft.SavedJavaPaths, _javaRefreshCts.Token);
+            var runtimes = await JavaCatalog().DiscoverAsync(GetCurrentMinecraftRootPath(),
+                SS.Settings.Minecraft.SavedJavaPaths, _javaRefreshCts.Token);
             JavaRuntimeOptions.Clear();
 
             foreach (var runtime in runtimes)
@@ -637,10 +666,13 @@ public sealed partial class MinecraftSettingsUC : UserControl
     ];
 
     private static bool IsSharedStoreToggleProperty(string? propertyName)
-        => propertyName != null && SharedStoreToggleProperties.Contains(propertyName);
+    {
+        return propertyName != null && SharedStoreToggleProperties.Contains(propertyName);
+    }
 
     private static bool GetSharedStoreToggleValue(GameSettings settings, string propertyName)
-        => propertyName switch
+    {
+        return propertyName switch
         {
             nameof(GameSettings.UseSharedStoreModsPath) => settings.UseSharedStoreModsPath,
             nameof(GameSettings.UseSharedStoreResourcePacksPath) => settings.UseSharedStoreResourcePacksPath,
@@ -648,16 +680,22 @@ public sealed partial class MinecraftSettingsUC : UserControl
             nameof(GameSettings.UseSharedStoreShaderPacksPath) => settings.UseSharedStoreShaderPacksPath,
             _ => false
         };
+    }
 
-    private static (StoreContentType ContentType, string InstallFolderName, string DisplayName) ResolveSharedStoreToggle(string propertyName)
-        => propertyName switch
+    private static (StoreContentType ContentType, string InstallFolderName, string DisplayName)
+        ResolveSharedStoreToggle(string propertyName)
+    {
+        return propertyName switch
         {
             nameof(GameSettings.UseSharedStoreModsPath) => (StoreContentType.Mod, "mods", "mods"),
-            nameof(GameSettings.UseSharedStoreResourcePacksPath) => (StoreContentType.ResourcePack, "resourcepacks", "resource packs"),
+            nameof(GameSettings.UseSharedStoreResourcePacksPath) => (StoreContentType.ResourcePack, "resourcepacks",
+                "resource packs"),
             nameof(GameSettings.UseSharedStoreDataPacksPath) => (StoreContentType.DataPack, "datapacks", "data packs"),
-            nameof(GameSettings.UseSharedStoreShaderPacksPath) => (StoreContentType.Shader, "shaderpacks", "shader packs"),
+            nameof(GameSettings.UseSharedStoreShaderPacksPath) => (StoreContentType.Shader, "shaderpacks",
+                "shader packs"),
             _ => throw new ArgumentOutOfRangeException(nameof(propertyName), propertyName, null)
         };
+    }
 
     private async Task HandleSharedStoreToggleMigrationAsync(string propertyName, bool enabled)
     {
@@ -667,7 +705,7 @@ public sealed partial class MinecraftSettingsUC : UserControl
         }
 
         var sharedContentService = Ioc.Default.GetService<IStoreSharedContentService>();
-        var core = Ioc.Default.GetService<CoreX.Core>();
+        var core = Ioc.Default.GetService<Core>();
         if (sharedContentService == null || core == null)
         {
             return;
@@ -708,7 +746,7 @@ public sealed partial class MinecraftSettingsUC : UserControl
                 await sharedContentService.ApplyMigrationAsync(plan, action);
             }
 
-            Ioc.Default.GetService<CoreX.Core>()?.SaveGames();
+            Ioc.Default.GetService<Core>()?.SaveGames();
         }
         finally
         {
@@ -716,7 +754,7 @@ public sealed partial class MinecraftSettingsUC : UserControl
         }
     }
 
-    private IEnumerable<Game> GetAffectedSharedStoreGames(CoreX.Core core)
+    private IEnumerable<Game> GetAffectedSharedStoreGames(Core core)
     {
         if (!ShowMainSettings && Game != null)
         {
@@ -840,7 +878,8 @@ public sealed partial class MinecraftSettingsUC : UserControl
             lines.Add($"{summary.BrokenOrMissingCount} broken or missing shared file(s) need repair.");
         }
 
-        lines.Add("Emerald will not change untracked, modified, or broken files unless you choose an option that includes them.");
+        lines.Add(
+            "Emerald will not change untracked, modified, or broken files unless you choose an option that includes them.");
         return string.Join(Environment.NewLine, lines);
     }
 
@@ -894,13 +933,17 @@ public sealed partial class MinecraftSettingsUC : UserControl
     }
 
     private bool IsCurrentJavaSelection(JavaRuntimeOptionViewModel option)
-        => PathsEqual(GameSettings?.JavaPath, option.Path);
+    {
+        return PathsEqual(GameSettings?.JavaPath, option.Path);
+    }
 
     private static bool PathsEqual(string? left, string? right)
-        => string.Equals(
+    {
+        return string.Equals(
             left,
             right,
             OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+    }
 
     private string? GetCurrentMinecraftRootPath()
     {
@@ -919,12 +962,16 @@ public sealed partial class MinecraftSettingsUC : UserControl
     }
 
     private IJavaRuntimeCatalogService JavaCatalog()
-        => Ioc.Default.GetService<IJavaRuntimeCatalogService>()
-           ?? throw new InvalidOperationException("Java runtime catalog service is not available.");
+    {
+        return Ioc.Default.GetService<IJavaRuntimeCatalogService>()
+               ?? throw new InvalidOperationException("Java runtime catalog service is not available.");
+    }
 
     private INotificationService Notifications()
-        => Ioc.Default.GetService<INotificationService>()
-           ?? throw new InvalidOperationException("Notification service is not available.");
+    {
+        return Ioc.Default.GetService<INotificationService>()
+               ?? throw new InvalidOperationException("Notification service is not available.");
+    }
 
     private void EnsureSavedJavaPath(string normalizedPath)
     {
@@ -950,7 +997,9 @@ public sealed partial class MinecraftSettingsUC : UserControl
 
     private void OpenPath_OnClick(object sender, RoutedEventArgs e)
     {
-        var path = ShowMainSettings ? SS.Settings.Minecraft.Path : Path.Combine(SS.Settings.Minecraft.Path, CoreX.Core.GamesFolderName);
+        var path = ShowMainSettings
+            ? SS.Settings.Minecraft.Path
+            : Path.Combine(SS.Settings.Minecraft.Path, Core.GamesFolderName);
         path.RevealInFinder();
     }
 }

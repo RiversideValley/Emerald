@@ -147,11 +147,15 @@ public sealed class FileCrashReportStore : ICrashReportStore
     }
 
     public CrashRecord? Get(string id)
-        => GetAll().FirstOrDefault(record => string.Equals(record.Id, id, StringComparison.Ordinal));
+    {
+        return GetAll().FirstOrDefault(record => string.Equals(record.Id, id, StringComparison.Ordinal));
+    }
 
     public bool HasReportForRun(string runId)
-        => !string.IsNullOrWhiteSpace(runId)
-           && GetAll().Any(record => string.Equals(record.RunId, runId, StringComparison.Ordinal));
+    {
+        return !string.IsNullOrWhiteSpace(runId)
+               && GetAll().Any(record => string.Equals(record.RunId, runId, StringComparison.Ordinal));
+    }
 
     public bool TryAcknowledge(string id)
     {
@@ -180,7 +184,7 @@ public sealed class FileCrashReportStore : ICrashReportStore
                     return false;
                 }
 
-                Directory.Delete(directory, recursive: true);
+                Directory.Delete(directory, true);
                 return true;
             }
             catch
@@ -251,19 +255,25 @@ public sealed class FallbackCrashReportStore : ICrashReportStore
     public string ReportsPath => _stores[0].ReportsPath;
 
     public bool TryWrite(CrashRecord record)
-        => TryWrite(store => store.TryWrite(record));
+    {
+        return TryWrite(store => store.TryWrite(record));
+    }
 
     public bool TryWriteFatal(CrashRecord record)
-        => TryWrite(store => store.TryWriteFatal(record));
+    {
+        return TryWrite(store => store.TryWriteFatal(record));
+    }
 
     public IReadOnlyList<CrashRecord> GetAll()
-        => _stores
+    {
+        return _stores
             .SelectMany(SafeGetAll)
             .GroupBy(record => record.Id, StringComparer.Ordinal)
             .Select(group => group.First())
             .OrderByDescending(record => record.OccurredUtc)
             .ThenByDescending(record => record.Id, StringComparer.Ordinal)
             .ToArray();
+    }
 
     public CrashRecord? Get(string id)
     {
@@ -286,7 +296,8 @@ public sealed class FallbackCrashReportStore : ICrashReportStore
     }
 
     public bool HasReportForRun(string runId)
-        => _stores.Any(store =>
+    {
+        return _stores.Any(store =>
         {
             try
             {
@@ -297,12 +308,17 @@ public sealed class FallbackCrashReportStore : ICrashReportStore
                 return false;
             }
         });
+    }
 
     public bool TryAcknowledge(string id)
-        => TryForReport(id, store => store.TryAcknowledge(id));
+    {
+        return TryForReport(id, store => store.TryAcknowledge(id));
+    }
 
     public bool TryDelete(string id)
-        => TryForReport(id, store => store.TryDelete(id));
+    {
+        return TryForReport(id, store => store.TryDelete(id));
+    }
 
     public int DeleteAll()
     {
@@ -389,14 +405,14 @@ internal static class AtomicFile
                        FileMode.CreateNew,
                        FileAccess.Write,
                        FileShare.Read,
-                       bufferSize: 4096,
-                       options: FileOptions.WriteThrough))
+                       4096,
+                       FileOptions.WriteThrough))
             {
                 stream.Write(bytes, 0, bytes.Length);
-                stream.Flush(flushToDisk: true);
+                stream.Flush(true);
             }
 
-            File.Move(temporaryPath, path, overwrite: true);
+            File.Move(temporaryPath, path, true);
         }
         finally
         {

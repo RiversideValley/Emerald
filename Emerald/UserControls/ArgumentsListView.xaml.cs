@@ -39,7 +39,9 @@ public sealed partial class ArgumentsListView : UserControl
         var control = (ArgumentsListView)d;
 
         if (e.OldValue is ObservableCollection<string> oldCol)
+        {
             oldCol.CollectionChanged -= control.ExternalChanged;
+        }
 
         if (e.NewValue is ObservableCollection<string> newCol)
         {
@@ -53,7 +55,10 @@ public sealed partial class ArgumentsListView : UserControl
     {
         _internal.Clear();
 
-        if (Args == null) return;
+        if (Args == null)
+        {
+            return;
+        }
 
         foreach (var s in Args)
         {
@@ -66,23 +71,33 @@ public sealed partial class ArgumentsListView : UserControl
     // Sync internal → external
     private void SyncToExternal()
     {
-        if (Args == null) return;
+        if (Args == null)
+        {
+            return;
+        }
 
         Args.CollectionChanged -= ExternalChanged;
         Args.Clear();
         foreach (var arg in _internal)
+        {
             Args.Add(arg.Value);
+        }
+
         Args.CollectionChanged += ExternalChanged;
     }
 
     private void InternalArgChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(LaunchArg.Value))
+        {
             SyncToExternal();
+        }
     }
 
-    private void ExternalChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
+    private void ExternalChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
         SyncFromExternal();
+    }
 
     private void btnAdd_Click(object sender, RoutedEventArgs e)
     {
@@ -108,9 +123,12 @@ public sealed partial class ArgumentsListView : UserControl
     {
         btnRemove.IsEnabled = view.SelectedItems.Any();
     }
+
     private void TextBox_GotFocus(object sender, RoutedEventArgs e)
     {
         if (sender is TextBox tb && tb.DataContext is LaunchArg arg)
+        {
             view.SelectedItem = arg;
+        }
     }
 }

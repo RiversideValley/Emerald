@@ -24,7 +24,10 @@ public sealed partial class HomePage : Page
         _timer.Tick += (_, _) =>
         {
             ViewModel.RefreshRuntime();
-            if (++ticks % 30 == 0) ViewModel.RefreshAnalytics();
+            if (++ticks % 30 == 0)
+            {
+                ViewModel.RefreshAnalytics();
+            }
         };
     }
 
@@ -43,7 +46,10 @@ public sealed partial class HomePage : Page
 
     private MainPage? Shell => App.Current?.MainWindow?.Content is Frame { Content: MainPage main } ? main : null;
 
-    private void Accounts_Click(object sender, RoutedEventArgs e) => Shell?.NavigateToTag("Accounts");
+    private void Accounts_Click(object sender, RoutedEventArgs e)
+    {
+        Shell?.NavigateToTag("Accounts");
+    }
 
     private void Primary_Click(object sender, RoutedEventArgs e)
     {
@@ -62,22 +68,36 @@ public sealed partial class HomePage : Page
         ViewModel.LaunchCommand.Execute(null);
     }
 
-    private void Instances_Click(object sender, RoutedEventArgs e) =>
+    private void Instances_Click(object sender, RoutedEventArgs e)
+    {
         Shell?.NavigateToTag("Instances", ViewModel.SelectedGame);
+    }
 
-    private void Logs_Click(object sender, RoutedEventArgs e) => Shell?.NavigateToTag("Logs", ViewModel.SelectedGame);
+    private void Logs_Click(object sender, RoutedEventArgs e)
+    {
+        Shell?.NavigateToTag("Logs", ViewModel.SelectedGame);
+    }
 
-    private void Servers_Click(object sender, RoutedEventArgs e) =>
+    private void Servers_Click(object sender, RoutedEventArgs e)
+    {
         Frame.Navigate(typeof(ServersPage), ViewModel.SelectedGame);
+    }
 
-    private void Worlds_Click(object sender, RoutedEventArgs e) =>
+    private void Worlds_Click(object sender, RoutedEventArgs e)
+    {
         Frame.Navigate(typeof(WorldsPage), ViewModel.SelectedGame);
+    }
 
-    private void PlaytimeCard_Click(object sender, RoutedEventArgs e) => Frame.Navigate(typeof(PlaytimePage),
-        new PlaytimeNavigation(ViewModel.CurrentPlaytimeScope, PlaytimeRange.SevenDays));
+    private void PlaytimeCard_Click(object sender, RoutedEventArgs e)
+    {
+        Frame.Navigate(typeof(PlaytimePage),
+            new PlaytimeNavigation(ViewModel.CurrentPlaytimeScope, PlaytimeRange.SevenDays));
+    }
 
-    private void MainMenu_Click(object sender, RoutedEventArgs e) =>
+    private void MainMenu_Click(object sender, RoutedEventArgs e)
+    {
         ViewModel.SelectedDestination = MinecraftLaunchTargetKind.MainMenu;
+    }
 
     private void Layout_SizeChanged(object sender, SizeChangedEventArgs e)
     {
@@ -114,11 +134,17 @@ public sealed partial class HomePage : Page
         }
     }
 
-    private async void AddProfile_Click(object sender, RoutedEventArgs e) => await ShowProfileEditorAsync(null);
+    private async void AddProfile_Click(object sender, RoutedEventArgs e)
+    {
+        await ShowProfileEditorAsync(null);
+    }
 
     private void ProfileMenu_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not FrameworkElement { Tag: QuickProfile profile } anchor) return;
+        if (sender is not FrameworkElement { Tag: QuickProfile profile } anchor)
+        {
+            return;
+        }
 
         var flyout = new MenuFlyout();
         Add(DashboardText.Get("Edit"), async () => await ShowProfileEditorAsync(profile));
@@ -171,7 +197,11 @@ public sealed partial class HomePage : Page
     private async Task ShowProfileEditorAsync(QuickProfile? existing)
     {
         var root = XamlRoot;
-        if (root == null) return;
+        if (root == null)
+        {
+            return;
+        }
+
         var draft = new QuickProfileEditorViewModel(ViewModel,
             Ioc.Default.GetRequiredService<IAccountService>(), Ioc.Default.GetRequiredService<IQuickProfileService>(),
             Ioc.Default.GetRequiredService<CoreX.Services.Worlds.IMinecraftWorldService>(), existing);
@@ -189,7 +219,10 @@ public sealed partial class HomePage : Page
         };
         draft.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(draft.CanSave)) dialog.IsPrimaryButtonEnabled = draft.CanSave;
+            if (e.PropertyName == nameof(draft.CanSave))
+            {
+                dialog.IsPrimaryButtonEnabled = draft.CanSave;
+            }
         };
         try
         {

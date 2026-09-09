@@ -20,10 +20,8 @@ public sealed partial class AccountService
             await _gate.WaitAsync().ConfigureAwait(false);
             try
             {
-                await _uiDispatcher.InvokeAsync(() =>
-                {
-                    ApplyLoadedAccountsCore(loadState.Accounts);
-                }).ConfigureAwait(false);
+                await _uiDispatcher.InvokeAsync(() => { ApplyLoadedAccountsCore(loadState.Accounts); })
+                    .ConfigureAwait(false);
             }
             finally
             {
@@ -32,7 +30,8 @@ public sealed partial class AccountService
 
             PersistAccounts();
             PublishProviderNotices(loadState.Notices);
-            _logger.LogInformation("Loaded {AccountCount} accounts from registered providers.", loadState.Accounts.Count);
+            _logger.LogInformation("Loaded {AccountCount} accounts from registered providers.",
+                loadState.Accounts.Count);
         }
         catch (Exception ex)
         {
@@ -49,7 +48,9 @@ public sealed partial class AccountService
     {
         var storedAccounts = _settingsService.Get(SettingsKeys.MinecraftAccounts, new List<EAccount>());
         foreach (var storedAccount in storedAccounts)
+        {
             EnsureProviderId(storedAccount);
+        }
 
         var loadedAccounts = new List<EAccount>();
         var notices = new List<AccountProviderNotice>();
@@ -76,10 +77,14 @@ public sealed partial class AccountService
     private void PublishProviderNotices(IEnumerable<AccountProviderNotice> notices)
     {
         if (_notificationService is null)
+        {
             return;
+        }
 
         foreach (var notice in notices)
+        {
             _notificationService.Warning(notice.Title, notice.Message);
+        }
     }
 
     private void ApplyLoadedAccountsCore(IEnumerable<EAccount> accounts)
@@ -93,7 +98,7 @@ public sealed partial class AccountService
         }
 
         RestoreSelectedAccountCore();
-        EnforceAccountSelectionPoliciesCore(persist: false);
+        EnforceAccountSelectionPoliciesCore(false);
     }
 
     private sealed record AccountLoadState(

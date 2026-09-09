@@ -19,7 +19,8 @@ public static class DirectResoucres
     private static readonly IReadOnlyDictionary<string, string> AssemblyMetadata = LoadAssemblyMetadata();
 
     public static int MaxRAM
-        => (DeviceInfoHelper.GetMemoryGB() ?? 192) * 1024; //switches PC ram if failed, I couldn't find the max ram for MC.
+        => (DeviceInfoHelper.GetMemoryGB() ?? 192) *
+           1024; //switches PC ram if failed, I couldn't find the max ram for MC.
 
     public static int MinRAM
         => 512;
@@ -32,16 +33,25 @@ public static class DirectResoucres
     {
         get
         {
-           if( OperatingSystem.IsWindows())
-            return "Windows";
+            if (OperatingSystem.IsWindows())
+            {
+                return "Windows";
+            }
             else if (OperatingSystem.IsLinux())
+            {
                 return "Linux";
+            }
             else if (OperatingSystem.IsMacOS())
+            {
                 return "OSX";
-           else
+            }
+            else
+            {
                 return "Unknown";
+            }
         }
     }
+
     public static string LocalDataPath
     {
         get
@@ -105,6 +115,7 @@ public static class DirectResoucres
             return Path.Combine(Path.GetTempPath(), "Emerald");
         }
     }
+
     public static string BuildType
     {
         get
@@ -116,6 +127,7 @@ public static class DirectResoucres
 #endif
         }
     }
+
     public static Architecture Architecture => RuntimeInformation.ProcessArchitecture;
 
     public static string AppVersion

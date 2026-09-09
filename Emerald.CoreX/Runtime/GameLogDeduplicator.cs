@@ -27,7 +27,7 @@ internal sealed class GameLogDeduplicator(TimeSpan? dedupeWindow = null)
             try
             {
                 return Ioc.Default.GetService<ILoggerFactory>()?.CreateLogger(typeof(GameLogDeduplicator).FullName!)
-                    ?? NullLogger.Instance;
+                       ?? NullLogger.Instance;
             }
             catch (InvalidOperationException)
             {
@@ -144,8 +144,10 @@ internal sealed class GameLogDeduplicator(TimeSpan? dedupeWindow = null)
     }
 
     private static bool AreMetadataCompatible(GameLogEntry existing, GameLogEntry incoming)
-        => AreCompatible(existing.ThreadName, incoming.ThreadName)
-            && AreCompatible(existing.LoggerName, incoming.LoggerName);
+    {
+        return AreCompatible(existing.ThreadName, incoming.ThreadName)
+               && AreCompatible(existing.LoggerName, incoming.LoggerName);
+    }
 
     private static bool AreCompatible(string? left, string? right)
     {
@@ -174,12 +176,15 @@ internal sealed class GameLogDeduplicator(TimeSpan? dedupeWindow = null)
         return false;
     }
 
-    private static int GetSourcePreference(GameLogSource source) => source switch
+    private static int GetSourcePreference(GameLogSource source)
     {
-        GameLogSource.StandardOutput => 2,
-        GameLogSource.StandardError => 1,
-        _ => 0
-    };
+        return source switch
+        {
+            GameLogSource.StandardOutput => 2,
+            GameLogSource.StandardError => 1,
+            _ => 0
+        };
+    }
 
     private static int GetRichnessScore(GameLogEntry entry)
     {
@@ -217,7 +222,7 @@ internal sealed class GameLogDeduplicator(TimeSpan? dedupeWindow = null)
 
         var trimmed = entry.RawPayload.TrimStart();
         return trimmed.StartsWith("<log4j:Event", StringComparison.Ordinal)
-            || trimmed.StartsWith("<Event", StringComparison.Ordinal);
+               || trimmed.StartsWith("<Event", StringComparison.Ordinal);
     }
 
     private static string NormalizeText(string? value)

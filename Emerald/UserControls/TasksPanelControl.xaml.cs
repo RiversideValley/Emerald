@@ -30,9 +30,9 @@ public sealed partial class TasksPanelControl : UserControl
     public TasksPanelControl()
     {
         _settingsService = Ioc.Default.GetService<SettingsService>()
-            ?? throw new InvalidOperationException("Settings service is not available.");
+                           ?? throw new InvalidOperationException("Settings service is not available.");
         _notificationService = Ioc.Default.GetService<INotificationService>()
-            ?? throw new InvalidOperationException("Notification service is not available.");
+                               ?? throw new InvalidOperationException("Notification service is not available.");
 
         InitializeComponent();
         Loaded += TasksPanelControl_Loaded;

@@ -21,13 +21,15 @@ public sealed class NetworkCapabilityServiceTests
 
         var results = await Task.WhenAll(first, second);
         Assert.All(results, result => Assert.Equal(NetworkAvailabilityState.Available, result.State));
-        Assert.Equal(NetworkAvailabilityState.Available, service.GetSnapshot(NetworkCapability.MinecraftMetadata).EffectiveState);
+        Assert.Equal(NetworkAvailabilityState.Available,
+            service.GetSnapshot(NetworkCapability.MinecraftMetadata).EffectiveState);
     }
 
     [Fact]
     public async Task ProbeAsync_ClassifiesServerFailureAsDegraded()
     {
-        using var service = new NetworkCapabilityService(new HttpClient(new StatusHandler(HttpStatusCode.ServiceUnavailable)));
+        using var service =
+            new NetworkCapabilityService(new HttpClient(new StatusHandler(HttpStatusCode.ServiceUnavailable)));
 
         var result = await service.ProbeAsync(NetworkCapability.MinecraftMetadata);
 
@@ -60,9 +62,13 @@ public sealed class NetworkCapabilityServiceTests
         private readonly TaskCompletionSource<bool> _release = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public int RequestCount { get; private set; }
 
-        public void Release() => _release.TrySetResult(true);
+        public void Release()
+        {
+            _release.TrySetResult(true);
+        }
 
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
         {
             RequestCount++;
             Started.TrySetResult(true);
@@ -73,7 +79,10 @@ public sealed class NetworkCapabilityServiceTests
 
     private sealed class StatusHandler(HttpStatusCode statusCode) : HttpMessageHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            => Task.FromResult(new HttpResponseMessage(statusCode));
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new HttpResponseMessage(statusCode));
+        }
     }
 }

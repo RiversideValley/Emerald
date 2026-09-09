@@ -43,32 +43,72 @@ public partial class HomePageViewModel : ObservableObject
     private string? _initializedBase;
     private readonly HashSet<EAccount> _trackedAccounts = [];
     private int _avatarVersion;
-    public IReadOnlyList<string> PlaytimeScopes { get; } = [DashboardText.Get("ThisInstance"), DashboardText.Get("AllEmerald")];
-    public int PlaytimeScopeIndex { get => ShowAllEmeraldPlaytime ? 1 : 0; set => ShowAllEmeraldPlaytime = value == 1; }
-    public PlaytimeScope CurrentPlaytimeScope => !ShowAllEmeraldPlaytime && SelectedGame != null && _core.BasePath != null
-        ? PlaytimeScope.ForInstance(_core.BasePath.BasePath, SelectedGame.InstanceId) : PlaytimeScope.AllEmerald;
-    public string DestinationTitle => SelectedDestination == MinecraftLaunchTargetKind.Server ? SelectedServer?.Name ?? DashboardText.Get("ChooseServer")
-        : SelectedDestination == MinecraftLaunchTargetKind.World ? SelectedWorld?.DisplayName ?? DashboardText.Get("ChooseWorld") : DashboardText.Get("MainMenu");
-    public string DestinationSubtitle => SelectedDestination == MinecraftLaunchTargetKind.Server ? SelectedServer?.Address ?? DashboardText.Get("BrowseServers")
-        : SelectedDestination == MinecraftLaunchTargetKind.World ? DashboardText.Get("World") : DashboardText.Get("MainMenuHint");
+
+    public IReadOnlyList<string> PlaytimeScopes { get; } =
+        [DashboardText.Get("ThisInstance"), DashboardText.Get("AllEmerald")];
+
+    public int PlaytimeScopeIndex
+    {
+        get => ShowAllEmeraldPlaytime ? 1 : 0;
+        set => ShowAllEmeraldPlaytime = value == 1;
+    }
+
+    public PlaytimeScope CurrentPlaytimeScope =>
+        !ShowAllEmeraldPlaytime && SelectedGame != null && _core.BasePath != null
+            ? PlaytimeScope.ForInstance(_core.BasePath.BasePath, SelectedGame.InstanceId)
+            : PlaytimeScope.AllEmerald;
+
+    public string DestinationTitle => SelectedDestination == MinecraftLaunchTargetKind.Server
+        ? SelectedServer?.Name ?? DashboardText.Get("ChooseServer")
+        : SelectedDestination == MinecraftLaunchTargetKind.World
+            ? SelectedWorld?.DisplayName ?? DashboardText.Get("ChooseWorld")
+            : DashboardText.Get("MainMenu");
+
+    public string DestinationSubtitle => SelectedDestination == MinecraftLaunchTargetKind.Server
+        ? SelectedServer?.Address ?? DashboardText.Get("BrowseServers")
+        : SelectedDestination == MinecraftLaunchTargetKind.World
+            ? DashboardText.Get("World")
+            : DashboardText.Get("MainMenuHint");
+
     public string DestinationGlyph => DashboardText.Glyph(SelectedDestination);
-    public string? DestinationImage => SelectedDestination == MinecraftLaunchTargetKind.World ? SelectedWorld?.IconPath : null;
+
+    public string? DestinationImage =>
+        SelectedDestination == MinecraftLaunchTargetKind.World ? SelectedWorld?.IconPath : null;
+
     public string? DestinationServerIcon => SelectedServerStatus?.IconDataUrl ?? SelectedServer?.IconUrl;
     public string DestinationServerMetadata => SelectedServerStatus?.Version ?? string.Empty;
-    public string DestinationServerStatus => IsSelectedServerStatusLoading ? DashboardText.Get("Loading") : SelectedServerStatus is { } status
-        ? status.State == ServerStatusState.Online
-            ? DashboardText.Format("Players", status.Players, status.MaxPlayers) + (status.LatencyMilliseconds is long latency ? $" · {latency} ms" : string.Empty)
-            : DashboardText.Get(status.State.ToString())
-        : string.Empty;
+
+    public string DestinationServerStatus => IsSelectedServerStatusLoading
+        ? DashboardText.Get("Loading")
+        : SelectedServerStatus is { } status
+            ? status.State == ServerStatusState.Online
+                ? DashboardText.Format("Players", status.Players, status.MaxPlayers) +
+                  (status.LatencyMilliseconds is long latency ? $" · {latency} ms" : string.Empty)
+                : DashboardText.Get(status.State.ToString())
+            : string.Empty;
+
     public bool HasLaunchMessage => !string.IsNullOrWhiteSpace(LaunchMessage);
     public bool HasProfiles => QuickProfiles.Count > 0;
-    public bool CanPlay => !IsBusy && SelectedGame?.HasActiveSession != true
-        && (!HasAccount || !IsWorldDestination || SelectedWorld?.CanQuickLaunch == true);
-    [ObservableProperty] private Microsoft.UI.Xaml.Media.ImageSource? _accountAvatar;
 
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(HasGames))][NotifyPropertyChangedFor(nameof(IsHeroEnabled))] private Game? _selectedGame;
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(HasAccount))][NotifyPropertyChangedFor(nameof(AccountName))][NotifyPropertyChangedFor(nameof(PrimaryButtonText))] private EAccount? _selectedAccount;
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(IsServerDestination))][NotifyPropertyChangedFor(nameof(IsWorldDestination))] private MinecraftLaunchTargetKind _selectedDestination = MinecraftLaunchTargetKind.MainMenu;
+    public bool CanPlay => !IsBusy && SelectedGame?.HasActiveSession != true
+                                   && (!HasAccount || !IsWorldDestination || SelectedWorld?.CanQuickLaunch == true);
+
+    [ObservableProperty] private ImageSource? _accountAvatar;
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasGames))] [NotifyPropertyChangedFor(nameof(IsHeroEnabled))]
+    private Game? _selectedGame;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasAccount))]
+    [NotifyPropertyChangedFor(nameof(AccountName))]
+    [NotifyPropertyChangedFor(nameof(PrimaryButtonText))]
+    private EAccount? _selectedAccount;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsServerDestination))]
+    [NotifyPropertyChangedFor(nameof(IsWorldDestination))]
+    private MinecraftLaunchTargetKind _selectedDestination = MinecraftLaunchTargetKind.MainMenu;
+
     [ObservableProperty] private SavedServer? _selectedServer;
     [ObservableProperty] private MinecraftWorld? _selectedWorld;
     [ObservableProperty] private ServerStatusSnapshot? _selectedServerStatus;
@@ -89,16 +129,26 @@ public partial class HomePageViewModel : ObservableObject
     public bool IsServerDestination => SelectedDestination == MinecraftLaunchTargetKind.Server;
     public bool IsWorldDestination => SelectedDestination == MinecraftLaunchTargetKind.World;
     public string AccountName => SelectedAccount?.Name ?? DashboardText.Get("ChooseAccount");
-    public string PrimaryButtonText => !HasAccount ? DashboardText.Get("ChooseAccount") : SelectedGame?.HasActiveSession == true ? DashboardText.Get("Running")
-        : IsBusy ? DashboardText.Get("Preparing") : SelectedGame?.CanLaunch != true ? DashboardText.Get("ManageInstance")
+
+    public string PrimaryButtonText => !HasAccount ? DashboardText.Get("ChooseAccount")
+        : SelectedGame?.HasActiveSession == true ? DashboardText.Get("Running")
+        : IsBusy ? DashboardText.Get("Preparing")
+        : SelectedGame?.CanLaunch != true ? DashboardText.Get("ManageInstance")
         : DashboardText.Get(IsServerDestination ? "JoinServer" : IsWorldDestination ? "PlayWorld" : "Play");
-    public string InstanceDetails => SelectedGame == null ? "No instance selected" : $"{SelectedGame.Version.Type} • {SelectedGame.Version.BasedOn} • {SelectedGame.InstallationStatusText}";
+
+    public string InstanceDetails => SelectedGame == null
+        ? "No instance selected"
+        : $"{SelectedGame.Version.Type} • {SelectedGame.Version.BasedOn} • {SelectedGame.InstallationStatusText}";
+
     public string RuntimeStatus => SelectedGame?.StatusText ?? "Install an instance to begin";
     public MinecraftWorld? MostRecentWorld => RecentWorlds.FirstOrDefault();
     public SavedServer? FavoriteServer => FavoriteServers.FirstOrDefault();
     public string MostRecentWorldText => MostRecentWorld?.DisplayName ?? "NoLocalWorldsYet".Localize();
 
-    public HomePageViewModel(Core core, IAccountService accounts, IGameRuntimeService runtime, IInstancePlaytimeService playtime, IHomePreferencesService preferences, ISavedServerService servers, IServerStatusService status, IMinecraftWorldService worlds, IMinecraftLaunchCapabilityResolver capabilities, IQuickProfileService profiles, INotificationService notifications, IUiDispatcher dispatcher)
+    public HomePageViewModel(Core core, IAccountService accounts, IGameRuntimeService runtime,
+        IInstancePlaytimeService playtime, IHomePreferencesService preferences, ISavedServerService servers,
+        IServerStatusService status, IMinecraftWorldService worlds, IMinecraftLaunchCapabilityResolver capabilities,
+        IQuickProfileService profiles, INotificationService notifications, IUiDispatcher dispatcher)
     {
         _core = core;
         _dispatcher = dispatcher;
@@ -129,52 +179,110 @@ public partial class HomePageViewModel : ObservableObject
             _initialized = true;
             _initializedBase = _core.BasePath?.BasePath;
             SelectedDestination = MinecraftLaunchTargetKind.MainMenu;
-            SelectedServer = null; SelectedWorld = null;
+            SelectedServer = null;
+            SelectedWorld = null;
             _homePreferences = _preferences.Load();
             ShowAllEmeraldPlaytime = _homePreferences.ShowAllEmeraldPlaytime;
             Games.ReplaceWith(_core.Games);
             SelectedGame = ResolveInitialGame();
         }
+
         FavoriteServers.ReplaceWith(_servers.GetAll());
         await LoadWorldsAsync();
-        RefreshProfiles(); RefreshAnalytics(); RefreshRuntime(); await RefreshFavoriteStatusAsync();
+        RefreshProfiles();
+        RefreshAnalytics();
+        RefreshRuntime();
+        await RefreshFavoriteStatusAsync();
     }
+
     private void SyncAccounts()
     {
-        foreach (var account in _trackedAccounts.Where(x => !_accounts.Accounts.Contains(x)).ToArray()) { account.PropertyChanged -= AccountChanged; _trackedAccounts.Remove(account); }
-        foreach (var account in _accounts.Accounts) if (_trackedAccounts.Add(account)) account.PropertyChanged += AccountChanged;
+        foreach (var account in _trackedAccounts.Where(x => !_accounts.Accounts.Contains(x)).ToArray())
+        {
+            account.PropertyChanged -= AccountChanged;
+            _trackedAccounts.Remove(account);
+        }
+
+        foreach (var account in _accounts.Accounts)
+        {
+            if (_trackedAccounts.Add(account))
+            {
+                account.PropertyChanged += AccountChanged;
+            }
+        }
     }
+
     private void AccountChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (!_dispatcher.HasThreadAccess) { _dispatcher.Invoke(() => AccountChanged(sender, e)); return; }
+        if (!_dispatcher.HasThreadAccess)
+        {
+            _dispatcher.Invoke(() => AccountChanged(sender, e));
+            return;
+        }
+
         if (e.PropertyName is nameof(EAccount.IsSelected) or nameof(EAccount.Name) or nameof(EAccount.Skin))
-        { SelectedAccount = _accounts.GetSelectedAccount(); OnPropertyChanged(nameof(AccountName)); _ = UpdateAvatarAsync(); }
+        {
+            SelectedAccount = _accounts.GetSelectedAccount();
+            OnPropertyChanged(nameof(AccountName));
+            _ = UpdateAvatarAsync();
+        }
     }
-    partial void OnSelectedAccountChanged(EAccount? value) => _ = UpdateAvatarAsync();
+
+    partial void OnSelectedAccountChanged(EAccount? value)
+    {
+        _ = UpdateAvatarAsync();
+    }
+
     private async Task UpdateAvatarAsync()
     {
-        var version = ++_avatarVersion; var account = SelectedAccount; AccountAvatar = null;
-        if (account == null) return;
+        var version = ++_avatarVersion;
+        var account = SelectedAccount;
+        AccountAvatar = null;
+        if (account == null)
+        {
+            return;
+        }
+
         try
         {
             var skin = account.Skin ?? await _accounts.GetSkinAsync(account);
             var image = await Controls.MinecraftSkinImageFactory.CreateHeadAsync(skin, 96);
-            if (version == _avatarVersion && ReferenceEquals(account, SelectedAccount)) AccountAvatar = image;
+            if (version == _avatarVersion && ReferenceEquals(account, SelectedAccount))
+            {
+                AccountAvatar = image;
+            }
         }
-        catch { /* Match the shell's non-blocking avatar fallback. */ }
+        catch
+        {
+            /* Match the shell's non-blocking avatar fallback. */
+        }
     }
+
     partial void OnSelectedGameChanged(Game? oldValue, Game? newValue)
     {
         ++_selectionVersion;
-        if (oldValue != null) oldValue.PropertyChanged -= OnGamePropertyChanged;
-        if (newValue != null) newValue.PropertyChanged += OnGamePropertyChanged;
+        if (oldValue != null)
+        {
+            oldValue.PropertyChanged -= OnGamePropertyChanged;
+        }
+
+        if (newValue != null)
+        {
+            newValue.PropertyChanged += OnGamePropertyChanged;
+        }
+
         _homePreferences.SelectedInstanceId = newValue?.InstanceId;
         _preferences.Save(_homePreferences);
         ActiveQuickProfileId = null;
         OnPropertyChanged(nameof(InstanceDetails));
         OnPropertyChanged(nameof(RuntimeStatus));
         OnPropertyChanged(nameof(PrimaryButtonText));
-        if (IsWorldDestination) { SelectedWorld = null; SelectedDestination = MinecraftLaunchTargetKind.MainMenu; }
+        if (IsWorldDestination)
+        {
+            SelectedWorld = null;
+            SelectedDestination = MinecraftLaunchTargetKind.MainMenu;
+        }
+
         _ = LoadWorldsAsync();
         RefreshAnalytics();
     }
@@ -185,7 +293,10 @@ public partial class HomePageViewModel : ObservableObject
         ActiveQuickProfileId = null;
         LaunchMessage = null;
         SelectionChanged();
-        if (value == MinecraftLaunchTargetKind.Server) _ = RefreshSelectedServerStatusAsync();
+        if (value == MinecraftLaunchTargetKind.Server)
+        {
+            _ = RefreshSelectedServerStatusAsync();
+        }
         else
         {
             _serverStatusCancellation?.Cancel();
@@ -199,11 +310,28 @@ public partial class HomePageViewModel : ObservableObject
         ++_selectionVersion;
         ActiveQuickProfileId = null;
         SelectionChanged();
-        if (IsServerDestination) _ = RefreshSelectedServerStatusAsync();
+        if (IsServerDestination)
+        {
+            _ = RefreshSelectedServerStatusAsync();
+        }
     }
-    partial void OnSelectedWorldChanged(MinecraftWorld? value) { ++_selectionVersion; ActiveQuickProfileId = null; SelectionChanged(); }
-    partial void OnSelectedServerStatusChanged(ServerStatusSnapshot? value) => SelectionChanged();
-    partial void OnIsSelectedServerStatusLoadingChanged(bool value) => SelectionChanged();
+
+    partial void OnSelectedWorldChanged(MinecraftWorld? value)
+    {
+        ++_selectionVersion;
+        ActiveQuickProfileId = null;
+        SelectionChanged();
+    }
+
+    partial void OnSelectedServerStatusChanged(ServerStatusSnapshot? value)
+    {
+        SelectionChanged();
+    }
+
+    partial void OnIsSelectedServerStatusLoadingChanged(bool value)
+    {
+        SelectionChanged();
+    }
 
     partial void OnShowAllEmeraldPlaytimeChanged(bool value)
     {
@@ -212,12 +340,36 @@ public partial class HomePageViewModel : ObservableObject
         RefreshAnalytics();
     }
 
-    partial void OnActiveQuickProfileIdChanged(Guid? value) { foreach (var profile in QuickProfiles) profile.IsSelected = profile.Profile.Id == value; }
-    partial void OnLaunchMessageChanged(string? value) => OnPropertyChanged(nameof(HasLaunchMessage));
-    partial void OnIsBusyChanged(bool value) { OnPropertyChanged(nameof(CanPlay)); OnPropertyChanged(nameof(PrimaryButtonText)); }
+    partial void OnActiveQuickProfileIdChanged(Guid? value)
+    {
+        foreach (var profile in QuickProfiles)
+        {
+            profile.IsSelected = profile.Profile.Id == value;
+        }
+    }
+
+    partial void OnLaunchMessageChanged(string? value)
+    {
+        OnPropertyChanged(nameof(HasLaunchMessage));
+    }
+
+    partial void OnIsBusyChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanPlay));
+        OnPropertyChanged(nameof(PrimaryButtonText));
+    }
+
     private void SelectionChanged()
     {
-        foreach (var name in new[] { nameof(DestinationTitle), nameof(DestinationSubtitle), nameof(DestinationGlyph), nameof(DestinationImage), nameof(DestinationServerIcon), nameof(DestinationServerMetadata), nameof(DestinationServerStatus), nameof(CanPlay), nameof(PrimaryButtonText) }) OnPropertyChanged(name);
+        foreach (var name in new[]
+                 {
+                     nameof(DestinationTitle), nameof(DestinationSubtitle), nameof(DestinationGlyph),
+                     nameof(DestinationImage), nameof(DestinationServerIcon), nameof(DestinationServerMetadata),
+                     nameof(DestinationServerStatus), nameof(CanPlay), nameof(PrimaryButtonText)
+                 })
+        {
+            OnPropertyChanged(name);
+        }
     }
 
     private async Task RefreshSelectedServerStatusAsync()
@@ -227,63 +379,132 @@ public partial class HomePageViewModel : ObservableObject
         var server = SelectedServer;
         SelectedServerStatus = null;
         IsSelectedServerStatusLoading = server != null;
-        if (server == null) return;
+        if (server == null)
+        {
+            return;
+        }
+
         try
         {
-            var snapshot = await _status.GetStatusAsync(new MinecraftServerAddress(server.Host, server.Port), cancellationToken: request.Token);
-            if (!request.IsCancellationRequested && SelectedServer?.Id == server.Id) SelectedServerStatus = snapshot;
+            var snapshot = await _status.GetStatusAsync(new MinecraftServerAddress(server.Host, server.Port),
+                cancellationToken: request.Token);
+            if (!request.IsCancellationRequested && SelectedServer?.Id == server.Id)
+            {
+                SelectedServerStatus = snapshot;
+            }
         }
-        catch (OperationCanceledException) { }
+        catch (OperationCanceledException)
+        {
+        }
         catch
         {
             if (!request.IsCancellationRequested && SelectedServer?.Id == server.Id)
-                SelectedServerStatus = new(ServerStatusState.Unavailable, DateTimeOffset.UtcNow, new(server.Host, server.Port));
+            {
+                SelectedServerStatus = new ServerStatusSnapshot(ServerStatusState.Unavailable, DateTimeOffset.UtcNow,
+                    new MinecraftServerAddress(server.Host, server.Port));
+            }
         }
         finally
         {
-            if (ReferenceEquals(_serverStatusCancellation, request)) IsSelectedServerStatusLoading = false;
+            if (ReferenceEquals(_serverStatusCancellation, request))
+            {
+                IsSelectedServerStatusLoading = false;
+            }
         }
     }
+
     [RelayCommand]
     private async Task LaunchAsync()
     {
-        var game = SelectedGame; var account = _accounts.GetSelectedAccount(); var kind = SelectedDestination;
-        var server = SelectedServer; var world = SelectedWorld; var profile = ActiveQuickProfileId;
-        if (IsBusy || game == null) return;
-        if (account == null) { LaunchMessage = DashboardText.Get("ChooseAccount"); return; }
-        if (!game.CanLaunch) { LaunchMessage = DashboardText.Get("InstanceUnavailable"); return; }
-        IsBusy = true; LaunchMessage = null;
+        var game = SelectedGame;
+        var account = _accounts.GetSelectedAccount();
+        var kind = SelectedDestination;
+        var server = SelectedServer;
+        var world = SelectedWorld;
+        var profile = ActiveQuickProfileId;
+        if (IsBusy || game == null)
+        {
+            return;
+        }
+
+        if (account == null)
+        {
+            LaunchMessage = DashboardText.Get("ChooseAccount");
+            return;
+        }
+
+        if (!game.CanLaunch)
+        {
+            LaunchMessage = DashboardText.Get("InstanceUnavailable");
+            return;
+        }
+
+        IsBusy = true;
+        LaunchMessage = null;
         try
         {
             var target = MinecraftLaunchTarget.MainMenu;
             if (kind == MinecraftLaunchTargetKind.Server)
             {
-                if (server == null) { LaunchMessage = DashboardText.Get("ChooseServer"); return; }
+                if (server == null)
+                {
+                    LaunchMessage = DashboardText.Get("ChooseServer");
+                    return;
+                }
+
                 // Availability is advisory; launch the user's address without waiting on status.
                 target = MinecraftLaunchTarget.ForServer(server.Host, server.Port, server.Name);
             }
             else if (kind == MinecraftLaunchTargetKind.World)
             {
-                if (world == null || !world.IsReadable) { LaunchMessage = DashboardText.Get("ChooseWorld"); return; }
+                if (world == null || !world.IsReadable)
+                {
+                    LaunchMessage = DashboardText.Get("ChooseWorld");
+                    return;
+                }
+
                 var caps = await _capabilities.ResolveAsync(game);
-                if (!caps.CanQuickPlayWorld) { LaunchMessage = caps.WorldLaunchUnavailableReason; return; }
+                if (!caps.CanQuickPlayWorld)
+                {
+                    LaunchMessage = caps.WorldLaunchUnavailableReason;
+                    return;
+                }
+
                 target = MinecraftLaunchTarget.ForWorld(world.FolderName, world.DisplayName);
             }
+
             var result = await _runtime.LaunchAsync(new GameLaunchRequest(game, account, target, profile));
-            if (result != null && server != null && kind == MinecraftLaunchTargetKind.Server) _servers.MarkLaunched(server.Id);
+            if (result != null && server != null && kind == MinecraftLaunchTargetKind.Server)
+            {
+                _servers.MarkLaunched(server.Id);
+            }
         }
-        catch (Exception ex) { LaunchMessage = ex.Message; }
-        finally { IsBusy = false; RefreshRuntime(); }
+        catch (Exception ex)
+        {
+            LaunchMessage = ex.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+            RefreshRuntime();
+        }
     }
-    [RelayCommand]
-    private Task StopAsync() => SelectedGame == null
-        ? Task.CompletedTask
-        : _runtime.StopAsync(SelectedGame, GameStopMode.Gentle);
 
     [RelayCommand]
-    private Task ForceStopAsync() => SelectedGame == null
-        ? Task.CompletedTask
-        : _runtime.StopAsync(SelectedGame, GameStopMode.Force);
+    private Task StopAsync()
+    {
+        return SelectedGame == null
+            ? Task.CompletedTask
+            : _runtime.StopAsync(SelectedGame, GameStopMode.Gentle);
+    }
+
+    [RelayCommand]
+    private Task ForceStopAsync()
+    {
+        return SelectedGame == null
+            ? Task.CompletedTask
+            : _runtime.StopAsync(SelectedGame, GameStopMode.Force);
+    }
 
     public async Task ApplySelectionAsync(HomeSelection selection)
     {
@@ -293,29 +514,66 @@ public partial class HomePageViewModel : ObservableObject
         {
             var list = await _worlds.ScanAsync(selection.Game);
             world = list.FirstOrDefault(x => x.FolderName == selection.World?.FolderName);
-            if (world == null) { LaunchMessage = DashboardText.Get("WorldMissing"); return; }
+            if (world == null)
+            {
+                LaunchMessage = DashboardText.Get("WorldMissing");
+                return;
+            }
+
             var caps = await _capabilities.ResolveAsync(selection.Game);
             world.CanQuickLaunch = world.IsReadable && selection.Game.CanLaunch && caps.CanQuickPlayWorld;
-            if (version != _selectionVersion) return;
+            if (version != _selectionVersion)
+            {
+                return;
+            }
         }
-        if (version != _selectionVersion) return;
+
+        if (version != _selectionVersion)
+        {
+            return;
+        }
+
         SelectedGame = selection.Game;
-        if (selection.Account != null) { _accounts.SetSelectedAccount(selection.Account); SelectedAccount = selection.Account; }
-        SelectedDestination = selection.Kind; SelectedServer = selection.Server; SelectedWorld = world;
+        if (selection.Account != null)
+        {
+            _accounts.SetSelectedAccount(selection.Account);
+            SelectedAccount = selection.Account;
+        }
+
+        SelectedDestination = selection.Kind;
+        SelectedServer = selection.Server;
+        SelectedWorld = world;
         ActiveQuickProfileId = selection.ProfileId;
-        if (world != null && !world.CanQuickLaunch) LaunchMessage = DashboardText.Get("WorldUnavailable");
+        if (world != null && !world.CanQuickLaunch)
+        {
+            LaunchMessage = DashboardText.Get("WorldUnavailable");
+        }
+
         SelectionChanged();
     }
+
     public async Task SelectProfileAsync(QuickProfile profile, bool launch)
     {
         var validation = _profiles.Validate(profile, Games, _accounts.Accounts, FavoriteServers);
-        if (!validation.IsValid) { LaunchMessage = DashboardText.Get("ProfileRepair"); return; }
+        if (!validation.IsValid)
+        {
+            LaunchMessage = DashboardText.Get("ProfileRepair");
+            return;
+        }
+
         var game = Games.First(x => x.InstanceId == profile.InstanceId);
         var account = _accounts.Accounts.First(x => x.UniqueId == profile.AccountUniqueId);
-        var world = profile.TargetKind == MinecraftLaunchTargetKind.World ? new MinecraftWorld { FolderName = profile.WorldFolderName! } : null;
-        await ApplySelectionAsync(new(game, profile.TargetKind, FavoriteServers.FirstOrDefault(x => x.Id == profile.SavedServerId), world, account, profile.Id));
-        if (launch && ActiveQuickProfileId == profile.Id) await LaunchAsync();
+        var world = profile.TargetKind == MinecraftLaunchTargetKind.World
+            ? new MinecraftWorld { FolderName = profile.WorldFolderName! }
+            : null;
+        await ApplySelectionAsync(new HomeSelection(game, profile.TargetKind,
+            FavoriteServers.FirstOrDefault(x => x.Id == profile.SavedServerId), world, account, profile.Id));
+        if (launch && ActiveQuickProfileId == profile.Id)
+        {
+            await LaunchAsync();
+        }
     }
+
     public void RefreshRuntime()
     {
         if (SelectedGame == null)
@@ -324,7 +582,9 @@ public partial class HomePageViewModel : ObservableObject
         }
 
         var session = _runtime.TryGetActiveSession(SelectedGame);
-        RuntimeElapsedText = session?.IsActive == true ? FormatDuration(DateTimeOffset.Now - session.StartedAt) : string.Empty;
+        RuntimeElapsedText = session?.IsActive == true
+            ? FormatDuration(DateTimeOffset.Now - session.StartedAt)
+            : string.Empty;
         OnPropertyChanged(nameof(RuntimeStatus));
         OnPropertyChanged(nameof(PrimaryButtonText));
         OnPropertyChanged(nameof(CanPlay));
@@ -354,28 +614,55 @@ public partial class HomePageViewModel : ObservableObject
 
     private async Task LoadWorldsAsync()
     {
-        _worldCancellation?.Cancel(); var cancellation = _worldCancellation = new(); var game = SelectedGame;
-        if (game == null) { RecentWorlds.Clear(); return; }
+        _worldCancellation?.Cancel();
+        var cancellation = _worldCancellation = new CancellationTokenSource();
+        var game = SelectedGame;
+        if (game == null)
+        {
+            RecentWorlds.Clear();
+            return;
+        }
+
         try
         {
             var worlds = await _worlds.ScanAsync(game, cancellation.Token);
             var caps = await _capabilities.ResolveAsync(game, cancellation.Token);
-            if (cancellation.IsCancellationRequested || SelectedGame != game) return;
-            foreach (var world in worlds) world.CanQuickLaunch = world.IsReadable && game.CanLaunch && caps.CanQuickPlayWorld;
+            if (cancellation.IsCancellationRequested || SelectedGame != game)
+            {
+                return;
+            }
+
+            foreach (var world in worlds)
+            {
+                world.CanQuickLaunch = world.IsReadable && game.CanLaunch && caps.CanQuickPlayWorld;
+            }
+
             RecentWorlds.ReplaceWith(worlds.Take(8));
             if (IsWorldDestination && SelectedWorld != null)
             {
                 var replacement = worlds.FirstOrDefault(x => x.FolderName == SelectedWorld.FolderName);
-                var active = ActiveQuickProfileId; SelectedWorld = replacement; ActiveQuickProfileId = active;
+                var active = ActiveQuickProfileId;
+                SelectedWorld = replacement;
+                ActiveQuickProfileId = active;
             }
-            OnPropertyChanged(nameof(MostRecentWorld)); OnPropertyChanged(nameof(MostRecentWorldText)); SelectionChanged();
+
+            OnPropertyChanged(nameof(MostRecentWorld));
+            OnPropertyChanged(nameof(MostRecentWorldText));
+            SelectionChanged();
         }
-        catch (OperationCanceledException) { }
-        catch (Exception ex) { LaunchMessage = ex.Message; }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            LaunchMessage = ex.Message;
+        }
     }
+
     public void RefreshAnalytics()
     {
-        var now = DateTimeOffset.Now; var active = DashboardText.Active(_core, _runtime, now);
+        var now = DateTimeOffset.Now;
+        var active = DashboardText.Active(_core, _runtime, now);
         var total = _playtime.GetAnalytics(CurrentPlaytimeScope, PlaytimeRange.AllTime, now, activeSessions: active);
         var week = _playtime.GetAnalytics(CurrentPlaytimeScope, PlaytimeRange.SevenDays, now, activeSessions: active);
         TotalPlaytimeText = DashboardText.Duration(total.TotalPlaytime);
@@ -383,18 +670,36 @@ public partial class HomePageViewModel : ObservableObject
         SessionCountText = DashboardText.Format("SessionCount", total.CompletedSessionCount);
         HomeDailyBars.ReplaceWith(DashboardText.Bars(week.DailyBuckets, 7, 88));
     }
+
     private void RefreshProfiles()
     {
         QuickProfiles.ReplaceWith(_profiles.GetAll().Select(x =>
-            new QuickProfileCardViewModel(x, _profiles.Validate(x, Games, _accounts.Accounts, FavoriteServers), Games.FirstOrDefault(g => g.InstanceId == x.InstanceId)?.Version.DisplayName, _accounts.Accounts.FirstOrDefault(a => a.UniqueId == x.AccountUniqueId)?.Name) { IsSelected = x.Id == ActiveQuickProfileId }));
+            new QuickProfileCardViewModel(x, _profiles.Validate(x, Games, _accounts.Accounts, FavoriteServers),
+                    Games.FirstOrDefault(g => g.InstanceId == x.InstanceId)?.Version.DisplayName,
+                    _accounts.Accounts.FirstOrDefault(a => a.UniqueId == x.AccountUniqueId)?.Name)
+                { IsSelected = x.Id == ActiveQuickProfileId }));
         OnPropertyChanged(nameof(HasProfiles));
     }
 
-    public void ReloadProfiles() { RefreshProfiles(); OnPropertyChanged(nameof(HasProfiles)); }
-    private void OnHistoryChanged(object? sender, EventArgs e) => _dispatcher.Invoke(RefreshAnalytics);
+    public void ReloadProfiles()
+    {
+        RefreshProfiles();
+        OnPropertyChanged(nameof(HasProfiles));
+    }
+
+    private void OnHistoryChanged(object? sender, EventArgs e)
+    {
+        _dispatcher.Invoke(RefreshAnalytics);
+    }
+
     private void OnRepositoryChanged(object? sender, EventArgs e)
     {
-        if (!_dispatcher.HasThreadAccess) { _dispatcher.Invoke(() => OnRepositoryChanged(sender, e)); return; }
+        if (!_dispatcher.HasThreadAccess)
+        {
+            _dispatcher.Invoke(() => OnRepositoryChanged(sender, e));
+            return;
+        }
+
         var active = ActiveQuickProfileId;
         var selectedServerId = SelectedServer?.Id;
         FavoriteServers.ReplaceWith(_servers.GetAll());
@@ -410,7 +715,12 @@ public partial class HomePageViewModel : ObservableObject
 
     private void OnSourceChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (!_dispatcher.HasThreadAccess) { _dispatcher.Invoke(() => OnSourceChanged(sender, e)); return; }
+        if (!_dispatcher.HasThreadAccess)
+        {
+            _dispatcher.Invoke(() => OnSourceChanged(sender, e));
+            return;
+        }
+
         SyncAccounts();
         Games.ReplaceWith(_core.Games);
         SelectedAccount = _accounts.GetSelectedAccount();
@@ -435,7 +745,10 @@ public partial class HomePageViewModel : ObservableObject
         return Task.CompletedTask;
     }
 
-    private static string FormatDuration(TimeSpan value) => DashboardText.Duration(value);
+    private static string FormatDuration(TimeSpan value)
+    {
+        return DashboardText.Duration(value);
+    }
 }
 
 internal static class ObservableCollectionHomeExtensions

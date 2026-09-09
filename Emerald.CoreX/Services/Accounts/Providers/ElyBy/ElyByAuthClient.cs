@@ -47,7 +47,9 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
         };
 
         if (!string.IsNullOrWhiteSpace(loginHint))
+        {
             parameters.Add(("login_hint", loginHint));
+        }
 
         var authorizationUri = new Uri(AccountBaseUri, "oauth2/v1?" + BuildQuery(parameters));
         return new BrowserOAuthAuthorizationRequest("Ely.by", authorizationUri, redirectUri, state);
@@ -63,15 +65,15 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
         try
         {
             response = await SendOAuthTokenRequestAsync(
-                new Dictionary<string, string>
-                {
-                    ["client_id"] = oauthOptions.ClientId,
-                    ["client_secret"] = oauthOptions.ClientSecret,
-                    ["redirect_uri"] = oauthOptions.RedirectUri,
-                    ["grant_type"] = "authorization_code",
-                    ["code"] = code
-                },
-                cancellationToken)
+                    new Dictionary<string, string>
+                    {
+                        ["client_id"] = oauthOptions.ClientId,
+                        ["client_secret"] = oauthOptions.ClientSecret,
+                        ["redirect_uri"] = oauthOptions.RedirectUri,
+                        ["grant_type"] = "authorization_code",
+                        ["code"] = code
+                    },
+                    cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (ElyByAuthException ex) when (IsInvalidRefreshToken(ex.Message))
@@ -80,7 +82,7 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
                 "Your Ely.by sign-in has expired. Sign in again in your browser.", ex);
         }
 
-        return await CreateOAuthSessionAsync(response, fallbackRefreshToken: null, cancellationToken).ConfigureAwait(false);
+        return await CreateOAuthSessionAsync(response, null, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ElyByAuthSession> AuthenticateAsync(
@@ -100,7 +102,8 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
         }
         catch (ElyByTwoFactorRequiredException) when (!string.IsNullOrWhiteSpace(twoFactorCode))
         {
-            return await AuthenticateCoreAsync(login, $"{password}:{twoFactorCode}", clientToken, cancellationToken).ConfigureAwait(false);
+            return await AuthenticateCoreAsync(login, $"{password}:{twoFactorCode}", clientToken, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 
@@ -117,10 +120,14 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
             .ConfigureAwait(false);
 
         if (response.StatusCode == HttpStatusCode.NoContent)
+        {
             return true;
+        }
 
         if (response.IsSuccessStatusCode)
+        {
             return true;
+        }
 
         _logger.LogDebug("Ely.by token validation failed with status {StatusCode}.", response.StatusCode);
         return false;
@@ -150,7 +157,9 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
     {
         if (account.AuthFlow == ElyByAuthFlow.OAuth)
         {
-            _logger.LogDebug("Skipping remote Ely.by OAuth token invalidation for {AccountName}; no OAuth revoke endpoint is documented.", account.Name);
+            _logger.LogDebug(
+                "Skipping remote Ely.by OAuth token invalidation for {AccountName}; no OAuth revoke endpoint is documented.",
+                account.Name);
             return;
         }
 
@@ -190,7 +199,8 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
         TRequest request,
         CancellationToken cancellationToken)
     {
-        using var response = await _httpClient.PostAsJsonAsync(new Uri(AuthServerBaseUri, path), request, JsonOptions, cancellationToken)
+        using var response = await _httpClient
+            .PostAsJsonAsync(new Uri(AuthServerBaseUri, path), request, JsonOptions, cancellationToken)
             .ConfigureAwait(false);
 
         var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -202,9 +212,12 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
 
         var error = TryDeserializeError(body);
         if (IsTwoFactorRequired(error))
+        {
             throw new ElyByTwoFactorRequiredException();
+        }
 
-        throw new ElyByAuthException(error?.ErrorMessage ?? error?.Error ?? $"Ely.by request failed with status {(int)response.StatusCode}.");
+        throw new ElyByAuthException(error?.ErrorMessage ??
+                                     error?.Error ?? $"Ely.by request failed with status {(int)response.StatusCode}.");
     }
 
     private async Task<ElyByAuthSession> RefreshOAuthAsync(
@@ -228,10 +241,12 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
     }
 
     private static bool IsInvalidRefreshToken(string message)
-        => message.Contains("invalid_grant", StringComparison.OrdinalIgnoreCase)
-           || message.Contains("invalid refresh", StringComparison.OrdinalIgnoreCase)
-           || (message.Contains("refresh token", StringComparison.OrdinalIgnoreCase)
-               && message.Contains("invalid", StringComparison.OrdinalIgnoreCase));
+    {
+        return message.Contains("invalid_grant", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("invalid refresh", StringComparison.OrdinalIgnoreCase)
+               || (message.Contains("refresh token", StringComparison.OrdinalIgnoreCase)
+                   && message.Contains("invalid", StringComparison.OrdinalIgnoreCase));
+    }
 
     private async Task<ElyByOAuthTokenResponse> SendOAuthTokenRequestAsync(
         IReadOnlyDictionary<string, string> parameters,
@@ -249,7 +264,9 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
         }
 
         var error = TryDeserializeOAuthError(body);
-        throw new ElyByAuthException(error?.ErrorDescription ?? error?.Error ?? $"Ely.by OAuth token request failed with status {(int)response.StatusCode}.");
+        throw new ElyByAuthException(error?.ErrorDescription ??
+                                     error?.Error ??
+                                     $"Ely.by OAuth token request failed with status {(int)response.StatusCode}.");
     }
 
     private async Task<ElyByAuthSession> CreateOAuthSessionAsync(
@@ -258,15 +275,21 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(response.AccessToken))
+        {
             throw new ElyByAuthException("Ely.by returned an OAuth response without an access token.");
+        }
 
         var accountInfo = await GetOAuthAccountInfoAsync(response.AccessToken, cancellationToken).ConfigureAwait(false);
         var uuid = NormalizeUuid(accountInfo.UUID);
         if (string.IsNullOrWhiteSpace(uuid))
+        {
             throw new ElyByAuthException("Ely.by returned account info without a UUID.");
+        }
 
         if (string.IsNullOrWhiteSpace(accountInfo.Username))
+        {
             throw new ElyByAuthException("Ely.by returned account info without a username.");
+        }
 
         var expiresAt = response.ExpiresIn > 0
             ? DateTimeOffset.UtcNow.AddSeconds(response.ExpiresIn)
@@ -298,7 +321,8 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
         }
 
         var error = TryDeserializeOAuthAccountError(body);
-        throw new ElyByAuthException(error?.Message ?? $"Ely.by account info request failed with status {(int)response.StatusCode}.");
+        throw new ElyByAuthException(error?.Message ??
+                                     $"Ely.by account info request failed with status {(int)response.StatusCode}.");
     }
 
     private static ElyByAuthSession CreateSession(
@@ -311,13 +335,19 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
         var uuid = response.SelectedProfile?.Id ?? fallbackUuid;
 
         if (string.IsNullOrWhiteSpace(name))
+        {
             throw new ElyByAuthException("Ely.by returned an authentication response without a profile name.");
+        }
 
         if (string.IsNullOrWhiteSpace(uuid))
+        {
             throw new ElyByAuthException("Ely.by returned an authentication response without a profile id.");
+        }
 
         if (string.IsNullOrWhiteSpace(response.AccessToken))
+        {
             throw new ElyByAuthException("Ely.by returned an authentication response without an access token.");
+        }
 
         return new ElyByAuthSession(
             name,
@@ -329,7 +359,9 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
     private static ElyByErrorResponse? TryDeserializeError(string body)
     {
         if (string.IsNullOrWhiteSpace(body))
+        {
             return null;
+        }
 
         try
         {
@@ -342,31 +374,45 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
     }
 
     private static bool IsTwoFactorRequired(ElyByErrorResponse? error)
-        => error?.ErrorMessage?.Contains("two factor", StringComparison.OrdinalIgnoreCase) == true
-           || error?.ErrorMessage?.Contains("2fa", StringComparison.OrdinalIgnoreCase) == true;
+    {
+        return error?.ErrorMessage?.Contains("two factor", StringComparison.OrdinalIgnoreCase) == true
+               || error?.ErrorMessage?.Contains("2fa", StringComparison.OrdinalIgnoreCase) == true;
+    }
 
     private ElyByOAuthOptions GetConfiguredOAuthOptions()
     {
         if (_oauthOptions is { IsConfigured: true })
+        {
             return _oauthOptions;
+        }
 
-        throw new ElyByAuthException("Ely.by OAuth is not configured. Set the build-time client id, client secret, and redirect URI properties.");
+        throw new ElyByAuthException(
+            "Ely.by OAuth is not configured. Set the build-time client id, client secret, and redirect URI properties.");
     }
 
     private static string BuildQuery(IEnumerable<(string Key, string? Value)> parameters)
-        => string.Join(
+    {
+        return string.Join(
             "&",
             parameters
                 .Where(parameter => !string.IsNullOrWhiteSpace(parameter.Value))
-                .Select(parameter => $"{Uri.EscapeDataString(parameter.Key)}={Uri.EscapeDataString(parameter.Value!)}"));
+                .Select(parameter =>
+                    $"{Uri.EscapeDataString(parameter.Key)}={Uri.EscapeDataString(parameter.Value!)}"));
+    }
 
     private static string NormalizeUuid(string? uuid)
-        => string.IsNullOrWhiteSpace(uuid) ? string.Empty : uuid.Replace("-", string.Empty, StringComparison.Ordinal);
+    {
+        return string.IsNullOrWhiteSpace(uuid)
+            ? string.Empty
+            : uuid.Replace("-", string.Empty, StringComparison.Ordinal);
+    }
 
     private static ElyByOAuthErrorResponse? TryDeserializeOAuthError(string body)
     {
         if (string.IsNullOrWhiteSpace(body))
+        {
             return null;
+        }
 
         try
         {
@@ -381,7 +427,9 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
     private static ElyByOAuthAccountErrorResponse? TryDeserializeOAuthAccountError(string body)
     {
         if (string.IsNullOrWhiteSpace(body))
+        {
             return null;
+        }
 
         try
         {
@@ -394,47 +442,62 @@ internal sealed class ElyByAuthClient : IElyByAuthClient
     }
 
     private sealed record ElyByAuthenticateRequest(
-        [property: JsonPropertyName("username")] string Username,
-        [property: JsonPropertyName("password")] string Password,
-        [property: JsonPropertyName("clientToken")] string ClientToken,
-        [property: JsonPropertyName("requestUser")] bool RequestUser);
+        [property: JsonPropertyName("username")]
+        string Username,
+        [property: JsonPropertyName("password")]
+        string Password,
+        [property: JsonPropertyName("clientToken")]
+        string ClientToken,
+        [property: JsonPropertyName("requestUser")]
+        bool RequestUser);
 
     private sealed record ElyByTokenRequest(
-        [property: JsonPropertyName("accessToken")] string AccessToken,
-        [property: JsonPropertyName("clientToken")] string ClientToken);
+        [property: JsonPropertyName("accessToken")]
+        string AccessToken,
+        [property: JsonPropertyName("clientToken")]
+        string ClientToken);
 
     private sealed record ElyByAuthResponse(
-        [property: JsonPropertyName("accessToken")] string? AccessToken,
-        [property: JsonPropertyName("clientToken")] string? ClientToken,
-        [property: JsonPropertyName("selectedProfile")] ElyByProfileResponse? SelectedProfile);
+        [property: JsonPropertyName("accessToken")]
+        string? AccessToken,
+        [property: JsonPropertyName("clientToken")]
+        string? ClientToken,
+        [property: JsonPropertyName("selectedProfile")]
+        ElyByProfileResponse? SelectedProfile);
 
     private sealed class ElyByProfileResponse
     {
-        [JsonPropertyName("id")]
-        public string? Id { get; set; }
+        [JsonPropertyName("id")] public string? Id { get; set; }
 
-        [JsonPropertyName("name")]
-        public string? Name { get; set; }
+        [JsonPropertyName("name")] public string? Name { get; set; }
     }
 
     private sealed record ElyByErrorResponse(
         [property: JsonPropertyName("error")] string? Error,
-        [property: JsonPropertyName("errorMessage")] string? ErrorMessage);
+        [property: JsonPropertyName("errorMessage")]
+        string? ErrorMessage);
 
     private sealed record ElyByOAuthTokenResponse(
-        [property: JsonPropertyName("access_token")] string? AccessToken,
-        [property: JsonPropertyName("refresh_token")] string? RefreshToken,
-        [property: JsonPropertyName("token_type")] string? TokenType,
-        [property: JsonPropertyName("expires_in")] int ExpiresIn);
+        [property: JsonPropertyName("access_token")]
+        string? AccessToken,
+        [property: JsonPropertyName("refresh_token")]
+        string? RefreshToken,
+        [property: JsonPropertyName("token_type")]
+        string? TokenType,
+        [property: JsonPropertyName("expires_in")]
+        int ExpiresIn);
 
     private sealed record ElyByOAuthErrorResponse(
         [property: JsonPropertyName("error")] string? Error,
-        [property: JsonPropertyName("error_description")] string? ErrorDescription);
+        [property: JsonPropertyName("error_description")]
+        string? ErrorDescription);
 
     private sealed record ElyByAccountInfoResponse(
         [property: JsonPropertyName("uuid")] string? UUID,
-        [property: JsonPropertyName("username")] string? Username);
+        [property: JsonPropertyName("username")]
+        string? Username);
 
     private sealed record ElyByOAuthAccountErrorResponse(
-        [property: JsonPropertyName("message")] string? Message);
+        [property: JsonPropertyName("message")]
+        string? Message);
 }

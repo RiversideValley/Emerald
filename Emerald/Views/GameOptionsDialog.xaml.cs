@@ -27,23 +27,29 @@ public sealed partial class GameOptionsDialog : ContentDialog
         _ = ViewModel.LoadCommand.ExecuteAsync(game);
     }
 
-    private void Close_Click(object sender, RoutedEventArgs e) => Hide();
+    private void Close_Click(object sender, RoutedEventArgs e)
+    {
+        Hide();
+    }
 
     private async void Save_Click(object sender, RoutedEventArgs e)
     {
         await ViewModel.SaveAsync();
-        if (ViewModel.LastSaveSucceeded) Hide();
+        if (ViewModel.LastSaveSucceeded)
+        {
+            Hide();
+        }
     }
 }
 
 /// <summary>Selects the correct DataTemplate based on <see cref="MinecraftOptionType"/>.</summary>
 public sealed class OptionTemplateSelector : DataTemplateSelector
 {
-    public DataTemplate? BooleanTemplate  { get; set; }
-    public DataTemplate? SliderTemplate   { get; set; }
-    public DataTemplate? EnumTemplate     { get; set; }
-    public DataTemplate? SoundTemplate    { get; set; }
-    public DataTemplate? KeyBindTemplate  { get; set; }
+    public DataTemplate? BooleanTemplate { get; set; }
+    public DataTemplate? SliderTemplate { get; set; }
+    public DataTemplate? EnumTemplate { get; set; }
+    public DataTemplate? SoundTemplate { get; set; }
+    public DataTemplate? KeyBindTemplate { get; set; }
     public DataTemplate? ReadOnlyTemplate { get; set; }
 
     protected override DataTemplate SelectTemplateCore(object item)
@@ -52,16 +58,17 @@ public sealed class OptionTemplateSelector : DataTemplateSelector
         {
             return e.Type switch
             {
-                MinecraftOptionType.Boolean     => BooleanTemplate,
-                MinecraftOptionType.IntSlider   => SliderTemplate,
+                MinecraftOptionType.Boolean => BooleanTemplate,
+                MinecraftOptionType.IntSlider => SliderTemplate,
                 MinecraftOptionType.FloatSlider => SliderTemplate,
-                MinecraftOptionType.Enum        => EnumTemplate,
+                MinecraftOptionType.Enum => EnumTemplate,
                 MinecraftOptionType.SoundVolume => SoundTemplate,
-                MinecraftOptionType.KeyBind     => KeyBindTemplate,
-                MinecraftOptionType.ReadOnly    => ReadOnlyTemplate,
-                _                               => BooleanTemplate
+                MinecraftOptionType.KeyBind => KeyBindTemplate,
+                MinecraftOptionType.ReadOnly => ReadOnlyTemplate,
+                _ => BooleanTemplate
             } ?? base.SelectTemplateCore(item);
         }
+
         return base.SelectTemplateCore(item);
     }
 }

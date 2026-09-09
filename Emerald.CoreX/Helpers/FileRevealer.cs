@@ -11,7 +11,9 @@ public static class FileManager
     public static bool Reveal(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
+        {
             return false;
+        }
 
         try
         {
@@ -21,7 +23,9 @@ public static class FileManager
             var isDirectory = Directory.Exists(path);
 
             if (!isFile && !isDirectory)
+            {
                 return false;
+            }
 
             return RevealOnCurrentPlatform(path, isFile, isDirectory);
         }
@@ -33,22 +37,46 @@ public static class FileManager
 
     private static bool RevealOnCurrentPlatform(string path, bool isFile, bool isDirectory)
     {
-        if (OperatingSystem.IsWindows()) return RevealOnWindows(path, isFile);
-        if (OperatingSystem.IsMacOS()) return RevealOnMacOS(path, isFile);
-        if (OperatingSystem.IsLinux()) return RevealOnLinux(path, isFile, isDirectory);
+        if (OperatingSystem.IsWindows())
+        {
+            return RevealOnWindows(path, isFile);
+        }
+
+        if (OperatingSystem.IsMacOS())
+        {
+            return RevealOnMacOS(path, isFile);
+        }
+
+        if (OperatingSystem.IsLinux())
+        {
+            return RevealOnLinux(path, isFile, isDirectory);
+        }
+
         return false;
     }
 
     private static bool RevealOnWindows(string path, bool isFile)
-        => isFile ? Start("explorer.exe", $"/select,{path}") : Start("explorer.exe", path);
+    {
+        return isFile ? Start("explorer.exe", $"/select,{path}") : Start("explorer.exe", path);
+    }
 
     private static bool RevealOnMacOS(string path, bool isFile)
-        => isFile ? Start("/usr/bin/open", "-R", path) : Start("/usr/bin/open", path);
+    {
+        return isFile ? Start("/usr/bin/open", "-R", path) : Start("/usr/bin/open", path);
+    }
 
     private static bool RevealOnLinux(string path, bool isFile, bool isDirectory)
     {
-        if (isDirectory) return Start("xdg-open", path);
-        if (TryLinuxReveal(path)) return true;
+        if (isDirectory)
+        {
+            return Start("xdg-open", path);
+        }
+
+        if (TryLinuxReveal(path))
+        {
+            return true;
+        }
+
         var directory = Path.GetDirectoryName(path);
         return directory is not null && Start("xdg-open", directory);
     }
@@ -73,10 +101,14 @@ public static class FileManager
             using var process = Process.Start(info);
 
             if (process is null)
+            {
                 return false;
+            }
 
             if (!process.WaitForExit(1000))
+            {
                 return false;
+            }
 
             return process.ExitCode == 0;
         }
@@ -93,7 +125,9 @@ public static class FileManager
             var info = CreateProcess(fileName);
 
             foreach (var arg in args)
+            {
                 info.ArgumentList.Add(arg);
+            }
 
             using var process = Process.Start(info);
             return process is not null;
@@ -104,17 +138,20 @@ public static class FileManager
         }
     }
 
-    private static ProcessStartInfo CreateProcess(string fileName) => new()
+    private static ProcessStartInfo CreateProcess(string fileName)
     {
-        FileName = fileName,
+        return new ProcessStartInfo
+        {
+            FileName = fileName,
 
-        // No shell/terminal involved.
-        UseShellExecute = false,
-        CreateNoWindow = true,
+            // No shell/terminal involved.
+            UseShellExecute = false,
+            CreateNoWindow = true,
 
-        // Prevent tools such as xdg-open/dbus-send from dumping
-        // anything into the application's console.
-        RedirectStandardOutput = true,
-        RedirectStandardError = true,
-    };
+            // Prevent tools such as xdg-open/dbus-send from dumping
+            // anything into the application's console.
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+    }
 }

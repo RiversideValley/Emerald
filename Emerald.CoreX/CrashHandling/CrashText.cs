@@ -64,7 +64,8 @@ public static class CrashLogTailReader
                 return string.Empty;
             }
 
-            using var stream = File.Open(readablePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using var stream = File.Open(readablePath, FileMode.Open, FileAccess.Read,
+                FileShare.ReadWrite | FileShare.Delete);
             var start = Math.Max(0, stream.Length - maxBytes);
             stream.Seek(start, SeekOrigin.Begin);
             var bufferLength = (int)Math.Min(maxBytes, Math.Max(0, stream.Length - start));
@@ -136,9 +137,11 @@ public static class CrashReportFormatter
         {
             builder.AppendLine($"Local report: {CrashTextSanitizer.Sanitize(record.ReportPath, 2048)}");
         }
+
         if (!string.IsNullOrWhiteSpace(record.NativeDiagnosticsPath))
         {
-            builder.AppendLine($"Native diagnostics path: {CrashTextSanitizer.Sanitize(record.NativeDiagnosticsPath, 2048)}");
+            builder.AppendLine(
+                $"Native diagnostics path: {CrashTextSanitizer.Sanitize(record.NativeDiagnosticsPath, 2048)}");
         }
 
         if (record.Exception is not null)
@@ -175,14 +178,17 @@ public static class CrashReportFormatter
         builder.AppendLine($"| Source | {EscapeTable(record.Source)} |");
         builder.AppendLine($"| Exception | {EscapeTable(exception?.Type ?? "Unavailable")} |");
         builder.AppendLine();
-        builder.AppendLine("Please paste the copied report below and describe what Emerald was doing before the crash.");
+        builder.AppendLine(
+            "Please paste the copied report below and describe what Emerald was doing before the crash.");
         return builder.ToString();
     }
 
     public static string ToGitHubTitle(CrashRecord record)
-        => $"Emerald {record.Kind.ToString().ToLowerInvariant()} - "
-           + $"{CrashTextSanitizer.Sanitize(record.AppVersion, 128)} - "
-           + CrashTextSanitizer.Sanitize(record.Platform, 128);
+    {
+        return $"Emerald {record.Kind.ToString().ToLowerInvariant()} - "
+               + $"{CrashTextSanitizer.Sanitize(record.AppVersion, 128)} - "
+               + CrashTextSanitizer.Sanitize(record.Platform, 128);
+    }
 
     private static void AppendException(StringBuilder builder, CrashExceptionInfo exception, int depth)
     {
@@ -201,9 +207,11 @@ public static class CrashReportFormatter
     }
 
     private static string EscapeTable(string value)
-        => CrashTextSanitizer.Sanitize(value, 256)
+    {
+        return CrashTextSanitizer.Sanitize(value, 256)
             .Replace("|", "\\|", StringComparison.Ordinal)
             .Replace(((char)96).ToString(), "'", StringComparison.Ordinal);
+    }
 }
 
 public sealed record GitHubIssueDraft(string Url, string Title, string Body, string FullReport);
@@ -238,8 +246,8 @@ public sealed class GitHubCrashIssueComposer
         }
 
         var compactBody = "## Emerald crash report\n\n"
-            + "Report ID: " + CrashTextSanitizer.Sanitize(title, 128) + "\n"
-            + "Please paste the complete sanitized report from the clipboard.";
+                          + "Report ID: " + CrashTextSanitizer.Sanitize(title, 128) + "\n"
+                          + "Please paste the complete sanitized report from the clipboard.";
         url = BuildUrl(CrashTextSanitizer.Sanitize(title, 96), compactBody);
         if (url.Length <= MaximumEncodedUrlLength)
         {
@@ -250,5 +258,8 @@ public sealed class GitHubCrashIssueComposer
     }
 
     private string BuildUrl(string title, string body)
-        => $"{_repositoryUrl}/issues/new?template=crash_report.md&title={Uri.EscapeDataString(title)}&body={Uri.EscapeDataString(body)}";
+    {
+        return
+            $"{_repositoryUrl}/issues/new?template=crash_report.md&title={Uri.EscapeDataString(title)}&body={Uri.EscapeDataString(body)}";
+    }
 }

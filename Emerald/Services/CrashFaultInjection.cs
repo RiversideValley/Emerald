@@ -18,7 +18,11 @@ internal static class CrashFaultInjection
     {
         get
         {
-            if (!IsEnabled) return null;
+            if (!IsEnabled)
+            {
+                return null;
+            }
+
             return Volatile.Read(ref _argumentDataRootConfigured) == 1
                 ? Volatile.Read(ref _argumentDataRoot)
                 : Environment.GetEnvironmentVariable("EMERALD_TEST_DATA_ROOT");
@@ -26,11 +30,13 @@ internal static class CrashFaultInjection
     }
 
     public static bool IsArmed => IsEnabled
-        && !string.IsNullOrWhiteSpace(GetCrashPoint());
+                                  && !string.IsNullOrWhiteSpace(GetCrashPoint());
 
     public static bool DisableStudio => IsEnabled
-        && (Volatile.Read(ref _argumentDisableStudio) == 1
-            || string.Equals(Environment.GetEnvironmentVariable("EMERALD_TEST_DISABLE_STUDIO"), "1", StringComparison.Ordinal));
+                                        && (Volatile.Read(ref _argumentDisableStudio) == 1
+                                            || string.Equals(
+                                                Environment.GetEnvironmentVariable("EMERALD_TEST_DISABLE_STUDIO"), "1",
+                                                StringComparison.Ordinal));
 
     public static bool IsEnabled
     {
@@ -79,7 +85,8 @@ internal static class CrashFaultInjection
             }
             else if (TryReadOption(argument, "--emerald-test-disable-studio", out var disableStudio))
             {
-                Volatile.Write(ref _argumentDisableStudio, string.Equals(disableStudio, "1", StringComparison.Ordinal) ? 1 : 0);
+                Volatile.Write(ref _argumentDisableStudio,
+                    string.Equals(disableStudio, "1", StringComparison.Ordinal) ? 1 : 0);
             }
             else if (TryReadOption(argument, "--emerald-test-recovery-action", out var recoveryAction))
             {
@@ -92,8 +99,13 @@ internal static class CrashFaultInjection
     public static void ConfigureFromActivationArguments(string? arguments)
     {
 #if DEBUG
-        if (string.IsNullOrWhiteSpace(arguments)) return;
-        ConfigureFromArguments(arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        if (string.IsNullOrWhiteSpace(arguments))
+        {
+            return;
+        }
+
+        ConfigureFromArguments(arguments.Split(' ',
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
 #endif
     }
 
@@ -120,16 +132,16 @@ internal static class CrashFaultInjection
 
     [System.Diagnostics.Conditional("DEBUG")]
     public static void ExerciseAdditionalPaths(Microsoft.UI.Dispatching.DispatcherQueue queue,
-        Microsoft.Extensions.Logging.ILogger logger)
+        ILogger logger)
     {
 #if DEBUG
         if (IsRequested("AsyncVoidBeforeAwait"))
         {
-            queue.TryEnqueue(() => ThrowAsyncVoid(afterAwait: false));
+            queue.TryEnqueue(() => ThrowAsyncVoid(false));
         }
         else if (IsRequested("AsyncVoidAfterAwait"))
         {
-            queue.TryEnqueue(() => ThrowAsyncVoid(afterAwait: true));
+            queue.TryEnqueue(() => ThrowAsyncVoid(true));
         }
         else if (IsRequested("WorkerThread"))
         {
@@ -205,13 +217,25 @@ internal static class CrashFaultInjection
     {
 #if DEBUG
         // Automated UI actions are allowed only in an explicitly isolated test run.
-        if (string.IsNullOrWhiteSpace(DataRoot)) return;
+        if (string.IsNullOrWhiteSpace(DataRoot))
+        {
+            return;
+        }
+
         var action = Volatile.Read(ref _argumentRecoveryAction)
-            ?? Environment.GetEnvironmentVariable("EMERALD_TEST_RECOVERY_ACTION");
-        if (action != "view-continue" && action != "continue") return;
+                     ?? Environment.GetEnvironmentVariable("EMERALD_TEST_RECOVERY_ACTION");
+        if (action != "view-continue" && action != "continue")
+        {
+            return;
+        }
+
         queue.TryEnqueue(() =>
         {
-            if (action == "view-continue") viewDetails();
+            if (action == "view-continue")
+            {
+                viewDetails();
+            }
+
             queue.TryEnqueue(() => continueStartup());
         });
 #endif
@@ -222,13 +246,22 @@ internal static class CrashFaultInjection
     {
         if (IsEnabled)
         {
-            try { Console.Error.WriteLine($"[EMERALD TEST] {checkpoint}"); } catch { }
+            try
+            {
+                Console.Error.WriteLine($"[EMERALD TEST] {checkpoint}");
+            }
+            catch
+            {
+            }
         }
     }
 
 #if DEBUG
-    private static string? GetCrashPoint() => Volatile.Read(ref _argumentCrashPoint)
-        ?? Environment.GetEnvironmentVariable("EMERALD_TEST_CRASH");
+    private static string? GetCrashPoint()
+    {
+        return Volatile.Read(ref _argumentCrashPoint)
+               ?? Environment.GetEnvironmentVariable("EMERALD_TEST_CRASH");
+    }
 
     private static bool TryReadOption(string argument, string name, out string value)
     {

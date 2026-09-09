@@ -38,8 +38,9 @@ internal sealed class MinecraftLogEventAssembler(GameLogSource source, int maxXm
         {
             try
             {
-                return Ioc.Default.GetService<ILoggerFactory>()?.CreateLogger(typeof(MinecraftLogEventAssembler).FullName!)
-                    ?? NullLogger.Instance;
+                return Ioc.Default.GetService<ILoggerFactory>()
+                           ?.CreateLogger(typeof(MinecraftLogEventAssembler).FullName!)
+                       ?? NullLogger.Instance;
             }
             catch (InvalidOperationException)
             {

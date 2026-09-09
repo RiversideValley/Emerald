@@ -28,34 +28,52 @@ internal sealed class ElyByAccountProvider(
                 BrowserMethodId,
                 "Sign in with Ely.by",
                 "Use your default browser to sign in with Ely.by",
-            IsDefault: true)],
+                IsDefault: true)
+        ],
         oauthOptions.IsConfigured,
         oauthOptions.IsConfigured ? null : "Ely.by OAuth is not configured for this build.",
-        Actions: [new AccountProviderActionDescriptor(
-            "manage-skins",
-            "Manage skins",
-            new Uri("https://ely.by/skins"))],
-        Requirements: policyOptions.RequireMicrosoftForElyByAccounts
-            ? [new AccountProviderRequirement(
-                AccountProviderIds.Microsoft,
-                "Add a Microsoft account before signing in to or selecting Ely.by.")]
+        [
+            new AccountProviderActionDescriptor(
+                "manage-skins",
+                "Manage skins",
+                new Uri("https://ely.by/skins"))
+        ],
+        policyOptions.RequireMicrosoftForElyByAccounts
+            ?
+            [
+                new AccountProviderRequirement(
+                    AccountProviderIds.Microsoft,
+                    "Add a Microsoft account before signing in to or selecting Ely.by.")
+            ]
             : []);
 
-    public Task InitializeAsync(AccountProviderInitializationContext context, CancellationToken cancellationToken = default)
-        => Task.CompletedTask;
+    public Task InitializeAsync(AccountProviderInitializationContext context,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
 
-    public Task<AccountProviderLoadResult> LoadAccountsAsync(IReadOnlyList<EAccount> persistedAccounts, CancellationToken cancellationToken = default)
-        => Task.FromResult(new AccountProviderLoadResult(accountStore.GetAccounts()
+    public Task<AccountProviderLoadResult> LoadAccountsAsync(IReadOnlyList<EAccount> persistedAccounts,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new AccountProviderLoadResult(accountStore.GetAccounts()
             .Select(ToAccount)
             .ToList()));
+    }
 
     public AccountProviderUsability GetAccountUsability(EAccount account)
     {
         var stored = accountStore.Find(account.UniqueId);
         if (stored is null)
+        {
             return new AccountProviderUsability(false, $"Ely.by account '{account.Name}' is no longer signed in.");
+        }
+
         if (Descriptor.IsConfigured || stored.AuthFlow == ElyByAuthFlow.Direct)
+        {
             return AccountProviderUsability.Available;
+        }
+
         return new AccountProviderUsability(false, Descriptor.ConfigurationMessage);
     }
 
@@ -63,7 +81,9 @@ internal sealed class ElyByAccountProvider(
     {
         EnsureConfigured();
         if (request.MethodId != BrowserMethodId)
+        {
             throw new ArgumentException($"Unsupported Ely.by sign-in method '{request.MethodId}'.", nameof(request));
+        }
 
         var state = CreateOAuthState();
         var authorization = authClient.CreateOAuthAuthorizationRequest(state);
@@ -77,7 +97,7 @@ internal sealed class ElyByAccountProvider(
     public async Task RefreshAsync(EAccount account, CancellationToken cancellationToken = default)
     {
         var stored = accountStore.Find(account.UniqueId)
-            ?? throw new InvalidOperationException($"Ely.by account '{account.Name}' is no longer signed in.");
+                     ?? throw new InvalidOperationException($"Ely.by account '{account.Name}' is no longer signed in.");
         account.Availability = AccountAvailability.Refreshing;
         account.AvailabilityMessage = null;
         try
@@ -102,11 +122,12 @@ internal sealed class ElyByAccountProvider(
         }
     }
 
-    public async Task<GameAuthenticationResult> AuthenticateForLaunchAsync(EAccount account, CancellationToken cancellationToken = default)
+    public async Task<GameAuthenticationResult> AuthenticateForLaunchAsync(EAccount account,
+        CancellationToken cancellationToken = default)
     {
         await RefreshAsync(account, cancellationToken).ConfigureAwait(false);
         var stored = accountStore.Find(account.UniqueId)
-            ?? throw new InvalidOperationException($"Ely.by account '{account.Name}' is no longer signed in.");
+                     ?? throw new InvalidOperationException($"Ely.by account '{account.Name}' is no longer signed in.");
         var authlib = await authlibInjectorService.PrepareLaunchAsync(cancellationToken).ConfigureAwait(false);
         return new GameAuthenticationResult(
             new MSession
@@ -126,14 +147,19 @@ internal sealed class ElyByAccountProvider(
         var httpClient = skinHttpClient ?? new HttpClient();
         using var response = await httpClient.GetAsync(endpoint, cancellationToken).ConfigureAwait(false);
         if (response.StatusCode == System.Net.HttpStatusCode.NoContent || !response.IsSuccessStatusCode)
+        {
             return null;
+        }
 
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
         if (!document.RootElement.TryGetProperty("SKIN", out var skin)
             || !skin.TryGetProperty("url", out var urlNode)
             || !Uri.TryCreate(urlNode.GetString(), UriKind.Absolute, out var url))
+        {
             return null;
+        }
 
         var variant = skin.TryGetProperty("metadata", out var metadata)
                       && metadata.TryGetProperty("model", out var model)
@@ -150,7 +176,10 @@ internal sealed class ElyByAccountProvider(
         var stored = accountStore.Find(account.UniqueId);
         if (stored is not null)
         {
-            try { await authClient.InvalidateAsync(stored, cancellationToken).ConfigureAwait(false); }
+            try
+            {
+                await authClient.InvalidateAsync(stored, cancellationToken).ConfigureAwait(false);
+            }
             catch (Exception ex)
             {
                 // Remote invalidation is best-effort. The local credential must
@@ -162,31 +191,45 @@ internal sealed class ElyByAccountProvider(
                     account.UniqueId);
             }
         }
+
         accountStore.Remove(account.UniqueId);
     }
 
-    private async Task<ElyByAuthSession> GetCurrentSessionAsync(ElyByStoredAccount stored, CancellationToken cancellationToken)
+    private async Task<ElyByAuthSession> GetCurrentSessionAsync(ElyByStoredAccount stored,
+        CancellationToken cancellationToken)
     {
         if (stored.AuthFlow == ElyByAuthFlow.OAuth)
         {
             if (stored.AccessTokenExpiresAt is { } expiresAt && expiresAt > DateTimeOffset.UtcNow.AddMinutes(5))
-                return new ElyByAuthSession(stored.Name, stored.UUID, stored.AccessToken, stored.ClientToken, stored.RefreshToken, stored.AccessTokenExpiresAt, stored.AuthFlow);
+            {
+                return new ElyByAuthSession(stored.Name, stored.UUID, stored.AccessToken, stored.ClientToken,
+                    stored.RefreshToken, stored.AccessTokenExpiresAt, stored.AuthFlow);
+            }
+
             return await authClient.RefreshAsync(stored, cancellationToken).ConfigureAwait(false);
         }
-        if (await authClient.ValidateAsync(stored.AccessToken, stored.ClientToken, cancellationToken).ConfigureAwait(false))
+
+        if (await authClient.ValidateAsync(stored.AccessToken, stored.ClientToken, cancellationToken)
+                .ConfigureAwait(false))
+        {
             return new ElyByAuthSession(stored.Name, stored.UUID, stored.AccessToken, stored.ClientToken);
+        }
+
         return await authClient.RefreshAsync(stored, cancellationToken).ConfigureAwait(false);
     }
 
     private void EnsureConfigured()
     {
         if (!Descriptor.IsConfigured)
+        {
             throw new ElyByAuthException(Descriptor.ConfigurationMessage!);
+        }
     }
 
     private static EAccount ToAccount(ElyByStoredAccount stored)
     {
-        var availability = stored.AuthFlow == ElyByAuthFlow.OAuth && stored.AccessTokenExpiresAt <= DateTimeOffset.UtcNow.AddMinutes(5)
+        var availability = stored.AuthFlow == ElyByAuthFlow.OAuth &&
+                           stored.AccessTokenExpiresAt <= DateTimeOffset.UtcNow.AddMinutes(5)
             ? AccountAvailability.NeedsRefresh
             : AccountAvailability.Ready;
         return new EAccount(stored.Name, AccountType.ElyBy, stored.UUID, stored.UniqueId)
@@ -207,18 +250,21 @@ internal sealed class ElyByAccountProvider(
         account.ProviderDisplayName = "Ely.by";
     }
 
-    private static ElyByStoredAccount ToStoredAccount(ElyByAuthSession session) => new()
+    private static ElyByStoredAccount ToStoredAccount(ElyByAuthSession session)
     {
-        UniqueId = $"{AccountProviderIds.ElyBy}:{session.UUID}",
-        Name = session.Name,
-        UUID = session.UUID,
-        AccessToken = session.AccessToken,
-        ClientToken = session.ClientToken,
-        RefreshToken = session.RefreshToken ?? string.Empty,
-        AccessTokenExpiresAt = session.AccessTokenExpiresAt,
-        AuthFlow = session.AuthFlow,
-        LastUsed = DateTime.UtcNow
-    };
+        return new ElyByStoredAccount
+        {
+            UniqueId = $"{AccountProviderIds.ElyBy}:{session.UUID}",
+            Name = session.Name,
+            UUID = session.UUID,
+            AccessToken = session.AccessToken,
+            ClientToken = session.ClientToken,
+            RefreshToken = session.RefreshToken ?? string.Empty,
+            AccessTokenExpiresAt = session.AccessTokenExpiresAt,
+            AuthFlow = session.AuthFlow,
+            LastUsed = DateTime.UtcNow
+        };
+    }
 
     private static void UpdateStoredAccount(ElyByStoredAccount stored, ElyByAuthSession session)
     {

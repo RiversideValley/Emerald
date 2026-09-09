@@ -15,6 +15,7 @@ internal static partial class MinecraftLogParser
 {
     private static readonly Regex StructuredLineRegex = StructuredLine();
     private const string Log4jEventsNamespace = "http://logging.apache.org/log4j/2.0/events";
+
     private static ILogger Logger
     {
         get
@@ -22,7 +23,7 @@ internal static partial class MinecraftLogParser
             try
             {
                 return Ioc.Default.GetService<ILoggerFactory>()?.CreateLogger(typeof(MinecraftLogParser).FullName!)
-                    ?? NullLogger.Instance;
+                       ?? NullLogger.Instance;
             }
             catch (InvalidOperationException)
             {
@@ -35,7 +36,9 @@ internal static partial class MinecraftLogParser
     /// Determines whether a raw line starts a structured text log event.
     /// </summary>
     public static bool IsStructuredTextStart(string rawLine)
-        => !string.IsNullOrEmpty(rawLine) && StructuredLineRegex.IsMatch(rawLine);
+    {
+        return !string.IsNullOrEmpty(rawLine) && StructuredLineRegex.IsMatch(rawLine);
+    }
 
     /// <summary>
     /// Determines whether a raw line starts a log4j XML event payload.
@@ -49,7 +52,7 @@ internal static partial class MinecraftLogParser
 
         var trimmed = rawLine.TrimStart();
         return trimmed.StartsWith("<log4j:Event", StringComparison.Ordinal)
-            || trimmed.StartsWith("<Event", StringComparison.Ordinal);
+               || trimmed.StartsWith("<Event", StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -63,13 +66,14 @@ internal static partial class MinecraftLogParser
         }
 
         return rawPayload.Contains("</log4j:Event>", StringComparison.Ordinal)
-            || rawPayload.Contains("</Event>", StringComparison.Ordinal);
+               || rawPayload.Contains("</Event>", StringComparison.Ordinal);
     }
 
     /// <summary>
     /// Parses a structured text event and falls back to raw payload parsing when needed.
     /// </summary>
-    public static GameLogEntry ParseTextEvent(string headerLine, IReadOnlyList<string> detailLines, GameLogSource source, DateTimeOffset finalizedAt)
+    public static GameLogEntry ParseTextEvent(string headerLine, IReadOnlyList<string> detailLines,
+        GameLogSource source, DateTimeOffset finalizedAt)
     {
         var structuredMatch = StructuredLineRegex.Match(headerLine);
         if (!structuredMatch.Success)
@@ -117,7 +121,8 @@ internal static partial class MinecraftLogParser
     /// <summary>
     /// Parses a log4j XML payload and falls back to raw parsing when the payload is incomplete or malformed.
     /// </summary>
-    public static GameLogEntry ParseXmlPayload(string rawPayload, GameLogSource source, DateTimeOffset fallbackTimestamp)
+    public static GameLogEntry ParseXmlPayload(string rawPayload, GameLogSource source,
+        DateTimeOffset fallbackTimestamp)
     {
         try
         {
@@ -125,7 +130,8 @@ internal static partial class MinecraftLogParser
                 $"""<Root xmlns:log4j="{Log4jEventsNamespace}">{rawPayload}</Root>""",
                 LoadOptions.PreserveWhitespace);
 
-            var eventElement = document.Root?.Elements().FirstOrDefault(x => string.Equals(x.Name.LocalName, "Event", StringComparison.Ordinal));
+            var eventElement = document.Root?.Elements()
+                .FirstOrDefault(x => string.Equals(x.Name.LocalName, "Event", StringComparison.Ordinal));
             if (eventElement == null)
             {
                 Logger.LogDebug(
@@ -142,7 +148,9 @@ internal static partial class MinecraftLogParser
             {
                 Timestamp = timestamp,
                 Level = ParseLevel(GetAttributeValue(eventElement, "level")),
-                Message = string.IsNullOrWhiteSpace(message) ? eventElement.ToString(SaveOptions.DisableFormatting) : message,
+                Message = string.IsNullOrWhiteSpace(message)
+                    ? eventElement.ToString(SaveOptions.DisableFormatting)
+                    : message,
                 DetailsText = throwable,
                 ThreadName = GetAttributeValue(eventElement, "thread"),
                 LoggerName = GetAttributeValue(eventElement, "logger") ?? GetAttributeValue(eventElement, "loggerName"),
@@ -179,11 +187,14 @@ internal static partial class MinecraftLogParser
     }
 
     private static string? JoinDetails(IReadOnlyList<string> detailLines)
-        => detailLines.Count == 0 ? null : string.Join(Environment.NewLine, detailLines);
+    {
+        return detailLines.Count == 0 ? null : string.Join(Environment.NewLine, detailLines);
+    }
 
     private static DateTimeOffset ParseTimestamp(XElement eventElement, DateTimeOffset fallbackTimestamp)
     {
-        var timestampValue = GetAttributeValue(eventElement, "timestamp") ?? GetAttributeValue(eventElement, "timeMillis");
+        var timestampValue = GetAttributeValue(eventElement, "timestamp") ??
+                             GetAttributeValue(eventElement, "timeMillis");
         if (!string.IsNullOrWhiteSpace(timestampValue))
         {
             if (long.TryParse(timestampValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var epochMillis))
@@ -191,19 +202,22 @@ internal static partial class MinecraftLogParser
                 return DateTimeOffset.FromUnixTimeMilliseconds(epochMillis);
             }
 
-            if (DateTimeOffset.TryParse(timestampValue, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsedTimestamp))
+            if (DateTimeOffset.TryParse(timestampValue, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind,
+                    out var parsedTimestamp))
             {
                 return parsedTimestamp;
             }
         }
 
-        var instantElement = eventElement.Elements().FirstOrDefault(x => string.Equals(x.Name.LocalName, "Instant", StringComparison.Ordinal));
+        var instantElement = eventElement.Elements()
+            .FirstOrDefault(x => string.Equals(x.Name.LocalName, "Instant", StringComparison.Ordinal));
         if (instantElement != null)
         {
             var epochSecondValue = GetAttributeValue(instantElement, "epochSecond");
             var nanoValue = GetAttributeValue(instantElement, "nanoOfSecond");
 
-            if (long.TryParse(epochSecondValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var epochSecond))
+            if (long.TryParse(epochSecondValue, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                    out var epochSecond))
             {
                 var timestamp = DateTimeOffset.FromUnixTimeSeconds(epochSecond);
                 if (int.TryParse(nanoValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var nanos))
@@ -219,28 +233,41 @@ internal static partial class MinecraftLogParser
     }
 
     private static string? GetAttributeValue(XElement element, string localName)
-        => element.Attributes().FirstOrDefault(x => string.Equals(x.Name.LocalName, localName, StringComparison.OrdinalIgnoreCase))?.Value;
+    {
+        return element.Attributes()
+            .FirstOrDefault(x => string.Equals(x.Name.LocalName, localName, StringComparison.OrdinalIgnoreCase))?.Value;
+    }
 
     private static string? GetDescendantValue(XElement element, string localName)
-        => element.Descendants().FirstOrDefault(x => string.Equals(x.Name.LocalName, localName, StringComparison.OrdinalIgnoreCase))?.Value;
+    {
+        return element.Descendants()
+            .FirstOrDefault(x => string.Equals(x.Name.LocalName, localName, StringComparison.OrdinalIgnoreCase))?.Value;
+    }
 
     private static string? TrimOuterLineBreaks(string? value)
-        => string.IsNullOrEmpty(value) ? value : value.Trim('\r', '\n');
+    {
+        return string.IsNullOrEmpty(value) ? value : value.Trim('\r', '\n');
+    }
 
     /// <summary>
     /// Normalizes a raw level token into the runtime log level enum.
     /// </summary>
-    internal static GameLogLevel ParseLevel(string? value) => value?.ToUpperInvariant() switch
+    internal static GameLogLevel ParseLevel(string? value)
     {
-        "TRACE" => GameLogLevel.Trace,
-        "DEBUG" => GameLogLevel.Debug,
-        "INFO" => GameLogLevel.Info,
-        "WARN" => GameLogLevel.Warn,
-        "ERROR" => GameLogLevel.Error,
-        "FATAL" => GameLogLevel.Fatal,
-        _ => GameLogLevel.Unknown
-    };
+        return value?.ToUpperInvariant() switch
+        {
+            "TRACE" => GameLogLevel.Trace,
+            "DEBUG" => GameLogLevel.Debug,
+            "INFO" => GameLogLevel.Info,
+            "WARN" => GameLogLevel.Warn,
+            "ERROR" => GameLogLevel.Error,
+            "FATAL" => GameLogLevel.Fatal,
+            _ => GameLogLevel.Unknown
+        };
+    }
 
-    [GeneratedRegex("^\\[(?<time>\\d{2}:\\d{2}:\\d{2})\\] \\[(?<thread>.+?)/(?<level>TRACE|DEBUG|INFO|WARN|ERROR|FATAL)(?:/(?<logger>[^\\]]+))?\\]: (?<message>.*)$", RegexOptions.Compiled | RegexOptions.IgnoreCase)]
+    [GeneratedRegex(
+        "^\\[(?<time>\\d{2}:\\d{2}:\\d{2})\\] \\[(?<thread>.+?)/(?<level>TRACE|DEBUG|INFO|WARN|ERROR|FATAL)(?:/(?<logger>[^\\]]+))?\\]: (?<message>.*)$",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase)]
     private static partial Regex StructuredLine();
 }

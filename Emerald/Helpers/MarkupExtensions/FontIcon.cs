@@ -10,5 +10,7 @@ public sealed class FontIcon : MarkupExtension
     public int FontSize { get; set; } = 16;
 
     protected override object ProvideValue()
-        => new Microsoft.UI.Xaml.Controls.FontIcon() { Glyph = Glyph, FontSize = FontSize };
+    {
+        return new Microsoft.UI.Xaml.Controls.FontIcon { Glyph = Glyph, FontSize = FontSize };
+    }
 }

@@ -31,7 +31,7 @@ public sealed partial class GamesPage : Page
     {
         ViewModel = Ioc.Default.GetService<GamesPageViewModel>();
         DataContext = ViewModel;
-        this.InitializeComponent();
+        InitializeComponent();
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)
@@ -80,7 +80,7 @@ public sealed partial class GamesPage : Page
     {
         if (sender is MenuFlyoutItem item && item.Tag is Game game)
         {
-            var GameSettingsControl = new MinecraftSettingsUC()
+            var GameSettingsControl = new MinecraftSettingsUC
             {
                 ShowMainSettings = false,
                 Game = game
@@ -130,13 +130,21 @@ public sealed partial class GamesPage : Page
 
     private async void VerifyGame_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuFlyoutItem { Tag: Game game }) return;
+        if (sender is not MenuFlyoutItem { Tag: Game game })
+        {
+            return;
+        }
+
         await ViewModel.VerifyGameCommand.ExecuteAsync(game);
     }
 
     private async void RepairGame_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuFlyoutItem { Tag: Game game }) return;
+        if (sender is not MenuFlyoutItem { Tag: Game game })
+        {
+            return;
+        }
+
         await ViewModel.RepairGameCommand.ExecuteAsync(game);
     }
 
@@ -191,7 +199,9 @@ public sealed partial class GamesPage : Page
                 MessageBoxButtons.YesNo);
 
             if (result is not MessageBoxResults.Yes)
+            {
                 return;
+            }
 
             _ = ViewModel.ForceStopGameCommand.ExecuteAsync(game);
         }
@@ -258,7 +268,10 @@ public sealed partial class GamesPage : Page
 
     private async void EditOptions_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.Tag is not Game game) return;
+        if ((sender as FrameworkElement)?.Tag is not Game game)
+        {
+            return;
+        }
 
         var dialog = new GameOptionsDialog(game) { XamlRoot = XamlRoot };
         await dialog.ShowAsync();

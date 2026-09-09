@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml.Controls;
 using Windows.Foundation;
+
 namespace Emerald.Controls;
 
 /// <summary>Wraps profile cards, measuring every card so long names cannot underflow the action area.</summary>
@@ -7,7 +8,11 @@ public sealed class ResponsiveCardPanel : Panel
 {
     private const double Gap = 16;
     private const double MinimumWidth = 280;
-    private int Columns(double width) => Math.Max(1, (int)((width + Gap) / (MinimumWidth + Gap)));
+
+    private int Columns(double width)
+    {
+        return Math.Max(1, (int)((width + Gap) / (MinimumWidth + Gap)));
+    }
 
     protected override Size MeasureOverride(Size availableSize)
     {
@@ -40,7 +45,10 @@ public sealed class ResponsiveCardPanel : Panel
             var height = Enumerable.Range(i, Math.Min(columns, Children.Count - i))
                 .Max(j => Children[j].DesiredSize.Height);
             for (var j = i; j < Math.Min(i + columns, Children.Count); j++)
+            {
                 Children[j].Arrange(new Rect((j - i) * (width + Gap), y, width, height));
+            }
+
             y += height + Gap;
         }
 

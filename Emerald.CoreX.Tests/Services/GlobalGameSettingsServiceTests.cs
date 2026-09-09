@@ -25,7 +25,8 @@ public sealed class GlobalGameSettingsServiceTests
         service.Settings.MaximumRamMb = 4096;
 
         await AsyncAssert.EventuallyAsync(() =>
-            minecraftBaseSettings.Peek<GameSettings>("/tmp/emerald-base", SettingsKeys.BaseGameOptions)?.MaximumRamMb == 4096);
+            minecraftBaseSettings.Peek<GameSettings>("/tmp/emerald-base", SettingsKeys.BaseGameOptions)?.MaximumRamMb ==
+            4096);
     }
 
     [Fact]
@@ -43,7 +44,8 @@ public sealed class GlobalGameSettingsServiceTests
         service.Settings.JVMArgs.Add("-Xmx4G");
 
         await AsyncAssert.EventuallyAsync(() =>
-            minecraftBaseSettings.Peek<GameSettings>("/tmp/emerald-base", SettingsKeys.BaseGameOptions)?.JVMArgs.Contains("-Xmx4G") == true);
+            minecraftBaseSettings.Peek<GameSettings>("/tmp/emerald-base", SettingsKeys.BaseGameOptions)?.JVMArgs
+                .Contains("-Xmx4G") == true);
     }
 
     [Fact]

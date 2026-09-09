@@ -17,12 +17,10 @@ public partial class JavaRuntimeOptionViewModel : ObservableObject
 
     public bool IsCustomSaved { get; set; }
 
-    [NotifyPropertyChangedFor(nameof(CanSelect))]
-    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanSelect))] [ObservableProperty]
     private bool _isSelected;
 
-    [NotifyPropertyChangedFor(nameof(CanSelect), nameof(IsInvalid), nameof(StatusText))]
-    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanSelect), nameof(IsInvalid), nameof(StatusText))] [ObservableProperty]
     private bool _isValid;
 
     public bool CanSelect => IsValid && !IsSelected;

@@ -6,7 +6,10 @@ using System.Text.Json;
 
 namespace Emerald.CoreX.Services.Servers;
 
-public interface IServerAddressClassifier { Task<bool> IsLocalAsync(string host, CancellationToken token); }
+public interface IServerAddressClassifier
+{
+    Task<bool> IsLocalAsync(string host, CancellationToken token);
+}
 
 /// <summary>Read-only Java status transport. Never sends local endpoints to a web service.</summary>
 public static class LocalJavaServerStatus
@@ -14,12 +17,16 @@ public static class LocalJavaServerStatus
     public static bool IsPrivate(IPAddress ip)
     {
         if (ip.IsIPv4MappedToIPv6)
+        {
             ip = ip.MapToIPv4();
+        }
 
         if (IPAddress.IsLoopback(ip)
             || ip.IsIPv6LinkLocal
             || ip.IsIPv6SiteLocal)
+        {
             return true;
+        }
 
         var bytes = ip.GetAddressBytes();
         return bytes.Length == 16
@@ -33,12 +40,17 @@ public static class LocalJavaServerStatus
     public static async Task<bool> IsLocalAsync(string host, CancellationToken token)
     {
         if (IPAddress.TryParse(host, out var ip))
+        {
             return IsPrivate(ip);
+        }
 
         if (!host.Contains('.')
             || host.EndsWith(".local", StringComparison.OrdinalIgnoreCase)
             || host.EndsWith(".localhost", StringComparison.OrdinalIgnoreCase))
+        {
             return true;
+        }
+
         // Fail closed on DNS errors: an unresolved private name must never escape to a provider.
         var addresses = await Dns.GetHostAddressesAsync(host, token);
         return addresses.Length == 0 || addresses.Any(IsPrivate);
@@ -71,11 +83,16 @@ public static class LocalJavaServerStatus
         using var response = new MemoryStream(packet);
 
         if (ReadVarInt(response) != 0)
+        {
             throw new InvalidDataException("Unexpected status packet.");
+        }
+
         var length = ReadVarInt(response);
 
         if (length < 0 || length > response.Length - response.Position)
+        {
             throw new InvalidDataException("Invalid status length.");
+        }
 
         var json = new byte[length];
         response.ReadExactly(json);
@@ -87,7 +104,9 @@ public static class LocalJavaServerStatus
         var icon = Text(root, "favicon");
 
         if (icon != null && !ValidIcon(icon))
+        {
             icon = null;
+        }
 
         long? latency = null;
 
@@ -99,14 +118,15 @@ public static class LocalJavaServerStatus
             var pong = await ReadPacketAsync(stream, token);
 
             if (pong.AsSpan().SequenceEqual(ping))
+            {
                 latency = watch.ElapsedMilliseconds;
+            }
         }
         catch (Exception ex) when (ex is IOException or OperationCanceledException or SocketException)
         {
-
         }
 
-        return new(
+        return new ServerStatusSnapshot(
             ServerStatusState.Online,
             DateTimeOffset.UtcNow,
             address,
@@ -125,7 +145,9 @@ public static class LocalJavaServerStatus
         const string prefix = "data:image/png;base64,";
         if (!icon.StartsWith(prefix, StringComparison.Ordinal)
             || icon.Length > 128 * 1024)
+        {
             return false;
+        }
 
         try
         {
@@ -143,29 +165,43 @@ public static class LocalJavaServerStatus
         }
     }
 
-    private static string? Text(JsonElement e, string key) =>
-        e.ValueKind == JsonValueKind.Object && e.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.String
+    private static string? Text(JsonElement e, string key)
+    {
+        return e.ValueKind == JsonValueKind.Object && e.TryGetProperty(key, out var v) &&
+               v.ValueKind == JsonValueKind.String
             ? v.GetString()
             : null;
+    }
 
-    private static int? Number(JsonElement e, string key) => 
-        e.ValueKind == JsonValueKind.Object &&
-        e.TryGetProperty(key, out var v) &&
-        v.ValueKind == JsonValueKind.Number &&
-        v.TryGetInt32(out var n)
-        ? n
-        : null;
+    private static int? Number(JsonElement e, string key)
+    {
+        return e.ValueKind == JsonValueKind.Object &&
+               e.TryGetProperty(key, out var v) &&
+               v.ValueKind == JsonValueKind.Number &&
+               v.TryGetInt32(out var n)
+            ? n
+            : null;
+    }
 
     private static string CleanText(JsonElement e, int depth = 0)
     {
-        if (depth > 16) return string.Empty;
+        if (depth > 16)
+        {
+            return string.Empty;
+        }
+
         var text = e.ValueKind == JsonValueKind.String
             ? e.GetString() ?? string.Empty
             : Text(e, "text") ?? string.Empty;
         if (e.ValueKind == JsonValueKind.Object && e.TryGetProperty("extra", out var extra) &&
             extra.ValueKind == JsonValueKind.Array)
+        {
             foreach (var child in extra.EnumerateArray().Take(100))
+            {
                 text += CleanText(child, depth + 1);
+            }
+        }
+
         return System.Text.RegularExpressions.Regex.Replace(text, "§.", string.Empty);
     }
 
@@ -183,13 +219,24 @@ public static class LocalJavaServerStatus
         var b = new byte[1];
         for (var i = 0;; i++)
         {
-            if (i == 5) throw new InvalidDataException("Oversized VarInt.");
+            if (i == 5)
+            {
+                throw new InvalidDataException("Oversized VarInt.");
+            }
+
             await stream.ReadExactlyAsync(b, token);
             length |= (b[0] & 127) << (7 * i);
-            if ((b[0] & 128) == 0) break;
+            if ((b[0] & 128) == 0)
+            {
+                break;
+            }
         }
 
-        if (length <= 0 || length > 256 * 1024) throw new InvalidDataException("Oversized status packet.");
+        if (length <= 0 || length > 256 * 1024)
+        {
+            throw new InvalidDataException("Oversized status packet.");
+        }
+
         var data = new byte[length];
         await stream.ReadExactlyAsync(data, token);
         return data;
@@ -201,9 +248,16 @@ public static class LocalJavaServerStatus
         for (var i = 0; i < 5; i++)
         {
             var b = stream.ReadByte();
-            if (b < 0) throw new EndOfStreamException();
+            if (b < 0)
+            {
+                throw new EndOfStreamException();
+            }
+
             value |= (b & 127) << (7 * i);
-            if ((b & 128) == 0) return value;
+            if ((b & 128) == 0)
+            {
+                return value;
+            }
         }
 
         throw new InvalidDataException("Oversized VarInt.");

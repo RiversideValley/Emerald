@@ -40,9 +40,9 @@ internal sealed class InstallationProgressReporter : IAsyncDisposable, IProgress
             _dispatcher.Invoke(() => created = _notifications.Create(
                 title,
                 message,
-                progress: 0,
-                isIndeterminate: true,
-                isCancellable: true));
+                0,
+                true,
+                true));
             _notificationId = created.id;
             NotificationCancellationToken = created.cancellationToken;
         }
@@ -51,9 +51,12 @@ internal sealed class InstallationProgressReporter : IAsyncDisposable, IProgress
     }
 
     public void Report(InstallationProgress progress)
-        => _updates.Writer.TryWrite(progress);
+    {
+        _updates.Writer.TryWrite(progress);
+    }
 
-    public async Task CompleteAsync(InstallationProgress finalProgress, bool success, string message, Exception? exception = null)
+    public async Task CompleteAsync(InstallationProgress finalProgress, bool success, string message,
+        Exception? exception = null)
     {
         // Several exception paths can converge while an installer is unwinding.
         // Only the first terminal result is allowed to complete the notification.
@@ -92,14 +95,21 @@ internal sealed class InstallationProgressReporter : IAsyncDisposable, IProgress
             // keeping visible updates at four per second or less.
             if (!_updates.Reader.Completion.IsCompleted)
             {
-                try { await Task.Delay(UiUpdateInterval).ConfigureAwait(false); }
-                catch (OperationCanceledException) { return; }
+                try
+                {
+                    await Task.Delay(UiUpdateInterval).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
             }
         }
     }
 
     private Task PublishAsync(InstallationProgress progress)
-        => _dispatcher.InvokeAsync(() =>
+    {
+        return _dispatcher.InvokeAsync(() =>
         {
             _externalProgress?.Report(progress);
             if (_notificationId != null && _notifications != null)
@@ -107,14 +117,16 @@ internal sealed class InstallationProgressReporter : IAsyncDisposable, IProgress
                 var percentage = progress.TotalBytes > 0
                     ? Math.Clamp(progress.ProcessedBytes * 100d / progress.TotalBytes, 0, 100)
                     : progress.Total <= 0
-                    ? (double?)null
-                    : Math.Clamp(progress.Completed * 100d / progress.Total, 0, 100);
+                        ? (double?)null
+                        : Math.Clamp(progress.Completed * 100d / progress.Total, 0, 100);
                 var message = progress.CurrentItem == null
                     ? progress.Stage
                     : $"{progress.Stage}: {progress.CurrentItem} ({progress.Completed}/{progress.Total})";
-                _notifications.Update(_notificationId, message: message, progress: percentage, isIndeterminate: percentage == null);
+                _notifications.Update(_notificationId, message: message, progress: percentage,
+                    isIndeterminate: percentage == null);
             }
         });
+    }
 
     public async ValueTask DisposeAsync()
     {

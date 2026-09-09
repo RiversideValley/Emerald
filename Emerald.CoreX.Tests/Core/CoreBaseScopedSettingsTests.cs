@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Reflection;
 using CmlLib.Core;
+using CmlLib.Core.ProcessBuilder;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Notifications;
@@ -38,7 +39,8 @@ public sealed class CoreBaseScopedSettingsTests
 
         core.LoadGames();
 
-        var migrated = Assert.Single(minecraftBaseSettings.Peek<SavedGame[]>(baseTemp.Path, SettingsKeys.SavedGames) ?? []);
+        var migrated =
+            Assert.Single(minecraftBaseSettings.Peek<SavedGame[]>(baseTemp.Path, SettingsKeys.SavedGames) ?? []);
         Assert.Equal(gamePath, migrated.Path);
         Assert.NotEqual(Guid.Empty, migrated.InstanceId);
         var remaining = Assert.Single(centralSettings.Peek<SavedGameCollection[]>(SettingsKeys.SavedGames) ?? []);
@@ -49,13 +51,26 @@ public sealed class CoreBaseScopedSettingsTests
     public void LoadGames_RepairsDuplicateInstanceIdsAndPersistsThem()
     {
         using var temp = new TemporaryDirectory();
-        var central = new InMemoryBaseSettingsService(); var scoped = new InMemoryMinecraftBaseSettingsService(); scoped.UseBasePath(temp.Path);
-        var duplicate = Guid.NewGuid(); var one = Path.Combine(temp.Path, LauncherCore.GamesFolderName, "One"); var two = Path.Combine(temp.Path, LauncherCore.GamesFolderName, "Two"); Directory.CreateDirectory(one); Directory.CreateDirectory(two);
-        scoped.Set(SettingsKeys.SavedGames, new[] { new SavedGame { Path = one, InstanceId = duplicate }, new SavedGame { Path = two, InstanceId = duplicate } });
+        var central = new InMemoryBaseSettingsService();
+        var scoped = new InMemoryMinecraftBaseSettingsService();
+        scoped.UseBasePath(temp.Path);
+        var duplicate = Guid.NewGuid();
+        var one = Path.Combine(temp.Path, LauncherCore.GamesFolderName, "One");
+        var two = Path.Combine(temp.Path, LauncherCore.GamesFolderName, "Two");
+        Directory.CreateDirectory(one);
+        Directory.CreateDirectory(two);
+        scoped.Set(SettingsKeys.SavedGames,
+            new[]
+            {
+                new SavedGame { Path = one, InstanceId = duplicate },
+                new SavedGame { Path = two, InstanceId = duplicate }
+            });
         var core = CreateCore(temp.Path, central, scoped);
         core.LoadGames();
         var saved = scoped.Peek<SavedGame[]>(temp.Path, SettingsKeys.SavedGames)!;
-        Assert.Equal(2, saved.Select(x => x.InstanceId).Distinct().Count()); Assert.Equal(duplicate, saved[0].InstanceId); Assert.NotEqual(Guid.Empty, saved[1].InstanceId);
+        Assert.Equal(2, saved.Select(x => x.InstanceId).Distinct().Count());
+        Assert.Equal(duplicate, saved[0].InstanceId);
+        Assert.NotEqual(Guid.Empty, saved[1].InstanceId);
     }
 
     [Fact]
@@ -113,10 +128,12 @@ public sealed class CoreBaseScopedSettingsTests
 
     private sealed class TestGlobalGameSettingsService : IGlobalGameSettingsService
     {
-        public GameSettings Settings { get; } = GameSettings.FromMLaunchOption(new());
+        public GameSettings Settings { get; } = GameSettings.FromMLaunchOption(new MLaunchOption());
 
         public GameSettings CloneCurrent()
-            => Settings.Clone();
+        {
+            return Settings.Clone();
+        }
 
         public void Save()
         {
@@ -132,30 +149,41 @@ public sealed class CoreBaseScopedSettingsTests
         public ObservableCollection<GameSession> Sessions { get; } = [];
 
         public GameSession? FindLatestSession(string gamePath)
-            => null;
+        {
+            return null;
+        }
 
         public Task<GameSession?> LaunchAsync(Game game, EAccount? account = null)
-            => Task.FromResult<GameSession?>(null);
+        {
+            return Task.FromResult<GameSession?>(null);
+        }
 
         public Task StopAsync(Game game, GameStopMode mode)
-            => Task.CompletedTask;
+        {
+            return Task.CompletedTask;
+        }
 
         public GameSession? TryGetActiveSession(Game game)
-            => null;
+        {
+            return null;
+        }
     }
 
     private sealed class TemporaryDirectory : IDisposable
     {
-        public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"emerald-tests-{Guid.NewGuid():N}");
+        public string Path { get; } =
+            System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"emerald-tests-{Guid.NewGuid():N}");
 
         public TemporaryDirectory()
-            => Directory.CreateDirectory(Path);
+        {
+            Directory.CreateDirectory(Path);
+        }
 
         public void Dispose()
         {
             if (Directory.Exists(Path))
             {
-                Directory.Delete(Path, recursive: true);
+                Directory.Delete(Path, true);
             }
         }
     }

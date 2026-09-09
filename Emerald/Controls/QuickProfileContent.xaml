@@ -1,28 +1,35 @@
-<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:conv="using:Emerald.Helpers.Converters" x:Class="Emerald.Controls.QuickProfileContent">
+<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:conv="using:Emerald.Helpers.Converters"
+             x:Class="Emerald.Controls.QuickProfileContent">
   <UserControl.Resources>
-    <conv:BoolToVisibility x:Key="Visible"/>
+    <conv:BoolToVisibility x:Key="Visible" />
   </UserControl.Resources>
   <Grid x:Name="ContentRoot" Padding="16" RowSpacing="12" Background="{Binding TintBrush}">
     <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
     <Grid ColumnSpacing="12">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="48"/>
-        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="48" />
+        <ColumnDefinition Width="*" />
       </Grid.ColumnDefinitions>
       <Border Width="48" Height="48" Background="{Binding AccentBrush}" CornerRadius="8">
         <Grid>
-          <FontIcon Glyph="{Binding Glyph}" Foreground="White" FontSize="24" Visibility="{Binding UsesGlyphIcon, Converter={StaticResource Visible}}"/>
-          <Image Source="{Binding BlockIconSource}" Margin="4" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding UsesBlockIcon, Converter={StaticResource Visible}}"/>
+          <FontIcon Glyph="{Binding Glyph}" Foreground="White" FontSize="24"
+                    Visibility="{Binding UsesGlyphIcon, Converter={StaticResource Visible}}" />
+          <Image Source="{Binding BlockIconSource}" Margin="4" Stretch="Uniform" HorizontalAlignment="Center"
+                 VerticalAlignment="Center" Visibility="{Binding UsesBlockIcon, Converter={StaticResource Visible}}" />
         </Grid>
       </Border>
       <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-        <TextBlock Text="{Binding Name}" Style="{ThemeResource BodyStrongTextBlockStyle}" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
-        <TextBlock Text="{Binding Status}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
+        <TextBlock Text="{Binding Name}" Style="{ThemeResource BodyStrongTextBlockStyle}" TextWrapping="Wrap"
+                   MaxLines="2" TextTrimming="CharacterEllipsis" />
+        <TextBlock Text="{Binding Status}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                   TextTrimming="CharacterEllipsis" />
       </StackPanel>
     </Grid>
-    <TextBlock Grid.Row="1" Text="{Binding Context}" Style="{ThemeResource CaptionTextBlockStyle}" TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+    <TextBlock Grid.Row="1" Text="{Binding Context}" Style="{ThemeResource CaptionTextBlockStyle}"
+               TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
   </Grid>
 </UserControl>

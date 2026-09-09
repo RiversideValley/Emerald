@@ -24,15 +24,15 @@ public static class MinecraftServerAddressParser
         var value = input?.Trim();
         if (string.IsNullOrWhiteSpace(value))
         {
-            error = "Enter a server address."; 
+            error = "Enter a server address.";
             return false;
         }
 
-        if (value.Contains("://", StringComparison.Ordinal) || 
+        if (value.Contains("://", StringComparison.Ordinal) ||
             value.Any(char.IsWhiteSpace) ||
             value.IndexOfAny(['/', '?', '#']) >= 0)
         {
-            error = "Enter a host name or IP address without a URI scheme, path, or spaces."; 
+            error = "Enter a host name or IP address without a URI scheme, path, or spaces.";
             return false;
         }
 
@@ -43,18 +43,21 @@ public static class MinecraftServerAddressParser
             var close = value.IndexOf(']');
             if (close < 2 || (close + 1 < value.Length && value[close + 1] != ':'))
             {
-                error = "The bracketed IPv6 address is invalid."; 
+                error = "The bracketed IPv6 address is invalid.";
                 return false;
             }
+
             host = value[1..close];
-            
-            if (close + 1 < value.Length && !TryPort(value[(close + 2)..], out port, out error)) 
+
+            if (close + 1 < value.Length && !TryPort(value[(close + 2)..], out port, out error))
+            {
                 return false;
+            }
 
             if (!IPAddress.TryParse(host, out var parsed) ||
                 parsed.AddressFamily != System.Net.Sockets.AddressFamily.InterNetworkV6)
             {
-                error = "The bracketed address is not valid IPv6."; 
+                error = "The bracketed address is not valid IPv6.";
                 return false;
             }
         }
@@ -66,39 +69,60 @@ public static class MinecraftServerAddressParser
                 if (!IPAddress.TryParse(value, out var parsed) ||
                     parsed.AddressFamily != System.Net.Sockets.AddressFamily.InterNetworkV6)
                 {
-                    error = "The IPv6 address is invalid."; return false;
+                    error = "The IPv6 address is invalid.";
+                    return false;
                 }
+
                 host = value;
             }
             else if (colonCount == 1)
             {
                 var index = value.LastIndexOf(':');
                 host = value[..index];
-                if (!TryPort(value[(index + 1)..], out port, out error)) return false;
+                if (!TryPort(value[(index + 1)..], out port, out error))
+                {
+                    return false;
+                }
             }
-            else host = value;
+            else
+            {
+                host = value;
+            }
         }
-        if (string.IsNullOrWhiteSpace(host) || host is "." or "-") { error = "The host name is invalid."; return false; }
-        address = new(host, port);
+
+        if (string.IsNullOrWhiteSpace(host) || host is "." or "-")
+        {
+            error = "The host name is invalid.";
+            return false;
+        }
+
+        address = new MinecraftServerAddress(host, port);
         return true;
     }
 
     public static MinecraftServerAddress Parse(string input)
-        => TryParse(input, out var address, out var error) ? address : throw new FormatException(error);
+    {
+        return TryParse(input, out var address, out var error) ? address : throw new FormatException(error);
+    }
 
     private static bool TryPort(string value, out int port, out string? error)
     {
         error = null;
         if (!int.TryParse(value, out port) || port is < 1 or > 65535)
         {
-            error = "The port must be between 1 and 65535."; 
+            error = "The port must be between 1 and 65535.";
             return false;
         }
+
         return true;
     }
 }
 
-public enum SavedServerSourceKind { Directory, Custom }
+public enum SavedServerSourceKind
+{
+    Directory,
+    Custom
+}
 
 public sealed class SavedServer
 {
@@ -126,52 +150,76 @@ public interface ISavedServerService
     void MarkLaunched(Guid id, DateTimeOffset? at = null);
 }
 
-internal sealed class SavedServerEnvelope { public int SchemaVersion { get; set; } = 1; public List<SavedServer> Servers { get; set; } = []; }
+internal sealed class SavedServerEnvelope
+{
+    public int SchemaVersion { get; set; } = 1;
+    public List<SavedServer> Servers { get; set; } = [];
+}
 
-public sealed class SavedServerService(IBaseSettingsService settings, ILogger<SavedServerService> logger) : ISavedServerService
+public sealed class SavedServerService(IBaseSettingsService settings, ILogger<SavedServerService> logger)
+    : ISavedServerService
 {
     private readonly object _gate = new();
     private bool _isReadOnly;
     public event EventHandler? Changed;
 
-    public IReadOnlyList<SavedServer> GetAll() { lock (_gate) return Read().Servers.OrderByDescending(x => x.LastLaunchedAt ?? x.DateAdded).ToArray(); }
-    public SavedServer? Find(Guid id) => GetAll().FirstOrDefault(x => x.Id == id);
+    public IReadOnlyList<SavedServer> GetAll()
+    {
+        lock (_gate)
+        {
+            return Read().Servers.OrderByDescending(x => x.LastLaunchedAt ?? x.DateAdded).ToArray();
+        }
+    }
+
+    public SavedServer? Find(Guid id)
+    {
+        return GetAll().FirstOrDefault(x => x.Id == id);
+    }
 
     public SavedServer Save(SavedServer server)
     {
         ArgumentNullException.ThrowIfNull(server);
-        
-        var parsed = MinecraftServerAddressParser.Parse(new MinecraftServerAddress(server.Host, server.Port).DisplayAddress);
-        
+
+        var parsed =
+            MinecraftServerAddressParser.Parse(new MinecraftServerAddress(server.Host, server.Port).DisplayAddress);
+
         lock (_gate)
         {
             var envelope = Read();
-            
+
             if (_isReadOnly)
+            {
                 return server;
-            
+            }
+
             var duplicate = envelope.Servers
-                .FirstOrDefault(x => 
-                    new MinecraftServerAddress(x.Host, x.Port).CanonicalKey == parsed.CanonicalKey 
+                .FirstOrDefault(x =>
+                    new MinecraftServerAddress(x.Host, x.Port).CanonicalKey == parsed.CanonicalKey
                     && x.Id != server.Id);
 
             if (duplicate != null)
             {
                 duplicate.Name = string.IsNullOrWhiteSpace(server.Name) ? duplicate.Name : server.Name.Trim();
-                Write(envelope); 
+                Write(envelope);
                 Changed?.Invoke(this, EventArgs.Empty);
                 return duplicate;
             }
+
             var existing =
                 envelope.Servers.FirstOrDefault(x => x.Id == server.Id);
-            
-            if (existing == null) 
+
+            if (existing == null)
+            {
                 envelope.Servers.Add(server);
-            else 
+            }
+            else
+            {
                 Copy(server, existing);
-            
+            }
+
             Write(envelope);
         }
+
         Changed?.Invoke(this, EventArgs.Empty);
         return server;
     }
@@ -179,8 +227,26 @@ public sealed class SavedServerService(IBaseSettingsService settings, ILogger<Sa
     public bool Remove(Guid id)
     {
         bool removed;
-        lock (_gate) { var envelope = Read(); if (_isReadOnly) return false; removed = envelope.Servers.RemoveAll(x => x.Id == id) > 0; if (removed) Write(envelope); }
-        if (removed) Changed?.Invoke(this, EventArgs.Empty);
+        lock (_gate)
+        {
+            var envelope = Read();
+            if (_isReadOnly)
+            {
+                return false;
+            }
+
+            removed = envelope.Servers.RemoveAll(x => x.Id == id) > 0;
+            if (removed)
+            {
+                Write(envelope);
+            }
+        }
+
+        if (removed)
+        {
+            Changed?.Invoke(this, EventArgs.Empty);
+        }
+
         return removed;
     }
 
@@ -188,16 +254,22 @@ public sealed class SavedServerService(IBaseSettingsService settings, ILogger<Sa
     {
         lock (_gate)
         {
-            var envelope = Read(); 
-            if (_isReadOnly) 
-                return; 
-            
-            var server = envelope.Servers.FirstOrDefault(x => x.Id == id); 
-            if (server == null) 
-                return; 
-            
-            server.LastLaunchedAt = at ?? DateTimeOffset.UtcNow; Write(envelope);
+            var envelope = Read();
+            if (_isReadOnly)
+            {
+                return;
+            }
+
+            var server = envelope.Servers.FirstOrDefault(x => x.Id == id);
+            if (server == null)
+            {
+                return;
+            }
+
+            server.LastLaunchedAt = at ?? DateTimeOffset.UtcNow;
+            Write(envelope);
         }
+
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
@@ -207,23 +279,29 @@ public sealed class SavedServerService(IBaseSettingsService settings, ILogger<Sa
         if (value.SchemaVersion > 1)
         {
             _isReadOnly = true;
-            logger.LogWarning("Saved server schema {Schema} is newer than this Emerald build; saved servers are read-only.", value.SchemaVersion);
+            logger.LogWarning(
+                "Saved server schema {Schema} is newer than this Emerald build; saved servers are read-only.",
+                value.SchemaVersion);
         }
+
         return value;
     }
-    private void Write(SavedServerEnvelope value) => 
+
+    private void Write(SavedServerEnvelope value)
+    {
         settings.Set(SettingsKeys.SavedServers, value);
+    }
 
     private static void Copy(SavedServer source, SavedServer destination)
     {
-        destination.Name = source.Name; 
-        destination.Host = source.Host; 
-        destination.Port = source.Port; 
-        destination.SourceKind = source.SourceKind; 
-        destination.SourceSlug = source.SourceSlug; 
-        destination.SourcePageUrl = source.SourcePageUrl; 
-        destination.IconUrl = source.IconUrl; 
-        destination.BannerUrl = source.BannerUrl; 
+        destination.Name = source.Name;
+        destination.Host = source.Host;
+        destination.Port = source.Port;
+        destination.SourceKind = source.SourceKind;
+        destination.SourceSlug = source.SourceSlug;
+        destination.SourcePageUrl = source.SourcePageUrl;
+        destination.IconUrl = source.IconUrl;
+        destination.BannerUrl = source.BannerUrl;
         destination.LastLaunchedAt = source.LastLaunchedAt;
     }
 }
@@ -231,89 +309,123 @@ public sealed class SavedServerService(IBaseSettingsService settings, ILogger<Sa
 public enum ServerDirectorySort
 {
     Votes,
-    Players, 
-    Rating, 
-    Newest, 
+    Players,
+    Rating,
+    Newest,
     Name
 }
-public sealed record ServerDirectoryQuery(string? Search = null, string? Tag = null, string? Version = null, ServerDirectorySort Sort = ServerDirectorySort.Votes, int Page = 1, int PageSize = 20);
+
+public sealed record ServerDirectoryQuery(
+    string? Search = null,
+    string? Tag = null,
+    string? Version = null,
+    ServerDirectorySort Sort = ServerDirectorySort.Votes,
+    int Page = 1,
+    int PageSize = 20);
+
 public sealed record ServerDirectoryEntry(
-    string Name, 
+    string Name,
     string Host,
     int Port,
-    string? Slug, 
-    string? PageUrl, 
-    string? Motd, 
-    string? Version, 
-    int Players, 
-    int MaxPlayers, 
-    string? IconUrl, 
-    string? BannerUrl, 
-    IReadOnlyList<string> Tags, 
-    double? Rating, 
-    int Votes, 
+    string? Slug,
+    string? PageUrl,
+    string? Motd,
+    string? Version,
+    int Players,
+    int MaxPlayers,
+    string? IconUrl,
+    string? BannerUrl,
+    IReadOnlyList<string> Tags,
+    double? Rating,
+    int Votes,
     bool Online)
 {
     public string Address => new MinecraftServerAddress(Host, Port).DisplayAddress;
     public string PlayerText => Online ? $"{Players:N0} / {MaxPlayers:N0} players" : "Offline";
     public string TagsText => string.Join(" • ", Tags.Take(4));
 }
-public sealed record ServerDirectoryPage(IReadOnlyList<ServerDirectoryEntry> Servers, int Page, int PageSize, int? Total);
+
+public sealed record ServerDirectoryPage(
+    IReadOnlyList<ServerDirectoryEntry> Servers,
+    int Page,
+    int PageSize,
+    int? Total);
 
 public interface IServerDirectoryService
 {
     Task<ServerDirectoryPage> SearchAsync(ServerDirectoryQuery query, CancellationToken cancellationToken = default);
 }
 
-public sealed class ServerDirectoryService(HttpClient httpClient, INetworkCapabilityService network, ILogger<ServerDirectoryService> logger) : IServerDirectoryService
+public sealed class ServerDirectoryService(
+    HttpClient httpClient,
+    INetworkCapabilityService network,
+    ILogger<ServerDirectoryService> logger) : IServerDirectoryService
 {
     private sealed record CacheEntry(DateTimeOffset At, ServerDirectoryPage Page);
+
     private readonly Dictionary<string, CacheEntry> _cache = new();
     private readonly object _gate = new();
 
-    public async Task<ServerDirectoryPage> SearchAsync(ServerDirectoryQuery query, CancellationToken cancellationToken = default)
+    public async Task<ServerDirectoryPage> SearchAsync(ServerDirectoryQuery query,
+        CancellationToken cancellationToken = default)
     {
         var parameters = new Dictionary<string, string>
         {
-            ["edition"] = "java", 
-            ["page"] = Math.Max(1, query.Page).ToString(), 
-            ["per"] = Math.Clamp(query.PageSize, 1, 50).ToString(), 
+            ["edition"] = "java",
+            ["page"] = Math.Max(1, query.Page).ToString(),
+            ["per"] = Math.Clamp(query.PageSize, 1, 50).ToString(),
             ["sort"] = SortName(query.Sort)
         };
-        if (!string.IsNullOrWhiteSpace(query.Search)) 
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
             parameters["q"] = query.Search.Trim();
-        
-        if (!string.IsNullOrWhiteSpace(query.Tag)) 
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Tag))
+        {
             parameters["tag"] = query.Tag.Trim();
-        
-        if (!string.IsNullOrWhiteSpace(query.Version)) 
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Version))
+        {
             parameters["version"] = query.Version.Trim();
-        
-        var queryString = string.Join('&', parameters.Select(x => $"{Uri.EscapeDataString(x.Key)}={Uri.EscapeDataString(x.Value)}"));
+        }
+
+        var queryString = string.Join('&',
+            parameters.Select(x => $"{Uri.EscapeDataString(x.Key)}={Uri.EscapeDataString(x.Value)}"));
         var url = "https://minecraftserve.rs/api/servers?" + queryString;
-        
-        lock (_gate) 
-            if (_cache.TryGetValue(url, out var hit) && DateTimeOffset.UtcNow - hit.At < TimeSpan.FromMinutes(1)) 
+
+        lock (_gate)
+        {
+            if (_cache.TryGetValue(url, out var hit) && DateTimeOffset.UtcNow - hit.At < TimeSpan.FromMinutes(1))
+            {
                 return hit.Page;
-        
-        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken); deadline.CancelAfter(TimeSpan.FromSeconds(15));
+            }
+        }
+
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(15));
         try
         {
-            using var response = await httpClient.GetAsync(url, deadline.Token); 
+            using var response = await httpClient.GetAsync(url, deadline.Token);
             response.EnsureSuccessStatusCode();
-            
+
             using var document = JsonDocument.Parse(await response.Content.ReadAsStreamAsync(deadline.Token));
             var page = ParseDirectory(document.RootElement, query);
-            
-            lock (_gate) 
-                _cache[url] = new(DateTimeOffset.UtcNow, page);
-            
+
+            lock (_gate)
+            {
+                _cache[url] = new CacheEntry(DateTimeOffset.UtcNow, page);
+            }
+
             network.ReportSuccess(NetworkCapability.ServerDirectory);
             return page;
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
         {
-            network.ReportFailure(NetworkCapability.ServerDirectory, ex); logger.LogWarning(ex, "Server directory request failed."); throw;
+            network.ReportFailure(NetworkCapability.ServerDirectory, ex);
+            logger.LogWarning(ex, "Server directory request failed.");
+            throw;
         }
     }
 
@@ -321,8 +433,9 @@ public sealed class ServerDirectoryService(HttpClient httpClient, INetworkCapabi
     {
         var array = root.ValueKind == JsonValueKind.Array ? root : Find(root, "servers", "data", "results");
         var items = new List<ServerDirectoryEntry>();
-        
+
         if (array.ValueKind == JsonValueKind.Array)
+        {
             foreach (var x in array.EnumerateArray())
             {
                 var addressText = Text(x, "address", "ip", "host") ?? string.Empty;
@@ -332,33 +445,41 @@ public sealed class ServerDirectoryService(HttpClient httpClient, INetworkCapabi
                 var players = Find(x, "players");
                 var votes = Find(x, "votes");
                 var rating = Find(x, "rating");
-                
-                items.Add(new(Text(x, "name", "title") ?? host,
-                    host, 
-                    port, 
-                    Text(x, "slug"), 
-                    Text(x, "url", "website"), 
-                    Text(x, "motd", "tagline", "description"), 
-                    Text(x, "version"), 
-                    Int(players, "online") ?? Int(x, "online_players") ?? 0, 
-                    Int(players, "max") ?? Int(x, "max_players", "maxPlayers") ?? 0, 
-                    Text(x, "icon", "icon_url"), 
-                    Text(x, "banner", "banner_url"), 
-                    Strings(x, "tags"), 
-                    Double(rating, "average") ?? 
-                    Double(x, "rating"), 
-                    Int(votes, "month") ?? 
-                    Int(x, "votes") ?? 0, 
+
+                items.Add(new ServerDirectoryEntry(Text(x, "name", "title") ?? host,
+                    host,
+                    port,
+                    Text(x, "slug"),
+                    Text(x, "url", "website"),
+                    Text(x, "motd", "tagline", "description"),
+                    Text(x, "version"),
+                    Int(players, "online") ?? Int(x, "online_players") ?? 0,
+                    Int(players, "max") ?? Int(x, "max_players", "maxPlayers") ?? 0,
+                    Text(x, "icon", "icon_url"),
+                    Text(x, "banner", "banner_url"),
+                    Strings(x, "tags"),
+                    Double(rating, "average") ??
+                    Double(x, "rating"),
+                    Int(votes, "month") ??
+                    Int(x, "votes") ?? 0,
                     Bool(x, "online") ?? true));
             }
-        return new(items, query.Page, query.PageSize, Int(root, "total", "count"));
+        }
+
+        return new ServerDirectoryPage(items, query.Page, query.PageSize, Int(root, "total", "count"));
     }
 
     private static JsonElement Find(JsonElement x, params string[] names)
     {
-        foreach (var n in names) 
-            if (x.ValueKind == JsonValueKind.Object && x.TryGetProperty(n, out var v)) 
-                return v; return default;
+        foreach (var n in names)
+        {
+            if (x.ValueKind == JsonValueKind.Object && x.TryGetProperty(n, out var v))
+            {
+                return v;
+            }
+        }
+
+        return default;
     }
 
     private static string? Text(JsonElement x, params string[] names)
@@ -369,90 +490,113 @@ public sealed class ServerDirectoryService(HttpClient httpClient, INetworkCapabi
 
     private static int? Int(JsonElement x, params string[] names)
     {
-        var v = Find(x, names); 
+        var v = Find(x, names);
         return v.ValueKind == JsonValueKind.Number && v.TryGetInt32(out var n) ? n : null;
     }
 
     private static double? Double(JsonElement x, params string[] names)
     {
-        var v = Find(x, names); 
+        var v = Find(x, names);
         return v.ValueKind == JsonValueKind.Number && v.TryGetDouble(out var n) ? n : null;
     }
 
     private static bool? Bool(JsonElement x, params string[] names)
     {
-        var v = Find(x, names); 
+        var v = Find(x, names);
         return v.ValueKind is JsonValueKind.True or JsonValueKind.False ? v.GetBoolean() : null;
     }
 
     private static IReadOnlyList<string> Strings(JsonElement x, params string[] names)
     {
-        var v = Find(x, names); 
-        return v.ValueKind == JsonValueKind.Array ? v.EnumerateArray().Where(y => y.ValueKind == JsonValueKind.String).Select(y => y.GetString()!).ToArray() : [];
+        var v = Find(x, names);
+        return v.ValueKind == JsonValueKind.Array
+            ? v.EnumerateArray().Where(y => y.ValueKind == JsonValueKind.String).Select(y => y.GetString()!).ToArray()
+            : [];
     }
-    private static string SortName(ServerDirectorySort sort) => 
-        sort switch
+
+    private static string SortName(ServerDirectorySort sort)
+    {
+        return sort switch
         {
-            ServerDirectorySort.Players => "players", 
-            ServerDirectorySort.Rating => "rating", 
-            ServerDirectorySort.Newest => "new", 
-            ServerDirectorySort.Name => "name", 
+            ServerDirectorySort.Players => "players",
+            ServerDirectorySort.Rating => "rating",
+            ServerDirectorySort.Newest => "new",
+            ServerDirectorySort.Name => "name",
             _ => "votes"
         };
+    }
 }
 
 public enum ServerStatusState
 {
     Loading,
-    Online, 
-    Offline, 
-    Stale, 
-    Unavailable, 
+    Online,
+    Offline,
+    Stale,
+    Unavailable,
     NoResponse
 }
 
 public enum ServerStatusSource
 {
-    Public, 
+    Public,
     Local
 }
+
 public sealed record ServerStatusSnapshot(
-    ServerStatusState State, 
-    DateTimeOffset CheckedAt, 
-    MinecraftServerAddress RequestedAddress, 
-    string? ResolvedIp = null, 
-    int? ResolvedPort = null, 
-    string? Version = null, 
-    int? Protocol = null, 
-    string? Software = null, 
-    string? Motd = null, 
-    int Players = 0, 
-    int MaxPlayers = 0, 
-    string? Map = null, 
-    bool? EulaBlocked = null, 
-    string? IconDataUrl = null, 
-    IReadOnlyList<string>? Plugins = null, 
-    IReadOnlyList<string>? Mods = null, 
-    string? Error = null, 
-    ServerStatusSource Source = ServerStatusSource.Public, 
+    ServerStatusState State,
+    DateTimeOffset CheckedAt,
+    MinecraftServerAddress RequestedAddress,
+    string? ResolvedIp = null,
+    int? ResolvedPort = null,
+    string? Version = null,
+    int? Protocol = null,
+    string? Software = null,
+    string? Motd = null,
+    int Players = 0,
+    int MaxPlayers = 0,
+    string? Map = null,
+    bool? EulaBlocked = null,
+    string? IconDataUrl = null,
+    IReadOnlyList<string>? Plugins = null,
+    IReadOnlyList<string>? Mods = null,
+    string? Error = null,
+    ServerStatusSource Source = ServerStatusSource.Public,
     long? LatencyMilliseconds = null);
 
-public interface IServerStatusService { Task<ServerStatusSnapshot> GetStatusAsync(MinecraftServerAddress address, bool forceRefresh = false, CancellationToken cancellationToken = default); }
+public interface IServerStatusService
+{
+    Task<ServerStatusSnapshot> GetStatusAsync(MinecraftServerAddress address, bool forceRefresh = false,
+        CancellationToken cancellationToken = default);
+}
 
-public sealed class ServerStatusService(HttpClient httpClient, INetworkCapabilityService network, ILogger<ServerStatusService> logger, IServerAddressClassifier? classifier = null) : IServerStatusService
+public sealed class ServerStatusService(
+    HttpClient httpClient,
+    INetworkCapabilityService network,
+    ILogger<ServerStatusService> logger,
+    IServerAddressClassifier? classifier = null) : IServerStatusService
 {
     private sealed record CacheEntry(DateTimeOffset At, ServerStatusSnapshot Snapshot);
+
     private readonly Dictionary<string, CacheEntry> _cache = new();
     private readonly SemaphoreSlim _limit = new(4);
     private readonly object _gate = new();
-    public async Task<ServerStatusSnapshot> GetStatusAsync(MinecraftServerAddress address, bool forceRefresh = false, CancellationToken cancellationToken = default)
+
+    public async Task<ServerStatusSnapshot> GetStatusAsync(MinecraftServerAddress address, bool forceRefresh = false,
+        CancellationToken cancellationToken = default)
     {
-        lock (_gate) 
-            if (!forceRefresh 
-                && _cache.TryGetValue(address.CanonicalKey, out var hit) 
-                && DateTimeOffset.UtcNow - hit.At < (hit.Snapshot.Source == ServerStatusSource.Local ? TimeSpan.FromSeconds(30) : TimeSpan.FromMinutes(5))) 
+        lock (_gate)
+        {
+            if (!forceRefresh
+                && _cache.TryGetValue(address.CanonicalKey, out var hit)
+                && DateTimeOffset.UtcNow - hit.At < (hit.Snapshot.Source == ServerStatusSource.Local
+                    ? TimeSpan.FromSeconds(30)
+                    : TimeSpan.FromMinutes(5)))
+            {
                 return hit.Snapshot;
-        
+            }
+        }
+
         await _limit.WaitAsync(cancellationToken);
         var local = false;
 
@@ -469,7 +613,9 @@ public sealed class ServerStatusService(HttpClient httpClient, INetworkCapabilit
                 cancellationToken.ThrowIfCancellationRequested();
 
                 lock (_gate)
-                    _cache[address.CanonicalKey] = new(DateTimeOffset.UtcNow, result);
+                {
+                    _cache[address.CanonicalKey] = new CacheEntry(DateTimeOffset.UtcNow, result);
+                }
 
                 return result;
             }
@@ -486,7 +632,10 @@ public sealed class ServerStatusService(HttpClient httpClient, INetworkCapabilit
             var snapshot = ParseStatus(document.RootElement, address);
 
             lock (_gate)
-                _cache[address.CanonicalKey] = new(DateTimeOffset.UtcNow, snapshot);
+            {
+                _cache[address.CanonicalKey] = new CacheEntry(DateTimeOffset.UtcNow, snapshot);
+            }
+
             network.ReportSuccess(NetworkCapability.ServerStatus);
             return snapshot;
         }
@@ -498,18 +647,24 @@ public sealed class ServerStatusService(HttpClient httpClient, INetworkCapabilit
                                        or System.Net.Sockets.SocketException or IOException)
         {
             if (!local && ex is HttpRequestException)
+            {
                 network.ReportFailure(NetworkCapability.ServerStatus, ex);
+            }
 
             lock (_gate)
+            {
                 if (_cache.TryGetValue(address.CanonicalKey, out var old))
+                {
                     return old.Snapshot with
                     {
                         State = ServerStatusState.Stale, Error = ex.Message
                     };
+                }
+            }
 
             logger.LogWarning(ex, "Status lookup failed for a private server address.");
 
-            return new(
+            return new ServerStatusSnapshot(
                 local ? ServerStatusState.NoResponse : ServerStatusState.Unavailable,
                 DateTimeOffset.UtcNow,
                 address,
@@ -526,43 +681,62 @@ public sealed class ServerStatusService(HttpClient httpClient, INetworkCapabilit
     {
         var online = x.TryGetProperty("online", out var o) && o.ValueKind == JsonValueKind.True;
         var players = x.TryGetProperty("players", out var p) ? p : default;
-        
-        var motd = x.TryGetProperty("motd", out var m) && 
-                   m.TryGetProperty("clean", out var clean) ?
-            string.Join(Environment.NewLine, clean.EnumerateArray().Select(y => y.GetString())) : null;
-       
-        return new(online ? ServerStatusState.Online : ServerStatusState.Offline, DateTimeOffset.UtcNow, requested,
-            Text(x, "ip"), 
-            Int(x, "port"), 
-            Text(x, "version"), 
+
+        var motd = x.TryGetProperty("motd", out var m) &&
+                   m.TryGetProperty("clean", out var clean)
+            ? string.Join(Environment.NewLine, clean.EnumerateArray().Select(y => y.GetString()))
+            : null;
+
+        return new ServerStatusSnapshot(online ? ServerStatusState.Online : ServerStatusState.Offline,
+            DateTimeOffset.UtcNow, requested,
+            Text(x, "ip"),
+            Int(x, "port"),
+            Text(x, "version"),
             x.TryGetProperty("protocol", out var protocol) ? Int(protocol, "version") : null,
-            Text(x, "software"), 
-            motd, 
-            Int(players, "online") ?? 0, 
-            Int(players, "max") ?? 0, 
-            Text(x, "map"), 
-            Bool(x, "eula_blocked"), 
-            Text(x, "icon"), 
-            Names(x, "plugins"), 
+            Text(x, "software"),
+            motd,
+            Int(players, "online") ?? 0,
+            Int(players, "max") ?? 0,
+            Text(x, "map"),
+            Bool(x, "eula_blocked"),
+            Text(x, "icon"),
+            Names(x, "plugins"),
             Names(x, "mods"));
     }
-    private static string? Text(JsonElement x, string name) 
-        => x.ValueKind == JsonValueKind.Object && x.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
-    
-    private static int? Int(JsonElement x, string name) 
-        => x.ValueKind == JsonValueKind.Object && x.TryGetProperty(name, out var v) && v.TryGetInt32(out var n) ? n : null;
-    
-    private static bool? Bool(JsonElement x, string name) 
-        => x.ValueKind == JsonValueKind.Object && x.TryGetProperty(name, out var v) && v.ValueKind is JsonValueKind.True or JsonValueKind.False ? v.GetBoolean() : null;
-    
-    private static IReadOnlyList<string> Names(JsonElement x, string name) =>
-        x.ValueKind == JsonValueKind.Object 
-        && x.TryGetProperty(name, out var v) 
-        && v.ValueKind == JsonValueKind.Array ? 
-            v.EnumerateArray()
+
+    private static string? Text(JsonElement x, string name)
+    {
+        return x.ValueKind == JsonValueKind.Object && x.TryGetProperty(name, out var v) &&
+               v.ValueKind == JsonValueKind.String
+            ? v.GetString()
+            : null;
+    }
+
+    private static int? Int(JsonElement x, string name)
+    {
+        return x.ValueKind == JsonValueKind.Object && x.TryGetProperty(name, out var v) && v.TryGetInt32(out var n)
+            ? n
+            : null;
+    }
+
+    private static bool? Bool(JsonElement x, string name)
+    {
+        return x.ValueKind == JsonValueKind.Object && x.TryGetProperty(name, out var v) &&
+               v.ValueKind is JsonValueKind.True or JsonValueKind.False
+            ? v.GetBoolean()
+            : null;
+    }
+
+    private static IReadOnlyList<string> Names(JsonElement x, string name)
+    {
+        return x.ValueKind == JsonValueKind.Object
+               && x.TryGetProperty(name, out var v)
+               && v.ValueKind == JsonValueKind.Array
+            ? v.EnumerateArray()
                 .Take(25)
                 .Select(y => y.ValueKind == JsonValueKind.Object ? Text(y, "name") : y.GetString())
                 .Where(y => y != null)
-                .Cast<string>().ToArray() 
+                .Cast<string>().ToArray()
             : [];
+    }
 }

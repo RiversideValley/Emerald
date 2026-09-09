@@ -114,7 +114,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
             return null;
         }
 
-        var session = RunOnUI(() => Sessions.FirstOrDefault(x => string.Equals(GetPathKey(x.GamePath), GetPathKey(gamePath), StringComparison.OrdinalIgnoreCase)));
+        var session = RunOnUI(() => Sessions.FirstOrDefault(x =>
+            string.Equals(GetPathKey(x.GamePath), GetPathKey(gamePath), StringComparison.OrdinalIgnoreCase)));
         _logger.LogDebug(
             "Latest session lookup completed for path {GamePath}. FoundSession: {FoundSession}.",
             gamePath,
@@ -126,7 +127,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
     /// Launches the supplied game and starts tracking its runtime session.
     /// </summary>
     public Task<GameSession?> LaunchAsync(Game game, EAccount? account = null)
-        => LaunchAsync(new GameLaunchRequest(game, account));
+    {
+        return LaunchAsync(new GameLaunchRequest(game, account));
+    }
 
     public async Task<GameSession?> LaunchAsync(GameLaunchRequest request)
     {
@@ -151,12 +154,14 @@ public sealed class GameRuntimeService : IGameRuntimeService
         var readiness = await _installationService.PrepareLaunchAsync(game);
         if (!readiness.CanLaunch)
         {
-            _notificationService.Warning("RepairRequired", readiness.FailureReason ?? $"Repair {game.Version.DisplayName} before launching.");
+            _notificationService.Warning("RepairRequired",
+                readiness.FailureReason ?? $"Repair {game.Version.DisplayName} before launching.");
             return null;
         }
 
         var realVersion = game.Version.RealVersion!;
-        var runtime = CreateRuntimeSessionOrGetExisting(game, request.EffectiveTarget, request.QuickProfileId, out var created);
+        var runtime =
+            CreateRuntimeSessionOrGetExisting(game, request.EffectiveTarget, request.QuickProfileId, out var created);
         if (!created)
         {
             return runtime.Session;
@@ -185,7 +190,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to launch game {GameName}", game.Version.DisplayName);
-            AppendSyntheticEntry(runtime, GameLogLevel.Error, $"Failed to launch {game.Version.DisplayName}: {ex.Message}", GameLogSource.Lifecycle);
+            AppendSyntheticEntry(runtime, GameLogLevel.Error,
+                $"Failed to launch {game.Version.DisplayName}: {ex.Message}", GameLogSource.Lifecycle);
             CompleteFailedLaunch(runtime, GameRunState.Failed, ex);
             _notificationService.Error("LaunchError", $"Failed to launch {game.Version.DisplayName}", ex: ex);
             return runtime.Session;
@@ -259,12 +265,15 @@ public sealed class GameRuntimeService : IGameRuntimeService
         }
     }
 
-    private ActiveSessionRuntime CreateRuntimeSession(Game game, string pathKey, MinecraftLaunchTarget target, Guid? quickProfileId)
+    private ActiveSessionRuntime CreateRuntimeSession(Game game, string pathKey, MinecraftLaunchTarget target,
+        Guid? quickProfileId)
     {
         var session = new GameSession(game, DateTimeOffset.Now)
         {
             State = GameRunState.Launching,
-            CaptureMode = _settings.IsLogCaptureEnabled ? GameCaptureMode.StandardOutputOnly : GameCaptureMode.LifecycleOnly,
+            CaptureMode = _settings.IsLogCaptureEnabled
+                ? GameCaptureMode.StandardOutputOnly
+                : GameCaptureMode.LifecycleOnly,
             Target = target,
             QuickProfileId = quickProfileId
         };
@@ -310,7 +319,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
         _logger.LogDebug("Authenticating launch account for {GameName}.", game.Version.DisplayName);
         var authenticationResult = await _accountService.AuthenticateLaunchAccountAsync(
             account,
-            _networkCapabilityService.GetSnapshot(NetworkCapability.Authentication).State == NetworkAvailabilityState.Unavailable);
+            _networkCapabilityService.GetSnapshot(NetworkCapability.Authentication).State ==
+            NetworkAvailabilityState.Unavailable);
         ThrowIfLaunchCancelled(runtime);
 
         var process = await game.BuildProcess(
@@ -357,7 +367,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
             runtime.Session.ProcessId = TryGetProcessId(process);
             runtime.Session.State = GameRunState.Running;
             runtime.Session.CaptureMode = runtime.LogCaptureEnabled
-                ? runtime.CanReadStandardStreams ? GameCaptureMode.StandardOutputOnly : GameCaptureMode.StandardOutputUnavailable
+                ? runtime.CanReadStandardStreams
+                    ? GameCaptureMode.StandardOutputOnly
+                    : GameCaptureMode.StandardOutputUnavailable
                 : GameCaptureMode.LifecycleOnly;
 
             ApplyActiveState(game, runtime.Session, runtime.Session.ProcessId);
@@ -371,7 +383,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
         if (runtime.LogCaptureEnabled && !runtime.CanReadStandardStreams)
         {
-            AppendLifecycle(runtime, GameLogLevel.Warn, "Standard output capture is unavailable for this session. Only lifecycle events will be shown.");
+            AppendLifecycle(runtime, GameLogLevel.Warn,
+                "Standard output capture is unavailable for this session. Only lifecycle events will be shown.");
         }
 
         AppendLifecycle(runtime, GameLogLevel.Info, $"Launched {game.Version.DisplayName}.");
@@ -446,7 +459,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to request graceful shutdown for {GameName}", runtime.Session.DisplayName);
+                _logger.LogWarning(ex, "Failed to request graceful shutdown for {GameName}",
+                    runtime.Session.DisplayName);
                 closeRequested = false;
             }
 
@@ -455,7 +469,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
                 _logger.LogWarning(
                     "Graceful shutdown is unavailable for {GameName}; the main window could not be closed.",
                     runtime.Session.DisplayName);
-                AppendLifecycle(runtime, GameLogLevel.Warn, "Graceful shutdown is unavailable for this process. Force Stop is still available.");
+                AppendLifecycle(runtime, GameLogLevel.Warn,
+                    "Graceful shutdown is unavailable for this process. Force Stop is still available.");
                 RestoreRunningState(runtime);
                 return;
             }
@@ -465,7 +480,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
                 _logger.LogWarning(
                     "Graceful shutdown timed out for {GameName}.",
                     runtime.Session.DisplayName);
-                AppendLifecycle(runtime, GameLogLevel.Warn, "The game did not exit in time. Force Stop is still available.");
+                AppendLifecycle(runtime, GameLogLevel.Warn,
+                    "The game did not exit in time. Force Stop is still available.");
                 RestoreRunningState(runtime);
             }
 
@@ -608,7 +624,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
 
             foreach (var crashReportPath in crashReports)
             {
-                AppendSyntheticEntry(runtime, GameLogLevel.Fatal, $"Crash report generated: {crashReportPath}", GameLogSource.CrashReport);
+                AppendSyntheticEntry(runtime, GameLogLevel.Fatal, $"Crash report generated: {crashReportPath}",
+                    GameLogSource.CrashReport);
             }
 
             var exitCode = SafeGetExitCode(runtime.Process);
@@ -725,7 +742,8 @@ public sealed class GameRuntimeService : IGameRuntimeService
     /// <summary>
     /// Flushes a pending text event after a short settle delay if no newer lines arrive.
     /// </summary>
-    private async Task FlushPendingTextAfterDelayAsync(ActiveSessionRuntime runtime, GameLogSource source, long expectedVersion)
+    private async Task FlushPendingTextAfterDelayAsync(ActiveSessionRuntime runtime, GameLogSource source,
+        long expectedVersion)
     {
         try
         {
@@ -760,7 +778,7 @@ public sealed class GameRuntimeService : IGameRuntimeService
         lock (runtime.LogGate)
         {
             pendingEntries = runtime.Assemblers.Values
-                .SelectMany(assembler => assembler.FlushPending(DateTimeOffset.Now, includeXmlFallback: true))
+                .SelectMany(assembler => assembler.FlushPending(DateTimeOffset.Now, true))
                 .ToList();
         }
 
@@ -807,12 +825,15 @@ public sealed class GameRuntimeService : IGameRuntimeService
     }
 
     private void AppendLifecycle(ActiveSessionRuntime runtime, GameLogLevel level, string message)
-        => AppendSyntheticEntry(runtime, level, message, GameLogSource.Lifecycle);
+    {
+        AppendSyntheticEntry(runtime, level, message, GameLogSource.Lifecycle);
+    }
 
     /// <summary>
     /// Publishes a synthetic runtime entry for lifecycle or crash-report notifications.
     /// </summary>
-    private void AppendSyntheticEntry(ActiveSessionRuntime runtime, GameLogLevel level, string message, GameLogSource source)
+    private void AppendSyntheticEntry(ActiveSessionRuntime runtime, GameLogLevel level, string message,
+        GameLogSource source)
     {
         var entry = new GameLogEntry
         {
@@ -1092,7 +1113,9 @@ public sealed class GameRuntimeService : IGameRuntimeService
     /// Executes the supplied delegate on the UI dispatcher without a return value.
     /// </summary>
     private void RunOnUI(Action action)
-        => _dispatcher.Invoke(action);
+    {
+        _dispatcher.Invoke(action);
+    }
 
     private static string GetPathKey(string path)
     {

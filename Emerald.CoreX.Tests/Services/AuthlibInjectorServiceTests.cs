@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using Emerald.CoreX.Installation;
@@ -12,8 +13,10 @@ namespace Emerald.CoreX.Tests.Services;
 public sealed class AuthlibInjectorServiceTests : IDisposable
 {
     private static readonly byte[] JarBytes = Encoding.UTF8.GetBytes("verified authlib injector test jar");
+
     private static readonly byte[] MetadataBytes = Encoding.UTF8.GetBytes(
         " {\"meta\":{\"serverName\":\"Ely.by\",\"implementationName\":\"ely.by\"},\"skinDomains\":[\".ely.by\"],\"signaturePublickey\":\"test-key\"} ");
+
     private readonly string _root = Path.Combine(Path.GetTempPath(), $"emerald-authlib-tests-{Guid.NewGuid():N}");
 
     [Fact]
@@ -24,9 +27,9 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
             "/artifacts.json" => Json(IndexJson()),
             "/artifact/56.json" => Json(DescriptorJson()),
             "/artifact/56/authlib-injector-1.2.8.jar" => Bytes(JarBytes),
-            "/" when request.RequestUri.Host == "ely.by" => new(HttpStatusCode.InternalServerError),
+            "/" when request.RequestUri.Host == "ely.by" => new HttpResponseMessage(HttpStatusCode.InternalServerError),
             "/api/authlib-injector" => Bytes(MetadataBytes, "application/json"),
-            _ => new(HttpStatusCode.NotFound)
+            _ => new HttpResponseMessage(HttpStatusCode.NotFound)
         });
 
         var result = await CreateService(handler).PrepareLaunchAsync();
@@ -35,7 +38,8 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
         Assert.Equal(56, result.BuildNumber);
         Assert.Equal("https://account.ely.by/api/authlib-injector", result.ApiRoot.AbsoluteUri);
         Assert.Equal(2, result.JvmArguments.Count);
-        Assert.Equal($"-Dauthlibinjector.yggdrasil.prefetched={Convert.ToBase64String(MetadataBytes)}", result.JvmArguments[1]);
+        Assert.Equal($"-Dauthlibinjector.yggdrasil.prefetched={Convert.ToBase64String(MetadataBytes)}",
+            result.JvmArguments[1]);
         Assert.Contains("-javaagent:", result.JvmArguments[0]);
         Assert.EndsWith("=https://account.ely.by/api/authlib-injector", result.JvmArguments[0]);
     }
@@ -45,13 +49,18 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
     {
         var handler = CreateHandler(request =>
         {
-            if (IsArtifactRequest(request)) return ArtifactResponse(request);
+            if (IsArtifactRequest(request))
+            {
+                return ArtifactResponse(request);
+            }
+
             if (request.RequestUri!.Host == "ely.by" && request.RequestUri.AbsolutePath == "/")
             {
                 var response = Bytes([], "application/json");
                 response.Headers.Add("X-Authlib-Injector-API-Location", "/authlib");
                 return response;
             }
+
             return request.RequestUri.AbsolutePath == "/authlib"
                 ? Bytes(MetadataBytes, "application/json")
                 : new HttpResponseMessage(HttpStatusCode.NotFound);
@@ -72,11 +81,17 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
             {
                 await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
             }
-            if (IsArtifactRequest(request)) return ArtifactResponse(request);
+
+            if (IsArtifactRequest(request))
+            {
+                return ArtifactResponse(request);
+            }
+
             return Bytes(MetadataBytes, "application/json");
         });
 
-        var result = await CreateService(handler, responseHeadersTimeout: TimeSpan.FromMilliseconds(30)).PrepareLaunchAsync();
+        var result = await CreateService(handler, responseHeadersTimeout: TimeSpan.FromMilliseconds(30))
+            .PrepareLaunchAsync();
 
         Assert.Equal("account.ely.by", result.ApiRoot.Host);
     }
@@ -86,7 +101,11 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
     {
         var handler = CreateHandler(request =>
         {
-            if (IsArtifactRequest(request)) return ArtifactResponse(request);
+            if (IsArtifactRequest(request))
+            {
+                return ArtifactResponse(request);
+            }
+
             return request.RequestUri!.Host == "ely.by"
                 ? Json("{not-json")
                 : Bytes(MetadataBytes, "application/json");
@@ -102,13 +121,18 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
     {
         var handler = CreateHandler(request =>
         {
-            if (IsArtifactRequest(request)) return ArtifactResponse(request);
+            if (IsArtifactRequest(request))
+            {
+                return ArtifactResponse(request);
+            }
+
             if (request.RequestUri!.Host == "ely.by")
             {
                 var response = Bytes([], "application/json");
                 response.Headers.Add("X-Authlib-Injector-API-Location", "http://account.ely.by/api/authlib-injector");
                 return response;
             }
+
             return Bytes(MetadataBytes, "application/json");
         });
 
@@ -129,7 +153,11 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
         var handler = CreateHandler(request =>
         {
             requestedPaths.Add(request.RequestUri!.AbsolutePath);
-            if (IsArtifactRequest(request)) return ArtifactResponse(request);
+            if (IsArtifactRequest(request))
+            {
+                return ArtifactResponse(request);
+            }
+
             return MetadataResponse(request);
         });
 
@@ -163,7 +191,12 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
                 Interlocked.Increment(ref jarDownloads);
                 return Bytes(JarBytes);
             }
-            if (IsArtifactRequest(request)) return ArtifactResponse(request);
+
+            if (IsArtifactRequest(request))
+            {
+                return ArtifactResponse(request);
+            }
+
             return MetadataResponse(request);
         });
         var service = CreateService(handler);
@@ -184,7 +217,12 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
         var handler = CreateHandler(request =>
         {
             if (request.RequestUri!.Host == "authlib-injector.yushi.moe")
-                return artifactOnline ? ArtifactResponse(request) : new HttpResponseMessage(HttpStatusCode.ServiceUnavailable);
+            {
+                return artifactOnline
+                    ? ArtifactResponse(request)
+                    : new HttpResponseMessage(HttpStatusCode.ServiceUnavailable);
+            }
+
             Interlocked.Increment(ref metadataRequests);
             return MetadataResponse(request);
         });
@@ -204,12 +242,20 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
         var handler = CreateHandler(request =>
         {
             if (request.RequestUri!.AbsolutePath.EndsWith(".jar", StringComparison.Ordinal))
+            {
                 return Bytes(Encoding.UTF8.GetBytes("wrong jar"));
-            if (IsArtifactRequest(request)) return ArtifactResponse(request);
+            }
+
+            if (IsArtifactRequest(request))
+            {
+                return ArtifactResponse(request);
+            }
+
             return MetadataResponse(request);
         });
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => CreateService(handler, attempts: 1).PrepareLaunchAsync());
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            CreateService(handler, attempts: 1).PrepareLaunchAsync());
 
         Assert.Empty(Directory.EnumerateFiles(_root, "*.tmp"));
         Assert.False(File.Exists(Path.Combine(_root, "authlib-injector-56.jar")));
@@ -226,7 +272,12 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
                 Interlocked.Increment(ref jarDownloads);
                 return Bytes(JarBytes);
             }
-            if (IsArtifactRequest(request)) return ArtifactResponse(request);
+
+            if (IsArtifactRequest(request))
+            {
+                return ArtifactResponse(request);
+            }
+
             return MetadataResponse(request);
         });
         var service = CreateService(handler);
@@ -242,9 +293,19 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
         var fallbackWorks = true;
         var handler = CreateHandler(request =>
         {
-            if (IsArtifactRequest(request)) return ArtifactResponse(request);
-            if (request.RequestUri!.Host == "ely.by") return Bytes(new byte[257]);
-            return fallbackWorks ? Bytes(MetadataBytes, "application/json") : new HttpResponseMessage(HttpStatusCode.BadGateway);
+            if (IsArtifactRequest(request))
+            {
+                return ArtifactResponse(request);
+            }
+
+            if (request.RequestUri!.Host == "ely.by")
+            {
+                return Bytes(new byte[257]);
+            }
+
+            return fallbackWorks
+                ? Bytes(MetadataBytes, "application/json")
+                : new HttpResponseMessage(HttpStatusCode.BadGateway);
         });
         var options = DefaultOptions with { MaximumMetadataBytes = 256 };
         var service = CreateService(handler, options: options);
@@ -260,7 +321,10 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
 
     public void Dispose()
     {
-        if (Directory.Exists(_root)) Directory.Delete(_root, true);
+        if (Directory.Exists(_root))
+        {
+            Directory.Delete(_root, true);
+        }
     }
 
     private AuthlibInjectorService CreateService(
@@ -270,7 +334,8 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
         int attempts = 2,
         AuthlibInjectorOptions? options = null,
         TimeSpan? responseHeadersTimeout = null)
-        => new(
+    {
+        return new AuthlibInjectorService(
             NullLogger<AuthlibInjectorService>.Instance,
             new TestSettings(mode, customVersion),
             options ?? DefaultOptions,
@@ -282,33 +347,46 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
                 ResponseHeadersTimeout = responseHeadersTimeout ?? TimeSpan.FromSeconds(2),
                 InactivityTimeout = TimeSpan.FromSeconds(2)
             });
+    }
 
     private static AuthlibInjectorOptions DefaultOptions => new("1.2.8");
 
     private static HttpMessageHandler CreateHandler(Func<HttpRequestMessage, HttpResponseMessage> responseFactory)
-        => new TestHandler(responseFactory);
+    {
+        return new TestHandler(responseFactory);
+    }
 
     private static bool IsArtifactRequest(HttpRequestMessage request)
-        => request.RequestUri!.Host == "authlib-injector.yushi.moe";
-
-    private static HttpResponseMessage ArtifactResponse(HttpRequestMessage request) => request.RequestUri!.AbsolutePath switch
     {
-        "/artifacts.json" => Json(IndexJson()),
-        "/artifact/56.json" or "/artifact/latest.json" => Json(DescriptorJson()),
-        "/artifact/56/authlib-injector-1.2.8.jar" => Bytes(JarBytes),
-        _ => new(HttpStatusCode.NotFound)
-    };
+        return request.RequestUri!.Host == "authlib-injector.yushi.moe";
+    }
+
+    private static HttpResponseMessage ArtifactResponse(HttpRequestMessage request)
+    {
+        return request.RequestUri!.AbsolutePath switch
+        {
+            "/artifacts.json" => Json(IndexJson()),
+            "/artifact/56.json" or "/artifact/latest.json" => Json(DescriptorJson()),
+            "/artifact/56/authlib-injector-1.2.8.jar" => Bytes(JarBytes),
+            _ => new HttpResponseMessage(HttpStatusCode.NotFound)
+        };
+    }
 
     private static HttpResponseMessage MetadataResponse(HttpRequestMessage request)
-        => request.RequestUri!.Host == "ely.by"
+    {
+        return request.RequestUri!.Host == "ely.by"
             ? Bytes(MetadataBytes, "application/json")
             : new HttpResponseMessage(HttpStatusCode.NotFound);
+    }
 
     private static string IndexJson()
-        => "{\"latest_build_number\":56,\"artifacts\":[{\"build_number\":56,\"version\":\"1.2.8\"}]}";
+    {
+        return "{\"latest_build_number\":56,\"artifacts\":[{\"build_number\":56,\"version\":\"1.2.8\"}]}";
+    }
 
     private static string DescriptorJson()
-        => System.Text.Json.JsonSerializer.Serialize(new
+    {
+        return System.Text.Json.JsonSerializer.Serialize(new
         {
             build_number = 56,
             version = "1.2.8",
@@ -316,19 +394,28 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
             download_url = "https://authlib-injector.yushi.moe/artifact/56/authlib-injector-1.2.8.jar",
             checksums = new { sha256 = Convert.ToHexString(SHA256.HashData(JarBytes)).ToLowerInvariant() }
         });
+    }
 
     private static HttpResponseMessage Json(string json)
-        => Bytes(Encoding.UTF8.GetBytes(json), "application/json");
+    {
+        return Bytes(Encoding.UTF8.GetBytes(json), "application/json");
+    }
 
     private static HttpResponseMessage Bytes(byte[] bytes, string mediaType = "application/octet-stream")
-        => new(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) { Headers = { ContentType = new(mediaType) } } };
+    {
+        return new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new ByteArrayContent(bytes) { Headers = { ContentType = new MediaTypeHeaderValue(mediaType) } }
+        };
+    }
 
     private sealed record TestSettings(AuthlibInjectorVersionMode VersionMode, string? CustomVersion)
         : IAuthlibInjectorSettings;
 
     private sealed class TestHandler(Func<HttpRequestMessage, HttpResponseMessage> responseFactory) : HttpMessageHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var response = responseFactory(request);
@@ -340,7 +427,8 @@ public sealed class AuthlibInjectorServiceTests : IDisposable
     private sealed class AsyncTestHandler(
         Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> responseFactory) : HttpMessageHandler
     {
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
         {
             var response = await responseFactory(request, cancellationToken);
             response.RequestMessage ??= request;

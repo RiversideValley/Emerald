@@ -19,10 +19,11 @@ namespace Emerald.Views;
 public sealed partial class AccountsPage : Page
 {
     public AccountsPageViewModel ViewModel { get; }
+
     public AccountsPage()
     {
         ViewModel = Ioc.Default.GetService<AccountsPageViewModel>();
-        this.InitializeComponent();
+        InitializeComponent();
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)
@@ -32,6 +33,7 @@ public sealed partial class AccountsPage : Page
     }
 
     private ContentDialog AddAccountDialog = new();
+
     private void BuilAndShowdProviderMethodsMenu()
     {
         var pnl = new StackPanel();
@@ -42,16 +44,16 @@ public sealed partial class AccountsPage : Page
             {
                 Text = provider.DisplayName,
                 FontWeight = FontWeights.SemiBold,
-                Margin =  new Thickness(6, 6, 6,0),
+                Margin = new Thickness(6, 6, 6, 0)
             };
             pnl.Children.Add(txt);
 
             var usability = ViewModel.GetProviderUsability(provider.ProviderId);
             foreach (var method in provider.SignInMethods)
             {
-                var item = new SettingsCard()
+                var item = new SettingsCard
                 {
-                    Margin =  new Thickness(6, 4, 6, 0),
+                    Margin = new Thickness(6, 4, 6, 0),
                     Header = method.DisplayName,
                     IsClickEnabled = true,
                     Description = usability.IsAvailable
@@ -64,6 +66,7 @@ public sealed partial class AccountsPage : Page
                 pnl.Children.Add(item);
             }
         }
+
         AddAccountDialog = pnl.ToContentDialog("AddAccount".Localize(), "Cancel".Localize());
         AddAccountDialog.ShowAsync();
     }
@@ -73,7 +76,9 @@ public sealed partial class AccountsPage : Page
         AddAccountDialog.Hide();
 
         if ((sender as FrameworkElement)?.Tag is not ProviderSignInSelection selection)
+        {
             return;
+        }
 
         string? username = null;
         if (selection.InputKind == AccountSignInInputKind.Username)
@@ -89,7 +94,10 @@ public sealed partial class AccountsPage : Page
                 closebtnText: "Cancel".Localize(),
                 defaultButton: ContentDialogButton.Primary);
             if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
                 return;
+            }
+
             username = usernameInput.Text.Trim();
         }
 
@@ -98,11 +106,14 @@ public sealed partial class AccountsPage : Page
 
     private async void RemoveAccount_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.Tag is not EAccount account) return;
+        if ((sender as FrameworkElement)?.Tag is not EAccount account)
+        {
+            return;
+        }
 
         var confirmationDialog = new ContentDialog
         {
-            XamlRoot = this.XamlRoot,
+            XamlRoot = XamlRoot,
             Title = "RemoveAccount".Localize(),
             Content = string.Format("RemoveAccountConfirmation".Localize(), account.Name),
             PrimaryButtonText = "Remove".Localize(),
@@ -130,17 +141,23 @@ public sealed partial class AccountsPage : Page
     private async void RefreshAccount_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is EAccount account)
+        {
             await ViewModel.RefreshAccountAsync(account);
+        }
     }
 
     private async void ViewSkin_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is not EAccount account || XamlRoot is null)
+        {
             return;
+        }
 
         var accountService = Ioc.Default.GetService<IAccountService>();
         if (accountService is null)
+        {
             return;
+        }
 
         await new SkinViewerDialog(accountService, account, XamlRoot).ShowAsync();
     }
@@ -148,7 +165,9 @@ public sealed partial class AccountsPage : Page
     private async void ProviderAction_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is AccountProviderActionDescriptor action)
+        {
             await Launcher.LaunchUriAsync(action.Uri);
+        }
     }
 
     private sealed record ProviderSignInSelection(string ProviderId, string MethodId, AccountSignInInputKind InputKind);

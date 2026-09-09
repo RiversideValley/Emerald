@@ -20,7 +20,8 @@ internal sealed class CmlLibMicrosoftAccountClient(ILogger<AccountService> logge
         ArgumentException.ThrowIfNullOrWhiteSpace(accountStorePath);
 
         var directory = Path.GetDirectoryName(accountStorePath)
-            ?? throw new InvalidOperationException("The CmlLib account store path must include a directory.");
+                        ?? throw new InvalidOperationException(
+                            "The CmlLib account store path must include a directory.");
 
         Directory.CreateDirectory(directory);
 
@@ -43,8 +44,9 @@ internal sealed class CmlLibMicrosoftAccountClient(ILogger<AccountService> logge
             .Select(account =>
             {
                 var skin = account.Profile?.Skins?
-                    .FirstOrDefault(candidate => string.Equals(candidate.State?.ToString(), "ACTIVE", StringComparison.OrdinalIgnoreCase))
-                    ?? account.Profile?.Skins?.FirstOrDefault();
+                               .FirstOrDefault(candidate => string.Equals(candidate.State?.ToString(), "ACTIVE",
+                                   StringComparison.OrdinalIgnoreCase))
+                           ?? account.Profile?.Skins?.FirstOrDefault();
                 var variant = string.Equals(skin?.Variant?.ToString(), "SLIM", StringComparison.OrdinalIgnoreCase)
                     ? MinecraftSkinVariant.Slim
                     : MinecraftSkinVariant.Classic;
@@ -68,7 +70,8 @@ internal sealed class CmlLibMicrosoftAccountClient(ILogger<AccountService> logge
             : null;
     }
 
-    public async Task<MicrosoftInteractiveSignInResult> SignInInteractivelyAsync(CancellationToken cancellationToken = default)
+    public async Task<MicrosoftInteractiveSignInResult> SignInInteractivelyAsync(
+        CancellationToken cancellationToken = default)
     {
         EnsureInitialized();
         cancellationToken.ThrowIfCancellationRequested();
@@ -97,7 +100,8 @@ internal sealed class CmlLibMicrosoftAccountClient(ILogger<AccountService> logge
     public async Task<MSession> AuthenticateAsync(string accountIdentifier)
     {
         var account = FindAccount(accountIdentifier)
-            ?? throw new InvalidOperationException($"Microsoft account '{accountIdentifier}' was not found in the CmlLib account manager.");
+                      ?? throw new InvalidOperationException(
+                          $"Microsoft account '{accountIdentifier}' was not found in the CmlLib account manager.");
 
         var session = await _loginHandler!.Authenticate(account).ConfigureAwait(false);
         SaveAccounts();
@@ -136,7 +140,9 @@ internal sealed class CmlLibMicrosoftAccountClient(ILogger<AccountService> logge
     private void EnsureInitialized()
     {
         if (_loginHandler is null)
+        {
             throw new InvalidOperationException("Microsoft account client was not initialized.");
+        }
     }
 
     private void ObserveInteractiveSignInAfterCancellation(Task<MSession> task)
@@ -155,5 +161,7 @@ internal sealed class CmlLibMicrosoftAccountClient(ILogger<AccountService> logge
     }
 
     private static string? Normalize(string? value)
-        => string.IsNullOrWhiteSpace(value) ? null : value;
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value;
+    }
 }

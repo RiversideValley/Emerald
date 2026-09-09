@@ -158,18 +158,24 @@ public partial class Game : ObservableObject
             var stat = "";
 
             if (RunState != GameRunState.Idle)
+            {
                 stat += RuntimeStatusText;
+            }
 
             if (InstallationState != InstanceInstallationState.Ready)
             {
                 if (!string.IsNullOrEmpty(stat))
+                {
                     stat += "\n";
+                }
 
                 stat += $"Installation {InstallationStatusText}";
             }
 
             if (string.IsNullOrEmpty(stat))
+            {
                 stat = "Ready";
+            }
 
             return stat;
         }
@@ -212,9 +218,11 @@ public partial class Game : ObservableObject
     }
 
     public Models.GameSettings GetEditableSettings()
-        => UsesCustomGameSettings
+    {
+        return UsesCustomGameSettings
             ? CustomGameSettings ??= _globalGameSettingsService.CloneCurrent()
             : _globalGameSettingsService.Settings;
+    }
 
     public void ResetCustomGameSettings()
     {
@@ -234,7 +242,10 @@ public partial class Game : ObservableObject
         _logger.LogDebug("Creating Minecraft launcher. OfflineMode: {IsOffline}.", isOffline);
         var param = MinecraftLauncherParameters.CreateDefault(Path);
         var sharedHttpClient = Ioc.Default.GetService<HttpClient>();
-        if (sharedHttpClient != null) param.HttpClient = sharedHttpClient;
+        if (sharedHttpClient != null)
+        {
+            param.HttpClient = sharedHttpClient;
+        }
 
         if (isOffline)
         {
@@ -243,8 +254,12 @@ public partial class Game : ObservableObject
         }
         else
         {
-            var verifiedInstaller = Ioc.Default.GetService<Installation.VerifiedGameInstaller>();
-            if (verifiedInstaller != null) param.GameInstaller = verifiedInstaller;
+            var verifiedInstaller = Ioc.Default.GetService<VerifiedGameInstaller>();
+            if (verifiedInstaller != null)
+            {
+                param.GameInstaller = verifiedInstaller;
+            }
+
             _logger.LogInformation("Online mode enabled. Using the default version loader.");
         }
 
@@ -266,8 +281,8 @@ public partial class Game : ObservableObject
     public async Task InstallVersionOrThrow(
         bool isOffline = false,
         bool showFileProgress = false,
-        IProgress<CmlLib.Core.Installers.InstallerProgressChangedEventArgs>? fileProgress = null,
-        IProgress<CmlLib.Core.ByteProgress>? byteProgress = null,
+        IProgress<InstallerProgressChangedEventArgs>? fileProgress = null,
+        IProgress<ByteProgress>? byteProgress = null,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation(
@@ -283,7 +298,7 @@ public partial class Game : ObservableObject
             isOffline ? Installers.ModLoaderResolutionMode.LocalOnly : Installers.ModLoaderResolutionMode.Online,
             Version.RealVersion,
             cancellationToken);
-        string? ver = resolution.ResolvedVersion;
+        var ver = resolution.ResolvedVersion;
         _logger.LogInformation("Version initialization completed. Version: {Version}", ver);
 
         if (ver == null)
@@ -370,7 +385,10 @@ public partial class Game : ObservableObject
 
     internal static void ApplyLaunchTarget(MLaunchOption option, MinecraftLaunchTarget target)
     {
-        if (target.Kind == MinecraftLaunchTargetKind.Configured) return;
+        if (target.Kind == MinecraftLaunchTargetKind.Configured)
+        {
+            return;
+        }
 
         option.ServerIp = null;
         option.ServerPort = 25565;

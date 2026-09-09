@@ -17,7 +17,9 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
     private const string RepositoryOwner = "RiversideValley";
     private const string RepositoryName = "Emerald";
     private const string ReleaseAppInstallerFileName = "Emerald-Release.appinstaller";
-    private const string NightlyArtifactsUrl = $"https://github.com/{RepositoryOwner}/{RepositoryName}/actions/workflows/ci.yml?query=branch%3Amain";
+
+    private const string NightlyArtifactsUrl =
+        $"https://github.com/{RepositoryOwner}/{RepositoryName}/actions/workflows/ci.yml?query=branch%3Amain";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -43,14 +45,15 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
         if (preferredChannel == AppReleaseChannel.Nightly)
         {
             return new AppUpdateCheckResult(
-                Status: AppUpdateStatus.ManualDownloadRequired,
-                CurrentPublicVersion: currentPublicVersion,
-                CurrentPackageVersion: currentPackageVersion,
-                CurrentChannel: currentChannel,
+                AppUpdateStatus.ManualDownloadRequired,
+                currentPublicVersion,
+                currentPackageVersion,
+                currentChannel,
                 LatestChannel: AppReleaseChannel.Nightly,
                 InstallMethod: AppUpdateInstallMethod.Browser,
                 PreferredInstallUri: NightlyArtifactsUrl,
-                ErrorMessage: "Nightly builds are distributed as GitHub Actions artifacts and must be downloaded manually.");
+                ErrorMessage:
+                "Nightly builds are distributed as GitHub Actions artifacts and must be downloaded manually.");
         }
 
         try
@@ -60,7 +63,8 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
             response.EnsureSuccessStatusCode();
 
             await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            var releases = await JsonSerializer.DeserializeAsync<List<GitHubReleaseDto>>(stream, JsonOptions, cancellationToken)
+            var releases =
+                await JsonSerializer.DeserializeAsync<List<GitHubReleaseDto>>(stream, JsonOptions, cancellationToken)
                 ?? [];
 
             var candidate = releases
@@ -74,10 +78,10 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
             if (candidate is null)
             {
                 return new AppUpdateCheckResult(
-                    Status: AppUpdateStatus.Unavailable,
-                    CurrentPublicVersion: currentPublicVersion,
-                    CurrentPackageVersion: currentPackageVersion,
-                    CurrentChannel: currentChannel,
+                    AppUpdateStatus.Unavailable,
+                    currentPublicVersion,
+                    currentPackageVersion,
+                    currentChannel,
                     ErrorMessage: $"No {preferredChannel.ToMetadataValue()} releases were found.");
             }
 
@@ -86,28 +90,28 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
             var preferredInstallUri = ResolveInstallUri(preferredChannel, candidate.ReleaseUrl);
 
             return new AppUpdateCheckResult(
-                Status: status,
-                CurrentPublicVersion: currentPublicVersion,
-                CurrentPackageVersion: currentPackageVersion,
-                CurrentChannel: currentChannel,
-                LatestPackageVersion: candidate.PackageVersion,
-                LatestPublicVersion: candidate.PublicVersion,
-                LatestChannel: candidate.Channel,
-                LatestTag: candidate.TagName,
-                ReleaseUrl: candidate.ReleaseUrl,
-                ReleaseNotes: candidate.ReleaseNotes,
-                InstallMethod: installMethod,
-                PreferredInstallUri: preferredInstallUri,
-                IsInstallerCapable: installMethod is AppUpdateInstallMethod.AppInstaller or AppUpdateInstallMethod.PackageManager);
+                status,
+                currentPublicVersion,
+                currentPackageVersion,
+                currentChannel,
+                candidate.PackageVersion,
+                candidate.PublicVersion,
+                candidate.Channel,
+                candidate.TagName,
+                candidate.ReleaseUrl,
+                candidate.ReleaseNotes,
+                installMethod,
+                preferredInstallUri,
+                installMethod is AppUpdateInstallMethod.AppInstaller or AppUpdateInstallMethod.PackageManager);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to check for updates.");
             return new AppUpdateCheckResult(
-                Status: AppUpdateStatus.Unavailable,
-                CurrentPublicVersion: currentPublicVersion,
-                CurrentPackageVersion: currentPackageVersion,
-                CurrentChannel: currentChannel,
+                AppUpdateStatus.Unavailable,
+                currentPublicVersion,
+                currentPackageVersion,
+                currentChannel,
                 ErrorMessage: ex.Message);
         }
     }
@@ -230,16 +234,16 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
         var channel = ResolveChannel(dto);
         var publicVersion = ExtractPublicVersion(dto.TagName);
         var packageVersion = TryExtractPackageVersion(dto.TagName)
-            ?? new Version(0, 0, 0, 0);
+                             ?? new Version(0, 0, 0, 0);
 
         return new ReleaseCandidate(
-            TagName: dto.TagName ?? string.Empty,
-            PublicVersion: publicVersion,
-            PackageVersion: packageVersion,
-            Channel: channel,
-            ReleaseUrl: dto.HtmlUrl,
-            ReleaseNotes: dto.Body,
-            PublishedAt: dto.PublishedAt ?? dto.CreatedAt);
+            dto.TagName ?? string.Empty,
+            publicVersion,
+            packageVersion,
+            channel,
+            dto.HtmlUrl,
+            dto.Body,
+            dto.PublishedAt ?? dto.CreatedAt);
     }
 
     private static AppReleaseChannel ResolveChannel(GitHubReleaseDto dto)
@@ -292,7 +296,8 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
         var pkgMatch = PackageVersionRegex().Match(tagName);
         if (pkgMatch.Success)
         {
-            var pkgVersion = $"{pkgMatch.Groups["major"].Value}.{pkgMatch.Groups["minor"].Value}.{pkgMatch.Groups["patch"].Value}.{pkgMatch.Groups["revision"].Value}";
+            var pkgVersion =
+                $"{pkgMatch.Groups["major"].Value}.{pkgMatch.Groups["minor"].Value}.{pkgMatch.Groups["patch"].Value}.{pkgMatch.Groups["revision"].Value}";
             if (Version.TryParse(pkgVersion, out var parsed))
             {
                 return parsed;
@@ -315,7 +320,8 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
     private static HttpClient CreateHttpClient()
     {
         var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Emerald", DirectResoucres.PackageVersion));
+        httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Emerald",
+            DirectResoucres.PackageVersion));
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         return httpClient;
     }
@@ -369,29 +375,23 @@ public partial class AppUpdateService(ILogger<AppUpdateService> logger) : IAppUp
 
     private sealed class GitHubReleaseDto
     {
-        [JsonPropertyName("tag_name")]
-        public string? TagName { get; init; }
+        [JsonPropertyName("tag_name")] public string? TagName { get; init; }
 
-        [JsonPropertyName("draft")]
-        public bool Draft { get; init; }
+        [JsonPropertyName("draft")] public bool Draft { get; init; }
 
-        [JsonPropertyName("prerelease")]
-        public bool PreRelease { get; init; }
+        [JsonPropertyName("prerelease")] public bool PreRelease { get; init; }
 
-        [JsonPropertyName("html_url")]
-        public string? HtmlUrl { get; init; }
+        [JsonPropertyName("html_url")] public string? HtmlUrl { get; init; }
 
-        [JsonPropertyName("body")]
-        public string? Body { get; init; }
+        [JsonPropertyName("body")] public string? Body { get; init; }
 
-        [JsonPropertyName("created_at")]
-        public DateTimeOffset? CreatedAt { get; init; }
+        [JsonPropertyName("created_at")] public DateTimeOffset? CreatedAt { get; init; }
 
-        [JsonPropertyName("published_at")]
-        public DateTimeOffset? PublishedAt { get; init; }
+        [JsonPropertyName("published_at")] public DateTimeOffset? PublishedAt { get; init; }
     }
 
-    [GeneratedRegex(@"(?:\+|-)pkg\.(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)\.(?<revision>\d+)", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"(?:\+|-)pkg\.(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)\.(?<revision>\d+)",
+        RegexOptions.IgnoreCase)]
     private static partial Regex PackageVersionRegex();
 
     [GeneratedRegex(@"(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)")]

@@ -31,7 +31,8 @@ public sealed class StoreFileLinkService(ILogger<StoreFileLinkService> logger) :
         return TryCreateLinkOrCopy(sourcePath, targetPath, preferredMode);
     }
 
-    public StoreLinkCreationResult ReplaceWithLinkOrCopy(string sourcePath, string targetPath, StoreLinkMode preferredMode)
+    public StoreLinkCreationResult ReplaceWithLinkOrCopy(string sourcePath, string targetPath,
+        StoreLinkMode preferredMode)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
 
@@ -100,7 +101,7 @@ public sealed class StoreFileLinkService(ILogger<StoreFileLinkService> logger) :
     {
         try
         {
-            return File.ResolveLinkTarget(path, returnFinalTarget: false)?.FullName;
+            return File.ResolveLinkTarget(path, false)?.FullName;
         }
         catch
         {
@@ -108,7 +109,8 @@ public sealed class StoreFileLinkService(ILogger<StoreFileLinkService> logger) :
         }
     }
 
-    private StoreLinkCreationResult TryCreateLinkOrCopy(string sourcePath, string targetPath, StoreLinkMode preferredMode)
+    private StoreLinkCreationResult TryCreateLinkOrCopy(string sourcePath, string targetPath,
+        StoreLinkMode preferredMode)
     {
         if (preferredMode == StoreLinkMode.SymbolicLink)
         {
@@ -117,7 +119,8 @@ public sealed class StoreFileLinkService(ILogger<StoreFileLinkService> logger) :
                 File.CreateSymbolicLink(targetPath, sourcePath);
                 return new StoreLinkCreationResult { LinkKind = StoreLinkKind.SymbolicLink };
             }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or PlatformNotSupportedException)
+            catch (Exception ex) when
+                (ex is IOException or UnauthorizedAccessException or PlatformNotSupportedException)
             {
                 logger.LogWarning(ex, "Falling back to copy after symbolic link creation failed.");
                 CopyFile(sourcePath, targetPath);
@@ -146,7 +149,8 @@ public sealed class StoreFileLinkService(ILogger<StoreFileLinkService> logger) :
                 CreateHardLink(sourcePath, targetPath);
                 return new StoreLinkCreationResult { LinkKind = StoreLinkKind.HardLink };
             }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or PlatformNotSupportedException or Win32Exception)
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or PlatformNotSupportedException
+                                           or Win32Exception)
             {
                 logger.LogWarning(ex, "Falling back to copy after hard link creation failed.");
                 CopyFile(sourcePath, targetPath);
@@ -165,7 +169,7 @@ public sealed class StoreFileLinkService(ILogger<StoreFileLinkService> logger) :
     private static void CopyFile(string sourcePath, string targetPath)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
-        File.Copy(sourcePath, targetPath, overwrite: true);
+        File.Copy(sourcePath, targetPath, true);
     }
 
     private static void CreateHardLink(string sourcePath, string targetPath)

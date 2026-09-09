@@ -2,23 +2,40 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Emerald.CoreX.Services;
 using Microsoft.UI.Xaml.Media;
 using Windows.UI;
+
 namespace Emerald.ViewModels;
 
-public partial class QuickProfileCardViewModel(QuickProfile profile, QuickProfileValidation validation, string? instance = null, string? account = null) : ObservableObject
+public partial class QuickProfileCardViewModel(
+    QuickProfile profile,
+    QuickProfileValidation validation,
+    string? instance = null,
+    string? account = null) : ObservableObject
 {
     public QuickProfile Profile { get; } = profile;
     public string Name => Profile.Name;
     public string Glyph => QuickProfileGlyphs.Resolve(Profile.GlyphKey);
-    public bool UsesBlockIcon => Profile.IconKind == QuickProfileIconKind.Block && !string.IsNullOrWhiteSpace(Profile.BlockIconFileName);
+
+    public bool UsesBlockIcon => Profile.IconKind == QuickProfileIconKind.Block &&
+                                 !string.IsNullOrWhiteSpace(Profile.BlockIconFileName);
+
     public bool UsesGlyphIcon => !UsesBlockIcon;
-    public string? BlockIconSource => UsesBlockIcon ? $"ms-appx:///Assets/blocks/{Uri.EscapeDataString(Path.GetFileName(Profile.BlockIconFileName!))}" : null;
+
+    public string? BlockIconSource => UsesBlockIcon
+        ? $"ms-appx:///Assets/blocks/{Uri.EscapeDataString(Path.GetFileName(Profile.BlockIconFileName!))}"
+        : null;
+
     public string Target => Profile.TargetDisplayNameSnapshot ?? DashboardText.Target(Profile.TargetKind);
     public string Context => string.Join(" · ", new[] { instance, account }.Where(x => !string.IsNullOrWhiteSpace(x)));
     public bool NeedsAttention => !validation.IsValid;
     public bool CanLaunch => validation.IsValid;
     public string Status => NeedsAttention ? DashboardText.Get("NeedsAttention") : Target;
-    public SolidColorBrush AccentBrush => new(Color.FromArgb(255, (byte)(Profile.AccentArgb >> 16), (byte)(Profile.AccentArgb >> 8), (byte)Profile.AccentArgb));
-    public SolidColorBrush TintBrush => new(Color.FromArgb(24, (byte)(Profile.AccentArgb >> 16), (byte)(Profile.AccentArgb >> 8), (byte)Profile.AccentArgb));
+
+    public SolidColorBrush AccentBrush => new(Color.FromArgb(255, (byte)(Profile.AccentArgb >> 16),
+        (byte)(Profile.AccentArgb >> 8), (byte)Profile.AccentArgb));
+
+    public SolidColorBrush TintBrush => new(Color.FromArgb(24, (byte)(Profile.AccentArgb >> 16),
+        (byte)(Profile.AccentArgb >> 8), (byte)Profile.AccentArgb));
+
     [ObservableProperty] private bool _isSelected;
 }
 
@@ -42,5 +59,9 @@ public static class QuickProfileGlyphs
         new("Store", DashboardText.Get("Store"), "\uE719")
     ];
 
-    public static string Resolve(string? key) => All.FirstOrDefault(x => string.Equals(x.Key, key, StringComparison.OrdinalIgnoreCase))?.Glyph ?? "\uE768";
+    public static string Resolve(string? key)
+    {
+        return All.FirstOrDefault(x => string.Equals(x.Key, key, StringComparison.OrdinalIgnoreCase))?.Glyph ??
+               "\uE768";
+    }
 }

@@ -14,6 +14,7 @@ public class Fabric : IModLoaderInstaller
 {
     private readonly Notifications.INotificationService _notify;
     private readonly HttpClient _httpClient;
+
     public Fabric(Notifications.INotificationService notificationService, HttpClient httpClient)
     {
         _notify = notificationService;
@@ -37,9 +38,11 @@ public class Fabric : IModLoaderInstaller
             var versions = await fabricInstaller.GetLoaders(mcVersion);
 
             if (versions == null || !versions.Any())
+            {
                 throw new NullReferenceException();
+            }
 
-            var l = versions.Select(x=> new LoaderInfo { Version = x.Version, Stable = x.Stable });
+            var l = versions.Select(x => new LoaderInfo { Version = x.Version, Stable = x.Stable });
 
             this.Log().LogInformation("Found {count} Fabric Loaders", versions.Count);
             _notify.Complete(not.Id, true);
@@ -49,12 +52,13 @@ public class Fabric : IModLoaderInstaller
         catch (Exception ex)
         {
             this.Log().LogWarning("Failed to get Fabric Loaders: {ex}", ex.Message);
-            _notify.Complete(not.Id, false, ex.Message,ex);
-            return new();
+            _notify.Complete(not.Id, false, ex.Message, ex);
+            return new List<LoaderInfo>();
         }
     }
 
-    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null, bool online = true)
+    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null,
+        bool online = true)
     {
         var not = _notify.Create(
             "InstallFabric",
@@ -69,16 +73,23 @@ public class Fabric : IModLoaderInstaller
             if (!online)
             {
                 this.Log().LogWarning("Fabric Loader installation is not supported offline. sending the version name");
-                _notify.Complete(not.Id, false, "Fabric Loader installation is not supported offline. Passed the version name.");
-                return FabricInstaller.GetVersionName(mcversion, modversion ?? (await fabricInstaller.GetFirstLoader(mcversion))?.Version ?? throw new NullReferenceException("No internet and no mod name found."));
+                _notify.Complete(not.Id, false,
+                    "Fabric Loader installation is not supported offline. Passed the version name.");
+                return FabricInstaller.GetVersionName(mcversion,
+                    modversion ?? (await fabricInstaller.GetFirstLoader(mcversion))?.Version ??
+                    throw new NullReferenceException("No internet and no mod name found."));
             }
 
             string? versionName = null;
 
             if (modversion == null)
+            {
                 versionName = await fabricInstaller.Install(mcversion, path);
+            }
             else
+            {
                 versionName = await fabricInstaller.Install(mcversion, modversion, path);
+            }
 
             this.Log().LogInformation("Installed Fabric Loader {versionName}", versionName);
             _notify.Complete(not.Id, true);
@@ -87,7 +98,7 @@ public class Fabric : IModLoaderInstaller
         }
         catch (Exception ex)
         {
-            this.Log().LogError(ex,"Failed to install/load Fabric for {0}", mcversion);
+            this.Log().LogError(ex, "Failed to install/load Fabric for {0}", mcversion);
             _notify.Complete(not.Id, false, ex.Message, ex);
             return null;
         }

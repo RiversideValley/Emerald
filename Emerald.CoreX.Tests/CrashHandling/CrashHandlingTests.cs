@@ -53,10 +53,10 @@ public sealed class CrashHandlingTests
     public void FallbackStore_UsesSecondaryLocationWhenPrimaryCannotBeWritten()
     {
         using var temp = new TemporaryDirectory();
-        var primaryPath = System.IO.Path.Combine(temp.Path, "primary");
-        var fallbackPath = System.IO.Path.Combine(temp.Path, "fallback");
+        var primaryPath = Path.Combine(temp.Path, "primary");
+        var fallbackPath = Path.Combine(temp.Path, "fallback");
         Directory.CreateDirectory(primaryPath);
-        File.WriteAllText(System.IO.Path.Combine(primaryPath, "crashes"), "not a directory");
+        File.WriteAllText(Path.Combine(primaryPath, "crashes"), "not a directory");
 
         var store = new FallbackCrashReportStore(
             new FileCrashReportStore(primaryPath),
@@ -258,10 +258,10 @@ public sealed class CrashHandlingTests
     public void LogTailReader_ResolvesRolledLogWhenBasePathDoesNotExist()
     {
         using var temp = new TemporaryDirectory();
-        var rolledPath = System.IO.Path.Combine(temp.Path, "app_20260827.log");
+        var rolledPath = Path.Combine(temp.Path, "app_20260827.log");
         File.WriteAllText(rolledPath, "latest log line");
 
-        var tail = CrashLogTailReader.Read(System.IO.Path.Combine(temp.Path, "app_.log"));
+        var tail = CrashLogTailReader.Read(Path.Combine(temp.Path, "app_.log"));
 
         Assert.Contains("latest log line", tail, StringComparison.Ordinal);
     }
@@ -272,7 +272,8 @@ public sealed class CrashHandlingTests
         var record = CreateRecord("run-1", DateTimeOffset.UtcNow);
         var draft = new GitHubCrashIssueComposer("https://github.com/RiversideValley/Emerald").Compose(record);
 
-        Assert.StartsWith("https://github.com/RiversideValley/Emerald/issues/new?", draft.Url, StringComparison.Ordinal);
+        Assert.StartsWith("https://github.com/RiversideValley/Emerald/issues/new?", draft.Url,
+            StringComparison.Ordinal);
         Assert.Contains("template=crash_report.md", draft.Url, StringComparison.Ordinal);
         Assert.Contains("full sanitized report", draft.Body, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("=== EMERALD CRASH REPORT ===", draft.FullReport, StringComparison.Ordinal);
@@ -294,7 +295,8 @@ public sealed class CrashHandlingTests
     }
 
     private static CrashRecord CreateRecord(string runId, DateTimeOffset occurredUtc)
-        => new()
+    {
+        return new CrashRecord
         {
             Id = Guid.NewGuid().ToString("N"),
             RunId = runId,
@@ -310,6 +312,7 @@ public sealed class CrashHandlingTests
             Runtime = ".NET",
             Exception = CrashExceptionInfo.FromException(new InvalidOperationException("test"))
         };
+    }
 
     private sealed class TemporaryDirectory : IDisposable
     {
@@ -325,7 +328,7 @@ public sealed class CrashHandlingTests
         {
             if (Directory.Exists(Path))
             {
-                Directory.Delete(Path, recursive: true);
+                Directory.Delete(Path, true);
             }
         }
     }

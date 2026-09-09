@@ -36,7 +36,7 @@ namespace Emerald;
 /// </summary>
 public sealed partial class MainPage : Page
 {
-    private readonly Services.SettingsService SS;
+    private readonly SettingsService SS;
     private readonly IAccountService _accountService;
     private readonly INotificationService _notificationService;
     private readonly HashSet<EAccount> _trackedAccounts = [];
@@ -58,7 +58,7 @@ public sealed partial class MainPage : Page
 
     public MainPage()
     {
-        SS = Ioc.Default.GetService<Services.SettingsService>()
+        SS = Ioc.Default.GetService<SettingsService>()
              ?? throw new InvalidOperationException("Settings service is not available.");
         _accountService = Ioc.Default.GetService<IAccountService>()
                           ?? throw new InvalidOperationException("Account service is not available.");
@@ -100,7 +100,9 @@ public sealed partial class MainPage : Page
         SS.Settings.App.Appearance.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is null)
+            {
                 return;
+            }
 
             this.Log().LogDebug("Applying appearance change for property {PropertyName}.", e.PropertyName);
             RefreshAppearance();
@@ -115,8 +117,8 @@ public sealed partial class MainPage : Page
 
         SystemBackdrop backdrop = SS.Settings.App.Appearance.BackdropType switch
         {
-            0 => new MicaBackdrop() { Kind = MicaKind.Base },
-            1 => new MicaBackdrop() { Kind = MicaKind.BaseAlt },
+            0 => new MicaBackdrop { Kind = MicaKind.Base },
+            1 => new MicaBackdrop { Kind = MicaKind.BaseAlt },
             _ => new DesktopAcrylicBackdrop()
         };
         App.Current.MainWindow.SystemBackdrop = backdrop;
@@ -132,7 +134,8 @@ public sealed partial class MainPage : Page
                 {
                     Opacity = (double)SS.Settings.App.Appearance.TintOpacity / 100
                 };
-                this.Log().LogDebug("Applied accent Mica tint background. Opacity: {Opacity}.", SS.Settings.App.Appearance.TintOpacity);
+                this.Log().LogDebug("Applied accent Mica tint background. Opacity: {Opacity}.",
+                    SS.Settings.App.Appearance.TintOpacity);
                 break;
             case Helpers.Settings.Enums.MicaTintColor.CustomColor:
                 var customColor = SS.Settings.App.Appearance.CustomMicaTintColor;
@@ -141,7 +144,8 @@ public sealed partial class MainPage : Page
                     Color = customColor ?? Color.FromArgb(255, 234, 0, 94),
                     Opacity = (double)SS.Settings.App.Appearance.TintOpacity / 100
                 };
-                this.Log().LogDebug("Applied custom Mica tint background. HasCustomColor: {HasCustomColor}.", customColor != null);
+                this.Log().LogDebug("Applied custom Mica tint background. HasCustomColor: {HasCustomColor}.",
+                    customColor != null);
                 break;
         }
     }
@@ -257,7 +261,7 @@ public sealed partial class MainPage : Page
         try
         {
             this.Log().LogInformation("Main page loaded.");
-            Emerald.Helpers.WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
+            WindowManager.SetTitleBar(App.Current.MainWindow, AppTitleBar);
 
             if (CrashFaultInjection.IsRequested("MainPage_Loaded")
                 || CrashFaultInjection.IsRequested("MainPage_Loaded_BeforeAwait"))
@@ -275,7 +279,8 @@ public sealed partial class MainPage : Page
 
             if (CrashFaultInjection.IsRequested("DispatcherCallback"))
             {
-                if (!DispatcherQueue.TryEnqueue(() => throw new NotImplementedException("Intentional dispatcher crash test.")))
+                if (!DispatcherQueue.TryEnqueue(() =>
+                        throw new NotImplementedException("Intentional dispatcher crash test.")))
                 {
                     throw new InvalidOperationException("Could not enqueue the requested dispatcher crash test.");
                 }
@@ -310,7 +315,8 @@ public sealed partial class MainPage : Page
 
     private void navView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
     {
-        Navigate(NavView.SelectedItem as SquareNavigationViewItem, invokedContainer: args.InvokedItemContainer as FrameworkElement);
+        Navigate(NavView.SelectedItem as SquareNavigationViewItem,
+            invokedContainer: args.InvokedItemContainer as FrameworkElement);
     }
 
     /// <summary>
@@ -350,14 +356,15 @@ public sealed partial class MainPage : Page
         HideTasksFlyout();
         NavView.SelectedItem = target;
         _lastNonTaskNavigationItem = target;
-        NavigateOnce(typeof(SettingsPage), new CrashReportsNavigationRequest(reportId), forceNavigate: true);
+        NavigateOnce(typeof(SettingsPage), new CrashReportsNavigationRequest(reportId), true);
         UpdateHeader(target);
     }
 
     /// <summary>
     /// Navigates to the page represented by the supplied navigation item.
     /// </summary>
-    private void Navigate(SquareNavigationViewItem? item, object? parameter = null, FrameworkElement? invokedContainer = null)
+    private void Navigate(SquareNavigationViewItem? item, object? parameter = null,
+        FrameworkElement? invokedContainer = null)
     {
         if (item == null)
         {
@@ -392,16 +399,16 @@ public sealed partial class MainPage : Page
                 NavigateOnce(typeof(HomePage), parameter);
                 break;
             case "Instances":
-                NavigateOnce(typeof(GamesPage), parameter, forceNavigate: parameter != null);
+                NavigateOnce(typeof(GamesPage), parameter, parameter != null);
                 break;
             case "Accounts":
                 NavigateOnce(typeof(AccountsPage), parameter);
                 break;
             case "Logs":
-                NavigateOnce(typeof(LogsPage), parameter, forceNavigate: parameter != null);
+                NavigateOnce(typeof(LogsPage), parameter, parameter != null);
                 break;
             case "Store":
-                NavigateOnce(typeof(ModrinthStorePage), parameter, forceNavigate: parameter != null);
+                NavigateOnce(typeof(ModrinthStorePage), parameter, parameter != null);
                 break;
             default:
                 NavigateOnce(typeof(SettingsPage), parameter);
@@ -443,7 +450,8 @@ public sealed partial class MainPage : Page
     {
         if (forceNavigate || frame.Content == null || frame.Content.GetType() != type)
         {
-            this.Log().LogDebug("Navigating frame to {PageType}. ForceNavigate: {ForceNavigate}.", type.Name, forceNavigate);
+            this.Log().LogDebug("Navigating frame to {PageType}. ForceNavigate: {ForceNavigate}.", type.Name,
+                forceNavigate);
             frame.Navigate(type, parameter, new EntranceNavigationTransitionInfo());
         }
     }
@@ -540,9 +548,11 @@ public sealed partial class MainPage : Page
     }
 
     private bool IsAccountsAvatarCurrent(int version, EAccount account)
-        => version == _accountsAvatarVersion
-            && _accountsNavigationItem is not null
-            && ReferenceEquals(account, _accountService.GetSelectedAccount());
+    {
+        return version == _accountsAvatarVersion
+               && _accountsNavigationItem is not null
+               && ReferenceEquals(account, _accountService.GetSelectedAccount());
+    }
 
     private void ResetAccountsAvatarIfCurrent(int version)
     {
@@ -724,13 +734,13 @@ public sealed partial class MainPage : Page
 
     private void HandleTaskAdded(Notification notification)
     {
-        ShowTaskToast(notification, severityChanged: false, previousType: null);
+        ShowTaskToast(notification, false, null);
         RegisterPendingTaskUpdate();
     }
 
     private void HandleTaskSeverityChanged(Notification notification, NotificationType previousType)
     {
-        ShowTaskToast(notification, severityChanged: true, previousType: previousType);
+        ShowTaskToast(notification, true, previousType);
         RegisterPendingTaskUpdate();
     }
 
@@ -765,7 +775,9 @@ public sealed partial class MainPage : Page
     }
 
     private bool IsTasksCurrentlyVisible()
-        => _isTasksFlyoutOpen || frame.Content is TasksPage;
+    {
+        return _isTasksFlyoutOpen || frame.Content is TasksPage;
+    }
 
     private void MarkTasksAsSeen()
     {

@@ -12,10 +12,39 @@ public enum InstanceInstallationState
     Failed
 }
 
-public enum IntegrityCheckLevel { Quick, Full }
-public enum IntegritySeverity { Warning, Critical }
-public enum ManagedPathRoot { Instance, Assets, Libraries, Runtime, Versions }
-public enum ManagedFileCategory { Metadata, Client, Library, Native, Logging, Asset, Java, ManagedContent, Other }
+public enum IntegrityCheckLevel
+{
+    Quick,
+    Full
+}
+
+public enum IntegritySeverity
+{
+    Warning,
+    Critical
+}
+
+public enum ManagedPathRoot
+{
+    Instance,
+    Assets,
+    Libraries,
+    Runtime,
+    Versions
+}
+
+public enum ManagedFileCategory
+{
+    Metadata,
+    Client,
+    Library,
+    Native,
+    Logging,
+    Asset,
+    Java,
+    ManagedContent,
+    Other
+}
 
 public sealed record ExpectedManagedFile(
     ManagedPathRoot Root,
@@ -51,9 +80,18 @@ public sealed record InstanceInstallResult(
     InstanceIntegrityReport? Integrity,
     string? FailureReason = null);
 
-public sealed record LaunchReadinessResult(bool CanLaunch, InstanceIntegrityReport Integrity, string? FailureReason = null);
+public sealed record LaunchReadinessResult(
+    bool CanLaunch,
+    InstanceIntegrityReport Integrity,
+    string? FailureReason = null);
 
-public sealed record InstallationProgress(string Stage, string? CurrentItem, int Completed, int Total, long ProcessedBytes = 0, long TotalBytes = 0);
+public sealed record InstallationProgress(
+    string Stage,
+    string? CurrentItem,
+    int Completed,
+    int Total,
+    long ProcessedBytes = 0,
+    long TotalBytes = 0);
 
 public sealed class InstanceInstallReceipt
 {

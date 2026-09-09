@@ -24,9 +24,11 @@ public sealed partial class AccountService
                 _accounts.Remove(account);
 
                 if (wasSelected)
-                    ApplySelectedAccountCore(null, persist: false);
+                {
+                    ApplySelectedAccountCore(null, false);
+                }
 
-                EnforceAccountSelectionPoliciesCore(persist: false);
+                EnforceAccountSelectionPoliciesCore(false);
             }).ConfigureAwait(false);
         }
         finally
@@ -57,7 +59,9 @@ public sealed partial class AccountService
                     string.Equals(candidate.UniqueId, account.UniqueId, StringComparison.Ordinal));
 
                 if (matched is not null)
+                {
                     matched.LastUsed = DateTime.UtcNow;
+                }
             }).ConfigureAwait(false);
         }
         finally
@@ -69,7 +73,8 @@ public sealed partial class AccountService
         return authenticationResult;
     }
 
-    public async Task<GameAuthenticationResult> AuthenticateLaunchAccountAsync(EAccount account, bool useOfflineFallback)
+    public async Task<GameAuthenticationResult> AuthenticateLaunchAccountAsync(EAccount account,
+        bool useOfflineFallback)
     {
         EnsureProviderId(account);
         if (!useOfflineFallback || account.ProviderId == AccountProviderIds.Offline)
@@ -118,11 +123,14 @@ public sealed partial class AccountService
         }
 
         if (offlineAccount is not null)
+        {
             return (offlineAccount, false);
+        }
 
         var method = _providers[AccountProviderIds.Offline].Descriptor.SignInMethods
-            .FirstOrDefault(candidate => candidate.InputKind == AccountSignInInputKind.Username)
-            ?? throw new InvalidOperationException("The offline provider does not expose a username sign-in method.");
+                         .FirstOrDefault(candidate => candidate.InputKind == AccountSignInInputKind.Username)
+                     ?? throw new InvalidOperationException(
+                         "The offline provider does not expose a username sign-in method.");
         offlineAccount = await SignInAsync(
             AccountProviderIds.Offline,
             new AccountSignInRequest(method.MethodId, username)).ConfigureAwait(false);

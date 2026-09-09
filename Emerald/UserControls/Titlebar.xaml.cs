@@ -16,10 +16,11 @@ using Windows.Foundation.Collections;
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace Emerald.UserControls;
+
 public sealed partial class TitleBar : UserControl
 {
     public TitleBar()
     {
-        this.InitializeComponent();
+        InitializeComponent();
     }
 }

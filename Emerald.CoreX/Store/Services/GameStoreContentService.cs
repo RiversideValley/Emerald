@@ -124,7 +124,7 @@ public sealed class GameStoreContentService : IGameStoreContentService
 
         foreach (var existing in existingRecords)
         {
-            await _sharedContentService.RemoveReferenceAsync(existing, deleteInstanceFile: true, cancellationToken);
+            await _sharedContentService.RemoveReferenceAsync(existing, true, cancellationToken);
         }
 
         var installResult = await _sharedContentService.InstallAsync(new StoreSharedInstallRequest
@@ -169,10 +169,10 @@ public sealed class GameStoreContentService : IGameStoreContentService
 
         return ToInstalledItem(
             record,
-            isDirectory: false,
-            fileSizeBytes: installResult.FileSizeBytes ?? StorePath.GetFileSize(targetPath),
-            health: _sharedContentService.GetHealth(record),
-            existsOnDisk: File.Exists(targetPath));
+            false,
+            installResult.FileSizeBytes ?? StorePath.GetFileSize(targetPath),
+            _sharedContentService.GetHealth(record),
+            File.Exists(targetPath));
     }
 
     public async Task<IReadOnlyList<InstalledStoreItem>> GetInstalledItemsAsync(
@@ -229,7 +229,7 @@ public sealed class GameStoreContentService : IGameStoreContentService
 
         foreach (var staleRecord in staleRecords)
         {
-            await _sharedContentService.RemoveReferenceAsync(staleRecord, deleteInstanceFile: false, cancellationToken);
+            await _sharedContentService.RemoveReferenceAsync(staleRecord, false, cancellationToken);
         }
     }
 
@@ -238,11 +238,13 @@ public sealed class GameStoreContentService : IGameStoreContentService
         StoreContentType contentType,
         string normalizedRoot,
         IEnumerable<StoreInstallRecord> records)
-        => records
+    {
+        return records
             .Where(record =>
                 _records.IsForGameAndType(record, game.Path.BasePath, contentType)
                 && StorePath.IsInsideRoot(record.FilePath, normalizedRoot))
             .ToArray();
+    }
 
     private void AddTrackedItems(
         ICollection<InstalledStoreItem> installed,
@@ -339,7 +341,8 @@ public sealed class GameStoreContentService : IGameStoreContentService
         var targetPath = StorePath.Normalize(item.FilePath);
         if (!StorePath.IsInsideRoot(targetPath, contentRoot))
         {
-            _logger.LogWarning("Refusing to remove path outside of store content root. Root: {Root}. Path: {Path}", contentRoot, targetPath);
+            _logger.LogWarning("Refusing to remove path outside of store content root. Root: {Root}. Path: {Path}",
+                contentRoot, targetPath);
             return false;
         }
 
@@ -368,7 +371,7 @@ public sealed class GameStoreContentService : IGameStoreContentService
 
             foreach (var removedRecord in removedRecords)
             {
-                await _sharedContentService.RemoveReferenceAsync(removedRecord, deleteInstanceFile: false, cancellationToken);
+                await _sharedContentService.RemoveReferenceAsync(removedRecord, false, cancellationToken);
             }
         }
 

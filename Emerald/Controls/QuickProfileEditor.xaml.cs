@@ -39,17 +39,25 @@ public sealed partial class QuickProfileEditor : UserControl
 
     private async void Editor_Loaded(object sender, RoutedEventArgs e)
     {
-        if (_loadedBlocks) return;
+        if (_loadedBlocks)
+        {
+            return;
+        }
+
         _loadedBlocks = true;
         try
         {
-            var file = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/blocks/blocks.json"));
+            var file = await StorageFile.GetFileFromApplicationUriAsync(
+                new Uri("ms-appx:///Assets/blocks/blocks.json"));
             await using var stream = await file.OpenStreamForReadAsync();
             _allBlocks = await JsonSerializer.DeserializeAsync<List<BlockIconOption>>(stream) ?? [];
             if (ViewModel.IsBlockIcon && ViewModel.BlockIconFileName is { } selected)
             {
                 var index = _allBlocks.ToList().FindIndex(x => x.FileName == selected);
-                if (index >= 0) _blockPage = index / BlockPageSize;
+                if (index >= 0)
+                {
+                    _blockPage = index / BlockPageSize;
+                }
             }
         }
         catch
@@ -65,13 +73,20 @@ public sealed partial class QuickProfileEditor : UserControl
     {
         ColorItems.Clear();
         foreach (var color in ViewModel.Colors)
+        {
             ColorItems.Add(new ProfileColorOption(color.Value, color.Label));
+        }
+
         SelectCurrentItems();
     }
 
     private void GlyphType_Click(object sender, RoutedEventArgs e)
     {
-        if (ViewModel.Icon is { } icon) ViewModel.SelectGlyph(icon);
+        if (ViewModel.Icon is { } icon)
+        {
+            ViewModel.SelectGlyph(icon);
+        }
+
         UpdateIconType();
     }
 
@@ -103,7 +118,9 @@ public sealed partial class QuickProfileEditor : UserControl
         GlyphItems.Clear();
         var query = IconSearch?.Text?.Trim() ?? string.Empty;
         foreach (var icon in ViewModel.Icons.Where(x => Matches(x.Key, query) || Matches(x.Label, query)))
+        {
             GlyphItems.Add(icon);
+        }
     }
 
     private void UpdateBlockItems()
@@ -113,9 +130,13 @@ public sealed partial class QuickProfileEditor : UserControl
         var pageCount = Math.Max(1, (int)Math.Ceiling(matches.Length / (double)BlockPageSize));
         _blockPage = Math.Clamp(_blockPage, 0, pageCount - 1);
         foreach (var block in matches.Skip(_blockPage * BlockPageSize).Take(BlockPageSize))
+        {
             BlockItems.Add(block);
+        }
 
-        BlockPageText.Text = matches.Length == 0 ? DashboardText.Get("NoMatches") : DashboardText.Format("PageOf", _blockPage + 1, pageCount);
+        BlockPageText.Text = matches.Length == 0
+            ? DashboardText.Get("NoMatches")
+            : DashboardText.Format("PageOf", _blockPage + 1, pageCount);
         PreviousBlockButton.IsEnabled = _blockPage > 0;
         NextBlockButton.IsEnabled = _blockPage + 1 < pageCount;
     }
@@ -156,15 +177,25 @@ public sealed partial class QuickProfileEditor : UserControl
 
     private void SelectCurrentItems()
     {
-        if (GlyphChoices == null) return;
-        GlyphChoices.SelectedItem = GlyphItems.FirstOrDefault(x => ViewModel.IsGlyphIcon && x.Key == ViewModel.Icon?.Key);
-        BlockChoices.SelectedItem = BlockItems.FirstOrDefault(x => ViewModel.IsBlockIcon && x.FileName == ViewModel.BlockIconFileName);
+        if (GlyphChoices == null)
+        {
+            return;
+        }
+
+        GlyphChoices.SelectedItem =
+            GlyphItems.FirstOrDefault(x => ViewModel.IsGlyphIcon && x.Key == ViewModel.Icon?.Key);
+        BlockChoices.SelectedItem =
+            BlockItems.FirstOrDefault(x => ViewModel.IsBlockIcon && x.FileName == ViewModel.BlockIconFileName);
         ColorChoices.SelectedItem = ColorItems.FirstOrDefault(x => x.Value == ViewModel.Accent?.Value);
     }
 
     private void PreviousBlock_Click(object sender, RoutedEventArgs e)
     {
-        if (_blockPage <= 0) return;
+        if (_blockPage <= 0)
+        {
+            return;
+        }
+
         _blockPage--;
         UpdateBlockItems();
         SelectCurrentItems();
@@ -179,7 +210,11 @@ public sealed partial class QuickProfileEditor : UserControl
 
     private void CustomColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
     {
-        if (_settingColor) return;
+        if (_settingColor)
+        {
+            return;
+        }
+
         var color = args.NewColor;
         var argb = 0xFF000000u | ((uint)color.R << 16) | ((uint)color.G << 8) | color.B;
         ViewModel.SetAccent(argb);
@@ -195,8 +230,15 @@ public sealed partial class QuickProfileEditor : UserControl
         _settingColor = false;
     }
 
-    private static bool Matches(string value, string query) => string.IsNullOrWhiteSpace(query) || value.Contains(query, StringComparison.OrdinalIgnoreCase);
-    private static SolidColorBrush Brush(uint argb) => new(Color.FromArgb(255, (byte)(argb >> 16), (byte)(argb >> 8), (byte)argb));
+    private static bool Matches(string value, string query)
+    {
+        return string.IsNullOrWhiteSpace(query) || value.Contains(query, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static SolidColorBrush Brush(uint argb)
+    {
+        return new SolidColorBrush(Color.FromArgb(255, (byte)(argb >> 16), (byte)(argb >> 8), (byte)argb));
+    }
 }
 
 public sealed class ProfileColorOption
@@ -209,18 +251,17 @@ public sealed class ProfileColorOption
     {
         Value = value;
         Label = label;
-        Brush = new(Color.FromArgb(255, (byte)(value >> 16), (byte)(value >> 8), (byte)value));
+        Brush = new SolidColorBrush(Color.FromArgb(255, (byte)(value >> 16), (byte)(value >> 8), (byte)value));
     }
 }
 
 public sealed class BlockIconOption
 {
-    [JsonPropertyName("fileName")]
-    public string FileName { get; set; } = string.Empty;
+    [JsonPropertyName("fileName")] public string FileName { get; set; } = string.Empty;
 
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
+    [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
 
     [JsonIgnore]
-    public BitmapImage Image => new(new Uri($"ms-appx:///Assets/blocks/{Uri.EscapeDataString(Path.GetFileName(FileName))}"));
+    public BitmapImage Image =>
+        new(new Uri($"ms-appx:///Assets/blocks/{Uri.EscapeDataString(Path.GetFileName(FileName))}"));
 }

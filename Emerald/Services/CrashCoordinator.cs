@@ -48,7 +48,9 @@ public sealed class CrashCoordinator
     public bool HasPreviousUnexpectedRun => _startResult?.PreviousRun is not null;
 
     public void SetLogger(ILogger<CrashCoordinator> logger)
-        => _logger = logger;
+    {
+        _logger = logger;
+    }
 
     public void RegisterProcessHandlers()
     {
@@ -174,25 +176,37 @@ public sealed class CrashCoordinator
     }
 
     public IReadOnlyList<CrashRecord> GetReports()
-        => _store.GetAll();
+    {
+        return _store.GetAll();
+    }
 
     public IReadOnlyList<CrashRecord> GetUnacknowledgedReports()
-        => _store.GetAll().Where(record => !record.IsAcknowledged).ToArray();
+    {
+        return _store.GetAll().Where(record => !record.IsAcknowledged).ToArray();
+    }
 
     public bool Acknowledge(string id)
-        => _store.TryAcknowledge(id);
+    {
+        return _store.TryAcknowledge(id);
+    }
 
     public bool Delete(string id)
-        => _store.TryDelete(id);
+    {
+        return _store.TryDelete(id);
+    }
 
     public int DeleteAll()
-        => _store.DeleteAll();
+    {
+        return _store.DeleteAll();
+    }
 
     public void EnrichNativeDiagnostics()
     {
         foreach (var record in GetReports().Where(report =>
-                     string.Equals(report.NativeDiagnosticsStatus, "Pending next launch", StringComparison.OrdinalIgnoreCase)
-                     || string.Equals(report.NativeDiagnosticsStatus, "Unavailable", StringComparison.OrdinalIgnoreCase)))
+                     string.Equals(report.NativeDiagnosticsStatus, "Pending next launch",
+                         StringComparison.OrdinalIgnoreCase)
+                     || string.Equals(report.NativeDiagnosticsStatus, "Unavailable",
+                         StringComparison.OrdinalIgnoreCase)))
         {
             try
             {
@@ -208,13 +222,19 @@ public sealed class CrashCoordinator
     }
 
     public void MarkStartupComplete()
-        => _lifecycle.MarkStartupComplete();
+    {
+        _lifecycle.MarkStartupComplete();
+    }
 
     public void MarkNormalStartupAttempted()
-        => _lifecycle.MarkNormalStartupAttempted();
+    {
+        _lifecycle.MarkNormalStartupAttempted();
+    }
 
     public void MarkCleanExit()
-        => _lifecycle.MarkCleanExit();
+    {
+        _lifecycle.MarkCleanExit();
+    }
 
     public void CaptureAndTerminate(Exception? exception, string source)
     {
@@ -279,7 +299,9 @@ public interface IProcessTerminator
 public sealed class EnvironmentProcessTerminator : IProcessTerminator
 {
     public void TerminateFatal(string reportId)
-        => Environment.FailFast($"Emerald terminated after an unrecoverable failure. Report: {reportId}");
+    {
+        Environment.FailFast($"Emerald terminated after an unrecoverable failure. Report: {reportId}");
+    }
 }
 
 public static class CrashBootstrap
@@ -319,7 +341,9 @@ public static class CrashBootstrap
     }
 
     public static void RegisterNormalShutdown(Action shutdown)
-        => Interlocked.Exchange(ref _normalShutdown, shutdown);
+    {
+        Interlocked.Exchange(ref _normalShutdown, shutdown);
+    }
 
     public static void RequestNormalShutdown()
     {
@@ -392,7 +416,14 @@ public static class CrashBootstrap
         }
 
         var candidates = new List<string>();
-        try { candidates.Add(DirectResoucres.LocalDataPath); } catch { }
+        try
+        {
+            candidates.Add(DirectResoucres.LocalDataPath);
+        }
+        catch
+        {
+        }
+
         try
         {
             var localApplicationData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -401,24 +432,31 @@ public static class CrashBootstrap
                 candidates.Add(Path.Combine(localApplicationData, "Emerald"));
             }
         }
-        catch { }
+        catch
+        {
+        }
 
         candidates.Add(Path.Combine(Path.GetTempPath(), "Emerald"));
-        foreach (var candidate in candidates.Where(path => !string.IsNullOrWhiteSpace(path)).Distinct(StringComparer.OrdinalIgnoreCase))
+        foreach (var candidate in candidates.Where(path => !string.IsNullOrWhiteSpace(path))
+                     .Distinct(StringComparer.OrdinalIgnoreCase))
         {
             try
             {
                 Directory.CreateDirectory(candidate);
                 var probe = Path.Combine(candidate, ".crash-write-probe");
-                using (var stream = new FileStream(probe, FileMode.Create, FileAccess.Write, FileShare.Read, 1, FileOptions.WriteThrough))
+                using (var stream = new FileStream(probe, FileMode.Create, FileAccess.Write, FileShare.Read, 1,
+                           FileOptions.WriteThrough))
                 {
                     stream.WriteByte(1);
                     stream.Flush(true);
                 }
+
                 File.Delete(probe);
                 return candidate;
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         return Path.Combine(Path.GetTempPath(), "Emerald");

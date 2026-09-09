@@ -15,14 +15,16 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Emerald.CoreX.Notifications;
 using CommunityToolkit.Mvvm.DependencyInjection;
+
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace Emerald.UserControls;
+
 public sealed partial class NotificationListControl : UserControl
 {
     public NotificationListControl()
     {
-        this.InitializeComponent();
+        InitializeComponent();
         DataContext = Ioc.Default.GetService<NotificationListViewModel>();
     }
 }
@@ -35,9 +37,10 @@ public class NotificationTemplateSelector : DataTemplateSelector
     protected override DataTemplate SelectTemplateCore(object item)
     {
         if (item is NotificationViewModel vm)
+        {
             return vm.Type == NotificationType.Progress ? ProgressTemplate : DefaultTemplate;
+        }
 
         return base.SelectTemplateCore(item);
     }
-
 }

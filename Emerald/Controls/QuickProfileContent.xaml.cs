@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Emerald.ViewModels;
+
 namespace Emerald.Controls;
 
 public sealed partial class QuickProfileContent : UserControl
@@ -19,6 +20,8 @@ public sealed partial class QuickProfileContent : UserControl
         InitializeComponent();
     }
 
-    private static void Changed(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+    private static void Changed(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
         ((QuickProfileContent)d).ContentRoot.DataContext = e.NewValue;
+    }
 }

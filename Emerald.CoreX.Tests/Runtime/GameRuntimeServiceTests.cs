@@ -57,8 +57,11 @@ public sealed class GameRuntimeServiceTests
 
     private sealed class NoRequestsHandler : HttpMessageHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            => throw new Xunit.Sdk.XunitException("The offline-account guard should not send HTTP requests.");
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            throw new Xunit.Sdk.XunitException("The offline-account guard should not send HTTP requests.");
+        }
     }
 
     private sealed class TestRuntimeSettings : IGameRuntimeSettings
@@ -68,36 +71,100 @@ public sealed class GameRuntimeServiceTests
 
     private sealed class TestGlobalGameSettingsService : IGlobalGameSettingsService
     {
-        public Emerald.CoreX.Models.GameSettings Settings { get; } = new();
-        public Emerald.CoreX.Models.GameSettings CloneCurrent() => Settings.Clone();
-        public void LoadForBasePath(string basePath) { }
-        public void Save() { }
+        public GameSettings Settings { get; } = new();
+
+        public GameSettings CloneCurrent()
+        {
+            return Settings.Clone();
+        }
+
+        public void LoadForBasePath(string basePath)
+        {
+        }
+
+        public void Save()
+        {
+        }
     }
 
     private sealed class RecordingAccountService(EAccount selected) : IAccountService
     {
         public ObservableCollection<EAccount> Accounts { get; } = [selected];
+
         public IReadOnlyList<AccountProviderDescriptor> Providers { get; } =
         [
             new(AccountProviderIds.Microsoft, "Microsoft", [], RequiresNetworkForLaunch: true),
             new(AccountProviderIds.ElyBy, "Ely.by", [], RequiresNetworkForLaunch: true)
         ];
+
         public int AuthenticationCalls { get; private set; }
 
-        public AccountProviderUsability GetProviderUsability(string providerId) => AccountProviderUsability.Available;
-        public AccountProviderUsability GetAccountUsability(EAccount account) => AccountProviderUsability.Available;
-        public Task LoadAllAccountsAsync() => Task.CompletedTask;
-        public Task<EAccount> SignInAsync(string providerId, AccountSignInRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task RefreshAccountAsync(EAccount account, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<AccountSkinData> GetSkinAsync(EAccount account, bool forceRefresh = false, CancellationToken cancellationToken = default)
-            => Task.FromResult(MinecraftSkinTextures.CreateSteveFallback());
-        public Task RemoveAccountAsync(EAccount account) => throw new NotSupportedException();
-        public Task<GameAuthenticationResult> AuthenticateAccountAsync(EAccount account) => AuthenticateAsync();
-        public Task<GameAuthenticationResult> AuthenticateLaunchAccountAsync(EAccount account, bool useOfflineFallback) => AuthenticateAsync();
-        public EAccount? GetMostRecentlyUsedAccount() => selected;
-        public EAccount? GetSelectedAccount() => selected;
-        public void SetSelectedAccount(EAccount? account) => throw new NotSupportedException();
-        public Task InitializeAsync() => Task.CompletedTask;
+        public AccountProviderUsability GetProviderUsability(string providerId)
+        {
+            return AccountProviderUsability.Available;
+        }
+
+        public AccountProviderUsability GetAccountUsability(EAccount account)
+        {
+            return AccountProviderUsability.Available;
+        }
+
+        public Task LoadAllAccountsAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task<EAccount> SignInAsync(string providerId, AccountSignInRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task RefreshAccountAsync(EAccount account, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<AccountSkinData> GetSkinAsync(EAccount account, bool forceRefresh = false,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(MinecraftSkinTextures.CreateSteveFallback());
+        }
+
+        public Task RemoveAccountAsync(EAccount account)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<GameAuthenticationResult> AuthenticateAccountAsync(EAccount account)
+        {
+            return AuthenticateAsync();
+        }
+
+        public Task<GameAuthenticationResult> AuthenticateLaunchAccountAsync(EAccount account, bool useOfflineFallback)
+        {
+            return AuthenticateAsync();
+        }
+
+        public EAccount? GetMostRecentlyUsedAccount()
+        {
+            return selected;
+        }
+
+        public EAccount? GetSelectedAccount()
+        {
+            return selected;
+        }
+
+        public void SetSelectedAccount(EAccount? account)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task InitializeAsync()
+        {
+            return Task.CompletedTask;
+        }
 
         private Task<GameAuthenticationResult> AuthenticateAsync()
         {
@@ -110,17 +177,29 @@ public sealed class GameRuntimeServiceTests
     {
         public int PrepareLaunchCalls { get; private set; }
 
-        public Task<InstanceInstallResult> InstallAsync(Game game, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
-            => throw new NotSupportedException();
+        public Task<InstanceInstallResult> InstallAsync(Game game, IProgress<InstallationProgress>? progress = null,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
 
-        public Task<InstanceInstallResult> RepairAsync(Game game, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
-            => throw new NotSupportedException();
+        public Task<InstanceInstallResult> RepairAsync(Game game, IProgress<InstallationProgress>? progress = null,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
 
-        public Task<InstanceIntegrityReport> VerifyAsync(Game game, IntegrityCheckLevel level, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
-            => throw new NotSupportedException();
+        public Task<InstanceIntegrityReport> VerifyAsync(Game game, IntegrityCheckLevel level,
+            IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
 
-        public Task<InstanceIntegrityReport?> VerifyWhenIdleAsync(Game game, IntegrityCheckLevel level, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
-            => throw new NotSupportedException();
+        public Task<InstanceIntegrityReport?> VerifyWhenIdleAsync(Game game, IntegrityCheckLevel level,
+            IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
 
         public Task<LaunchReadinessResult> PrepareLaunchAsync(Game game, CancellationToken cancellationToken = default)
         {
@@ -131,8 +210,18 @@ public sealed class GameRuntimeServiceTests
 
     private sealed class RecordingPlaytimeService : IInstancePlaytimeService
     {
-        public IReadOnlyList<InstancePlaytimeSession> GetSessions(string instancePath) => [];
-        public TimeSpan GetTotalPlaytime(string instancePath) => TimeSpan.Zero;
-        public void RecordSession(InstancePlaytimeSession session) { }
+        public IReadOnlyList<InstancePlaytimeSession> GetSessions(string instancePath)
+        {
+            return [];
+        }
+
+        public TimeSpan GetTotalPlaytime(string instancePath)
+        {
+            return TimeSpan.Zero;
+        }
+
+        public void RecordSession(InstancePlaytimeSession session)
+        {
+        }
     }
 }

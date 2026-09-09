@@ -8,10 +8,14 @@ namespace Emerald.Helpers.Converters;
 public sealed class AccountAvailabilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
-        => value is AccountAvailability availability
+    {
+        return value is AccountAvailability availability
             ? $"AccountStatus{availability}".Localize()
             : string.Empty;
+    }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language)
-        => throw new NotSupportedException();
+    {
+        throw new NotSupportedException();
+    }
 }

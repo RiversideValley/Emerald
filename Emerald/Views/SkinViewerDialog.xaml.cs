@@ -59,7 +59,9 @@ public sealed partial class SkinViewerDialog : ContentDialog
     private async void OnOpened(ContentDialog sender, ContentDialogOpenedEventArgs args)
     {
         if (_accountService is null || _account is null)
+        {
             return;
+        }
 
         try
         {
@@ -87,7 +89,9 @@ public sealed partial class SkinViewerDialog : ContentDialog
         finally
         {
             if (!_cancellationSource.IsCancellationRequested)
+            {
                 LoadingPanel.Visibility = Visibility.Collapsed;
+            }
         }
     }
 
@@ -106,7 +110,9 @@ public sealed partial class SkinViewerDialog : ContentDialog
     private void UpdateResponsiveLayout(double availableWidth, double availableHeight)
     {
         if (availableWidth <= 0)
+        {
             return;
+        }
 
         var isNarrow = availableWidth < NarrowLayoutThreshold;
 
@@ -151,11 +157,30 @@ public sealed partial class SkinViewerDialog : ContentDialog
         PrimaryButtonText = (_isSettingsOpen ? "SkinViewerHideSettings" : "SkinViewerShowSettings").Localize();
     }
 
-    private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => ApplyViewerSettings();
-    private void Slider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e) => ApplyViewerSettings();
-    private void ToggleSwitch_Toggled(object sender, RoutedEventArgs e) => ApplyViewerSettings();
-    private void CheckBox_CheckChanged(object sender, RoutedEventArgs e) => ApplyViewerSettings();
-    private void CapeUrlBox_TextChanged(object sender, TextChangedEventArgs e) => ApplyViewerSettings();
+    private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        ApplyViewerSettings();
+    }
+
+    private void Slider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    {
+        ApplyViewerSettings();
+    }
+
+    private void ToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        ApplyViewerSettings();
+    }
+
+    private void CheckBox_CheckChanged(object sender, RoutedEventArgs e)
+    {
+        ApplyViewerSettings();
+    }
+
+    private void CapeUrlBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        ApplyViewerSettings();
+    }
 
     private async void BrowseCape_Click(object sender, RoutedEventArgs e)
     {
@@ -204,7 +229,9 @@ public sealed partial class SkinViewerDialog : ContentDialog
     private async void DownloadSkin_Click(object sender, RoutedEventArgs e)
     {
         if (_skin is null)
+        {
             return;
+        }
 
         try
         {
@@ -227,7 +254,9 @@ public sealed partial class SkinViewerDialog : ContentDialog
 
             var destination = await picker.PickSaveFileAsync();
             if (destination is not null)
+            {
                 await File.WriteAllBytesAsync(destination.Path, _skin.PngBytes);
+            }
         }
         catch (Exception ex)
         {
@@ -238,7 +267,9 @@ public sealed partial class SkinViewerDialog : ContentDialog
     private async void ApplyViewerSettings()
     {
         if (SettingsContainer.Visibility == Visibility.Collapsed || _cancellationSource.IsCancellationRequested)
+        {
             return;
+        }
 
         try
         {
@@ -257,14 +288,14 @@ public sealed partial class SkinViewerDialog : ContentDialog
     private MinecraftSkinViewerSettings CreateViewerSettings()
     {
         var animation = AnimationComboBox.SelectedItem is ComboBoxItem { Tag: string aniTag }
-            && Enum.TryParse<MinecraftSkinViewerAnimation>(aniTag, true, out var parsedAnimation)
-                ? parsedAnimation
-                : MinecraftSkinViewerAnimation.Idle;
+                        && Enum.TryParse<MinecraftSkinViewerAnimation>(aniTag, true, out var parsedAnimation)
+            ? parsedAnimation
+            : MinecraftSkinViewerAnimation.Idle;
 
         var equipment = BackEquipmentComboBox.SelectedItem is ComboBoxItem { Tag: string eqTag }
-            && Enum.TryParse<MinecraftSkinViewerBackEquipment>(eqTag, true, out var parsedEquipment)
-                ? parsedEquipment
-                : MinecraftSkinViewerBackEquipment.None;
+                        && Enum.TryParse<MinecraftSkinViewerBackEquipment>(eqTag, true, out var parsedEquipment)
+            ? parsedEquipment
+            : MinecraftSkinViewerBackEquipment.None;
 
         var capeUrl = string.IsNullOrWhiteSpace(CapeUrlBox.Text) ? null : CapeUrlBox.Text.Trim();
         if (equipment != MinecraftSkinViewerBackEquipment.None && string.IsNullOrWhiteSpace(capeUrl))
@@ -281,9 +312,11 @@ public sealed partial class SkinViewerDialog : ContentDialog
             new MinecraftSkinViewerLayers(
                 new MinecraftSkinViewerLayer(HeadInnerCheck.IsChecked == true, HeadOuterCheck.IsChecked == true),
                 new MinecraftSkinViewerLayer(BodyInnerCheck.IsChecked == true, BodyOuterCheck.IsChecked == true),
-                new MinecraftSkinViewerLayer(RightArmInnerCheck.IsChecked == true, RightArmOuterCheck.IsChecked == true),
+                new MinecraftSkinViewerLayer(RightArmInnerCheck.IsChecked == true,
+                    RightArmOuterCheck.IsChecked == true),
                 new MinecraftSkinViewerLayer(LeftArmInnerCheck.IsChecked == true, LeftArmOuterCheck.IsChecked == true),
-                new MinecraftSkinViewerLayer(RightLegInnerCheck.IsChecked == true, RightLegOuterCheck.IsChecked == true),
+                new MinecraftSkinViewerLayer(RightLegInnerCheck.IsChecked == true,
+                    RightLegOuterCheck.IsChecked == true),
                 new MinecraftSkinViewerLayer(LeftLegInnerCheck.IsChecked == true, LeftLegOuterCheck.IsChecked == true)),
             capeUrl);
     }
@@ -303,12 +336,17 @@ public sealed partial class SkinViewerDialog : ContentDialog
         }
     }
 
-    private void OnViewerFailed(string message) => ShowStaticPreview();
+    private void OnViewerFailed(string message)
+    {
+        ShowStaticPreview();
+    }
 
     private void ShowStaticPreview()
     {
         if (_cancellationSource.IsCancellationRequested)
+        {
             return;
+        }
 
         SkinWebView.Visibility = Visibility.Collapsed;
         FallbackPreview.Visibility = Visibility.Visible;

@@ -16,7 +16,8 @@ internal sealed class LoopbackBrowserOAuthBroker(
         BrowserOAuthAuthorizationRequest request,
         CancellationToken cancellationToken = default)
     {
-        logger.LogDebug("Starting {Provider} browser OAuth callback on {RedirectUri}.", request.ProviderDisplayName, request.RedirectUri);
+        logger.LogDebug("Starting {Provider} browser OAuth callback on {RedirectUri}.", request.ProviderDisplayName,
+            request.RedirectUri);
         ValidateRedirectUri(request.RedirectUri, request.ProviderDisplayName);
 
         using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -39,7 +40,8 @@ internal sealed class LoopbackBrowserOAuthBroker(
                 BrowserOAuthFailureKind.TimedOut,
                 $"Timed out waiting for {request.ProviderDisplayName} browser sign-in to complete.");
         }
-        catch (HttpListenerException ex) when (timeoutSource.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+        catch (HttpListenerException ex) when (timeoutSource.IsCancellationRequested &&
+                                               !cancellationToken.IsCancellationRequested)
         {
             throw new BrowserOAuthException(
                 BrowserOAuthFailureKind.TimedOut,
@@ -81,7 +83,9 @@ internal sealed class LoopbackBrowserOAuthBroker(
             var context = await listener.GetContextAsync().WaitAsync(cancellationToken).ConfigureAwait(false);
             var result = await TryHandleCallbackAsync(request, context).ConfigureAwait(false);
             if (result is not null)
+            {
                 return result;
+            }
         }
     }
 
@@ -91,15 +95,18 @@ internal sealed class LoopbackBrowserOAuthBroker(
     {
         if (!IsExpectedCallback(request.RedirectUri, context.Request.Url))
         {
-            await WriteResponseAsync(context.Response, 404, "Not found", "This callback does not belong to the current sign-in request.").ConfigureAwait(false);
+            await WriteResponseAsync(context.Response, 404, "Not found",
+                "This callback does not belong to the current sign-in request.").ConfigureAwait(false);
             return null;
         }
 
         var state = context.Request.QueryString["state"];
         if (!IsExpectedState(state, request.State))
         {
-            await WriteResponseAsync(context.Response, 400, "Sign-in rejected", "The response did not match the original request.").ConfigureAwait(false);
-            throw new BrowserOAuthException(BrowserOAuthFailureKind.StateMismatch, $"{request.ProviderDisplayName} sign-in returned an invalid OAuth state.");
+            await WriteResponseAsync(context.Response, 400, "Sign-in rejected",
+                "The response did not match the original request.").ConfigureAwait(false);
+            throw new BrowserOAuthException(BrowserOAuthFailureKind.StateMismatch,
+                $"{request.ProviderDisplayName} sign-in returned an invalid OAuth state.");
         }
 
         var error = context.Request.QueryString["error"];
@@ -115,18 +122,23 @@ internal sealed class LoopbackBrowserOAuthBroker(
         var code = context.Request.QueryString["code"];
         if (string.IsNullOrWhiteSpace(code))
         {
-            await WriteResponseAsync(context.Response, 400, "Sign-in failed", "The provider did not return an authorization code.").ConfigureAwait(false);
-            throw new BrowserOAuthException(BrowserOAuthFailureKind.MalformedResponse, $"{request.ProviderDisplayName} did not return an authorization code.");
+            await WriteResponseAsync(context.Response, 400, "Sign-in failed",
+                "The provider did not return an authorization code.").ConfigureAwait(false);
+            throw new BrowserOAuthException(BrowserOAuthFailureKind.MalformedResponse,
+                $"{request.ProviderDisplayName} did not return an authorization code.");
         }
 
-        await WriteResponseAsync(context.Response, 200, "Sign-in complete", "You can close this browser tab and return to Emerald.").ConfigureAwait(false);
+        await WriteResponseAsync(context.Response, 200, "Sign-in complete",
+            "You can close this browser tab and return to Emerald.").ConfigureAwait(false);
         return new BrowserOAuthAuthorizationResult(code);
     }
 
     private static bool IsExpectedState(string? actual, string expected)
     {
         if (actual is null)
+        {
             return false;
+        }
 
         var actualBytes = Encoding.UTF8.GetBytes(actual);
         var expectedBytes = Encoding.UTF8.GetBytes(expected);
@@ -154,20 +166,27 @@ internal sealed class LoopbackBrowserOAuthBroker(
     }
 
     private static bool IsExpectedCallback(Uri expected, Uri? actual)
-        => actual is not null
-           && string.Equals(actual.Scheme, expected.Scheme, StringComparison.OrdinalIgnoreCase)
-           && string.Equals(actual.Host, expected.Host, StringComparison.OrdinalIgnoreCase)
-           && actual.Port == expected.Port
-           && string.Equals(NormalizePath(actual.AbsolutePath), NormalizePath(expected.AbsolutePath), StringComparison.Ordinal);
+    {
+        return actual is not null
+               && string.Equals(actual.Scheme, expected.Scheme, StringComparison.OrdinalIgnoreCase)
+               && string.Equals(actual.Host, expected.Host, StringComparison.OrdinalIgnoreCase)
+               && actual.Port == expected.Port
+               && string.Equals(NormalizePath(actual.AbsolutePath), NormalizePath(expected.AbsolutePath),
+                   StringComparison.Ordinal);
+    }
 
     private static string NormalizePath(string path)
-        => path.EndsWith('/') ? path : path + "/";
+    {
+        return path.EndsWith('/') ? path : path + "/";
+    }
 
-    private static async Task WriteResponseAsync(HttpListenerResponse response, int statusCode, string title, string body)
+    private static async Task WriteResponseAsync(HttpListenerResponse response, int statusCode, string title,
+        string body)
     {
         response.StatusCode = statusCode;
         response.ContentType = "text/html; charset=utf-8";
-        var html = $"<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>{WebUtility.HtmlEncode(title)}</title></head><body style=\"font-family:system-ui,sans-serif;margin:2rem\"><h1>{WebUtility.HtmlEncode(title)}</h1><p>{WebUtility.HtmlEncode(body)}</p></body></html>";
+        var html =
+            $"<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>{WebUtility.HtmlEncode(title)}</title></head><body style=\"font-family:system-ui,sans-serif;margin:2rem\"><h1>{WebUtility.HtmlEncode(title)}</h1><p>{WebUtility.HtmlEncode(body)}</p></body></html>";
         var buffer = Encoding.UTF8.GetBytes(html);
         response.ContentLength64 = buffer.Length;
         await response.OutputStream.WriteAsync(buffer).ConfigureAwait(false);

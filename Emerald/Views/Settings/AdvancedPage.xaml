@@ -1,10 +1,10 @@
 <Page
-    x:Class="Emerald.Views.Settings.AdvancedPage"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:cn="using:CommunityToolkit.WinUI.Controls"
-    xmlns:conv="using:Emerald.Helpers.Converters"
-    xmlns:helpers="using:Emerald.Helpers">
+  x:Class="Emerald.Views.Settings.AdvancedPage"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:cn="using:CommunityToolkit.WinUI.Controls"
+  xmlns:conv="using:Emerald.Helpers.Converters"
+  xmlns:helpers="using:Emerald.Helpers">
 
   <Page.Resources>
     <conv:BoolToVisibility x:Key="BoolToVis" />
@@ -14,18 +14,18 @@
     <StackPanel Spacing="4">
       <TextBlock FontWeight="SemiBold" Text="{helpers:Localize KeyName=Ely.by}" />
       <cn:SettingsCard
-          Header="{helpers:Localize KeyName=AuthlibInjectorVersion}"
-          Description="{helpers:Localize KeyName=AuthlibInjectorGlobalDescription}"
-          HeaderIcon="{helpers:FontIcon Glyph=&#xE943;}">
+        Header="{helpers:Localize KeyName=AuthlibInjectorVersion}"
+        Description="{helpers:Localize KeyName=AuthlibInjectorGlobalDescription}"
+        HeaderIcon="{helpers:FontIcon Glyph=&#xE943;}">
         <ComboBox
-                  DisplayMemberPath="Label"
-                  ItemsSource="{Binding ModeOptions}"
-                  SelectedItem="{Binding SelectedMode, Mode=TwoWay}" />
+          DisplayMemberPath="Label"
+          ItemsSource="{Binding ModeOptions}"
+          SelectedItem="{Binding SelectedMode, Mode=TwoWay}" />
       </cn:SettingsCard>
 
       <cn:SettingsCard Header="{helpers:Localize KeyName=AuthlibCustomVersion}"
-          Description="{helpers:Localize KeyName=AuthlibCustomVersionDescription}"
-          Visibility="{Binding IsCustomMode, Converter={StaticResource BoolToVis}}">
+                       Description="{helpers:Localize KeyName=AuthlibCustomVersionDescription}"
+                       Visibility="{Binding IsCustomMode, Converter={StaticResource BoolToVis}}">
         <StackPanel Spacing="8">
           <ComboBox
             DisplayMemberPath="Label"
@@ -58,7 +58,8 @@
           <ProgressRing Width="20" Height="20" HorizontalAlignment="Left"
                         IsActive="{Binding IsChecking}"
                         Visibility="{Binding IsChecking, Converter={StaticResource BoolToVis}}" />
-          <TextBlock MaxWidth="520" IsTextSelectionEnabled="True" Text="{Binding ConfigurationStatus}" TextWrapping="Wrap" />
+          <TextBlock MaxWidth="520" IsTextSelectionEnabled="True" Text="{Binding ConfigurationStatus}"
+                     TextWrapping="Wrap" />
         </StackPanel>
       </cn:SettingsCard>
     </StackPanel>

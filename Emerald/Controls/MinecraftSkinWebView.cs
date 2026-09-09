@@ -85,9 +85,12 @@ public sealed class MinecraftSkinWebView : Grid
     private static readonly Lazy<string> ViewerDocument = new(CreateViewerDocument);
     private static readonly Lazy<string> DefaultCapeDataUrl = new(CreateDefaultCapeDataUrl);
 
-    public static string GetDefaultCapeDataUrl() => DefaultCapeDataUrl.Value;
+    public static string GetDefaultCapeDataUrl()
+    {
+        return DefaultCapeDataUrl.Value;
+    }
 
-    private readonly Microsoft.UI.Xaml.Controls.WebView2 _webView = new()
+    private readonly WebView2 _webView = new()
     {
         HorizontalAlignment = HorizontalAlignment.Stretch,
         VerticalAlignment = VerticalAlignment.Stretch
@@ -159,14 +162,18 @@ public sealed class MinecraftSkinWebView : Grid
     public async Task StopAsync()
     {
         if (_isStopped)
+        {
             return;
+        }
 
         _isStopped = true;
         try
         {
             if (_readySource.Task.IsCompletedSuccessfully)
+            {
                 await _webView.ExecuteScriptAsync(
                     "(() => { window.emeraldSkinViewer?.dispose(); return 'stopped'; })()");
+            }
         }
         catch
         {
@@ -194,7 +201,9 @@ public sealed class MinecraftSkinWebView : Grid
         {
             await _webView.EnsureCoreWebView2Async();
             if (_isStopped)
+            {
                 return;
+            }
 
             _webView.NavigateToString(ViewerDocument.Value);
         }
@@ -205,21 +214,27 @@ public sealed class MinecraftSkinWebView : Grid
         }
     }
 
-    private void OnNavigationCompleted(Microsoft.UI.Xaml.Controls.WebView2 sender,
+    private void OnNavigationCompleted(WebView2 sender,
         CoreWebView2NavigationCompletedEventArgs args)
     {
         if (_isStopped)
+        {
             return;
+        }
 
         if (!args.IsSuccess)
+        {
             Fail($"The embedded skin viewer could not be loaded ({args.WebErrorStatus}).");
+        }
     }
 
-    private void OnWebMessageReceived(Microsoft.UI.Xaml.Controls.WebView2 sender,
+    private void OnWebMessageReceived(WebView2 sender,
         CoreWebView2WebMessageReceivedEventArgs args)
     {
         if (_isStopped)
+        {
             return;
+        }
 
         try
         {
@@ -246,7 +261,9 @@ public sealed class MinecraftSkinWebView : Grid
     private void Fail(string message, Exception? exception = null)
     {
         if (_isStopped)
+        {
             return;
+        }
 
         var failure = exception ?? new InvalidOperationException(message);
         _readySource.TrySetException(failure);
@@ -258,7 +275,9 @@ public sealed class MinecraftSkinWebView : Grid
     {
         using var outer = JsonDocument.Parse(json);
         if (outer.RootElement.ValueKind != JsonValueKind.String)
+        {
             return outer.RootElement.Deserialize<ViewerMessage>(JsonOptions) ?? new ViewerMessage(null, null);
+        }
 
         var innerJson = outer.RootElement.GetString();
         return string.IsNullOrEmpty(innerJson)
@@ -266,15 +285,19 @@ public sealed class MinecraftSkinWebView : Grid
             : JsonSerializer.Deserialize<ViewerMessage>(innerJson, JsonOptions) ?? new ViewerMessage(null, null);
     }
 
-    private static TaskCompletionSource NewCompletionSource() =>
-        new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private static TaskCompletionSource NewCompletionSource()
+    {
+        return new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
 
     private static string CreateViewerDocument()
     {
         var html = ReadEmbeddedText(HtmlResourceName);
         var bundle = ReadEmbeddedText(BundleResourceName);
         if (!html.Contains(BundlePlaceholder, StringComparison.Ordinal))
+        {
             throw new InvalidOperationException("The embedded skin viewer template is missing its bundle placeholder.");
+        }
 
         return html.Replace(BundlePlaceholder, bundle, StringComparison.Ordinal);
     }

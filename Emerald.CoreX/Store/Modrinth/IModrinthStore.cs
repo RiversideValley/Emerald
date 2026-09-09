@@ -45,7 +45,8 @@ public interface IModrinthStore
     /// </summary>
     /// <param name="id">The unique identifier of the item to retrieve versions for.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of <see cref="ItemVersion"/> objects associated with the item, or null if an error occurred.</returns>
-    public Task<List<ItemVersion>?> GetVersionsAsync(string id, string[]? gameVersions = null, string[]? loaders = null);
+    public Task<List<ItemVersion>?>
+        GetVersionsAsync(string id, string[]? gameVersions = null, string[]? loaders = null);
 
     /// <summary>
     /// Downloads a specific file for an item from the Modrinth store.
@@ -54,7 +55,11 @@ public interface IModrinthStore
     /// <param name="progress">Optional. A progress reporter of type <see cref="IProgress{double}"/> to report the download progress.</param>
     /// <param name="cancellationToken">Optional. A token to monitor for cancellation requests while the operation is in progress.</param>
     /// <returns>A task that represents the asynchronous operation of downloading the item.</returns>
-    public Task DownloadItemAsync(ItemFile file, IProgress<double>? progress = null, CancellationToken cancellationToken = default);
-    public Task DownloadItemToPathAsync(ItemFile file, string filePath, IProgress<double>? progress = null, CancellationToken cancellationToken = default);
+    public Task DownloadItemAsync(ItemFile file, IProgress<double>? progress = null,
+        CancellationToken cancellationToken = default);
+
+    public Task DownloadItemToPathAsync(ItemFile file, string filePath, IProgress<double>? progress = null,
+        CancellationToken cancellationToken = default);
+
     public Category[] Categories { get; }
 }

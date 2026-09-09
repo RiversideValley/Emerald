@@ -23,10 +23,14 @@ public sealed class LifecycleStartResult : IDisposable
     public bool IsRecoveryMode => ConsecutiveEarlyFailures >= 3;
 
     internal void AttachReconciliationLease(IDisposable? lease)
-        => _reconciliationLease = lease;
+    {
+        _reconciliationLease = lease;
+    }
 
     public void Dispose()
-        => Interlocked.Exchange(ref _reconciliationLease, null)?.Dispose();
+    {
+        Interlocked.Exchange(ref _reconciliationLease, null)?.Dispose();
+    }
 }
 
 public sealed class LifecycleRunState
@@ -90,7 +94,7 @@ public sealed class FileAppLifecycleTracker : IAppLifecycleTracker
                 return BuildStartResult(null, [], _currentRun.ConsecutiveEarlyFailures);
             }
 
-            FileStream? reconciliationLock = AcquireReconciliationLock();
+            var reconciliationLock = AcquireReconciliationLock();
             var previousRuns = ReadUnreconciledRuns();
             var previous = previousRuns
                 .OrderByDescending(run => run.LastHeartbeatUtc)
@@ -269,12 +273,14 @@ public sealed class FileAppLifecycleTracker : IAppLifecycleTracker
         LifecycleRunState? previous,
         IReadOnlyList<LifecycleRunState> previousRuns,
         int earlyFailures)
-        => new()
+    {
+        return new LifecycleStartResult
         {
             PreviousRun = previous,
             PreviousRuns = previousRuns,
             ConsecutiveEarlyFailures = earlyFailures
         };
+    }
 
     private List<LifecycleRunState> ReadUnreconciledRuns()
     {
@@ -293,7 +299,10 @@ public sealed class FileAppLifecycleTracker : IAppLifecycleTracker
     private List<LifecycleRunState> ReadSessionRuns()
     {
         var runs = new List<LifecycleRunState>();
-        if (!Directory.Exists(_sessionsPath)) return runs;
+        if (!Directory.Exists(_sessionsPath))
+        {
+            return runs;
+        }
 
         foreach (var path in Directory.EnumerateFiles(_sessionsPath, "*.json"))
         {
@@ -318,8 +327,10 @@ public sealed class FileAppLifecycleTracker : IAppLifecycleTracker
     }
 
     private static bool IsUnreconciledRun(LifecycleRunState state)
-        => !state.Reconciled
-            && (!state.CleanShutdown || (state.RecoveryOnlySession && !state.StartupCompleted));
+    {
+        return !state.Reconciled
+               && (!state.CleanShutdown || (state.RecoveryOnlySession && !state.StartupCompleted));
+    }
 
     private void AcquireOwnership(string runId)
     {
@@ -414,7 +425,9 @@ public sealed class FileAppLifecycleTracker : IAppLifecycleTracker
     }
 
     private bool TryWrite(LifecycleRunState state)
-        => TryWriteAt(Path.Combine(_sessionsPath, $"{state.RunId}.json"), state);
+    {
+        return TryWriteAt(Path.Combine(_sessionsPath, $"{state.RunId}.json"), state);
+    }
 
     private static bool TryWriteAt(string path, LifecycleRunState state)
     {

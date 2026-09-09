@@ -1,105 +1,142 @@
-<Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="using:Emerald.ViewModels" xmlns:controls="using:Emerald.Controls" xmlns:helpers="using:Emerald.Helpers" xmlns:conv="using:Emerald.Helpers.Converters" x:Class="Emerald.Views.ServersPage" Background="Transparent">
+<Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="using:Emerald.ViewModels"
+      xmlns:controls="using:Emerald.Controls" xmlns:helpers="using:Emerald.Helpers"
+      xmlns:conv="using:Emerald.Helpers.Converters" x:Class="Emerald.Views.ServersPage" Background="Transparent">
   <Page.Resources>
-    <conv:BoolToVisibility x:Key="Visible"/>
+    <conv:BoolToVisibility x:Key="Visible" />
     <DataTemplate x:Key="ServerTemplate" x:DataType="vm:ServerRowViewModel">
-      <controls:ServerRow Model="{x:Bind}" Selected="Select_Row" Play="Play_Row" Favorite="Favorite_Row" Options="Options_Row"/>
+      <controls:ServerRow Model="{x:Bind}" Selected="Select_Row" Play="Play_Row" Favorite="Favorite_Row"
+                          Options="Options_Row" />
     </DataTemplate>
     <Style x:Key="RowStyle" TargetType="ListViewItem">
-      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-      <Setter Property="Padding" Value="0"/>
-      <Setter Property="Margin" Value="0,0,0,12"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Margin" Value="0,0,0,12" />
     </Style>
   </Page.Resources>
   <Grid x:Name="LayoutRoot" Padding="24" RowSpacing="16" SizeChanged="Layout_SizeChanged">
     <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
     </Grid.RowDefinitions>
     <Grid ColumnSpacing="12">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="Auto"/>
-        <ColumnDefinition Width="*"/>
-        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
       </Grid.ColumnDefinitions>
       <Button Click="Back_Click" AutomationProperties.Name="{helpers:Localize KeyName=RefineBack}">
-        <FontIcon Glyph="&#xE72B;"/>
+        <FontIcon Glyph="&#xE72B;" />
       </Button>
       <StackPanel Grid.Column="1">
-        <TextBlock Text="{helpers:Localize KeyName=RefineServers}" Style="{ThemeResource TitleTextBlockStyle}"/>
-        <TextBlock Text="{helpers:Localize KeyName=RefineSelectHome}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+        <TextBlock Text="{helpers:Localize KeyName=RefineServers}" Style="{ThemeResource TitleTextBlockStyle}" />
+        <TextBlock Text="{helpers:Localize KeyName=RefineSelectHome}"
+                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
       </StackPanel>
       <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-        <Button Click="AddCustom_Click" Content="{helpers:Localize KeyName=RefineAddServer}"/>
-        <Button Click="Refresh_Click" Content="{helpers:Localize KeyName=RefineRefresh}"/>
+        <Button Click="AddCustom_Click" Content="{helpers:Localize KeyName=RefineAddServer}" />
+        <Button Click="Refresh_Click" Content="{helpers:Localize KeyName=RefineRefresh}" />
       </StackPanel>
     </Grid>
-    <Border Grid.Row="1" Padding="16,12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+    <Border Grid.Row="1" Padding="16,12" CornerRadius="12"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
       <Grid x:Name="Filters" ColumnSpacing="8" RowSpacing="0">
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="Auto"/>
-          <ColumnDefinition Width="Auto"/>
-          <ColumnDefinition Width="280"/>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="280" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <AutoSuggestBox BorderThickness="0,0,0,1" Background="Transparent" QueryIcon="{helpers:FontIcon Glyph=&#xE721;}" PlaceholderText="{helpers:Localize KeyName=RefineSearchServers}" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="{helpers:Localize KeyName=RefineSearchServers}"/>
-        <Button Grid.Column="1" Content="{x:Bind ViewModel.FilterText, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsDiscover, Mode=OneWay, Converter={StaticResource Visible}}">
+        <AutoSuggestBox BorderThickness="0,0,0,1" Background="Transparent"
+                        QueryIcon="{helpers:FontIcon Glyph=&#xE721;}"
+                        PlaceholderText="{helpers:Localize KeyName=RefineSearchServers}"
+                        Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        AutomationProperties.Name="{helpers:Localize KeyName=RefineSearchServers}" />
+        <Button Grid.Column="1" Content="{x:Bind ViewModel.FilterText, Mode=OneWay}"
+                Visibility="{x:Bind ViewModel.IsDiscover, Mode=OneWay, Converter={StaticResource Visible}}">
           <Button.Flyout>
             <Flyout>
               <StackPanel Spacing="12" Width="240">
-                <TextBox Header="{helpers:Localize KeyName=RefineTag}" Text="{x:Bind ViewModel.TagFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                <CheckBox Content="{helpers:Localize KeyName=RefineMatchInstance}" IsChecked="{x:Bind ViewModel.UseInstanceVersion, Mode=TwoWay}"/>
-                <TextBox Header="{helpers:Localize KeyName=RefineVersion}" Text="{x:Bind ViewModel.VersionFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                <Button Content="{helpers:Localize KeyName=RefineClearFilters}" Click="ClearFilters_Click"/>
+                <TextBox Header="{helpers:Localize KeyName=RefineTag}"
+                         Text="{x:Bind ViewModel.TagFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox Content="{helpers:Localize KeyName=RefineMatchInstance}"
+                          IsChecked="{x:Bind ViewModel.UseInstanceVersion, Mode=TwoWay}" />
+                <TextBox Header="{helpers:Localize KeyName=RefineVersion}"
+                         Text="{x:Bind ViewModel.VersionFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Content="{helpers:Localize KeyName=RefineClearFilters}" Click="ClearFilters_Click" />
               </StackPanel>
             </Flyout>
           </Button.Flyout>
         </Button>
         <Grid Grid.Column="2">
-          <ComboBox ItemsSource="{x:Bind ViewModel.Sorts}" SelectedItem="{x:Bind ViewModel.SelectedSort, Mode=TwoWay}" DisplayMemberPath="Label" Visibility="{x:Bind ViewModel.IsDiscover, Mode=OneWay, Converter={StaticResource Visible}}" AutomationProperties.Name="{helpers:Localize KeyName=RefineSort}"/>
-          <ComboBox ItemsSource="{x:Bind ViewModel.FavoriteSorts}" SelectedItem="{x:Bind ViewModel.FavoriteSort, Mode=TwoWay}" DisplayMemberPath="Label" Visibility="{x:Bind ViewModel.IsFavorites, Mode=OneWay, Converter={StaticResource Visible}}" AutomationProperties.Name="{helpers:Localize KeyName=RefineSort}"/>
+          <ComboBox ItemsSource="{x:Bind ViewModel.Sorts}" SelectedItem="{x:Bind ViewModel.SelectedSort, Mode=TwoWay}"
+                    DisplayMemberPath="Label"
+                    Visibility="{x:Bind ViewModel.IsDiscover, Mode=OneWay, Converter={StaticResource Visible}}"
+                    AutomationProperties.Name="{helpers:Localize KeyName=RefineSort}" />
+          <ComboBox ItemsSource="{x:Bind ViewModel.FavoriteSorts}"
+                    SelectedItem="{x:Bind ViewModel.FavoriteSort, Mode=TwoWay}" DisplayMemberPath="Label"
+                    Visibility="{x:Bind ViewModel.IsFavorites, Mode=OneWay, Converter={StaticResource Visible}}"
+                    AutomationProperties.Name="{helpers:Localize KeyName=RefineSort}" />
         </Grid>
-        <ComboBox x:Name="InstancePicker" Grid.Column="3" ItemsSource="{x:Bind ViewModel.Games}" SelectedItem="{x:Bind ViewModel.SelectedGame, Mode=TwoWay}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AutomationProperties.Name="{helpers:Localize KeyName=RefineInstance}">
+        <ComboBox x:Name="InstancePicker" Grid.Column="3" ItemsSource="{x:Bind ViewModel.Games}"
+                  SelectedItem="{x:Bind ViewModel.SelectedGame, Mode=TwoWay}" HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Stretch"
+                  AutomationProperties.Name="{helpers:Localize KeyName=RefineInstance}">
           <ComboBox.ItemTemplate>
             <DataTemplate>
-              <TextBlock Text="{Binding Version.DisplayName}" TextTrimming="CharacterEllipsis" MaxWidth="236" ToolTipService.ToolTip="{Binding Version.DisplayName}"/>
+              <TextBlock Text="{Binding Version.DisplayName}" TextTrimming="CharacterEllipsis" MaxWidth="236"
+                         ToolTipService.ToolTip="{Binding Version.DisplayName}" />
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
       </Grid>
     </Border>
-    <InfoBar Grid.Row="2" IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}" Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" Severity="Error" IsClosable="False"/>
+    <InfoBar Grid.Row="2" IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}"
+             Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" Severity="Error" IsClosable="False" />
     <Grid Grid.Row="3">
       <Grid RowSpacing="16">
         <Grid.RowDefinitions>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" Spacing="8">
-          <ToggleButton Content="{helpers:Localize KeyName=RefineDiscover}" IsChecked="{x:Bind ViewModel.IsDiscover, Mode=OneWay}" Click="Discover_Click"/>
-          <ToggleButton Content="{helpers:Localize KeyName=RefineFavorites}" IsChecked="{x:Bind ViewModel.IsFavorites, Mode=OneWay}" Click="Favorites_Click"/>
+          <ToggleButton Content="{helpers:Localize KeyName=RefineDiscover}"
+                        IsChecked="{x:Bind ViewModel.IsDiscover, Mode=OneWay}" Click="Discover_Click" />
+          <ToggleButton Content="{helpers:Localize KeyName=RefineFavorites}"
+                        IsChecked="{x:Bind ViewModel.IsFavorites, Mode=OneWay}" Click="Favorites_Click" />
         </StackPanel>
-        <Grid Grid.Row="1" RowSpacing="12" Visibility="{x:Bind ViewModel.IsDiscover, Mode=OneWay, Converter={StaticResource Visible}}">
+        <Grid Grid.Row="1" RowSpacing="12"
+              Visibility="{x:Bind ViewModel.IsDiscover, Mode=OneWay, Converter={StaticResource Visible}}">
           <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
           </Grid.RowDefinitions>
-          <ListView ItemsSource="{x:Bind ViewModel.DiscoverServers, Mode=OneWay}" SelectionMode="None" ItemTemplate="{StaticResource ServerTemplate}" ItemContainerStyle="{StaticResource RowStyle}"/>
+          <ListView ItemsSource="{x:Bind ViewModel.DiscoverServers, Mode=OneWay}" SelectionMode="None"
+                    ItemTemplate="{StaticResource ServerTemplate}" ItemContainerStyle="{StaticResource RowStyle}" />
           <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
-            <Button Content="{helpers:Localize KeyName=RefinePrevious}" Click="Previous_Click" IsEnabled="{x:Bind ViewModel.CanPrevious, Mode=OneWay}"/>
-            <TextBlock Text="{x:Bind ViewModel.PageText, Mode=OneWay}" VerticalAlignment="Center"/>
-            <Button Content="{helpers:Localize KeyName=RefineNext}" Click="Next_Click" IsEnabled="{x:Bind ViewModel.CanNext, Mode=OneWay}"/>
+            <Button Content="{helpers:Localize KeyName=RefinePrevious}" Click="Previous_Click"
+                    IsEnabled="{x:Bind ViewModel.CanPrevious, Mode=OneWay}" />
+            <TextBlock Text="{x:Bind ViewModel.PageText, Mode=OneWay}" VerticalAlignment="Center" />
+            <Button Content="{helpers:Localize KeyName=RefineNext}" Click="Next_Click"
+                    IsEnabled="{x:Bind ViewModel.CanNext, Mode=OneWay}" />
           </StackPanel>
         </Grid>
-        <ListView Grid.Row="1" Visibility="{x:Bind ViewModel.IsFavorites, Mode=OneWay, Converter={StaticResource Visible}}" ItemsSource="{x:Bind ViewModel.FavoriteServers, Mode=OneWay}" SelectionMode="None" ItemTemplate="{StaticResource ServerTemplate}" ItemContainerStyle="{StaticResource RowStyle}"/>
+        <ListView Grid.Row="1"
+                  Visibility="{x:Bind ViewModel.IsFavorites, Mode=OneWay, Converter={StaticResource Visible}}"
+                  ItemsSource="{x:Bind ViewModel.FavoriteServers, Mode=OneWay}" SelectionMode="None"
+                  ItemTemplate="{StaticResource ServerTemplate}" ItemContainerStyle="{StaticResource RowStyle}" />
       </Grid>
-      <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-      <TextBlock Text="{helpers:Localize KeyName=RefineNoMatches}" Visibility="{x:Bind ViewModel.IsEmpty, Mode=OneWay, Converter={StaticResource Visible}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" HorizontalAlignment="Center"
+                    VerticalAlignment="Center" />
+      <TextBlock Text="{helpers:Localize KeyName=RefineNoMatches}"
+                 Visibility="{x:Bind ViewModel.IsEmpty, Mode=OneWay, Converter={StaticResource Visible}}"
+                 HorizontalAlignment="Center" VerticalAlignment="Center" />
     </Grid>
   </Grid>
 </Page>

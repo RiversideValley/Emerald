@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Emerald.CoreX.Notifications;
+
 public partial class Notification : ObservableObject
 {
     [ObservableProperty] private string _id;

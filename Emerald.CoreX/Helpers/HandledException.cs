@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Emerald.CoreX.Helpers;
+
 public class HandledException : Exception
 {
-
 }

@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using CmlLib.Core.ProcessBuilder;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Models;
 using Emerald.Services;
@@ -30,13 +31,16 @@ public sealed class GlobalGameSettingsService : IGlobalGameSettingsService
         _logger = logger;
 
         Settings = _baseSettingsService.Exists(SettingsKeys.BaseGameOptions)
-            ? _baseSettingsService.Get(SettingsKeys.BaseGameOptions, GameSettings.FromMLaunchOption(new()))
-            : GameSettings.FromMLaunchOption(new());
+            ? _baseSettingsService.Get(SettingsKeys.BaseGameOptions,
+                GameSettings.FromMLaunchOption(new MLaunchOption()))
+            : GameSettings.FromMLaunchOption(new MLaunchOption());
         Settings.PropertyChanged += OnSettingsPropertyChanged;
     }
 
     public GameSettings CloneCurrent()
-        => Settings.Clone();
+    {
+        return Settings.Clone();
+    }
 
     public void LoadForBasePath(string basePath)
     {
@@ -124,17 +128,20 @@ public sealed class GlobalGameSettingsService : IGlobalGameSettingsService
     {
         if (_minecraftBaseSettingsService.Exists(SettingsKeys.BaseGameOptions))
         {
-            return _minecraftBaseSettingsService.Get(SettingsKeys.BaseGameOptions, GameSettings.FromMLaunchOption(new()));
+            return _minecraftBaseSettingsService.Get(SettingsKeys.BaseGameOptions,
+                GameSettings.FromMLaunchOption(new MLaunchOption()));
         }
 
         if (_baseSettingsService.Exists(SettingsKeys.BaseGameOptions))
         {
-            var migrated = _baseSettingsService.Get(SettingsKeys.BaseGameOptions, GameSettings.FromMLaunchOption(new()));
+            var migrated = _baseSettingsService.Get(SettingsKeys.BaseGameOptions,
+                GameSettings.FromMLaunchOption(new MLaunchOption()));
             _minecraftBaseSettingsService.Set(SettingsKeys.BaseGameOptions, migrated);
             _baseSettingsService.Delete(SettingsKeys.BaseGameOptions);
             return migrated;
         }
 
-        return _minecraftBaseSettingsService.Get(SettingsKeys.BaseGameOptions, GameSettings.FromMLaunchOption(new()));
+        return _minecraftBaseSettingsService.Get(SettingsKeys.BaseGameOptions,
+            GameSettings.FromMLaunchOption(new MLaunchOption()));
     }
 }

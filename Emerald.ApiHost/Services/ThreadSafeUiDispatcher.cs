@@ -15,16 +15,31 @@ public sealed class ThreadSafeUiDispatcher : IUiDispatcher, IDisposable
     public void Invoke(Action action)
     {
         _gate.Wait();
-        try { action(); }
-        finally { _gate.Release(); }
+        try
+        {
+            action();
+        }
+        finally
+        {
+            _gate.Release();
+        }
     }
 
     public async Task InvokeAsync(Action action)
     {
         await _gate.WaitAsync().ConfigureAwait(false);
-        try { action(); }
-        finally { _gate.Release(); }
+        try
+        {
+            action();
+        }
+        finally
+        {
+            _gate.Release();
+        }
     }
 
-    public void Dispose() => _gate.Dispose();
+    public void Dispose()
+    {
+        _gate.Dispose();
+    }
 }

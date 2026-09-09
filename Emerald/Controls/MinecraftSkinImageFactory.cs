@@ -9,15 +9,18 @@ namespace Emerald.Controls;
 internal static class MinecraftSkinImageFactory
 {
     public static Task<ImageSource> CreateHeadAsync(AccountSkinData skin, int size = 96)
-        => CreateAsync(skin, size, size, canvas =>
+    {
+        return CreateAsync(skin, size, size, canvas =>
         {
             using var source = DecodeAndNormalize(skin.PngBytes);
             DrawNearest(canvas, source, new SKRect(8, 8, 16, 16), new SKRect(0, 0, size, size));
             DrawNearest(canvas, source, new SKRect(40, 8, 48, 16), new SKRect(0, 0, size, size));
         });
+    }
 
     public static Task<ImageSource> CreateBodyPreviewAsync(AccountSkinData skin, int width = 180, int height = 260)
-        => CreateAsync(skin, width, height, canvas =>
+    {
+        return CreateAsync(skin, width, height, canvas =>
         {
             using var source = DecodeAndNormalize(skin.PngBytes);
             var x = width / 2f;
@@ -29,6 +32,7 @@ internal static class MinecraftSkinImageFactory
             DrawNearest(canvas, source, new SKRect(4, 20, 8, 32), new SKRect(x - 36, 192, x, 252));
             DrawNearest(canvas, source, new SKRect(4, 52, 8, 64), new SKRect(x, 192, x + 36, 252));
         });
+    }
 
     private static async Task<ImageSource> CreateAsync(AccountSkinData skin, int width, int height,
         Action<SKCanvas> draw)
@@ -64,7 +68,9 @@ internal static class MinecraftSkinImageFactory
         using var decoded = SKBitmap.Decode(pngBytes)
                             ?? throw new InvalidOperationException("The skin texture could not be decoded.");
         if (decoded.Width != 64 || (decoded.Height != 32 && decoded.Height != 64))
+        {
             throw new InvalidOperationException("Minecraft skins must be 64×64 or legacy 64×32 PNG textures.");
+        }
 
         var normalized = new SKBitmap(new SKImageInfo(64, 64, SKColorType.Rgba8888, SKAlphaType.Unpremul));
         using var canvas = new SKCanvas(normalized);

@@ -25,9 +25,9 @@ public sealed class MrPackReader : IMrPackReader
 
     public async Task<MrPackManifest> ReadAsync(Stream mrPackStream, CancellationToken cancellationToken = default)
     {
-        using var archive = new ZipArchive(mrPackStream, ZipArchiveMode.Read, leaveOpen: true);
+        using var archive = new ZipArchive(mrPackStream, ZipArchiveMode.Read, true);
         var indexEntry = archive.GetEntry("modrinth.index.json")
-            ?? throw new InvalidOperationException("The modpack does not contain modrinth.index.json.");
+                         ?? throw new InvalidOperationException("The modpack does not contain modrinth.index.json.");
 
         await using var indexStream = indexEntry.Open();
         var manifest = await JsonSerializer.DeserializeAsync<MrPackManifest>(
@@ -48,7 +48,8 @@ public sealed class MrPackReader : IMrPackReader
     {
         if (manifest.FormatVersion != 1)
         {
-            throw new InvalidOperationException($"Unsupported Modrinth pack format version '{manifest.FormatVersion}'.");
+            throw new InvalidOperationException(
+                $"Unsupported Modrinth pack format version '{manifest.FormatVersion}'.");
         }
 
         if (!string.Equals(manifest.Game, "minecraft", StringComparison.OrdinalIgnoreCase))
@@ -67,7 +68,8 @@ public sealed class MrPackReader : IMrPackReader
 
             if (!file.Hashes.ContainsKey("sha1") || !file.Hashes.ContainsKey("sha512"))
             {
-                throw new InvalidOperationException($"The modpack file '{file.Path}' is missing required SHA-1 or SHA-512 hashes.");
+                throw new InvalidOperationException(
+                    $"The modpack file '{file.Path}' is missing required SHA-1 or SHA-512 hashes.");
             }
         }
     }
@@ -110,7 +112,9 @@ public static class MrPackPathGuard
     }
 
     private static bool LooksLikeWindowsRoot(string path)
-        => path.Length >= 2
-           && char.IsLetter(path[0])
-           && path[1] == ':';
+    {
+        return path.Length >= 2
+               && char.IsLetter(path[0])
+               && path[1] == ':';
+    }
 }

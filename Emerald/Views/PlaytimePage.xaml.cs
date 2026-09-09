@@ -3,6 +3,7 @@ using Emerald.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+
 namespace Emerald.Views;
 
 public sealed partial class PlaytimePage : Page
@@ -15,7 +16,10 @@ public sealed partial class PlaytimePage : Page
         InitializeComponent();
         _timer.Tick += (_, _) =>
         {
-            if (ViewModel.HasActive) ViewModel.Refresh();
+            if (ViewModel.HasActive)
+            {
+                ViewModel.Refresh();
+            }
         };
     }
 
@@ -28,7 +32,10 @@ public sealed partial class PlaytimePage : Page
         _timer.Start();
     }
 
-    private void Changed(object? sender, EventArgs e) => DispatcherQueue.TryEnqueue(() => ViewModel.Refresh());
+    private void Changed(object? sender, EventArgs e)
+    {
+        DispatcherQueue.TryEnqueue(() => ViewModel.Refresh());
+    }
 
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
@@ -40,17 +47,40 @@ public sealed partial class PlaytimePage : Page
 
     private void Back_Click(object sender, RoutedEventArgs e)
     {
-        if (Frame.CanGoBack) Frame.GoBack();
-        else Frame.Navigate(typeof(HomePage));
+        if (Frame.CanGoBack)
+        {
+            Frame.GoBack();
+        }
+        else
+        {
+            Frame.Navigate(typeof(HomePage));
+        }
     }
 
-    private void PreviousSession_Click(object sender, RoutedEventArgs e) => ViewModel.ChangeSessionPage(-1);
-    private void NextSession_Click(object sender, RoutedEventArgs e) => ViewModel.ChangeSessionPage(1);
-    private void PreviousRanking_Click(object sender, RoutedEventArgs e) => ViewModel.ChangeRankingPage(-1);
-    private void NextRanking_Click(object sender, RoutedEventArgs e) => ViewModel.ChangeRankingPage(1);
+    private void PreviousSession_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ChangeSessionPage(-1);
+    }
 
-    private void Heatmap_SizeChanged(object sender, SizeChangedEventArgs e) =>
+    private void NextSession_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ChangeSessionPage(1);
+    }
+
+    private void PreviousRanking_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ChangeRankingPage(-1);
+    }
+
+    private void NextRanking_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ChangeRankingPage(1);
+    }
+
+    private void Heatmap_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
         HeatmapContent.Width = Math.Max(320, e.NewSize.Width);
+    }
 
     private void Layout_SizeChanged(object sender, SizeChangedEventArgs e)
     {

@@ -46,20 +46,28 @@ public sealed class InMemoryBaseSettingsService : IBaseSettingsService
     }
 
     public T Get<T>(string key, T defaultVal)
-        => _values.TryGetValue(key, out var value) && value is T typedValue
+    {
+        return _values.TryGetValue(key, out var value) && value is T typedValue
             ? typedValue
             : defaultVal;
+    }
 
     public bool Exists(string key)
-        => _values.ContainsKey(key);
+    {
+        return _values.ContainsKey(key);
+    }
 
     public void Delete(string key)
-        => _values.TryRemove(key, out _);
+    {
+        _values.TryRemove(key, out _);
+    }
 
     public T? Peek<T>(string key)
-        => _values.TryGetValue(key, out var value) && value is T typedValue
+    {
+        return _values.TryGetValue(key, out var value) && value is T typedValue
             ? typedValue
             : default;
+    }
 }
 
 public sealed class InMemoryMinecraftBaseSettingsService : IMinecraftBaseSettingsService
@@ -85,10 +93,14 @@ public sealed class InMemoryMinecraftBaseSettingsService : IMinecraftBaseSetting
     }
 
     public void Set<T>(string key, T value)
-        => CurrentValues[key] = value;
+    {
+        CurrentValues[key] = value;
+    }
 
     public bool Exists(string key)
-        => IsInitialized && CurrentValues.ContainsKey(key);
+    {
+        return IsInitialized && CurrentValues.ContainsKey(key);
+    }
 
     public void Delete(string key)
     {
@@ -99,11 +111,13 @@ public sealed class InMemoryMinecraftBaseSettingsService : IMinecraftBaseSetting
     }
 
     public T? Peek<T>(string basePath, string key)
-        => _values.TryGetValue(basePath, out var values)
-           && values.TryGetValue(key, out var value)
-           && value is T typedValue
+    {
+        return _values.TryGetValue(basePath, out var values)
+               && values.TryGetValue(key, out var value)
+               && value is T typedValue
             ? typedValue
             : default;
+    }
 
     private ConcurrentDictionary<string, object?> CurrentValues
         => IsInitialized && CurrentBasePath != null
@@ -115,7 +129,10 @@ internal sealed class ImmediateUiDispatcher : IUiDispatcher
 {
     public bool HasThreadAccess => true;
 
-    public void Invoke(Action action) => action();
+    public void Invoke(Action action)
+    {
+        action();
+    }
 
     public Task InvokeAsync(Action action)
     {
@@ -134,7 +151,9 @@ internal sealed class FakeMicrosoftAccountClient : IMicrosoftAccountClient
     public string? InitializedAccountStorePath { get; private set; }
     public string? DefaultAccountIdentifier { get; set; }
 
-    public Func<FakeMicrosoftAccountClient, CancellationToken, Task<MicrosoftInteractiveSignInResult>>? OnInteractiveSignInAsync { get; set; }
+    public Func<FakeMicrosoftAccountClient, CancellationToken, Task<MicrosoftInteractiveSignInResult>>?
+        OnInteractiveSignInAsync { get; set; }
+
     public Func<string, MSession>? AuthenticateFactory { get; set; }
 
     public Task InitializeAsync(string clientId, string accountStorePath)
@@ -145,12 +164,17 @@ internal sealed class FakeMicrosoftAccountClient : IMicrosoftAccountClient
     }
 
     public IReadOnlyList<MicrosoftAccountInfo> GetAccounts()
-        => Accounts.ToList();
+    {
+        return Accounts.ToList();
+    }
 
     public string? GetDefaultAccountIdentifier()
-        => DefaultAccountIdentifier;
+    {
+        return DefaultAccountIdentifier;
+    }
 
-    public async Task<MicrosoftInteractiveSignInResult> SignInInteractivelyAsync(CancellationToken cancellationToken = default)
+    public async Task<MicrosoftInteractiveSignInResult> SignInInteractivelyAsync(
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (OnInteractiveSignInAsync is null)
@@ -165,7 +189,7 @@ internal sealed class FakeMicrosoftAccountClient : IMicrosoftAccountClient
     {
         AuthenticatedIdentifiers.Add(accountIdentifier);
         var session = AuthenticateFactory?.Invoke(accountIdentifier)
-            ?? MSession.CreateOfflineSession($"auth-{accountIdentifier}");
+                      ?? MSession.CreateOfflineSession($"auth-{accountIdentifier}");
         return Task.FromResult(session);
     }
 
@@ -188,6 +212,7 @@ internal sealed class FakeMicrosoftAccountClient : IMicrosoftAccountClient
 internal sealed class FakeElyByAuthClient : IElyByAuthClient
 {
     public ElyByAuthSession AuthenticateResult { get; set; } = new("ElyPlayer", "ely-uuid", "ely-access", "ely-client");
+
     public ElyByAuthSession ExchangeOAuthCodeResult { get; set; } = new(
         "ElyOAuthPlayer",
         "ely-oauth-uuid",
@@ -196,6 +221,7 @@ internal sealed class FakeElyByAuthClient : IElyByAuthClient
         "ely-oauth-refresh",
         DateTimeOffset.UtcNow.AddHours(1),
         ElyByAuthFlow.OAuth);
+
     public ElyByAuthSession RefreshResult { get; set; } = new("ElyPlayer", "ely-uuid", "ely-refreshed", "ely-client");
     public bool ValidateResult { get; set; } = true;
 
@@ -234,14 +260,16 @@ internal sealed class FakeElyByAuthClient : IElyByAuthClient
         return Task.FromResult(AuthenticateResult);
     }
 
-    public Task<bool> ValidateAsync(string accessToken, string clientToken, CancellationToken cancellationToken = default)
+    public Task<bool> ValidateAsync(string accessToken, string clientToken,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ValidateCalls.Add((accessToken, clientToken));
         return Task.FromResult(ValidateResult);
     }
 
-    public Task<ElyByAuthSession> RefreshAsync(ElyByStoredAccount account, CancellationToken cancellationToken = default)
+    public Task<ElyByAuthSession> RefreshAsync(ElyByStoredAccount account,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         RefreshCalls.Add(account.UniqueId);
@@ -260,7 +288,9 @@ internal sealed class FakeElyByOAuthBrowser : IBrowserOAuthBroker
 {
     public string Code { get; set; } = "ely-oauth-code";
     public List<BrowserOAuthAuthorizationRequest> Requests { get; } = [];
-    public Func<BrowserOAuthAuthorizationRequest, CancellationToken, Task<BrowserOAuthAuthorizationResult>>? OnAuthorizeAsync { get; set; }
+
+    public Func<BrowserOAuthAuthorizationRequest, CancellationToken, Task<BrowserOAuthAuthorizationResult>>?
+        OnAuthorizeAsync { get; set; }
 
     public Task<BrowserOAuthAuthorizationResult> AuthorizeAsync(
         BrowserOAuthAuthorizationRequest request,
@@ -287,6 +317,7 @@ internal sealed class FakeAuthlibInjectorService : IAuthlibInjectorService
             "-Dauthlibinjector.yggdrasil.prefetched=e30="
         ],
         false);
+
     public int Calls { get; private set; }
 
     public Task<AuthlibInjectorLaunchConfiguration> PrepareLaunchAsync(CancellationToken cancellationToken = default)
@@ -295,8 +326,11 @@ internal sealed class FakeAuthlibInjectorService : IAuthlibInjectorService
         return Task.FromResult(LaunchConfiguration);
     }
 
-    public Task<IReadOnlyList<AuthlibInjectorVersion>> GetAvailableVersionsAsync(CancellationToken cancellationToken = default)
-        => Task.FromResult<IReadOnlyList<AuthlibInjectorVersion>>([new(56, "1.2.8")]);
+    public Task<IReadOnlyList<AuthlibInjectorVersion>> GetAvailableVersionsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult<IReadOnlyList<AuthlibInjectorVersion>>([new AuthlibInjectorVersion(56, "1.2.8")]);
+    }
 }
 
 internal sealed class FakeNotificationService : INotificationService
@@ -329,32 +363,51 @@ internal sealed class FakeNotificationService : INotificationService
         return (notification.Id, notification.CancellationSource?.Token);
     }
 
-    public void Update(string? id = null, string? title = null, string? message = null, double? progress = null, bool? isIndeterminate = null)
+    public void Update(string? id = null, string? title = null, string? message = null, double? progress = null,
+        bool? isIndeterminate = null)
     {
         var notification = ActiveNotifications.FirstOrDefault(n => n.Id == id);
         if (notification is null)
+        {
             return;
+        }
 
         if (title is not null)
+        {
             notification.Title = title;
+        }
+
         if (message is not null)
+        {
             notification.Message = message;
+        }
+
         if (progress is not null)
+        {
             notification.Progress = progress.Value;
+        }
+
         if (isIndeterminate is not null)
+        {
             notification.IsIndeterminate = isIndeterminate.Value;
+        }
     }
 
     public void Complete(string id, bool success, string message = null!, Exception ex = null!)
     {
         var notification = ActiveNotifications.FirstOrDefault(n => n.Id == id);
         if (notification is null)
+        {
             return;
+        }
 
         notification.Type = success ? NotificationType.Success : NotificationType.Error;
         notification.Message = message ?? notification.Message;
         if (ex is not null)
+        {
             notification.Exception = ex;
+        }
+
         notification.IsCompleted = true;
         notification.IsIndeterminate = false;
     }
@@ -381,7 +434,9 @@ internal sealed class FakeNotificationService : INotificationService
     {
         var notification = ActiveNotifications.FirstOrDefault(n => n.Id == id);
         if (notification is not null)
+        {
             ActiveNotifications.Remove(notification);
+        }
     }
 
     public void Cancel(string id)
@@ -390,7 +445,8 @@ internal sealed class FakeNotificationService : INotificationService
         notification?.CancellationSource?.Cancel();
     }
 
-    private string AddNotification(string title, string message, NotificationType type, TimeSpan? duration, Exception? ex)
+    private string AddNotification(string title, string message, NotificationType type, TimeSpan? duration,
+        Exception? ex)
     {
         var notification = new Notification
         {
@@ -402,7 +458,9 @@ internal sealed class FakeNotificationService : INotificationService
             Duration = duration
         };
         if (ex is not null)
+        {
             notification.Exception = ex;
+        }
 
         ActiveNotifications.Add(notification);
         return notification.Id;

@@ -3,6 +3,7 @@ using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Models;
 using Emerald.CoreX.Services;
 using Emerald.Helpers.Settings;
+using Emerald.Helpers.Settings.JSON;
 using Emerald.Models;
 using Microsoft.Extensions.Logging;
 
@@ -47,10 +48,10 @@ public class SettingsService(
 
             // These global advanced settings were added without a settings API bump.
             // Normalize older JSON documents instead of discarding unrelated preferences.
-            loadedSettings.App ??= new();
-            loadedSettings.App.Advanced ??= new();
-            loadedSettings.App.Advanced.AuthlibInjector ??= new();
-            loadedSettings.App.Updates ??= new();
+            loadedSettings.App ??= new Helpers.Settings.JSON.App();
+            loadedSettings.App.Advanced ??= new Advanced();
+            loadedSettings.App.Advanced.AuthlibInjector ??= new AuthlibInjectorSettings();
+            loadedSettings.App.Updates ??= new Updates();
             if (!Enum.IsDefined(loadedSettings.App.Advanced.AuthlibInjector.VersionMode))
             {
                 loadedSettings.App.Advanced.AuthlibInjector.VersionMode =

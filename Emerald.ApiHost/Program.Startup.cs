@@ -22,19 +22,19 @@ public partial class Program
     private static void MapEventSocket(WebApplication app)
     {
         app.MapGet("/ws/events", async (HttpContext context, EventHub eventHub) =>
-        {
-            if (context.WebSockets.IsWebSocketRequest)
             {
-                using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                await eventHub.HandleSocketAsync(webSocket);
-            }
-            else
-            {
-                context.Response.StatusCode = StatusCodes.Status400BadRequest;
-            }
-        })
-        .WithName("EventsWebSocket")
-        .WithTags("Events");
+                if (context.WebSockets.IsWebSocketRequest)
+                {
+                    using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                    await eventHub.HandleSocketAsync(webSocket);
+                }
+                else
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                }
+            })
+            .WithName("EventsWebSocket")
+            .WithTags("Events");
     }
 
     private static void StartCoreInitialization(WebApplication app, string basePath)
@@ -55,7 +55,8 @@ public partial class Program
                 await core.InitializeLocalAsync(minecraftPath);
                 _ = core.RefreshVersionCatalogAsync();
 
-                logger.LogInformation("Emerald CoreX Headless engine initialized successfully! Minecraft base path: {Path}", basePath);
+                logger.LogInformation(
+                    "Emerald CoreX Headless engine initialized successfully! Minecraft base path: {Path}", basePath);
             }
             catch (Exception ex)
             {

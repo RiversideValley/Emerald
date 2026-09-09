@@ -12,9 +12,12 @@ public class Optifine : IModLoaderInstaller
     public Versions.Type Type => Versions.Type.OptiFine;
 
     public Task<List<LoaderInfo>> GetVersionsAsync(string mcVersion)
-        => Task.FromResult(new List<LoaderInfo>());
+    {
+        return Task.FromResult(new List<LoaderInfo>());
+    }
 
-    public Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null, bool online = true)
+    public Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null,
+        bool online = true)
     {
         throw new NotImplementedException();
     }

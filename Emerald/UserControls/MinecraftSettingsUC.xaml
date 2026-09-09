@@ -1,15 +1,15 @@
 ﻿<UserControl
-    x:Class="Emerald.UserControls.MinecraftSettingsUC"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Emerald.UserControls"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" xmlns:helpers="using:Emerald.Helpers"
-   xmlns:cn="using:CommunityToolkit.WinUI.Controls"
-    xmlns:conv="using:Emerald.Helpers.Converters"
-    d:DesignHeight="300"
-    d:DesignWidth="400">
+  x:Class="Emerald.UserControls.MinecraftSettingsUC"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:local="using:Emerald.UserControls"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  mc:Ignorable="d" xmlns:helpers="using:Emerald.Helpers"
+  xmlns:cn="using:CommunityToolkit.WinUI.Controls"
+  xmlns:conv="using:Emerald.Helpers.Converters"
+  d:DesignHeight="300"
+  d:DesignWidth="400">
 
 
   <UserControl.Resources>
@@ -60,19 +60,18 @@
                 <MenuFlyoutItem
                   x:Name="CopyPath"
                   Text="{helpers:Localize KeyName=CopyPath}"
-                  Click="CopyPath_OnClick"/>
+                  Click="CopyPath_OnClick" />
                 <MenuFlyoutItem
                   Visibility="{x:Bind ShowMainSettings, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                   Text="{helpers:Localize KeyName=ChangePath}"
-                  Click="ChangePath_OnClick"/>
+                  Click="ChangePath_OnClick" />
                 <MenuFlyoutItem
                   x:Name="OpenPath"
                   Text="{helpers:Localize KeyName=OpenInFinder}"
-                  Click="OpenPath_OnClick"
-                  />
+                  Click="OpenPath_OnClick" />
               </MenuFlyout>
             </DropDownButton.Flyout>
-            </DropDownButton>
+          </DropDownButton>
         </cn:SettingsCard>
       </StackPanel>
 
@@ -80,343 +79,343 @@
         x:Name="PerGameEditablePanel"
         Spacing="16">
         <StackPanel Spacing="4">
-        <cn:SettingsExpander
-          Header="{helpers:Localize KeyName=GodFolders}"
-          Description="{helpers:Localize KeyName=GodFoldersDescription}"
-          HeaderIcon="{helpers:FontIcon Glyph=}">
-          <cn:SettingsExpander.Content>
-            <TextBlock
-              Text="{x:Bind GameSettings.SharedMinecraftFoldersStatus, Mode=OneWay}" />
-          </cn:SettingsExpander.Content>
-          <cn:SettingsExpander.Items>
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=GodFoldersAssets}"
-              Description="{helpers:Localize KeyName=GodFoldersAssetsDescription}">
-              <ToggleSwitch
-                IsOn="{x:Bind GameSettings.UseSharedAssetsPath, Mode=TwoWay}"
-                OffContent="{helpers:Localize KeyName=No}"
-                OnContent="{helpers:Localize KeyName=Yes}" />
-            </cn:SettingsCard>
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=GodFoldersLibraries}"
-              Description="{helpers:Localize KeyName=GodFoldersLibrariesDescription}">
-              <ToggleSwitch
-                IsOn="{x:Bind GameSettings.UseSharedLibrariesPath, Mode=TwoWay}"
-                OffContent="{helpers:Localize KeyName=No}"
-                OnContent="{helpers:Localize KeyName=Yes}" />
-            </cn:SettingsCard>
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=GodFoldersRuntime}"
-              Description="{helpers:Localize KeyName=GodFoldersRuntimeDescription}">
-              <ToggleSwitch
-                IsOn="{x:Bind GameSettings.UseSharedRuntimePath, Mode=TwoWay}"
-                OffContent="{helpers:Localize KeyName=No}"
-                OnContent="{helpers:Localize KeyName=Yes}" />
-            </cn:SettingsCard>
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=GodFoldersVersions}"
-              Description="{helpers:Localize KeyName=GodFoldersVersionsDescription}">
-              <ToggleSwitch
-                IsOn="{x:Bind GameSettings.UseSharedVersionsPath, Mode=TwoWay}"
-                OffContent="{helpers:Localize KeyName=No}"
-                OnContent="{helpers:Localize KeyName=Yes}" />
-            </cn:SettingsCard>
-          </cn:SettingsExpander.Items>
-        </cn:SettingsExpander>
-        <cn:SettingsExpander
-          Header="{helpers:Localize KeyName=StoreGodFolders}"
-          Description="{helpers:Localize KeyName=StoreGodFoldersDescription}"
-          HeaderIcon="{helpers:FontIcon Glyph=}">
-          <cn:SettingsExpander.Content>
-            <TextBlock
-              Text="{x:Bind GameSettings.SharedStoreFoldersStatus, Mode=OneWay}" />
-          </cn:SettingsExpander.Content>
-          <cn:SettingsExpander.Items>
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=StoreGodFoldersMods}"
-              Description="{helpers:Localize KeyName=StoreGodFoldersModsDescription}">
-              <ToggleSwitch
-                IsOn="{x:Bind GameSettings.UseSharedStoreModsPath, Mode=TwoWay}"
-                OffContent="{helpers:Localize KeyName=No}"
-                OnContent="{helpers:Localize KeyName=Yes}" />
-            </cn:SettingsCard>
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=StoreGodFoldersResourcePacks}"
-              Description="{helpers:Localize KeyName=StoreGodFoldersResourcePacksDescription}">
-              <ToggleSwitch
-                IsOn="{x:Bind GameSettings.UseSharedStoreResourcePacksPath, Mode=TwoWay}"
-                OffContent="{helpers:Localize KeyName=No}"
-                OnContent="{helpers:Localize KeyName=Yes}" />
-            </cn:SettingsCard>
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=StoreGodFoldersShaderPacks}"
-              Description="{helpers:Localize KeyName=StoreGodFoldersShaderPacksDescription}">
-              <ToggleSwitch
-                IsOn="{x:Bind GameSettings.UseSharedStoreShaderPacksPath, Mode=TwoWay}"
-                OffContent="{helpers:Localize KeyName=No}"
-                OnContent="{helpers:Localize KeyName=Yes}" />
-            </cn:SettingsCard>
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=StoreGodFoldersWindowsLinkMode}"
-              Description="{helpers:Localize KeyName=StoreGodFoldersWindowsLinkModeDescription}"
-              Visibility="{x:Bind IsWindowsLinkModeVisible, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-              <ComboBox
-                DisplayMemberPath="DisplayName"
-                ItemsSource="{x:Bind SharedStoreLinkModeOptions}"
-                SelectedItem="{x:Bind SelectedSharedStoreLinkModeOption, Mode=TwoWay}" />
-            </cn:SettingsCard>
-          </cn:SettingsExpander.Items>
-        </cn:SettingsExpander>
-        <cn:SettingsExpander
-          HeaderIcon="{helpers:FontIcon Glyph=}"
-          Header="{helpers:Localize KeyName=RAM}"
-          Description="{helpers:Localize KeyName=RAMDescription}">
-          <cn:SettingsExpander.Content>
-            <StackPanel
-              Orientation="Horizontal"
-              Spacing="5">
+          <cn:SettingsExpander
+            Header="{helpers:Localize KeyName=GodFolders}"
+            Description="{helpers:Localize KeyName=GodFoldersDescription}"
+            HeaderIcon="{helpers:FontIcon Glyph=}">
+            <cn:SettingsExpander.Content>
               <TextBlock
-                x:Name="txtRam"
-                VerticalAlignment="Center">
-                <Run
-                  Text="{x:Bind GameSettings.MaxRAMinGB, Mode=OneWay}" />
-                GB
-              </TextBlock>
-              <RepeatButton
-                Padding="5"
-                Click="btnRamPlus_Click"
-                Content="{helpers:FontIcon Glyph=&#xE710;}"
-                FontWeight="SemiBold" />
-              <RepeatButton
-                Padding="5"
-                Click="btnRamMinus_Click"
-                Content="{helpers:FontIcon Glyph=&#xE738;}"
-                FontWeight="SemiBold" />
-            </StackPanel>
-          </cn:SettingsExpander.Content>
-          <cn:SettingsExpander.Items>
-            <cn:SettingsCard
-              HorizontalContentAlignment="Stretch"
-              ContentAlignment="Left">
-              <StackPanel Spacing="8">
-                <Slider
-                  Minimum="{x:Bind MinRamMb, Mode=OneWay}"
-                  Maximum="{x:Bind MaxRamMb, Mode=OneWay}"
-                  StepFrequency="64"
-                  SmallChange="64"
-                  LargeChange="256"
-                  Value="{x:Bind RamSliderValue, Mode=TwoWay}" />
+                Text="{x:Bind GameSettings.SharedMinecraftFoldersStatus, Mode=OneWay}" />
+            </cn:SettingsExpander.Content>
+            <cn:SettingsExpander.Items>
+              <cn:SettingsCard
+                Header="{helpers:Localize KeyName=GodFoldersAssets}"
+                Description="{helpers:Localize KeyName=GodFoldersAssetsDescription}">
+                <ToggleSwitch
+                  IsOn="{x:Bind GameSettings.UseSharedAssetsPath, Mode=TwoWay}"
+                  OffContent="{helpers:Localize KeyName=No}"
+                  OnContent="{helpers:Localize KeyName=Yes}" />
+              </cn:SettingsCard>
+              <cn:SettingsCard
+                Header="{helpers:Localize KeyName=GodFoldersLibraries}"
+                Description="{helpers:Localize KeyName=GodFoldersLibrariesDescription}">
+                <ToggleSwitch
+                  IsOn="{x:Bind GameSettings.UseSharedLibrariesPath, Mode=TwoWay}"
+                  OffContent="{helpers:Localize KeyName=No}"
+                  OnContent="{helpers:Localize KeyName=Yes}" />
+              </cn:SettingsCard>
+              <cn:SettingsCard
+                Header="{helpers:Localize KeyName=GodFoldersRuntime}"
+                Description="{helpers:Localize KeyName=GodFoldersRuntimeDescription}">
+                <ToggleSwitch
+                  IsOn="{x:Bind GameSettings.UseSharedRuntimePath, Mode=TwoWay}"
+                  OffContent="{helpers:Localize KeyName=No}"
+                  OnContent="{helpers:Localize KeyName=Yes}" />
+              </cn:SettingsCard>
+              <cn:SettingsCard
+                Header="{helpers:Localize KeyName=GodFoldersVersions}"
+                Description="{helpers:Localize KeyName=GodFoldersVersionsDescription}">
+                <ToggleSwitch
+                  IsOn="{x:Bind GameSettings.UseSharedVersionsPath, Mode=TwoWay}"
+                  OffContent="{helpers:Localize KeyName=No}"
+                  OnContent="{helpers:Localize KeyName=Yes}" />
+              </cn:SettingsCard>
+            </cn:SettingsExpander.Items>
+          </cn:SettingsExpander>
+          <cn:SettingsExpander
+            Header="{helpers:Localize KeyName=StoreGodFolders}"
+            Description="{helpers:Localize KeyName=StoreGodFoldersDescription}"
+            HeaderIcon="{helpers:FontIcon Glyph=}">
+            <cn:SettingsExpander.Content>
+              <TextBlock
+                Text="{x:Bind GameSettings.SharedStoreFoldersStatus, Mode=OneWay}" />
+            </cn:SettingsExpander.Content>
+            <cn:SettingsExpander.Items>
+              <cn:SettingsCard
+                Header="{helpers:Localize KeyName=StoreGodFoldersMods}"
+                Description="{helpers:Localize KeyName=StoreGodFoldersModsDescription}">
+                <ToggleSwitch
+                  IsOn="{x:Bind GameSettings.UseSharedStoreModsPath, Mode=TwoWay}"
+                  OffContent="{helpers:Localize KeyName=No}"
+                  OnContent="{helpers:Localize KeyName=Yes}" />
+              </cn:SettingsCard>
+              <cn:SettingsCard
+                Header="{helpers:Localize KeyName=StoreGodFoldersResourcePacks}"
+                Description="{helpers:Localize KeyName=StoreGodFoldersResourcePacksDescription}">
+                <ToggleSwitch
+                  IsOn="{x:Bind GameSettings.UseSharedStoreResourcePacksPath, Mode=TwoWay}"
+                  OffContent="{helpers:Localize KeyName=No}"
+                  OnContent="{helpers:Localize KeyName=Yes}" />
+              </cn:SettingsCard>
+              <cn:SettingsCard
+                Header="{helpers:Localize KeyName=StoreGodFoldersShaderPacks}"
+                Description="{helpers:Localize KeyName=StoreGodFoldersShaderPacksDescription}">
+                <ToggleSwitch
+                  IsOn="{x:Bind GameSettings.UseSharedStoreShaderPacksPath, Mode=TwoWay}"
+                  OffContent="{helpers:Localize KeyName=No}"
+                  OnContent="{helpers:Localize KeyName=Yes}" />
+              </cn:SettingsCard>
+              <cn:SettingsCard
+                Header="{helpers:Localize KeyName=StoreGodFoldersWindowsLinkMode}"
+                Description="{helpers:Localize KeyName=StoreGodFoldersWindowsLinkModeDescription}"
+                Visibility="{x:Bind IsWindowsLinkModeVisible, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <ComboBox
+                  DisplayMemberPath="DisplayName"
+                  ItemsSource="{x:Bind SharedStoreLinkModeOptions}"
+                  SelectedItem="{x:Bind SelectedSharedStoreLinkModeOption, Mode=TwoWay}" />
+              </cn:SettingsCard>
+            </cn:SettingsExpander.Items>
+          </cn:SettingsExpander>
+          <cn:SettingsExpander
+            HeaderIcon="{helpers:FontIcon Glyph=}"
+            Header="{helpers:Localize KeyName=RAM}"
+            Description="{helpers:Localize KeyName=RAMDescription}">
+            <cn:SettingsExpander.Content>
+              <StackPanel
+                Orientation="Horizontal"
+                Spacing="5">
                 <TextBlock
-                  HorizontalAlignment="Right"
-                  Opacity="0.8"
-                  Style="{StaticResource CaptionTextBlockStyle}">
-                  <Run Text="{x:Bind GameSettings.MaximumRamMb, Mode=OneWay}" />
-                  <Run Text=" MB" />
+                  x:Name="txtRam"
+                  VerticalAlignment="Center">
+                  <Run
+                    Text="{x:Bind GameSettings.MaxRAMinGB, Mode=OneWay}" />
+                  GB
                 </TextBlock>
+                <RepeatButton
+                  Padding="5"
+                  Click="btnRamPlus_Click"
+                  Content="{helpers:FontIcon Glyph=&#xE710;}"
+                  FontWeight="SemiBold" />
+                <RepeatButton
+                  Padding="5"
+                  Click="btnRamMinus_Click"
+                  Content="{helpers:FontIcon Glyph=&#xE738;}"
+                  FontWeight="SemiBold" />
               </StackPanel>
-            </cn:SettingsCard>
-          </cn:SettingsExpander.Items>
-        </cn:SettingsExpander>
+            </cn:SettingsExpander.Content>
+            <cn:SettingsExpander.Items>
+              <cn:SettingsCard
+                HorizontalContentAlignment="Stretch"
+                ContentAlignment="Left">
+                <StackPanel Spacing="8">
+                  <Slider
+                    Minimum="{x:Bind MinRamMb, Mode=OneWay}"
+                    Maximum="{x:Bind MaxRamMb, Mode=OneWay}"
+                    StepFrequency="64"
+                    SmallChange="64"
+                    LargeChange="256"
+                    Value="{x:Bind RamSliderValue, Mode=TwoWay}" />
+                  <TextBlock
+                    HorizontalAlignment="Right"
+                    Opacity="0.8"
+                    Style="{StaticResource CaptionTextBlockStyle}">
+                    <Run Text="{x:Bind GameSettings.MaximumRamMb, Mode=OneWay}" />
+                    <Run Text=" MB" />
+                  </TextBlock>
+                </StackPanel>
+              </cn:SettingsCard>
+            </cn:SettingsExpander.Items>
+          </cn:SettingsExpander>
         </StackPanel>
         <StackPanel
           Spacing="4">
-        <TextBlock
-          FontWeight="SemiBold"
-          Text="{helpers:Localize KeyName=AdvancedMinecraftSettings}" />
-        <cn:SettingsCard
-          Header="{helpers:Localize KeyName=MCasAdmin}"
-          Description="{helpers:Localize KeyName=MCasAdminDescription}"
-          HeaderIcon="{helpers:FontIcon Glyph=}">
-          <ToggleSwitch
-            IsOn="{x:Bind GameSettings.IsAdmin, Mode=TwoWay}"
-            OffContent="{helpers:Localize KeyName=No}"
-            OnContent="{helpers:Localize KeyName=Yes}" />
-        </cn:SettingsCard>
-        <cn:SettingsCard
-          x:Name="GML"
-          Header="{helpers:Localize KeyName=GameLogs}"
-          Visibility="{x:Bind ShowMainSettings, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-          Description="{helpers:Localize KeyName=GameLogsDescription}"
-          HeaderIcon="{helpers:FontIcon Glyph=}">
-          <ToggleSwitch
-            IsOn="{x:Bind SS.Settings.Minecraft.JVM.GameLogs, Mode=TwoWay}"
-            OffContent="{helpers:Localize KeyName=No}"
-            OnContent="{helpers:Localize KeyName=Yes}" />
-        </cn:SettingsCard>
-        <cn:SettingsExpander
-          Header="{helpers:Localize KeyName=CustomJavaRuntime}"
-          Description="{helpers:Localize KeyName=JavaRuntimeDescription}"
-          HeaderIcon="{helpers:FontIcon Glyph=}">
-          <cn:SettingsExpander.Content>
+          <TextBlock
+            FontWeight="SemiBold"
+            Text="{helpers:Localize KeyName=AdvancedMinecraftSettings}" />
+          <cn:SettingsCard
+            Header="{helpers:Localize KeyName=MCasAdmin}"
+            Description="{helpers:Localize KeyName=MCasAdminDescription}"
+            HeaderIcon="{helpers:FontIcon Glyph=}">
             <ToggleSwitch
-              IsOn="{x:Bind GameSettings.UseCustomJava, Mode=TwoWay}"
-              Toggled="CustomJavaToggle_Toggled"
+              IsOn="{x:Bind GameSettings.IsAdmin, Mode=TwoWay}"
               OffContent="{helpers:Localize KeyName=No}"
               OnContent="{helpers:Localize KeyName=Yes}" />
-          </cn:SettingsExpander.Content>
-          <cn:SettingsExpander.Items>
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=SelectedJavaRuntime}"
-              Description="{x:Bind SelectedJavaStatusText, Mode=OneWay}"
-              HeaderIcon="{helpers:FontIcon Glyph=}"
-
-              Visibility="{x:Bind GameSettings.UseCustomJava, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-              <StackPanel Spacing="8">
-                <HyperlinkButton
-                  Click="OpenSelectedJavaLocation_OnClick"
-                  HorizontalAlignment="Left"
-                  HorizontalContentAlignment="Left"
-                  IsEnabled="{x:Bind HasSelectedJavaPath, Mode=OneWay}">
-                  <TextBlock
-                    MaxWidth="420"
-                    Text="{x:Bind SelectedJavaPathText, Mode=OneWay}"
-                    TextWrapping="WrapWholeWords" />
-                </HyperlinkButton>
-                <TextBlock
-                  Visibility="{x:Bind HasMissingSelectedJavaPath, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                  Style="{StaticResource CaptionTextBlockStyle}"
-                  Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                  Text="{helpers:Localize KeyName=SelectedJavaPathUnavailable}" />
-              </StackPanel>
-            </cn:SettingsCard>
-            <cn:SettingsCard
-              HorizontalContentAlignment="Stretch"
-              ContentAlignment="Left"
-              Visibility="{x:Bind GameSettings.UseCustomJava, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-              <StackPanel Spacing="12">
-                <TextBlock
-                  Style="{StaticResource BodyStrongTextBlockStyle}"
-                  Text="{helpers:Localize KeyName=DetectedJavaRuntimes}" />
-                <TextBlock
-                  Style="{StaticResource CaptionTextBlockStyle}"
-                  Opacity="0.8"
-                  Text="{helpers:Localize KeyName=DetectedJavaRuntimesDescription}" />
-                <StackPanel
-                  Orientation="Horizontal"
-                  Spacing="8">
-                  <Button
-                    Click="RefreshJavaPaths_OnClick"
-                    Content="{helpers:Localize KeyName=RefreshDetectedJava}"
-                    IsEnabled="{x:Bind CanRefreshJavaPaths, Mode=OneWay}" />
-                  <Button
-                    Click="AddJavaFolder_OnClick"
-                    Content="{helpers:Localize KeyName=AddJavaFolder}"
-                    IsEnabled="{x:Bind CanRefreshJavaPaths, Mode=OneWay}" />
-                  <Button
-                    Click="AddJavaFile_OnClick"
-                    Content="{helpers:Localize KeyName=AddJavaFile}"
-                    IsEnabled="{x:Bind CanRefreshJavaPaths, Mode=OneWay}" />
-                </StackPanel>
-                <ProgressRing
-                  IsActive="{x:Bind IsRefreshingJavaPaths, Mode=OneWay}"
-                  Visibility="{x:Bind IsRefreshingJavaPaths, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
-                <TextBlock
-                  Visibility="{x:Bind HasNoDetectedJavaOptions, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                  Style="{StaticResource CaptionTextBlockStyle}"
-                  Opacity="0.8"
-                  Text="{helpers:Localize KeyName=NoJavaRuntimesFound}" />
-                <ListView
-                  ItemsSource="{x:Bind JavaRuntimeOptions, Mode=OneWay}"
-                  MaxHeight="320"
-                  IsItemClickEnabled="True"
-                  ItemClick="JavaRuntimeList_ItemClick"
-                  SelectedItem="{x:Bind SelectedJavaRuntimeOption, Mode=OneWay}"
-                  SelectionMode="Single">
-                  <ListView.ItemTemplate>
-                    <DataTemplate>
-                      <Border
-                        Margin="0,0,0,8"
-                        Padding="10"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="8">
-                        <StackPanel Spacing="6">
-                          <StackPanel
-                            Orientation="Horizontal"
-                            Spacing="8">
-                            <TextBlock
-                              Style="{StaticResource BodyStrongTextBlockStyle}"
-                              Text="{Binding Source}" />
-                            <TextBlock
-                              Visibility="{Binding IsCustomSaved, Converter={StaticResource BoolToVis}}"
-                              Style="{StaticResource CaptionTextBlockStyle}"
-                              Text="{helpers:Localize KeyName=Saved}" />
-                            <TextBlock
-                              Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}}"
-                              Style="{StaticResource CaptionTextBlockStyle}"
-                              Text="{helpers:Localize KeyName=Selected}" />
-                          </StackPanel>
-                          <TextBlock
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="{Binding DisplayPath}"
-                            TextWrapping="WrapWholeWords" />
-                          <TextBlock
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="{Binding StatusText}" />
-                          <Button
-                            Visibility="{Binding IsCustomSaved, Converter={StaticResource BoolToVis}}"
-                            Click="RemoveSavedJavaRuntime_OnClick"
-                            Content="{helpers:Localize KeyName=RemoveSavedJava}"
-                            HorizontalAlignment="Left"
-                            Tag="{Binding}" />
-                        </StackPanel>
-                      </Border>
-                    </DataTemplate>
-                  </ListView.ItemTemplate>
-                </ListView>
-              </StackPanel>
-            </cn:SettingsCard>
-          </cn:SettingsExpander.Items>
-        </cn:SettingsExpander>
-        <cn:SettingsExpander
-          Header="{helpers:Localize KeyName=MCWindowsSize}"
-          Description="{helpers:Localize KeyName=MCWindowsSizeDescription}"
-          HeaderIcon="{helpers:FontIcon Glyph=}">
-          <cn:SettingsExpander.Content>
-            <TextBlock
-              Text="{x:Bind GameSettings.ScreenSizeStatus, Mode=OneWay}" />
-          </cn:SettingsExpander.Content>
-          <cn:SettingsExpander.Items>
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=Width}">
-              <NumberBox
-                Minimum="0"
-                Value="{x:Bind GameSettings.ScreenWidth, Mode=TwoWay}"
-                SpinButtonPlacementMode="Inline"
-                LargeChange="80"
-                SmallChange="10"
-                PlaceholderText="{helpers:Localize KeyName=Default}" />
-            </cn:SettingsCard>
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=Height}">
-              <NumberBox
-                Minimum="0"
-                Value="{x:Bind GameSettings.ScreenHeight, Mode=TwoWay}"
-                SpinButtonPlacementMode="Inline"
-                LargeChange="80"
-                SmallChange="10"
-                PlaceholderText="{helpers:Localize KeyName=Default}" />
-            </cn:SettingsCard>
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=FullScreen}">
+          </cn:SettingsCard>
+          <cn:SettingsCard
+            x:Name="GML"
+            Header="{helpers:Localize KeyName=GameLogs}"
+            Visibility="{x:Bind ShowMainSettings, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+            Description="{helpers:Localize KeyName=GameLogsDescription}"
+            HeaderIcon="{helpers:FontIcon Glyph=}">
+            <ToggleSwitch
+              IsOn="{x:Bind SS.Settings.Minecraft.JVM.GameLogs, Mode=TwoWay}"
+              OffContent="{helpers:Localize KeyName=No}"
+              OnContent="{helpers:Localize KeyName=Yes}" />
+          </cn:SettingsCard>
+          <cn:SettingsExpander
+            Header="{helpers:Localize KeyName=CustomJavaRuntime}"
+            Description="{helpers:Localize KeyName=JavaRuntimeDescription}"
+            HeaderIcon="{helpers:FontIcon Glyph=}">
+            <cn:SettingsExpander.Content>
               <ToggleSwitch
-                IsOn="{x:Bind GameSettings.FullScreen, Mode=TwoWay}" />
-            </cn:SettingsCard>
-          </cn:SettingsExpander.Items>
-        </cn:SettingsExpander>
-        <cn:SettingsExpander
-          Header="{helpers:Localize KeyName=JVMArgs}"
-          Description="{helpers:Localize KeyName=JVMArgsDescription}"
-          HeaderIcon="{helpers:FontIcon Glyph=}">
-          <cn:SettingsExpander.ItemsHeader>
-            <Grid
-              Padding="12"
-              Background="{StaticResource ExpanderHeaderBackground}">
-              <local:ArgumentsListView Args="{x:Bind GameSettings.JVMArgs}"/>
-            </Grid>
-          </cn:SettingsExpander.ItemsHeader>
-        </cn:SettingsExpander>
-      </StackPanel>
+                IsOn="{x:Bind GameSettings.UseCustomJava, Mode=TwoWay}"
+                Toggled="CustomJavaToggle_Toggled"
+                OffContent="{helpers:Localize KeyName=No}"
+                OnContent="{helpers:Localize KeyName=Yes}" />
+            </cn:SettingsExpander.Content>
+            <cn:SettingsExpander.Items>
+              <cn:SettingsCard
+                Header="{helpers:Localize KeyName=SelectedJavaRuntime}"
+                Description="{x:Bind SelectedJavaStatusText, Mode=OneWay}"
+                HeaderIcon="{helpers:FontIcon Glyph=}"
+
+                Visibility="{x:Bind GameSettings.UseCustomJava, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <StackPanel Spacing="8">
+                  <HyperlinkButton
+                    Click="OpenSelectedJavaLocation_OnClick"
+                    HorizontalAlignment="Left"
+                    HorizontalContentAlignment="Left"
+                    IsEnabled="{x:Bind HasSelectedJavaPath, Mode=OneWay}">
+                    <TextBlock
+                      MaxWidth="420"
+                      Text="{x:Bind SelectedJavaPathText, Mode=OneWay}"
+                      TextWrapping="WrapWholeWords" />
+                  </HyperlinkButton>
+                  <TextBlock
+                    Visibility="{x:Bind HasMissingSelectedJavaPath, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                    Text="{helpers:Localize KeyName=SelectedJavaPathUnavailable}" />
+                </StackPanel>
+              </cn:SettingsCard>
+              <cn:SettingsCard
+                HorizontalContentAlignment="Stretch"
+                ContentAlignment="Left"
+                Visibility="{x:Bind GameSettings.UseCustomJava, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                <StackPanel Spacing="12">
+                  <TextBlock
+                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                    Text="{helpers:Localize KeyName=DetectedJavaRuntimes}" />
+                  <TextBlock
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Opacity="0.8"
+                    Text="{helpers:Localize KeyName=DetectedJavaRuntimesDescription}" />
+                  <StackPanel
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button
+                      Click="RefreshJavaPaths_OnClick"
+                      Content="{helpers:Localize KeyName=RefreshDetectedJava}"
+                      IsEnabled="{x:Bind CanRefreshJavaPaths, Mode=OneWay}" />
+                    <Button
+                      Click="AddJavaFolder_OnClick"
+                      Content="{helpers:Localize KeyName=AddJavaFolder}"
+                      IsEnabled="{x:Bind CanRefreshJavaPaths, Mode=OneWay}" />
+                    <Button
+                      Click="AddJavaFile_OnClick"
+                      Content="{helpers:Localize KeyName=AddJavaFile}"
+                      IsEnabled="{x:Bind CanRefreshJavaPaths, Mode=OneWay}" />
+                  </StackPanel>
+                  <ProgressRing
+                    IsActive="{x:Bind IsRefreshingJavaPaths, Mode=OneWay}"
+                    Visibility="{x:Bind IsRefreshingJavaPaths, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                  <TextBlock
+                    Visibility="{x:Bind HasNoDetectedJavaOptions, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Opacity="0.8"
+                    Text="{helpers:Localize KeyName=NoJavaRuntimesFound}" />
+                  <ListView
+                    ItemsSource="{x:Bind JavaRuntimeOptions, Mode=OneWay}"
+                    MaxHeight="320"
+                    IsItemClickEnabled="True"
+                    ItemClick="JavaRuntimeList_ItemClick"
+                    SelectedItem="{x:Bind SelectedJavaRuntimeOption, Mode=OneWay}"
+                    SelectionMode="Single">
+                    <ListView.ItemTemplate>
+                      <DataTemplate>
+                        <Border
+                          Margin="0,0,0,8"
+                          Padding="10"
+                          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                          BorderThickness="1"
+                          CornerRadius="8">
+                          <StackPanel Spacing="6">
+                            <StackPanel
+                              Orientation="Horizontal"
+                              Spacing="8">
+                              <TextBlock
+                                Style="{StaticResource BodyStrongTextBlockStyle}"
+                                Text="{Binding Source}" />
+                              <TextBlock
+                                Visibility="{Binding IsCustomSaved, Converter={StaticResource BoolToVis}}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{helpers:Localize KeyName=Saved}" />
+                              <TextBlock
+                                Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{helpers:Localize KeyName=Selected}" />
+                            </StackPanel>
+                            <TextBlock
+                              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                              Text="{Binding DisplayPath}"
+                              TextWrapping="WrapWholeWords" />
+                            <TextBlock
+                              Style="{StaticResource CaptionTextBlockStyle}"
+                              Text="{Binding StatusText}" />
+                            <Button
+                              Visibility="{Binding IsCustomSaved, Converter={StaticResource BoolToVis}}"
+                              Click="RemoveSavedJavaRuntime_OnClick"
+                              Content="{helpers:Localize KeyName=RemoveSavedJava}"
+                              HorizontalAlignment="Left"
+                              Tag="{Binding}" />
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ListView.ItemTemplate>
+                  </ListView>
+                </StackPanel>
+              </cn:SettingsCard>
+            </cn:SettingsExpander.Items>
+          </cn:SettingsExpander>
+          <cn:SettingsExpander
+            Header="{helpers:Localize KeyName=MCWindowsSize}"
+            Description="{helpers:Localize KeyName=MCWindowsSizeDescription}"
+            HeaderIcon="{helpers:FontIcon Glyph=}">
+            <cn:SettingsExpander.Content>
+              <TextBlock
+                Text="{x:Bind GameSettings.ScreenSizeStatus, Mode=OneWay}" />
+            </cn:SettingsExpander.Content>
+            <cn:SettingsExpander.Items>
+              <cn:SettingsCard
+                Header="{helpers:Localize KeyName=Width}">
+                <NumberBox
+                  Minimum="0"
+                  Value="{x:Bind GameSettings.ScreenWidth, Mode=TwoWay}"
+                  SpinButtonPlacementMode="Inline"
+                  LargeChange="80"
+                  SmallChange="10"
+                  PlaceholderText="{helpers:Localize KeyName=Default}" />
+              </cn:SettingsCard>
+              <cn:SettingsCard
+                Header="{helpers:Localize KeyName=Height}">
+                <NumberBox
+                  Minimum="0"
+                  Value="{x:Bind GameSettings.ScreenHeight, Mode=TwoWay}"
+                  SpinButtonPlacementMode="Inline"
+                  LargeChange="80"
+                  SmallChange="10"
+                  PlaceholderText="{helpers:Localize KeyName=Default}" />
+              </cn:SettingsCard>
+              <cn:SettingsCard
+                Header="{helpers:Localize KeyName=FullScreen}">
+                <ToggleSwitch
+                  IsOn="{x:Bind GameSettings.FullScreen, Mode=TwoWay}" />
+              </cn:SettingsCard>
+            </cn:SettingsExpander.Items>
+          </cn:SettingsExpander>
+          <cn:SettingsExpander
+            Header="{helpers:Localize KeyName=JVMArgs}"
+            Description="{helpers:Localize KeyName=JVMArgsDescription}"
+            HeaderIcon="{helpers:FontIcon Glyph=}">
+            <cn:SettingsExpander.ItemsHeader>
+              <Grid
+                Padding="12"
+                Background="{StaticResource ExpanderHeaderBackground}">
+                <local:ArgumentsListView Args="{x:Bind GameSettings.JVMArgs}" />
+              </Grid>
+            </cn:SettingsExpander.ItemsHeader>
+          </cn:SettingsExpander>
+        </StackPanel>
       </StackPanel>
     </StackPanel>
   </Grid>

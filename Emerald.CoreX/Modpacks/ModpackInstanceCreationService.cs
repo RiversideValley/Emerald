@@ -122,7 +122,8 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
         using var downloadLease = await _downloadActivity.AcquireDownloadAsync(cancellationToken);
         if (_core.BasePath == null)
         {
-            throw new InvalidOperationException("Cannot create a modpack instance before the Minecraft path is initialized.");
+            throw new InvalidOperationException(
+                "Cannot create a modpack instance before the Minecraft path is initialized.");
         }
 
         if (string.IsNullOrWhiteSpace(request.InstanceName))
@@ -157,15 +158,16 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
         var notification = _notificationService.Create(
             "Creating modpack instance",
             request.InstanceName,
-            progress: 0,
-            isIndeterminate: false,
-            isCancellable: false);
+            0,
+            false,
+            false);
 
         try
         {
             var loader = probe.Manifest.GetLoaderDependency();
             var mcVersion = probe.Manifest.GetMinecraftVersion()
-                            ?? throw new InvalidOperationException("The modpack manifest does not specify a Minecraft version.");
+                            ?? throw new InvalidOperationException(
+                                "The modpack manifest does not specify a Minecraft version.");
 
             var version = new Versions.Version
             {
@@ -176,12 +178,13 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
                 ReleaseType = "modpack"
             };
 
-            var stagingGame = new Game(new MinecraftPath(stagingPath), version, globalGameSettingsService: _core.GlobalGameSettingsService);
+            var stagingGame = new Game(new MinecraftPath(stagingPath), version,
+                globalGameSettingsService: _core.GlobalGameSettingsService);
 
             _notificationService.Update(notification.Id, message: "Installing modpack files...", progress: 10);
             var fileProgress = new Progress<double>(value =>
             {
-                var scaled = 10 + (value * 0.85);
+                var scaled = 10 + value * 0.85;
                 progress?.Report(scaled);
                 _notificationService.Update(notification.Id, progress: scaled);
             });
@@ -196,7 +199,7 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
 
             _notificationService.Update(notification.Id, message: "Finalizing instance...", progress: 96);
             Directory.Move(stagingPath, finalPath);
-            TryDeleteDirectory(stagingRoot, onlyIfEmpty: true);
+            TryDeleteDirectory(stagingRoot, true);
 
             var game = _core.CreateGame(version, folderName);
             progress?.Report(100);
@@ -208,7 +211,7 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
             _logger.LogError(ex, "Failed to create modpack instance {Name}.", request.InstanceName);
             _notificationService.Complete(notification.Id, false, "Modpack creation failed.", ex);
             TryDeleteDirectory(stagingPath);
-            TryDeleteDirectory(stagingRoot, onlyIfEmpty: true);
+            TryDeleteDirectory(stagingRoot, true);
             TryDeleteDirectory(finalPath);
             throw;
         }
@@ -239,7 +242,8 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
         IProgress<double>? progress,
         CancellationToken cancellationToken)
     {
-        using var response = await _httpClient.GetAsync(file.Url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        using var response =
+            await _httpClient.GetAsync(file.Url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         var totalBytes = response.Content.Headers.ContentLength ?? -1L;
@@ -250,8 +254,8 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
                 FileMode.CreateNew,
                 FileAccess.Write,
                 FileShare.None,
-                bufferSize: 81920,
-                useAsync: true);
+                81920,
+                true);
 
             var buffer = new byte[81920];
             long readTotal = 0;
@@ -355,7 +359,7 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
                 return;
             }
 
-            Directory.Delete(path, recursive: !onlyIfEmpty);
+            Directory.Delete(path, !onlyIfEmpty);
         }
         catch
         {
