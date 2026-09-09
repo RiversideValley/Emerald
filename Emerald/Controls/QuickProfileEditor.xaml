@@ -27,10 +27,11 @@
       <Setter Property="Height" Value="44" />
     </Style>
   </UserControl.Resources>
-  <Grid>
+  <Grid RowSpacing="16">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />
       <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
     <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="12">
       <local:QuickProfileContent Profile="{Binding Preview}" />
@@ -44,8 +45,8 @@
           <settings:SettingsExpander.HeaderIcon>
             <FontIcon Glyph="&#xE768;" />
           </settings:SettingsExpander.HeaderIcon>
-          <settings:SettingsExpander.Items>
-            <StackPanel Padding="16,12,16,16" Spacing="12">
+          <settings:SettingsExpander.ItemsHeader>
+            <StackPanel Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" Padding="16,12,16,16" Spacing="12">
               <ComboBox Header="{helpers:Localize KeyName=RefineInstance}" DisplayMemberPath="Version.DisplayName"
                         HorizontalAlignment="Stretch" ItemsSource="{Binding Games}"
                         SelectedItem="{Binding SelectedGame, Mode=TwoWay}" />
@@ -64,14 +65,14 @@
                         SelectedItem="{Binding SelectedWorld, Mode=TwoWay}"
                         Visibility="{Binding IsWorld, Converter={StaticResource Visible}}" />
             </StackPanel>
-          </settings:SettingsExpander.Items>
+          </settings:SettingsExpander.ItemsHeader>
         </settings:SettingsExpander>
         <settings:SettingsExpander Header="{helpers:Localize KeyName=RefineIcon}" HorizontalAlignment="Stretch">
           <settings:SettingsExpander.HeaderIcon>
             <FontIcon Glyph="&#xE790;" />
           </settings:SettingsExpander.HeaderIcon>
-          <settings:SettingsExpander.Items>
-            <StackPanel Padding="16,12,16,16" Spacing="12">
+          <settings:SettingsExpander.ItemsHeader>
+            <StackPanel Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" Padding="16,12,16,16" Spacing="12">
               <TextBlock Text="{helpers:Localize KeyName=RefineIcon}" Style="{ThemeResource BodyStrongTextBlockStyle}" />
               <TextBox x:Name="IconSearch" AutomationProperties.Name="{helpers:Localize KeyName=RefineSearchIcons}"
                        PlaceholderText="{helpers:Localize KeyName=RefineSearchIcons}"
@@ -136,14 +137,14 @@
                 </Grid>
               </StackPanel>
             </StackPanel>
-          </settings:SettingsExpander.Items>
+          </settings:SettingsExpander.ItemsHeader>
         </settings:SettingsExpander>
         <settings:SettingsExpander Header="{helpers:Localize KeyName=RefineAccent}" HorizontalAlignment="Stretch">
           <settings:SettingsExpander.HeaderIcon>
             <FontIcon Glyph="&#xE790;" />
           </settings:SettingsExpander.HeaderIcon>
-          <settings:SettingsExpander.Items>
-            <StackPanel Padding="16,12,16,16" Spacing="12">
+          <settings:SettingsExpander.ItemsHeader>
+            <StackPanel Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" Padding="16,12,16,16" Spacing="12">
               <GridView x:Name="ColorChoices" IsItemClickEnabled="True" IsSwipeEnabled="False"
                         ItemClick="ColorChoices_ItemClick"
                         ItemContainerStyle="{StaticResource ColorPickerGridViewItemStyle}"
@@ -174,12 +175,14 @@
                 </StackPanel>
               </Button>
             </StackPanel>
-          </settings:SettingsExpander.Items>
+          </settings:SettingsExpander.ItemsHeader>
         </settings:SettingsExpander>
-        <ProgressBar IsIndeterminate="True" Visibility="{Binding IsLoading, Converter={StaticResource Visible}}" />
-        <TextBlock Foreground="{ThemeResource SystemFillColorCautionBrush}" Text="{Binding Error}" TextWrapping="Wrap"
-                   Visibility="{Binding HasError, Converter={StaticResource Visible}}" />
       </StackPanel>
     </ScrollViewer>
+    <StackPanel Grid.Row="2" Orientation="Horizontal">
+      <ProgressBar IsIndeterminate="True" Visibility="{Binding IsLoading, Converter={StaticResource Visible}}" />
+      <TextBlock Foreground="{ThemeResource SystemFillColorCautionBrush}" Text="{Binding Error}" TextWrapping="Wrap"
+                 Visibility="{Binding HasError, Converter={StaticResource Visible}}" />
+    </StackPanel>
   </Grid>
 </UserControl>
