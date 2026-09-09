@@ -16,7 +16,6 @@
     HorizontalAlignment="Stretch"
     xmlns:viewModels="using:Emerald.ViewModels"
     MaxWidth="4096"
-    Margin="12"
     Background="{ThemeResource ContentDialogBackground}"
     x:Name="Root"
     mc:Ignorable="d">
@@ -755,11 +754,11 @@
     </Grid>
 
     <Border
-      Margin="-36,0,0,-6"
       Grid.Row="2"
+      CornerRadius="16"
       BorderBrush="{ThemeResource SystemControlBackgroundBaseLowRevealBorderBrush}"
       Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-      Padding="30,14,20,20">
+      Padding="32,14">
       <Grid ColumnSpacing="12">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />

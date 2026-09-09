@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Runtime;
 using Emerald.CoreX.Services;
+using Emerald.Helpers;
+using Emerald.Helpers.Enums;
 using Emerald.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -113,16 +115,13 @@ public sealed partial class HomePage : Page
         });
         Add(DashboardText.Get("Delete"), async () =>
         {
-            var dialog = new ContentDialog
-            {
-                XamlRoot = XamlRoot,
-                Title = DashboardText.Get("DeleteProfile"),
-                Content = profile.Name,
-                PrimaryButtonText = DashboardText.Get("Delete"),
-                CloseButtonText = DashboardText.Get("Cancel")
-            };
-
-            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            var result = await MessageBox.Show(
+                DashboardText.Get("DeleteProfile"),
+                profile.Name, MessageBoxButtons.Custom,
+                DashboardText.Get("Delete"),
+                DashboardText.Get("Cancel"));
+       
+            if (result == MessageBoxResults.CustomResult1)
             {
                 Ioc.Default.GetRequiredService<IQuickProfileService>().Remove(profile.Id);
                 ViewModel.ReloadProfiles();
@@ -150,8 +149,10 @@ public sealed partial class HomePage : Page
         var editor = new Controls.QuickProfileEditor(draft);
         var dialog = new ContentDialog
         {
-            XamlRoot = XamlRoot, Title = DashboardText.Get(existing == null ? "NewProfile" : "EditProfile"),
-            Content = new ScrollViewer { Content = editor, Width = Math.Min(472, Math.Max(240, root.Size.Width - 96)), MaxHeight = Math.Max(160, root.Size.Height - 220) },
+            XamlRoot = XamlRoot, 
+            Title = DashboardText.Get(existing == null ? "NewProfile" : "EditProfile"),
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            Content = editor,
             PrimaryButtonText = DashboardText.Get("Save"), CloseButtonText = DashboardText.Get("Cancel"),
             DefaultButton = ContentDialogButton.Primary, IsPrimaryButtonEnabled = draft.CanSave
         };

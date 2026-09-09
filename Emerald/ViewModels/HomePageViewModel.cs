@@ -49,12 +49,12 @@ public partial class HomePageViewModel : ObservableObject
         ? PlaytimeScope.ForInstance(_core.BasePath.BasePath, SelectedGame.InstanceId) : PlaytimeScope.AllEmerald;
     public string DestinationTitle => SelectedDestination == MinecraftLaunchTargetKind.Server ? SelectedServer?.Name ?? DashboardText.Get("ChooseServer")
         : SelectedDestination == MinecraftLaunchTargetKind.World ? SelectedWorld?.DisplayName ?? DashboardText.Get("ChooseWorld") : DashboardText.Get("MainMenu");
-    public string DestinationSubtitle => SelectedDestination == MinecraftLaunchTargetKind.Server ? SelectedServerStatus?.Motd ?? SelectedServer?.Address ?? DashboardText.Get("BrowseServers")
+    public string DestinationSubtitle => SelectedDestination == MinecraftLaunchTargetKind.Server ? SelectedServer?.Address ?? DashboardText.Get("BrowseServers")
         : SelectedDestination == MinecraftLaunchTargetKind.World ? DashboardText.Get("World") : DashboardText.Get("MainMenuHint");
     public string DestinationGlyph => DashboardText.Glyph(SelectedDestination);
     public string? DestinationImage => SelectedDestination == MinecraftLaunchTargetKind.World ? SelectedWorld?.IconPath : null;
     public string? DestinationServerIcon => SelectedServerStatus?.IconDataUrl ?? SelectedServer?.IconUrl;
-    public string DestinationServerMetadata => string.Join(" · ", new[] { string.IsNullOrWhiteSpace(SelectedServerStatus?.Motd) ? null : SelectedServer?.Address, SelectedServerStatus?.Version }.Where(x => !string.IsNullOrWhiteSpace(x)));
+    public string DestinationServerMetadata => SelectedServerStatus?.Version ?? string.Empty;
     public string DestinationServerStatus => IsSelectedServerStatusLoading ? DashboardText.Get("Loading") : SelectedServerStatus is { } status
         ? status.State == ServerStatusState.Online
             ? DashboardText.Format("Players", status.Players, status.MaxPlayers) + (status.LatencyMilliseconds is long latency ? $" · {latency} ms" : string.Empty)

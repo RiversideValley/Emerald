@@ -45,7 +45,7 @@ public partial class QuickProfileEditorViewModel : ObservableObject
  {
   _initializing = true; _profiles = profiles; _worlds = worlds; _original = original;
   Games = new(home.Games); Accounts = new(accounts.Accounts); Servers = new(home.FavoriteServers);
-  Colors = new[] { new Choice<uint>(0xFF107C10, DashboardText.Get("Emerald")), new(0xFF0067C0, DashboardText.Get("Blue")), new(0xFF744DA9, DashboardText.Get("Purple")), new(0xFFCA5010, DashboardText.Get("Orange")), new(0xFFC239B3, DashboardText.Get("Rose")) };
+  Colors = new[] { new Choice<uint>(0xFF107C10, DashboardText.Get("Emerald")), new(0xFF0067C0, DashboardText.Get("Blue")), new(0xFF744DA9, DashboardText.Get("Purple")), new(0xFFCA5010, DashboardText.Get("Orange")), new(0xFFC239B3, DashboardText.Get("Rose")), new(0xFFD13438, DashboardText.Get("Red")), new(0xFFFFB900, DashboardText.Get("Amber")), new(0xFF498205, DashboardText.Get("Lime")), new(0xFF038387, DashboardText.Get("Teal")), new(0xFF0099BC, DashboardText.Get("Cyan")), new(0xFF4F4DAB, DashboardText.Get("Indigo")), new(0xFF69797E, DashboardText.Get("Slate")) };
   if (original != null && Colors.All(x => x.Value != original.AccentArgb)) Colors = Colors.Append(new(original.AccentArgb, DashboardText.Get("Custom"))).ToArray();
   SelectedGame = original == null ? home.SelectedGame : Games.FirstOrDefault(x => x.InstanceId == original.InstanceId);
   SelectedAccount = original == null ? accounts.GetSelectedAccount() : Accounts.FirstOrDefault(x => x.UniqueId == original.AccountUniqueId);

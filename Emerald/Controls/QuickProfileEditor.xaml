@@ -11,7 +11,11 @@
         <conv:BoolToVisibility x:Key="Visible" />
     </UserControl.Resources>
 
-    <StackPanel Spacing="16">
+    <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
         <Border
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="1"
@@ -19,6 +23,9 @@
             <local:QuickProfileContent Profile="{Binding Preview}" />
         </Border>
 
+      <ScrollViewer Grid.Row="1">
+
+      <StackPanel Spacing="16" HorizontalAlignment="Stretch">
         <TextBox Header="{helpers:Localize KeyName=RefineName}" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
         <settings:SettingsExpander
@@ -108,5 +115,7 @@
 
         <ProgressBar IsIndeterminate="True" Visibility="{Binding IsLoading, Converter={StaticResource Visible}}" />
         <TextBlock Foreground="{ThemeResource SystemFillColorCautionBrush}" Text="{Binding Error}" TextWrapping="Wrap" Visibility="{Binding HasError, Converter={StaticResource Visible}}" />
-    </StackPanel>
+      </StackPanel>
+      </ScrollViewer>
+    </Grid>
 </UserControl>

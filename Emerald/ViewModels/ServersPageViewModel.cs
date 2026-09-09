@@ -35,7 +35,7 @@ public partial class ServersPageViewModel(Core core, IAccountService accounts, I
  public ObservableCollection<Game> Games { get; } = [];
  public ObservableCollection<ServerRowViewModel> DiscoverServers { get; } = [];
  public ObservableCollection<ServerRowViewModel> FavoriteServers { get; } = [];
- public IReadOnlyList<Choice<ServerDirectorySort>> Sorts { get; } = Enum.GetValues<ServerDirectorySort>().Select(x => new Choice<ServerDirectorySort>(x, DashboardText.Get(x.ToString()))).ToArray();
+ public IReadOnlyList<Choice<ServerDirectorySort>> Sorts { get; } = Enum.GetValues<ServerDirectorySort>().Select(x => new Choice<ServerDirectorySort>(x, DashboardText.Get(x == ServerDirectorySort.Players ? "SortPlayers" : x.ToString()))).ToArray();
  public IReadOnlyList<Choice<int>> FavoriteSorts { get; } = [new(0, DashboardText.Get("Recent")), new(1, DashboardText.Get("Name"))];
  [ObservableProperty] private Game? _selectedGame;
  [ObservableProperty] private string _searchText = string.Empty;
@@ -94,6 +94,7 @@ public partial class ServersPageViewModel(Core core, IAccountService accounts, I
    if (debounce) await Task.Delay(350, token);
    var result = await directory.SearchAsync(query, token);
    if (token.IsCancellationRequested || !_active || !IsDiscover) return;
+   foreach (var entry in result.Servers) EnrichSavedServer(entry);
    var favorites = saved.GetAll().Select(x => new MinecraftServerAddress(x.Host, x.Port).CanonicalKey).ToHashSet();
    DiscoverServers.ReplaceWith(result.Servers.Select(x => new ServerRowViewModel(x, favorites.Contains(new MinecraftServerAddress(x.Host, x.Port).CanonicalKey))));
    CanNext = result.Total.HasValue ? _page * result.PageSize < result.Total : result.Servers.Count >= result.PageSize;
@@ -132,7 +133,19 @@ public partial class ServersPageViewModel(Core core, IAccountService accounts, I
  {
   if (row.Saved != null) return row.Saved;
   var entry = row.Directory!; var existing = saved.GetAll().FirstOrDefault(x => new MinecraftServerAddress(x.Host, x.Port).CanonicalKey == new MinecraftServerAddress(entry.Host, entry.Port).CanonicalKey);
-  return existing ?? saved.Save(new SavedServer { Name = entry.Name, Host = entry.Host, Port = entry.Port, SourceKind = SavedServerSourceKind.Directory, SourceSlug = entry.Slug, SourcePageUrl = entry.PageUrl, IconUrl = entry.IconUrl, BannerUrl = entry.BannerUrl });
+  if (existing != null) { EnrichSavedServer(entry, existing); return saved.Find(existing.Id) ?? existing; }
+  return saved.Save(new SavedServer { Name = entry.Name, Host = entry.Host, Port = entry.Port, SourceKind = SavedServerSourceKind.Directory, SourceSlug = entry.Slug, SourcePageUrl = entry.PageUrl, IconUrl = entry.IconUrl, BannerUrl = entry.BannerUrl });
+ }
+ private void EnrichSavedServer(ServerDirectoryEntry entry, SavedServer? existing = null)
+ {
+  existing ??= saved.GetAll().FirstOrDefault(x => new MinecraftServerAddress(x.Host, x.Port).CanonicalKey == new MinecraftServerAddress(entry.Host, entry.Port).CanonicalKey);
+  if (existing?.SourceKind != SavedServerSourceKind.Directory) return;
+  var changed = false;
+  if (string.IsNullOrWhiteSpace(existing.IconUrl) && !string.IsNullOrWhiteSpace(entry.IconUrl)) { existing.IconUrl = entry.IconUrl; changed = true; }
+  if (string.IsNullOrWhiteSpace(existing.BannerUrl) && !string.IsNullOrWhiteSpace(entry.BannerUrl)) { existing.BannerUrl = entry.BannerUrl; changed = true; }
+  if (string.IsNullOrWhiteSpace(existing.SourceSlug) && !string.IsNullOrWhiteSpace(entry.Slug)) { existing.SourceSlug = entry.Slug; changed = true; }
+  if (string.IsNullOrWhiteSpace(existing.SourcePageUrl) && !string.IsNullOrWhiteSpace(entry.PageUrl)) { existing.SourcePageUrl = entry.PageUrl; changed = true; }
+  if (changed) saved.Save(existing);
  }
  public void ToggleFavorite(ServerRowViewModel row)
  {

@@ -12,7 +12,6 @@
     VerticalAlignment="Stretch"
     HorizontalAlignment="Stretch"
     MaxWidth="4096"
-    Margin="12"
     Background="{ThemeResource ContentDialogBackground}"
     DefaultButton="Close">
 

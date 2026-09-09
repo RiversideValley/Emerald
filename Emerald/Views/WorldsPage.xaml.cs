@@ -52,7 +52,8 @@ public sealed partial class WorldsPage : Page
  private void Layout_SizeChanged(object sender, SizeChangedEventArgs e)
  {
   var compact = e.NewSize.Width < 640; LayoutRoot.Padding = new Thickness(compact ? 16 : 24);
+  Filters.RowSpacing = compact ? 12 : 0;
   Grid.SetRow(InstancePicker, compact ? 1 : 0); Grid.SetColumn(InstancePicker, compact ? 0 : 2); Grid.SetColumnSpan(InstancePicker, compact ? 2 : 1);
-  Filters.ColumnDefinitions[2].Width = compact ? new GridLength(0) : new GridLength(220);
+  Filters.ColumnDefinitions[2].Width = compact ? new GridLength(0) : new GridLength(280);
  }
 }

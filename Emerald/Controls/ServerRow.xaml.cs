@@ -11,6 +11,7 @@ public sealed partial class ServerRow : UserControl
  public event EventHandler? Favorite;
  public event EventHandler? Options;
  public ServerRow() => InitializeComponent();
+ public void ShowOptions(MenuFlyout flyout) => flyout.ShowAt(OptionsButton);
  private static void Changed(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((ServerRow)d).Root.DataContext = e.NewValue;
  private void Select_Click(object sender, RoutedEventArgs e) => Selected?.Invoke(this, EventArgs.Empty);
  private void Play_Click(object sender, RoutedEventArgs e) => Play?.Invoke(this, EventArgs.Empty);

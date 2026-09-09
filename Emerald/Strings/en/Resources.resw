@@ -1478,6 +1478,7 @@
   <data name="RefineClearFilters" xml:space="preserve"><value>Clear Filters</value></data>
   <data name="RefineClose" xml:space="preserve"><value>Close</value></data>
   <data name="RefineCopySeed" xml:space="preserve"><value>Copy Seed</value></data>
+  <data name="RefineCopyAddress" xml:space="preserve"><value>Copy address</value></data>
   <data name="RefineCreative" xml:space="preserve"><value>Creative</value></data>
   <data name="RefineCurrentBase" xml:space="preserve"><value>Current Base</value></data>
   <data name="RefineCurrentStreak" xml:space="preserve"><value>Current Streak</value></data>
@@ -1566,6 +1567,7 @@
   <data name="RefineRecent" xml:space="preserve"><value>Recent</value></data>
   <data name="RefineRecentActivity" xml:space="preserve"><value>Recent Activity</value></data>
   <data name="RefineRefresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="RefineRefreshStatus" xml:space="preserve"><value>Refresh status</value></data>
   <data name="RefineRemove" xml:space="preserve"><value>Remove</value></data>
   <data name="RefineRemoveFavorite" xml:space="preserve"><value>Remove favorite?</value></data>
   <data name="RefineRemoveFavoriteHint" xml:space="preserve"><value>Profiles using this server will need a replacement.</value></data>
@@ -1586,6 +1588,8 @@
   <data name="RefineSevenDays" xml:space="preserve"><value>7 days</value></data>
   <data name="RefineSize" xml:space="preserve"><value>Size</value></data>
   <data name="RefineSort" xml:space="preserve"><value>Sort</value></data>
+  <data name="RefineSortPlayers" xml:space="preserve"><value>Players</value></data>
+  <data name="RefineSourcePage" xml:space="preserve"><value>Open source page</value></data>
   <data name="RefineSpectator" xml:space="preserve"><value>Spectator</value></data>
   <data name="RefineStale" xml:space="preserve"><value>Last known status · stale</value></data>
   <data name="RefineStop" xml:space="preserve"><value>Stop</value></data>
@@ -1626,4 +1630,11 @@
   <data name="RefineSearch" xml:space="preserve"><value>Search</value></data>
   <data name="RefineSearchIcons" xml:space="preserve"><value>Search glyphs or Minecraft blocks</value></data>
   <data name="RefineStore" xml:space="preserve"><value>Store</value></data>
+  <data name="RefineRed" xml:space="preserve"><value>Red</value></data>
+  <data name="RefineAmber" xml:space="preserve"><value>Amber</value></data>
+  <data name="RefineLime" xml:space="preserve"><value>Lime</value></data>
+  <data name="RefineTeal" xml:space="preserve"><value>Teal</value></data>
+  <data name="RefineCyan" xml:space="preserve"><value>Cyan</value></data>
+  <data name="RefineIndigo" xml:space="preserve"><value>Indigo</value></data>
+  <data name="RefineSlate" xml:space="preserve"><value>Slate</value></data>
 </root>

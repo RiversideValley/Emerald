@@ -37,7 +37,7 @@ public sealed partial class ServersPage : Page
   if (row.Saved?.SourceKind == SavedServerSourceKind.Custom) Add("Edit", async () => await ShowCustomAsync(row.Saved));
   var source = row.Saved?.SourcePageUrl ?? row.Directory?.PageUrl;
   if (Uri.TryCreate(source, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https") Add("SourcePage", async () => await Windows.System.Launcher.LaunchUriAsync(uri));
-  menu.ShowAt(anchor);
+  anchor.ShowOptions(menu);
  }
  private void Discover_Click(object sender, RoutedEventArgs e) { ViewModel.TabIndex = 0; ((Microsoft.UI.Xaml.Controls.Primitives.ToggleButton)sender).IsChecked = true; }
  private void Favorites_Click(object sender, RoutedEventArgs e) { ViewModel.TabIndex = 1; ((Microsoft.UI.Xaml.Controls.Primitives.ToggleButton)sender).IsChecked = true; }
@@ -59,7 +59,8 @@ public sealed partial class ServersPage : Page
  private void Layout_SizeChanged(object sender, SizeChangedEventArgs e)
  {
   var compact = e.NewSize.Width < 640; LayoutRoot.Padding = new Thickness(compact ? 16 : 24);
+  Filters.RowSpacing = compact ? 12 : 0;
   Grid.SetRow(InstancePicker, compact ? 1 : 0); Grid.SetColumn(InstancePicker, compact ? 0 : 3); Grid.SetColumnSpan(InstancePicker, compact ? 3 : 1);
-  Filters.ColumnDefinitions[3].Width = compact ? new GridLength(0) : new GridLength(220);
+  Filters.ColumnDefinitions[3].Width = compact ? new GridLength(0) : new GridLength(280);
  }
 }

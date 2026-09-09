@@ -14,7 +14,7 @@ namespace Emerald.Controls;
 
 public sealed partial class QuickProfileEditor : UserControl
 {
-    private const int BlockPageSize = 12;
+    private const int BlockPageSize = 36;
     private readonly List<ToggleButton> _colorButtons = [];
     private IReadOnlyList<BlockIconOption> _blocks = [];
     private int _blockPage;
@@ -29,6 +29,7 @@ public sealed partial class QuickProfileEditor : UserControl
         InitializeComponent();
         DataContext = ViewModel;
         Setup.IsExpanded = ViewModel.HasError;
+        SizeChanged += (_, _) => UpdatePickerLayout();
         BuildColorChoices();
         SetPickerColor(ViewModel.Accent?.Value ?? 0xFF107C10);
         UpdateIconType();
@@ -60,12 +61,20 @@ public sealed partial class QuickProfileEditor : UserControl
 
     private void BuildColorChoices()
     {
+        ColorChoices.Children.Clear();
+        _colorButtons.Clear();
+        ColorChoices.ColumnDefinitions.Clear();
+        var columns = PickerColumns(144);
+        for (var i = 0; i < columns; i++) ColorChoices.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
+        ColorChoices.RowDefinitions.Clear();
+        for (var i = 0; i < (ViewModel.Colors.Count + columns - 1) / columns; i++)
+            ColorChoices.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         foreach (var color in ViewModel.Colors)
         {
             var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
             row.Children.Add(new Border { Width = 18, Height = 18, CornerRadius = new(9), Background = Brush(color.Value) });
             row.Children.Add(new TextBlock { Text = color.Label });
-            var button = new ToggleButton { Content = row, IsChecked = ViewModel.Accent?.Value == color.Value };
+            var button = new ToggleButton { Content = row, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Left, IsChecked = ViewModel.Accent?.Value == color.Value };
             Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, color.Label);
             button.Click += (_, _) =>
             {
@@ -73,8 +82,8 @@ public sealed partial class QuickProfileEditor : UserControl
                 SetPickerColor(color.Value);
                 UpdateColorSelection();
             };
-            Grid.SetColumn(button, ColorChoices.Children.Count % 3);
-            Grid.SetRow(button, ColorChoices.Children.Count / 3);
+            Grid.SetColumn(button, ColorChoices.Children.Count % columns);
+            Grid.SetRow(button, ColorChoices.Children.Count / columns);
             ColorChoices.Children.Add(button);
             _colorButtons.Add(button);
         }
@@ -111,7 +120,8 @@ public sealed partial class QuickProfileEditor : UserControl
     private void RenderGlyphs()
     {
         if (GlyphChoices == null) return;
-        PrepareGrid(GlyphChoices, 4);
+        var columns = PickerColumns(144);
+        PrepareGrid(GlyphChoices, columns, ViewModel.Icons.Count);
         var query = IconSearch?.Text?.Trim() ?? string.Empty;
         var icons = ViewModel.Icons.Where(x => Matches(x.Key, query) || Matches(x.Label, query)).ToArray();
         for (var index = 0; index < icons.Length; index++)
@@ -124,8 +134,8 @@ public sealed partial class QuickProfileEditor : UserControl
             ToolTipService.SetToolTip(button, icon.Label);
             Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, icon.Label);
             button.Click += (_, _) => { ViewModel.SelectGlyph(icon); UpdateIconType(); };
-            Grid.SetColumn(button, index % 4);
-            Grid.SetRow(button, index / 4);
+            Grid.SetColumn(button, index % columns);
+            Grid.SetRow(button, index / columns);
             GlyphChoices.Children.Add(button);
         }
     }
@@ -133,7 +143,8 @@ public sealed partial class QuickProfileEditor : UserControl
     private void RenderBlocks()
     {
         if (BlockChoices == null || BlockPageText == null) return;
-        PrepareGrid(BlockChoices, 4);
+        var columns = PickerColumns(176);
+        PrepareGrid(BlockChoices, columns, BlockPageSize);
         var matches = FilteredBlocks().ToArray();
         var pageCount = Math.Max(1, (int)Math.Ceiling(matches.Length / (double)BlockPageSize));
         _blockPage = Math.Clamp(_blockPage, 0, pageCount - 1);
@@ -148,12 +159,12 @@ public sealed partial class QuickProfileEditor : UserControl
             var label = new TextBlock { Text = block.Name, MaxLines = 2, TextWrapping = TextWrapping.Wrap, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center };
             Grid.SetColumn(label, 1);
             content.Children.Add(label);
-            var button = new ToggleButton { Content = content, Height = 64, HorizontalContentAlignment = HorizontalAlignment.Stretch, IsChecked = ViewModel.IsBlockIcon && ViewModel.BlockIconFileName == block.FileName };
+            var button = new ToggleButton { Content = content, MinHeight = 72, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, IsChecked = ViewModel.IsBlockIcon && ViewModel.BlockIconFileName == block.FileName };
             ToolTipService.SetToolTip(button, block.Name);
             Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, block.Name);
             button.Click += (_, _) => { ViewModel.SelectBlock(block.FileName); UpdateIconType(); };
-            Grid.SetColumn(button, index % 4);
-            Grid.SetRow(button, index / 4);
+            Grid.SetColumn(button, index % columns);
+            Grid.SetRow(button, index / columns);
             BlockChoices.Children.Add(button);
         }
 
@@ -195,13 +206,25 @@ public sealed partial class QuickProfileEditor : UserControl
             _colorButtons[index].IsChecked = ViewModel.Accent?.Value == ViewModel.Colors[index].Value;
     }
 
-    private static void PrepareGrid(Grid grid, int columns)
+    private int PickerColumns(double minimumWidth) => Math.Max(1, (int)(Math.Min(1000, Math.Max(240, ActualWidth - 32)) / minimumWidth));
+
+    private double _pickerWidth;
+    private void UpdatePickerLayout()
+    {
+        if (Math.Abs(ActualWidth - _pickerWidth) < 1) return;
+        _pickerWidth = ActualWidth;
+        BuildColorChoices();
+        RenderGlyphs();
+        RenderBlocks();
+    }
+
+    private static void PrepareGrid(Grid grid, int columns, int count)
     {
         grid.Children.Clear();
         grid.ColumnDefinitions.Clear();
         grid.RowDefinitions.Clear();
         for (var column = 0; column < columns; column++) grid.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
-        for (var row = 0; row < 3; row++) grid.RowDefinitions.Add(new() { Height = GridLength.Auto });
+        for (var row = 0; row < (count + columns - 1) / columns; row++) grid.RowDefinitions.Add(new() { Height = GridLength.Auto });
     }
 
     private static bool Matches(string value, string query) => string.IsNullOrWhiteSpace(query) || value.Contains(query, StringComparison.OrdinalIgnoreCase);
