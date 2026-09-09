@@ -110,8 +110,8 @@ public sealed partial class HomePage : Page
         LayoutRoot.Padding = new Thickness(compact ? 16 : 24);
         for (var i = 0; i < ShortcutGrid.Children.Count; i++)
         {
-            Grid.SetColumn(ShortcutGrid.Children[i], compact ? 0 : i);
-            Grid.SetRow(ShortcutGrid.Children[i], compact ? i : 0);
+            Grid.SetColumn(ShortcutGrid.Children[i] as FrameworkElement, compact ? 0 : i);
+            Grid.SetRow(ShortcutGrid.Children[i] as FrameworkElement, compact ? i : 0);
         }
 
         ShortcutGrid.ColumnDefinitions[1].Width = ShortcutGrid.ColumnDefinitions[2].Width =

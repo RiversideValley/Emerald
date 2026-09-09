@@ -1,8 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Emerald.CoreX.Models;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.Web.WebView2.Core;
 
 namespace Emerald.Controls;
@@ -90,7 +88,7 @@ public sealed class MinecraftSkinWebView : Grid
         return DefaultCapeDataUrl.Value;
     }
 
-    private readonly WebView2 _webView = new()
+    private readonly Microsoft.UI.Xaml.Controls.WebView2 _webView = new()
     {
         HorizontalAlignment = HorizontalAlignment.Stretch,
         VerticalAlignment = VerticalAlignment.Stretch
@@ -214,7 +212,7 @@ public sealed class MinecraftSkinWebView : Grid
         }
     }
 
-    private void OnNavigationCompleted(WebView2 sender,
+    private void OnNavigationCompleted(Microsoft.UI.Xaml.Controls.WebView2 sender,
         CoreWebView2NavigationCompletedEventArgs args)
     {
         if (_isStopped)
@@ -228,7 +226,7 @@ public sealed class MinecraftSkinWebView : Grid
         }
     }
 
-    private void OnWebMessageReceived(WebView2 sender,
+    private void OnWebMessageReceived(Microsoft.UI.Xaml.Controls.WebView2 sender,
         CoreWebView2WebMessageReceivedEventArgs args)
     {
         if (_isStopped)

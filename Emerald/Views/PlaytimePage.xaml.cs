@@ -90,8 +90,8 @@ public sealed partial class PlaytimePage : Page
 
         foreach (var grid in new[] { PatternGrid, HistoryGrid })
         {
-            Grid.SetRow(grid.Children[1], wide ? 0 : 1);
-            Grid.SetColumn(grid.Children[1], wide ? 1 : 0);
+            Grid.SetRow(grid.Children[1] as FrameworkElement, wide ? 0 : 1);
+            Grid.SetColumn(grid.Children[1] as FrameworkElement, wide ? 1 : 0);
 
             grid.ColumnDefinitions[1].Width =
                 wide ? new GridLength(grid == HistoryGrid ? 2 : 1, GridUnitType.Star) : new GridLength(0);
