@@ -203,7 +203,7 @@ Notes
         services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Optifine>();
 
         services.AddTransient<CoreX.Installers.ModLoaderRouter>();
-        
+
         // Options.txt
         services.AddTransient<CoreX.GameOptions.IMinecraftOptionsService,
             CoreX.GameOptions.MinecraftOptionsService>();
@@ -279,9 +279,9 @@ Notes
         services.AddTransient<ViewModels.GameOptionsViewModel>();
         services.AddTransient<ViewModels.AdvancedSettingsPageViewModel>();
     }
-    
+
     #endregion
-    
+
     /// <summary>
     /// Registers the maintained services and viewmodels used by the active Uno shell.
     /// </summary>

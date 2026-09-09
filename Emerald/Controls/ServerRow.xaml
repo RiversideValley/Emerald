@@ -1,72 +1,38 @@
-<UserControl
-    x:Class="Emerald.Controls.ServerRow"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:Emerald.Controls"
-    xmlns:helpers="using:Emerald.Helpers">
-    <Grid
-        x:Name="Root"
-        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-        CornerRadius="12">
-        <Button
-            AutomationProperties.Name="{Binding Name}"
-            Background="Transparent"
-            BorderThickness="0"
-            Click="Select_Click"
-            HorizontalAlignment="Stretch"
-            HorizontalContentAlignment="Stretch"
-            Padding="16"
-            VerticalAlignment="Stretch"
-            VerticalContentAlignment="Stretch">
-            <Grid RowSpacing="12">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="48" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Border
-                        Width="48"
-                        Height="48"
-                        Background="{ThemeResource LayerFillColorDefaultBrush}"
-                        CornerRadius="8">
-                        <controls:ServerIcon Source="{Binding Icon}" />
-                    </Border>
-                    <StackPanel Grid.Column="1" Spacing="4">
-                        <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" Style="{ThemeResource BodyStrongTextBlockStyle}" />
-                        <TextBlock MaxLines="2" Text="{Binding Motd}" TextTrimming="CharacterEllipsis" TextWrapping="Wrap" />
-                        <TextBlock MaxLines="2" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{Binding Metadata}" TextWrapping="Wrap" Style="{ThemeResource CaptionTextBlockStyle}" />
-                    </StackPanel>
-                    <FontIcon Grid.Column="2" FontSize="12" Glyph="&#xE76C;" />
-                </Grid>
-                <TextBlock
-                    Grid.Row="1"
-                    Margin="0,0,152,0"
-                    VerticalAlignment="Center"
-                    Text="{Binding Status}"
-                    TextWrapping="Wrap"
-                    ToolTipService.ToolTip="{Binding StatusHelp}"
-                    Style="{ThemeResource CaptionTextBlockStyle}" />
-            </Grid>
-        </Button>
-
-        <StackPanel
-            Margin="0,0,12,12"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom"
-            Orientation="Horizontal"
-            Spacing="8">
-            <Button Click="Favorite_Click" AutomationProperties.Name="{helpers:Localize KeyName=RefineToggleFavorite}" ToolTipService.ToolTip="{helpers:Localize KeyName=RefineToggleFavorite}">
-                <FontIcon Glyph="{Binding FavoriteGlyph}" />
-            </Button>
-            <Button x:Name="OptionsButton" Click="Menu_Click" AutomationProperties.Name="{helpers:Localize KeyName=RefineServerOptions}" ToolTipService.ToolTip="{helpers:Localize KeyName=RefineServerOptions}">
-                <FontIcon Glyph="&#xE712;" />
-            </Button>
-            <Button Click="Play_Click" Content="{helpers:Localize KeyName=RefinePlay}" />
-        </StackPanel>
-    </Grid>
+<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:controls="using:Emerald.Controls" xmlns:helpers="using:Emerald.Helpers" x:Class="Emerald.Controls.ServerRow">
+  <Grid x:Name="Root" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="12">
+    <Button AutomationProperties.Name="{Binding Name}" Background="Transparent" BorderThickness="0" Click="Select_Click" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="16" VerticalAlignment="Stretch" VerticalContentAlignment="Stretch">
+      <Grid RowSpacing="12">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid ColumnSpacing="12">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="48"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <Border Width="48" Height="48" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="8">
+            <controls:ServerIcon Source="{Binding Icon}"/>
+          </Border>
+          <StackPanel Grid.Column="1" Spacing="4">
+            <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" Style="{ThemeResource BodyStrongTextBlockStyle}"/>
+            <TextBlock MaxLines="2" Text="{Binding Motd}" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"/>
+            <TextBlock MaxLines="2" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{Binding Metadata}" TextWrapping="Wrap" Style="{ThemeResource CaptionTextBlockStyle}"/>
+          </StackPanel>
+          <FontIcon Grid.Column="2" FontSize="12" Glyph="&#xE76C;"/>
+        </Grid>
+        <TextBlock Grid.Row="1" Margin="0,0,152,0" VerticalAlignment="Center" Text="{Binding Status}" TextWrapping="Wrap" ToolTipService.ToolTip="{Binding StatusHelp}" Style="{ThemeResource CaptionTextBlockStyle}"/>
+      </Grid>
+    </Button>
+    <StackPanel Margin="0,0,12,12" HorizontalAlignment="Right" VerticalAlignment="Bottom" Orientation="Horizontal" Spacing="8">
+      <Button Click="Favorite_Click" AutomationProperties.Name="{helpers:Localize KeyName=RefineToggleFavorite}" ToolTipService.ToolTip="{helpers:Localize KeyName=RefineToggleFavorite}">
+        <FontIcon Glyph="{Binding FavoriteGlyph}"/>
+      </Button>
+      <Button x:Name="OptionsButton" Click="Menu_Click" AutomationProperties.Name="{helpers:Localize KeyName=RefineServerOptions}" ToolTipService.ToolTip="{helpers:Localize KeyName=RefineServerOptions}">
+        <FontIcon Glyph="&#xE712;"/>
+      </Button>
+      <Button Click="Play_Click" Content="{helpers:Localize KeyName=RefinePlay}"/>
+    </StackPanel>
+  </Grid>
 </UserControl>

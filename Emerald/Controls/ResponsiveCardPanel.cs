@@ -8,6 +8,7 @@ public sealed class ResponsiveCardPanel : Panel
     private const double Gap = 16;
     private const double MinimumWidth = 280;
     private int Columns(double width) => Math.Max(1, (int)((width + Gap) / (MinimumWidth + Gap)));
+
     protected override Size MeasureOverride(Size availableSize)
     {
         var width = double.IsInfinity(availableSize.Width) ? MinimumWidth : availableSize.Width;
@@ -22,10 +23,13 @@ public sealed class ResponsiveCardPanel : Panel
                 Children[j].Measure(new Size(itemWidth, double.PositiveInfinity));
                 rowHeight = Math.Max(rowHeight, Children[j].DesiredSize.Height);
             }
+
             height += rowHeight + (i == 0 ? 0 : Gap);
         }
+
         return new Size(width, height);
     }
+
     protected override Size ArrangeOverride(Size finalSize)
     {
         var columns = Columns(finalSize.Width);
@@ -33,11 +37,13 @@ public sealed class ResponsiveCardPanel : Panel
         double y = 0;
         for (var i = 0; i < Children.Count; i += columns)
         {
-            var height = Enumerable.Range(i, Math.Min(columns, Children.Count - i)).Max(j => Children[j].DesiredSize.Height);
+            var height = Enumerable.Range(i, Math.Min(columns, Children.Count - i))
+                .Max(j => Children[j].DesiredSize.Height);
             for (var j = i; j < Math.Min(i + columns, Children.Count); j++)
                 Children[j].Arrange(new Rect((j - i) * (width + Gap), y, width, height));
             y += height + Gap;
         }
+
         return finalSize;
     }
 }

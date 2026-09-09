@@ -34,9 +34,15 @@ public static class DashboardText
     public static IReadOnlyList<InstancePlaytimeSession> Active(Core core, IGameRuntimeService runtime, DateTimeOffset now) => runtime.Sessions
         .Where(s => s.IsActive && s.ProcessStartedAt.HasValue).Select(s => new InstancePlaytimeSession
         {
-            Id = s.SessionId, InstanceId = s.Game.InstanceId, BasePathSnapshot = s.Game.SharedMinecraftBasePath ?? string.Empty,
-            InstancePath = s.GamePath, InstanceNameSnapshot = s.DisplayName, StartedAt = s.ProcessStartedAt!.Value,
-            EndedAt = now, TargetKind = s.Target.Kind, TargetDisplayNameSnapshot = s.TargetDisplayName
+            Id = s.SessionId,
+            InstanceId = s.Game.InstanceId,
+            BasePathSnapshot = s.Game.SharedMinecraftBasePath ?? string.Empty,
+            InstancePath = s.GamePath,
+            InstanceNameSnapshot = s.DisplayName,
+            StartedAt = s.ProcessStartedAt!.Value,
+            EndedAt = now,
+            TargetKind = s.Target.Kind,
+            TargetDisplayNameSnapshot = s.TargetDisplayName
         }).ToArray();
     public static IReadOnlyList<PlaytimeBarViewModel> Bars(IEnumerable<PlaytimeDayBucket> buckets, int days, double height)
     {

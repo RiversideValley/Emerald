@@ -86,12 +86,13 @@ public sealed partial class GamesPage : Page
                 Game = game
             };
             GameSettingsControl.GameSettings = game.GetEditableSettings();
-            var SettingsDialog = GameSettingsControl.ToContentDialog("Game Settings - " + game.Version.DisplayName, "Close");
+            var SettingsDialog =
+                GameSettingsControl.ToContentDialog("Game Settings - " + game.Version.DisplayName, "Close");
 
             var result = await SettingsDialog.ShowAsync();
 
-                var core = Ioc.Default.GetService<Core>();
-                core.SaveGames();
+            var core = Ioc.Default.GetService<Core>();
+            core.SaveGames();
         }
     }
 
@@ -188,10 +189,10 @@ public sealed partial class GamesPage : Page
                 "Force Stop",
                 "Do you really want to force stop your game? This might cause corruptions in your game files.",
                 MessageBoxButtons.YesNo);
-            
-            if(result is not MessageBoxResults.Yes) 
+
+            if (result is not MessageBoxResults.Yes)
                 return;
-            
+
             _ = ViewModel.ForceStopGameCommand.ExecuteAsync(game);
         }
     }
@@ -232,9 +233,9 @@ public sealed partial class GamesPage : Page
     {
         if (sender is MenuFlyoutItem item && item.Tag is Game game)
         {
-             ViewModel.RemoveGameCommand.Execute(game);
+            ViewModel.RemoveGameCommand.Execute(game);
         }
-        }
+    }
 
     private void RemoveGameWFiles_Click(object sender, RoutedEventArgs e)
     {
@@ -254,7 +255,7 @@ public sealed partial class GamesPage : Page
 
         Frame?.Navigate(typeof(AccountsPage), null, new EntranceNavigationTransitionInfo());
     }
-    
+
     private async void EditOptions_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is not Game game) return;

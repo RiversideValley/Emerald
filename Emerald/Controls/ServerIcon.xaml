@@ -1,9 +1,6 @@
-<UserControl
-    x:Class="Emerald.Controls.ServerIcon"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid>
-        <FontIcon Glyph="&#xE968;" />
-        <Image x:Name="IconImage" Stretch="UniformToFill" />
-    </Grid>
+<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Emerald.Controls.ServerIcon">
+  <Grid>
+    <FontIcon Glyph="&#xE968;"/>
+    <Image x:Name="IconImage" Stretch="UniformToFill"/>
+  </Grid>
 </UserControl>

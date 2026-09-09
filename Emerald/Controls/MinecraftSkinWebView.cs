@@ -76,10 +76,12 @@ public sealed class MinecraftSkinWebView : Grid
     private const string DefaultCapeResourceName = "Emerald.SkinViewer.15th_Anniversary_Cape.png";
     private const string BundlePlaceholder = "/*__EMERALD_SKINVIEW3D_BUNDLE__*/";
     private static readonly TimeSpan ViewerLoadTimeout = TimeSpan.FromSeconds(15);
+
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
     };
+
     private static readonly Lazy<string> ViewerDocument = new(CreateViewerDocument);
     private static readonly Lazy<string> DefaultCapeDataUrl = new(CreateDefaultCapeDataUrl);
 
@@ -90,6 +92,7 @@ public sealed class MinecraftSkinWebView : Grid
         HorizontalAlignment = HorizontalAlignment.Stretch,
         VerticalAlignment = VerticalAlignment.Stretch
     };
+
     private readonly TaskCompletionSource _readySource = NewCompletionSource();
     private TaskCompletionSource? _skinSource;
     private Task? _initializationTask;
@@ -130,7 +133,8 @@ public sealed class MinecraftSkinWebView : Grid
         // WKWebView cannot marshal a JavaScript Promise (or undefined) as the
         // result of ExecuteScriptAsync. setState reports completion through the
         // WebMessageReceived bridge, so deliberately return a primitive here.
-        await _webView.ExecuteScriptAsync($"(() => {{ window.emeraldSkinViewer.setState({json}); return 'started'; }})()");
+        await _webView.ExecuteScriptAsync(
+            $"(() => {{ window.emeraldSkinViewer.setState({json}); return 'started'; }})()");
         await completion.Task.WaitAsync(loadCancellationToken);
     }
 
@@ -143,7 +147,8 @@ public sealed class MinecraftSkinWebView : Grid
         await _readySource.Task.WaitAsync(cancellationToken);
 
         var json = JsonSerializer.Serialize(settings, JsonOptions);
-        await _webView.ExecuteScriptAsync($"(() => {{ window.emeraldSkinViewer.applySettings({json}); return 'updated'; }})()");
+        await _webView.ExecuteScriptAsync(
+            $"(() => {{ window.emeraldSkinViewer.applySettings({json}); return 'updated'; }})()");
     }
 
     /// <summary>
@@ -160,7 +165,8 @@ public sealed class MinecraftSkinWebView : Grid
         try
         {
             if (_readySource.Task.IsCompletedSuccessfully)
-                await _webView.ExecuteScriptAsync("(() => { window.emeraldSkinViewer?.dispose(); return 'stopped'; })()");
+                await _webView.ExecuteScriptAsync(
+                    "(() => { window.emeraldSkinViewer?.dispose(); return 'stopped'; })()");
         }
         catch
         {
@@ -199,7 +205,8 @@ public sealed class MinecraftSkinWebView : Grid
         }
     }
 
-    private void OnNavigationCompleted(Microsoft.UI.Xaml.Controls.WebView2 sender, CoreWebView2NavigationCompletedEventArgs args)
+    private void OnNavigationCompleted(Microsoft.UI.Xaml.Controls.WebView2 sender,
+        CoreWebView2NavigationCompletedEventArgs args)
     {
         if (_isStopped)
             return;
@@ -208,7 +215,8 @@ public sealed class MinecraftSkinWebView : Grid
             Fail($"The embedded skin viewer could not be loaded ({args.WebErrorStatus}).");
     }
 
-    private void OnWebMessageReceived(Microsoft.UI.Xaml.Controls.WebView2 sender, CoreWebView2WebMessageReceivedEventArgs args)
+    private void OnWebMessageReceived(Microsoft.UI.Xaml.Controls.WebView2 sender,
+        CoreWebView2WebMessageReceivedEventArgs args)
     {
         if (_isStopped)
             return;
@@ -274,7 +282,8 @@ public sealed class MinecraftSkinWebView : Grid
     private static string ReadEmbeddedText(string resourceName)
     {
         using var stream = typeof(MinecraftSkinWebView).Assembly.GetManifestResourceStream(resourceName)
-            ?? throw new InvalidOperationException($"The embedded skin viewer resource '{resourceName}' is missing.");
+                           ?? throw new InvalidOperationException(
+                               $"The embedded skin viewer resource '{resourceName}' is missing.");
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }
@@ -283,8 +292,10 @@ public sealed class MinecraftSkinWebView : Grid
     {
         var assembly = typeof(MinecraftSkinWebView).Assembly;
         using var stream = assembly.GetManifestResourceStream(DefaultCapeResourceName)
-            ?? assembly.GetManifestResourceStream("Emerald.Assets.Web.SkinViewer.15th_Anniversary_Cape.png")
-            ?? throw new InvalidOperationException($"The embedded default cape resource '{DefaultCapeResourceName}' is missing.");
+                           ?? assembly.GetManifestResourceStream(
+                               "Emerald.Assets.Web.SkinViewer.15th_Anniversary_Cape.png")
+                           ?? throw new InvalidOperationException(
+                               $"The embedded default cape resource '{DefaultCapeResourceName}' is missing.");
         using var memoryStream = new MemoryStream();
         stream.CopyTo(memoryStream);
         return $"data:image/png;base64,{Convert.ToBase64String(memoryStream.ToArray())}";

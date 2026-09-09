@@ -35,7 +35,8 @@ public sealed partial class ServerIcon : UserControl
             if (source.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
             {
                 var separator = source.IndexOf(',');
-                if (separator < 0 || !source[..separator].Contains(";base64", StringComparison.OrdinalIgnoreCase)) return;
+                if (separator < 0 ||
+                    !source[..separator].Contains(";base64", StringComparison.OrdinalIgnoreCase)) return;
                 var bytes = Convert.FromBase64String(source[(separator + 1)..]);
                 if (bytes.Length == 0 || bytes.Length > 2 * 1024 * 1024) return;
 

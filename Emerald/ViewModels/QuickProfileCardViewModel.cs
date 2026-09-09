@@ -3,6 +3,7 @@ using Emerald.CoreX.Services;
 using Microsoft.UI.Xaml.Media;
 using Windows.UI;
 namespace Emerald.ViewModels;
+
 public partial class QuickProfileCardViewModel(QuickProfile profile, QuickProfileValidation validation, string? instance = null, string? account = null) : ObservableObject
 {
     public QuickProfile Profile { get; } = profile;

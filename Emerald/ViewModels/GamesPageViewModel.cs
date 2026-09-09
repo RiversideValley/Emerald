@@ -238,11 +238,11 @@ public partial class GamesPageViewModel : ObservableObject
             _ => false
         }
         : AddGameWizardStep switch
-    {
-        0 => SelectedVersion != null,
-        1 => SelectedModLoaderType == CoreX.Versions.Type.Vanilla || SelectedModLoader != null,
-        _ => false
-    };
+        {
+            0 => SelectedVersion != null,
+            1 => SelectedModLoaderType == CoreX.Versions.Type.Vanilla || SelectedModLoader != null,
+            _ => false
+        };
 
     public bool IsModLoaderSelectionVisible => SelectedModLoaderType != CoreX.Versions.Type.Vanilla;
 

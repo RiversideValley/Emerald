@@ -101,18 +101,18 @@ public sealed partial class MainPage : Page
         {
             if (e.PropertyName is null)
                 return;
-            
+
             this.Log().LogDebug("Applying appearance change for property {PropertyName}.", e.PropertyName);
             RefreshAppearance();
         };
-        
+
         RefreshAppearance();
     }
 
     private void RefreshAppearance()
     {
         _ = this.GetThemeService().SetThemeAsync((AppTheme)SS.Settings.App.Appearance.Theme);
-        
+
         SystemBackdrop backdrop = SS.Settings.App.Appearance.BackdropType switch
         {
             0 => new MicaBackdrop() { Kind = MicaKind.Base },
@@ -120,7 +120,7 @@ public sealed partial class MainPage : Page
             _ => new DesktopAcrylicBackdrop()
         };
         App.Current.MainWindow.SystemBackdrop = backdrop;
-            
+
         switch ((Helpers.Settings.Enums.MicaTintColor)SS.Settings.App.Appearance.MicaTintColor)
         {
             case Helpers.Settings.Enums.MicaTintColor.NoColor:
@@ -145,7 +145,7 @@ public sealed partial class MainPage : Page
                 break;
         }
     }
-    
+
     /// <summary>
     /// Populates the main navigation view and selects the default route.
     /// </summary>

@@ -66,9 +66,9 @@ public partial class HomePageViewModel : ObservableObject
         && (!HasAccount || !IsWorldDestination || SelectedWorld?.CanQuickLaunch == true);
     [ObservableProperty] private Microsoft.UI.Xaml.Media.ImageSource? _accountAvatar;
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasGames))] [NotifyPropertyChangedFor(nameof(IsHeroEnabled))] private Game? _selectedGame;
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasAccount))] [NotifyPropertyChangedFor(nameof(AccountName))] [NotifyPropertyChangedFor(nameof(PrimaryButtonText))] private EAccount? _selectedAccount;
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsServerDestination))] [NotifyPropertyChangedFor(nameof(IsWorldDestination))] private MinecraftLaunchTargetKind _selectedDestination = MinecraftLaunchTargetKind.MainMenu;
+    [ObservableProperty][NotifyPropertyChangedFor(nameof(HasGames))][NotifyPropertyChangedFor(nameof(IsHeroEnabled))] private Game? _selectedGame;
+    [ObservableProperty][NotifyPropertyChangedFor(nameof(HasAccount))][NotifyPropertyChangedFor(nameof(AccountName))][NotifyPropertyChangedFor(nameof(PrimaryButtonText))] private EAccount? _selectedAccount;
+    [ObservableProperty][NotifyPropertyChangedFor(nameof(IsServerDestination))][NotifyPropertyChangedFor(nameof(IsWorldDestination))] private MinecraftLaunchTargetKind _selectedDestination = MinecraftLaunchTargetKind.MainMenu;
     [ObservableProperty] private SavedServer? _selectedServer;
     [ObservableProperty] private MinecraftWorld? _selectedWorld;
     [ObservableProperty] private ServerStatusSnapshot? _selectedServerStatus;

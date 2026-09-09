@@ -1,194 +1,109 @@
-<ContentDialog
-    x:Class="Emerald.Views.AddGameDialog"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:cn="using:CommunityToolkit.WinUI.Controls"
-    xmlns:conv="using:Emerald.Helpers.Converters"
-    xmlns:corexIns="using:Emerald.CoreX.Installers"
-    xmlns:corexVer="using:Emerald.CoreX.Versions"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:helpers="using:Emerald.Helpers"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:modrinth="using:Emerald.CoreX.Store.Modrinth.JSON"
-    xmlns:store="using:Emerald.CoreX.Store"
-    FullSizeDesired="True"
-    VerticalAlignment="Stretch"
-    HorizontalAlignment="Stretch"
-    xmlns:viewModels="using:Emerald.ViewModels"
-    MaxWidth="4096"
-    Background="{ThemeResource ContentDialogBackground}"
-    x:Name="Root"
-    mc:Ignorable="d">
-
+<ContentDialog xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:cn="using:CommunityToolkit.WinUI.Controls" xmlns:conv="using:Emerald.Helpers.Converters" xmlns:corexIns="using:Emerald.CoreX.Installers" xmlns:corexVer="using:Emerald.CoreX.Versions" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:helpers="using:Emerald.Helpers" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:modrinth="using:Emerald.CoreX.Store.Modrinth.JSON" xmlns:store="using:Emerald.CoreX.Store" xmlns:viewModels="using:Emerald.ViewModels" x:Class="Emerald.Views.AddGameDialog" FullSizeDesired="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" MaxWidth="4096" Background="{ThemeResource ContentDialogBackground}" x:Name="Root" mc:Ignorable="d">
   <ContentDialog.Resources>
-
     <x:Double x:Key="ContentDialogMaxWidth">4096</x:Double>
     <x:Double x:Key="ContentDialogMaxHeight">2048</x:Double>
-    <conv:BoolToVisibility x:Key="BoolToVis" />
-    <conv:BoolToVisibility x:Key="InverseBoolToVis" Reversed="True" />
-    <conv:InverseBoolConverter x:Key="InverseBoolConverter" />
-    <conv:StepToVisibilityConverter x:Key="StepToVisibilityConverter" />
-    <conv:CountToVisibilityConverter x:Key="CountToVis" />
-    <conv:ImageUrlToImageSourceConverter x:Key="ImageUrlToImageSource" />
-
+    <conv:BoolToVisibility x:Key="BoolToVis"/>
+    <conv:BoolToVisibility x:Key="InverseBoolToVis" Reversed="True"/>
+    <conv:InverseBoolConverter x:Key="InverseBoolConverter"/>
+    <conv:StepToVisibilityConverter x:Key="StepToVisibilityConverter"/>
+    <conv:CountToVisibilityConverter x:Key="CountToVis"/>
+    <conv:ImageUrlToImageSourceConverter x:Key="ImageUrlToImageSource"/>
     <DataTemplate x:Key="VersionTemplate" x:DataType="corexVer:Version">
-      <Border
-        Margin="0,6"
-        Padding="14"
-        CornerRadius="12"
-        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-        BorderThickness="1">
+      <Border Margin="0,6" Padding="14" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
         <Grid ColumnSpacing="12">
           <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
           </Grid.ColumnDefinitions>
-
           <StackPanel Spacing="4">
-            <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind BasedOn}" />
-            <TextBlock
-              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-              Style="{StaticResource CaptionTextBlockStyle}"
-              Text="{x:Bind ReleaseType}" />
+            <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind BasedOn}"/>
+            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind ReleaseType}"/>
           </StackPanel>
-
-          <Border
-            Grid.Column="1"
-            Padding="10,4"
-            VerticalAlignment="Center"
-            Background="{ThemeResource SystemAccentColorLight3}"
-            CornerRadius="12">
-            <TextBlock
-              Foreground="{ThemeResource SystemAccentColorDark1}"
-              Style="{StaticResource CaptionTextBlockStyle}"
-              Text="{x:Bind ReleaseType}" />
+          <Border Grid.Column="1" Padding="10,4" VerticalAlignment="Center" Background="{ThemeResource SystemAccentColorLight3}" CornerRadius="12">
+            <TextBlock Foreground="{ThemeResource SystemAccentColorDark1}" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind ReleaseType}"/>
           </Border>
         </Grid>
       </Border>
     </DataTemplate>
-
     <DataTemplate x:Key="ModLoaderTypeTemplate" x:DataType="viewModels:AddGameModLoaderTypeOption">
       <StackPanel MaxWidth="140" Margin="0,0,12,0" Spacing="4">
-        <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind Title}" TextWrapping="WrapWholeWords" />
-        <TextBlock
-          Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-          Style="{StaticResource CaptionTextBlockStyle}"
-          Text="{x:Bind Description}"
-          TextWrapping="WrapWholeWords" />
+        <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind Title}" TextWrapping="WrapWholeWords"/>
+        <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind Description}" TextWrapping="WrapWholeWords"/>
       </StackPanel>
     </DataTemplate>
-
     <DataTemplate x:Key="LoaderTemplate" x:DataType="corexIns:LoaderInfo">
-      <Border
-        Margin="0,0,0,8"
-        Padding="14"
-        CornerRadius="12"
-        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-        BorderThickness="1">
+      <Border Margin="0,0,0,8" Padding="14" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
         <StackPanel Spacing="4">
-          <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind Version}" />
-          <TextBlock
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            Text="{helpers:Localize KeyName=ModLoaderVersionDescription}" />
+          <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind Version}"/>
+          <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{helpers:Localize KeyName=ModLoaderVersionDescription}"/>
         </StackPanel>
       </Border>
     </DataTemplate>
-
     <DataTemplate x:Key="ModpackResultTemplate" x:DataType="modrinth:SearchHit">
-      <Border
-        Margin="0,6"
-        Padding="14"
-        CornerRadius="12"
-        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-        BorderThickness="1">
+      <Border Margin="0,6" Padding="14" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
         <Grid ColumnSpacing="12">
           <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
           </Grid.ColumnDefinitions>
-
-          <Border
-            Width="56"
-            Height="56"
-            Background="{ThemeResource LayerFillColorDefaultBrush}"
-            CornerRadius="10">
-            <Image Source="{Binding IconUrl, Converter={StaticResource ImageUrlToImageSource}}" Stretch="UniformToFill" />
+          <Border Width="56" Height="56" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="10">
+            <Image Source="{Binding IconUrl, Converter={StaticResource ImageUrlToImageSource}}" Stretch="UniformToFill"/>
           </Border>
-
           <StackPanel Grid.Column="1" Spacing="4">
-            <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind Title}" TextWrapping="WrapWholeWords" />
-            <TextBlock
-              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-              MaxLines="2"
-              Style="{StaticResource CaptionTextBlockStyle}"
-              Text="{x:Bind Description}"
-              TextWrapping="WrapWholeWords" />
-            <TextBlock
-              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-              Style="{StaticResource CaptionTextBlockStyle}">
-              <Run Text="by " />
-              <Run Text="{x:Bind Author}" />
+            <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind Title}" TextWrapping="WrapWholeWords"/>
+            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" MaxLines="2" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind Description}" TextWrapping="WrapWholeWords"/>
+            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}">
+              <Run Text="by "/>
+              <Run Text="{x:Bind Author}"/>
             </TextBlock>
           </StackPanel>
-
           <StackPanel Grid.Column="2" HorizontalAlignment="Right">
-            <TextBlock HorizontalAlignment="Right" Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind DownloadCountText}" />
-            <TextBlock HorizontalAlignment="Right" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{helpers:Localize KeyName=Downloads}" />
+            <TextBlock HorizontalAlignment="Right" Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind DownloadCountText}"/>
+            <TextBlock HorizontalAlignment="Right" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{helpers:Localize KeyName=Downloads}"/>
           </StackPanel>
         </Grid>
       </Border>
     </DataTemplate>
-
     <DataTemplate x:Key="ModpackVersionTemplate" x:DataType="modrinth:ItemVersion">
-      <Border
-        Margin="0,6"
-        Padding="14"
-        CornerRadius="12"
-        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-        BorderThickness="1">
+      <Border Margin="0,6" Padding="14" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
         <StackPanel Spacing="8">
           <Grid ColumnSpacing="12">
             <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="*" />
-              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Spacing="4">
-              <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind Name}" TextWrapping="WrapWholeWords" />
+              <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind Name}" TextWrapping="WrapWholeWords"/>
               <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}">
-                <Run Text="{x:Bind VersionNumber}" />
-                <Run Text="  -  " />
-                <Run Text="{x:Bind VersionTypeDisplay}" />
+                <Run Text="{x:Bind VersionNumber}"/>
+                <Run Text="  -  "/>
+                <Run Text="{x:Bind VersionTypeDisplay}"/>
               </TextBlock>
             </StackPanel>
-            <TextBlock Grid.Column="1" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind PrimaryFileSizeText}" />
+            <TextBlock Grid.Column="1" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind PrimaryFileSizeText}"/>
           </Grid>
           <StackPanel Orientation="Horizontal" Spacing="8">
             <ItemsRepeater ItemsSource="{x:Bind LoaderChips}">
               <ItemsRepeater.Layout>
-                <StackLayout Orientation="Horizontal" Spacing="8" />
+                <StackLayout Orientation="Horizontal" Spacing="8"/>
               </ItemsRepeater.Layout>
               <ItemsRepeater.ItemTemplate>
                 <DataTemplate x:DataType="store:StoreTagChip">
                   <Border Padding="8,3" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="999">
-                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind Text}" />
+                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind Text}"/>
                   </Border>
                 </DataTemplate>
               </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>
             <ItemsRepeater ItemsSource="{x:Bind GameVersionChips}">
               <ItemsRepeater.Layout>
-                <StackLayout Orientation="Horizontal" Spacing="8" />
+                <StackLayout Orientation="Horizontal" Spacing="8"/>
               </ItemsRepeater.Layout>
               <ItemsRepeater.ItemTemplate>
                 <DataTemplate x:DataType="store:StoreTagChip">
                   <Border Padding="8,3" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="999">
-                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind Text}" />
+                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind Text}"/>
                   </Border>
                 </DataTemplate>
               </ItemsRepeater.ItemTemplate>
@@ -198,317 +113,137 @@
       </Border>
     </DataTemplate>
   </ContentDialog.Resources>
-
-  <Grid
-    VerticalAlignment="Stretch"
-    HorizontalAlignment="Stretch">
+  <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
     <Grid.RowDefinitions>
-      <RowDefinition Height="Auto" />
-      <RowDefinition Height="*" />
-      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
-
-    <Border
-      Grid.Row="0"
-      Padding="20,20,20,14">
+    <Border Grid.Row="0" Padding="20,20,20,14">
       <StackPanel Spacing="16">
         <StackPanel Spacing="6">
-          <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="{helpers:Localize KeyName=AddNewGame}" />
-          <TextBlock
-            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            Text="{helpers:Localize KeyName=AddNewGameDescription}"
-            TextWrapping="WrapWholeWords" />
+          <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="{helpers:Localize KeyName=AddNewGame}"/>
+          <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{helpers:Localize KeyName=AddNewGameDescription}" TextWrapping="WrapWholeWords"/>
         </StackPanel>
-
-        <NavigationView
-          x:Name="AddGameModeNav"
-          IsBackButtonVisible="Collapsed"
-          IsSettingsVisible="False"
-          ItemInvoked="AddGameModeNav_ItemInvoked"
-          PaneDisplayMode="Top">
+        <NavigationView x:Name="AddGameModeNav" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" ItemInvoked="AddGameModeNav_ItemInvoked" PaneDisplayMode="Top">
           <NavigationView.Resources>
             <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
-            <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+            <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent"/>
             <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
             <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
             <Thickness x:Key="NavigationViewTopPaneHeight">40</Thickness>
           </NavigationView.Resources>
           <NavigationView.MenuItems>
-            <NavigationViewItem
-              x:Name="NormalModeNavItem"
-              Content="{helpers:Localize KeyName=NormalGameMode}"
-              Icon="{helpers:FontIcon Glyph=&#xE7FC;}"
-              IsSelected="True"
-              Tag="Normal" />
-            <NavigationViewItem
-              Content="{helpers:Localize KeyName=ModpacksGameMode}"
-              Icon="{helpers:FontIcon Glyph=&#xE8F1;}"
-              Tag="Modpacks" />
+            <NavigationViewItem x:Name="NormalModeNavItem" Content="{helpers:Localize KeyName=NormalGameMode}" Icon="{helpers:FontIcon Glyph=&#xE7FC;}" IsSelected="True" Tag="Normal"/>
+            <NavigationViewItem Content="{helpers:Localize KeyName=ModpacksGameMode}" Icon="{helpers:FontIcon Glyph=&#xE8F1;}" Tag="Modpacks"/>
           </NavigationView.MenuItems>
         </NavigationView>
-
       </StackPanel>
     </Border>
-
-    <Grid
-      Grid.Row="1"
-      HorizontalAlignment="Stretch"
-      Padding="20,16,20,16"
-      Visibility="{x:Bind ViewModel.IsNormalAddGameMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-      <Grid
-        HorizontalAlignment="Stretch"
-        Visibility="{x:Bind ViewModel.AddGameWizardStep, Mode=OneWay, Converter={StaticResource StepToVisibilityConverter}, ConverterParameter=0}">
+    <Grid Grid.Row="1" HorizontalAlignment="Stretch" Padding="20,16,20,16" Visibility="{x:Bind ViewModel.IsNormalAddGameMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+      <Grid HorizontalAlignment="Stretch" Visibility="{x:Bind ViewModel.AddGameWizardStep, Mode=OneWay, Converter={StaticResource StepToVisibilityConverter}, ConverterParameter=0}">
         <Grid.RowDefinitions>
-          <RowDefinition Height="Auto" />
-          <RowDefinition Height="Auto" />
-          <RowDefinition Height="*" />
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-
-        <AutoSuggestBox
-          Grid.Row="0"
-          PlaceholderText="{helpers:Localize KeyName=SearchMinecraftVersionsPlaceholder}"
-          QueryIcon="Find"
-          Text="{x:Bind ViewModel.VersionSearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-        <RadioButtons
-          Grid.Row="1"
-          MaxWidth="1000"
-          HorizontalAlignment="Left"
-          Margin="0,16,0,12"
-          ItemsSource="{x:Bind ViewModel.ReleaseTypes, Mode=OneWay}"
-          MaxColumns="4"
-          HorizontalContentAlignment="Stretch"
-          SelectedItem="{x:Bind ViewModel.SelectedReleaseTypeFilter, Mode=TwoWay}">
+        <AutoSuggestBox Grid.Row="0" PlaceholderText="{helpers:Localize KeyName=SearchMinecraftVersionsPlaceholder}" QueryIcon="Find" Text="{x:Bind ViewModel.VersionSearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <RadioButtons Grid.Row="1" MaxWidth="1000" HorizontalAlignment="Left" Margin="0,16,0,12" ItemsSource="{x:Bind ViewModel.ReleaseTypes, Mode=OneWay}" MaxColumns="4" HorizontalContentAlignment="Stretch" SelectedItem="{x:Bind ViewModel.SelectedReleaseTypeFilter, Mode=TwoWay}">
           <RadioButtons.ItemTemplate>
             <DataTemplate>
-              <TextBlock Text="{Binding}" />
+              <TextBlock Text="{Binding}"/>
             </DataTemplate>
           </RadioButtons.ItemTemplate>
         </RadioButtons>
-
         <Grid Grid.Row="2">
-          <ListView
-            ItemTemplate="{StaticResource VersionTemplate}"
-            ItemsSource="{x:Bind ViewModel.FilteredAvailableVersions, Mode=OneWay}"
-            SelectedItem="{x:Bind ViewModel.SelectedVersion, Mode=TwoWay}"
-            SelectionMode="Single" />
-
-          <StackPanel
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Spacing="12"
-            Visibility="{x:Bind ViewModel.FilteredAvailableVersions.Count, Mode=OneWay, Converter={StaticResource CountToVis}, ConverterParameter=0}">
-            <FontIcon FontSize="40" Glyph="&#xE8B8;" Opacity="0.5" />
-            <TextBlock
-              HorizontalAlignment="Center"
-              Style="{StaticResource SubtitleTextBlockStyle}"
-              Text="{helpers:Localize KeyName=NoMinecraftVersionsFound}" />
-            <TextBlock
-              HorizontalAlignment="Center"
-              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-              Style="{StaticResource CaptionTextBlockStyle}"
-              Text="{helpers:Localize KeyName=NoMinecraftVersionsFoundDescription}"
-              TextWrapping="WrapWholeWords" />
+          <ListView ItemTemplate="{StaticResource VersionTemplate}" ItemsSource="{x:Bind ViewModel.FilteredAvailableVersions, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedVersion, Mode=TwoWay}" SelectionMode="Single"/>
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" Visibility="{x:Bind ViewModel.FilteredAvailableVersions.Count, Mode=OneWay, Converter={StaticResource CountToVis}, ConverterParameter=0}">
+            <FontIcon FontSize="40" Glyph="&#xE8B8;" Opacity="0.5"/>
+            <TextBlock HorizontalAlignment="Center" Style="{StaticResource SubtitleTextBlockStyle}" Text="{helpers:Localize KeyName=NoMinecraftVersionsFound}"/>
+            <TextBlock HorizontalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{helpers:Localize KeyName=NoMinecraftVersionsFoundDescription}" TextWrapping="WrapWholeWords"/>
           </StackPanel>
         </Grid>
       </Grid>
-
-      <ScrollViewer
-        VerticalScrollBarVisibility="Auto"
-        Visibility="{x:Bind ViewModel.AddGameWizardStep, Mode=OneWay, Converter={StaticResource StepToVisibilityConverter}, ConverterParameter=1}">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" Visibility="{x:Bind ViewModel.AddGameWizardStep, Mode=OneWay, Converter={StaticResource StepToVisibilityConverter}, ConverterParameter=1}">
         <StackPanel Spacing="20">
-          <Border
-            Padding="14"
-            CornerRadius="12"
-            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="1">
+          <Border Padding="14" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
             <StackPanel Spacing="4">
-              <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind ViewModel.AddGameSelectedVersionSummary, Mode=OneWay}" />
-              <TextBlock
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Text="{x:Bind ViewModel.AddGameSelectedVersionReleaseType, Mode=OneWay}" />
+              <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind ViewModel.AddGameSelectedVersionSummary, Mode=OneWay}"/>
+              <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind ViewModel.AddGameSelectedVersionReleaseType, Mode=OneWay}"/>
             </StackPanel>
           </Border>
-
           <StackPanel Spacing="12">
-            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{helpers:Localize KeyName=ModLoaderSectionTitle}" />
-            <RadioButtons
-              MaxWidth="10000"
-              HorizontalContentAlignment="Stretch"
-              ItemsSource="{x:Bind ViewModel.ModLoaderTypes, Mode=OneWay}"
-              MaxColumns="3"
-              SelectedItem="{x:Bind ViewModel.SelectedModLoaderTypeOption, Mode=TwoWay}"
-              ItemTemplate="{StaticResource ModLoaderTypeTemplate}" />
-
-            <StackPanel
-              Spacing="12"
-              Visibility="{x:Bind ViewModel.IsModLoaderSelectionVisible, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-              <ProgressRing
-                Width="28"
-                Height="28"
-                HorizontalAlignment="Left"
-                IsActive="{x:Bind ViewModel.IsLoadingModLoaders, Mode=OneWay}"
-                Visibility="{x:Bind ViewModel.IsLoadingModLoaders, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
-
-              <ListView
-                ItemTemplate="{StaticResource LoaderTemplate}"
-                ItemsSource="{x:Bind ViewModel.AvailableModLoaders, Mode=OneWay}"
-                SelectedItem="{x:Bind ViewModel.SelectedModLoader, Mode=TwoWay}"
-                SelectionMode="Single"
-                Visibility="{x:Bind ViewModel.HasAvailableModLoaders, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
-
-              <Border
-                Padding="14"
-                CornerRadius="12"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                Visibility="{x:Bind ViewModel.HasNoAvailableModLoaders, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{helpers:Localize KeyName=ModLoaderSectionTitle}"/>
+            <RadioButtons MaxWidth="10000" HorizontalContentAlignment="Stretch" ItemsSource="{x:Bind ViewModel.ModLoaderTypes, Mode=OneWay}" MaxColumns="3" SelectedItem="{x:Bind ViewModel.SelectedModLoaderTypeOption, Mode=TwoWay}" ItemTemplate="{StaticResource ModLoaderTypeTemplate}"/>
+            <StackPanel Spacing="12" Visibility="{x:Bind ViewModel.IsModLoaderSelectionVisible, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+              <ProgressRing Width="28" Height="28" HorizontalAlignment="Left" IsActive="{x:Bind ViewModel.IsLoadingModLoaders, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsLoadingModLoaders, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+              <ListView ItemTemplate="{StaticResource LoaderTemplate}" ItemsSource="{x:Bind ViewModel.AvailableModLoaders, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedModLoader, Mode=TwoWay}" SelectionMode="Single" Visibility="{x:Bind ViewModel.HasAvailableModLoaders, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+              <Border Padding="14" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" Visibility="{x:Bind ViewModel.HasNoAvailableModLoaders, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                 <StackPanel Spacing="6">
-                  <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{helpers:Localize KeyName=NoModLoaderVersionsAvailableTitle}" />
-                  <TextBlock
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{helpers:Localize KeyName=NoModLoaderVersionsAvailableDescription}"
-                    TextWrapping="WrapWholeWords" />
+                  <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{helpers:Localize KeyName=NoModLoaderVersionsAvailableTitle}"/>
+                  <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{helpers:Localize KeyName=NoModLoaderVersionsAvailableDescription}" TextWrapping="WrapWholeWords"/>
                 </StackPanel>
               </Border>
             </StackPanel>
           </StackPanel>
         </StackPanel>
       </ScrollViewer>
-
-      <ScrollViewer
-        VerticalScrollBarVisibility="Auto"
-        Visibility="{x:Bind ViewModel.AddGameWizardStep, Mode=OneWay, Converter={StaticResource StepToVisibilityConverter}, ConverterParameter=2}">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" Visibility="{x:Bind ViewModel.AddGameWizardStep, Mode=OneWay, Converter={StaticResource StepToVisibilityConverter}, ConverterParameter=2}">
         <StackPanel Spacing="20">
-          <Border
-            Padding="14"
-            CornerRadius="12"
-            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="1">
+          <Border Padding="14" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
             <StackPanel Spacing="4">
-              <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind ViewModel.AddGameSelectedVersionSummary, Mode=OneWay}" />
-              <TextBlock
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Text="{x:Bind ViewModel.AddGameSelectedVersionReleaseType, Mode=OneWay}" />
+              <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind ViewModel.AddGameSelectedVersionSummary, Mode=OneWay}"/>
+              <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind ViewModel.AddGameSelectedVersionReleaseType, Mode=OneWay}"/>
             </StackPanel>
           </Border>
-
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=InstanceName}"
-              Description="{helpers:Localize KeyName=InstanceNameDescription}"
-              HeaderIcon="{helpers:FontIcon Glyph=&#xE77B;}">
-              <TextBox
-                PlaceholderText="{helpers:Localize KeyName=InstanceNamePlaceholder}"
-                Text="{x:Bind ViewModel.NewGameName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-            </cn:SettingsCard>
-
+          <cn:SettingsCard Header="{helpers:Localize KeyName=InstanceName}" Description="{helpers:Localize KeyName=InstanceNameDescription}" HeaderIcon="{helpers:FontIcon Glyph=&#xE77B;}">
+            <TextBox PlaceholderText="{helpers:Localize KeyName=InstanceNamePlaceholder}" Text="{x:Bind ViewModel.NewGameName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+          </cn:SettingsCard>
           <StackPanel Spacing="12">
-            <cn:SettingsExpander
-              Header="{helpers:Localize KeyName=GameFolderSectionTitle}"
-              Description="{helpers:Localize KeyName=GameFolderNameDescription}"
-              HeaderIcon="{helpers:FontIcon Glyph=&#xE8B7;}">
+            <cn:SettingsExpander Header="{helpers:Localize KeyName=GameFolderSectionTitle}" Description="{helpers:Localize KeyName=GameFolderNameDescription}" HeaderIcon="{helpers:FontIcon Glyph=&#xE8B7;}">
               <cn:SettingsExpander.Items>
-                <cn:SettingsCard
-                  Header="{helpers:Localize KeyName=CustomizeGameFolderName}"
-                  Description="{helpers:Localize KeyName=UseGameNameDefault}">
-                  <ToggleSwitch
-                    IsOn="{x:Bind ViewModel.IsCustomFolderNameEnabled, Mode=TwoWay}"
-                    OffContent="{helpers:Localize KeyName=UseGameNameDefault}"
-                    OnContent="{helpers:Localize KeyName=OverrideFolderName}" />
+                <cn:SettingsCard Header="{helpers:Localize KeyName=CustomizeGameFolderName}" Description="{helpers:Localize KeyName=UseGameNameDefault}">
+                  <ToggleSwitch IsOn="{x:Bind ViewModel.IsCustomFolderNameEnabled, Mode=TwoWay}" OffContent="{helpers:Localize KeyName=UseGameNameDefault}" OnContent="{helpers:Localize KeyName=OverrideFolderName}"/>
                 </cn:SettingsCard>
-
-                <cn:SettingsCard
-                  Header="{helpers:Localize KeyName=GameFolderName}"
-                  Description="{helpers:Localize KeyName=GameFolderNamePlaceholder}">
-                  <TextBox
-                    Header="{helpers:Localize KeyName=GameFolderName}"
-                    IsEnabled="{x:Bind ViewModel.IsFolderNameReadOnly, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
-                    PlaceholderText="{helpers:Localize KeyName=GameFolderNamePlaceholder}"
-                    Text="{x:Bind ViewModel.NewGameFolderName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <cn:SettingsCard Header="{helpers:Localize KeyName=GameFolderName}" Description="{helpers:Localize KeyName=GameFolderNamePlaceholder}">
+                  <TextBox Header="{helpers:Localize KeyName=GameFolderName}" IsEnabled="{x:Bind ViewModel.IsFolderNameReadOnly, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}" PlaceholderText="{helpers:Localize KeyName=GameFolderNamePlaceholder}" Text="{x:Bind ViewModel.NewGameFolderName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                 </cn:SettingsCard>
               </cn:SettingsExpander.Items>
-              </cn:SettingsExpander>
-            <InfoBar Severity="Warning"
-              IsClosable="False"
-                     IsOpen="{x:Bind ViewModel.HasFolderValidationMessage, Mode=OneWay}"
-                     Message="{x:Bind ViewModel.GameFolderValidationMessage, Mode=OneWay}"/>
-
-            <InfoBar Severity="Warning"
-                     IsClosable="False"
-                     IsOpen="{x:Bind ViewModel.HasFolderConflictWarning, Mode=OneWay}"
-                     Message="{x:Bind ViewModel.GameFolderConflictWarningMessage, Mode=OneWay}"/>
-
-            <Border
-              Padding="12"
-              CornerRadius="10"
-              Background="{ThemeResource LayerFillColorDefaultBrush}"
-              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-              BorderThickness="1"
-              Visibility="{x:Bind ViewModel.HasCurrentGameFolderPathPreview, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-              <TextBlock
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Text="{x:Bind ViewModel.CurrentGameFolderPathPreview, Mode=OneWay}"
-                TextWrapping="WrapWholeWords" />
+            </cn:SettingsExpander>
+            <InfoBar Severity="Warning" IsClosable="False" IsOpen="{x:Bind ViewModel.HasFolderValidationMessage, Mode=OneWay}" Message="{x:Bind ViewModel.GameFolderValidationMessage, Mode=OneWay}"/>
+            <InfoBar Severity="Warning" IsClosable="False" IsOpen="{x:Bind ViewModel.HasFolderConflictWarning, Mode=OneWay}" Message="{x:Bind ViewModel.GameFolderConflictWarningMessage, Mode=OneWay}"/>
+            <Border Padding="12" CornerRadius="10" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" Visibility="{x:Bind ViewModel.HasCurrentGameFolderPathPreview, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+              <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind ViewModel.CurrentGameFolderPathPreview, Mode=OneWay}" TextWrapping="WrapWholeWords"/>
             </Border>
           </StackPanel>
         </StackPanel>
       </ScrollViewer>
     </Grid>
-
-    <Grid
-      Grid.Row="1"
-      Padding="20,16,20,16"
-      Visibility="{x:Bind ViewModel.IsModpackAddGameMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-      <Grid
-        ColumnSpacing="16"
-        Visibility="{x:Bind ViewModel.IsOnModpackBrowseStep, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+    <Grid Grid.Row="1" Padding="20,16,20,16" Visibility="{x:Bind ViewModel.IsModpackAddGameMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+      <Grid ColumnSpacing="16" Visibility="{x:Bind ViewModel.IsOnModpackBrowseStep, Mode=OneWay, Converter={StaticResource BoolToVis}}">
         <Grid.ColumnDefinitions>
-          <ColumnDefinition MinWidth="320" MaxWidth="400" />
-          <ColumnDefinition Width="*" />
+          <ColumnDefinition MinWidth="320" MaxWidth="400"/>
+          <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-
         <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
           <StackPanel Spacing="12">
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=BrowseModpacks}"
-              Description="Search Modrinth modpacks and choose the project to install."
-              HeaderIcon="{helpers:FontIcon Glyph=&#xE721;}">
+            <cn:SettingsCard Header="{helpers:Localize KeyName=BrowseModpacks}" Description="Search Modrinth modpacks and choose the project to install." HeaderIcon="{helpers:FontIcon Glyph=&#xE721;}">
               <StackPanel Spacing="8">
-                <TextBox
-                  PlaceholderText="{helpers:Localize KeyName=SearchModpacksPlaceholder}"
-                  Text="{x:Bind ViewModel.ModpackSearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                <ComboBox
-                  DisplayMemberPath="DisplayName"
-                  ItemsSource="{x:Bind ViewModel.ModpackSortOptions, Mode=OneWay}"
-                  SelectedItem="{x:Bind ViewModel.SelectedModpackSortOption, Mode=TwoWay}" />
+                <TextBox PlaceholderText="{helpers:Localize KeyName=SearchModpacksPlaceholder}" Text="{x:Bind ViewModel.ModpackSearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <ComboBox DisplayMemberPath="DisplayName" ItemsSource="{x:Bind ViewModel.ModpackSortOptions, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedModpackSortOption, Mode=TwoWay}"/>
               </StackPanel>
             </cn:SettingsCard>
-
-            <cn:SettingsExpander
-              Header="{helpers:Localize KeyName=Categories}"
-              Description="Filters apply as soon as they change."
-              HeaderIcon="{helpers:FontIcon Glyph=&#xE8EC;}">
+            <cn:SettingsExpander Header="{helpers:Localize KeyName=Categories}" Description="Filters apply as soon as they change." HeaderIcon="{helpers:FontIcon Glyph=&#xE8EC;}">
               <cn:SettingsExpander.Items>
                 <cn:SettingsCard Header="{helpers:Localize KeyName=Categories}">
                   <ScrollViewer MaxHeight="420" VerticalScrollBarVisibility="Auto">
                     <ItemsRepeater ItemsSource="{x:Bind ViewModel.ModpackCategoryFilters, Mode=OneWay}">
                       <ItemsRepeater.Layout>
-                        <StackLayout Spacing="8" />
+                        <StackLayout Spacing="8"/>
                       </ItemsRepeater.Layout>
                       <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="viewModels:CategoryFilterOption">
-                          <ToggleButton
-                            HorizontalAlignment="Stretch"
-                            Content="{x:Bind DisplayName}"
-                            IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
+                          <ToggleButton HorizontalAlignment="Stretch" Content="{x:Bind DisplayName}" IsChecked="{x:Bind IsSelected, Mode=TwoWay}"/>
                         </DataTemplate>
                       </ItemsRepeater.ItemTemplate>
                     </ItemsRepeater>
@@ -516,298 +251,139 @@
                 </cn:SettingsCard>
               </cn:SettingsExpander.Items>
             </cn:SettingsExpander>
-
-            <cn:SettingsCard
-              Header="{x:Bind ViewModel.SelectedModpackTitle, Mode=OneWay}"
-              Description="{x:Bind ViewModel.SelectedModpackSummary, Mode=OneWay}"
-              HeaderIcon="{helpers:FontIcon Glyph=&#xE8FD;}"
-              Visibility="{x:Bind ViewModel.HasSelectedModpack, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+            <cn:SettingsCard Header="{x:Bind ViewModel.SelectedModpackTitle, Mode=OneWay}" Description="{x:Bind ViewModel.SelectedModpackSummary, Mode=OneWay}" HeaderIcon="{helpers:FontIcon Glyph=&#xE8FD;}" Visibility="{x:Bind ViewModel.HasSelectedModpack, Mode=OneWay, Converter={StaticResource BoolToVis}}">
               <StackPanel Spacing="8">
-                <ProgressRing
-                  Width="24"
-                  Height="24"
-                  HorizontalAlignment="Left"
-                  IsActive="{x:Bind ViewModel.IsLoadingModpackDetails, Mode=OneWay}"
-                  Visibility="{x:Bind ViewModel.IsLoadingModpackDetails, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
-                <TextBlock
-                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                  Style="{StaticResource CaptionTextBlockStyle}"
-                  Text="{helpers:Localize KeyName=ModpackVersionsDescription}"
-                  TextWrapping="WrapWholeWords"
-                  Visibility="{x:Bind ViewModel.HasModpackVersions, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                <ProgressRing Width="24" Height="24" HorizontalAlignment="Left" IsActive="{x:Bind ViewModel.IsLoadingModpackDetails, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsLoadingModpackDetails, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{helpers:Localize KeyName=ModpackVersionsDescription}" TextWrapping="WrapWholeWords" Visibility="{x:Bind ViewModel.HasModpackVersions, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
               </StackPanel>
             </cn:SettingsCard>
           </StackPanel>
         </ScrollViewer>
-
         <Grid Grid.Column="1" Padding="16,0,0,0">
           <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
-
           <StackPanel Margin="0,0,0,12" Spacing="4">
-            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{helpers:Localize KeyName=ModpackResults}" />
-            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind ViewModel.ModpackResultsStatusText, Mode=OneWay}" />
+            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{helpers:Localize KeyName=ModpackResults}"/>
+            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind ViewModel.ModpackResultsStatusText, Mode=OneWay}"/>
           </StackPanel>
-
           <Grid Grid.Row="1">
-            <ListView
-              ItemTemplate="{StaticResource ModpackResultTemplate}"
-              ItemsSource="{x:Bind ViewModel.ModpackSearchResults, Mode=OneWay}"
-              SelectedItem="{x:Bind ViewModel.SelectedModpackSearchResult, Mode=TwoWay}"
-              SelectionMode="Single"
-              Visibility="{x:Bind ViewModel.HasModpackSearchResults, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
-            <StackPanel
-              HorizontalAlignment="Center"
-              VerticalAlignment="Center"
-              Spacing="12"
-              Visibility="{x:Bind ViewModel.HasModpackSearchResults, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
-              <ProgressRing
-                IsActive="{x:Bind ViewModel.IsSearchingModpacks, Mode=OneWay}"
-                Visibility="{x:Bind ViewModel.IsSearchingModpacks, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
-              <TextBlock HorizontalAlignment="Center" Style="{StaticResource SubtitleTextBlockStyle}" Text="{helpers:Localize KeyName=BrowseModpacks}" />
-              <TextBlock
-                MaxWidth="360"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Text="{x:Bind ViewModel.ModpackResultsStatusText, Mode=OneWay}"
-                TextAlignment="Center"
-                TextWrapping="WrapWholeWords" />
+            <ListView ItemTemplate="{StaticResource ModpackResultTemplate}" ItemsSource="{x:Bind ViewModel.ModpackSearchResults, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedModpackSearchResult, Mode=TwoWay}" SelectionMode="Single" Visibility="{x:Bind ViewModel.HasModpackSearchResults, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" Visibility="{x:Bind ViewModel.HasModpackSearchResults, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+              <ProgressRing IsActive="{x:Bind ViewModel.IsSearchingModpacks, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsSearchingModpacks, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+              <TextBlock HorizontalAlignment="Center" Style="{StaticResource SubtitleTextBlockStyle}" Text="{helpers:Localize KeyName=BrowseModpacks}"/>
+              <TextBlock MaxWidth="360" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind ViewModel.ModpackResultsStatusText, Mode=OneWay}" TextAlignment="Center" TextWrapping="WrapWholeWords"/>
             </StackPanel>
           </Grid>
         </Grid>
       </Grid>
-
-      <Grid
-        ColumnSpacing="16"
-        Visibility="{x:Bind ViewModel.IsOnModpackVersionStep, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+      <Grid ColumnSpacing="16" Visibility="{x:Bind ViewModel.IsOnModpackVersionStep, Mode=OneWay, Converter={StaticResource BoolToVis}}">
         <Grid.ColumnDefinitions>
-          <ColumnDefinition MinWidth="320" MaxWidth="400" />
-          <ColumnDefinition Width="*" />
+          <ColumnDefinition MinWidth="320" MaxWidth="400"/>
+          <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-
         <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
           <StackPanel Spacing="12">
-            <cn:SettingsCard
-              Header="{x:Bind ViewModel.SelectedModpackTitle, Mode=OneWay}"
-              Description="{x:Bind ViewModel.SelectedModpackSummary, Mode=OneWay}"
-              HeaderIcon="{helpers:FontIcon Glyph=&#xE8F1;}">
+            <cn:SettingsCard Header="{x:Bind ViewModel.SelectedModpackTitle, Mode=OneWay}" Description="{x:Bind ViewModel.SelectedModpackSummary, Mode=OneWay}" HeaderIcon="{helpers:FontIcon Glyph=&#xE8F1;}">
               <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}">
-                <Run Text="by " />
-                <Run Text="{x:Bind ViewModel.SelectedModpackAuthor, Mode=OneWay}" />
+                <Run Text="by "/>
+                <Run Text="{x:Bind ViewModel.SelectedModpackAuthor, Mode=OneWay}"/>
               </TextBlock>
             </cn:SettingsCard>
-
-            <cn:SettingsCard
-              Header="{helpers:Localize KeyName=ResolvedModpackRuntime}"
-              Description="Pick a version to inspect its Minecraft and loader requirements."
-              HeaderIcon="{helpers:FontIcon Glyph=&#xE8FD;}"
-              Visibility="{x:Bind ViewModel.HasModpackProbe, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+            <cn:SettingsCard Header="{helpers:Localize KeyName=ResolvedModpackRuntime}" Description="Pick a version to inspect its Minecraft and loader requirements." HeaderIcon="{helpers:FontIcon Glyph=&#xE8FD;}" Visibility="{x:Bind ViewModel.HasModpackProbe, Mode=OneWay, Converter={StaticResource BoolToVis}}">
               <StackPanel Spacing="4">
                 <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}">
-                  <Run Text="Minecraft " />
-                  <Run Text="{x:Bind ViewModel.ModpackMinecraftVersion, Mode=OneWay}" />
+                  <Run Text="Minecraft "/>
+                  <Run Text="{x:Bind ViewModel.ModpackMinecraftVersion, Mode=OneWay}"/>
                 </TextBlock>
                 <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}">
-                  <Run Text="{x:Bind ViewModel.ModpackLoaderDisplayName, Mode=OneWay}" />
-                  <Run Text=" " />
-                  <Run Text="{x:Bind ViewModel.ModpackLoaderVersion, Mode=OneWay}" />
+                  <Run Text="{x:Bind ViewModel.ModpackLoaderDisplayName, Mode=OneWay}"/>
+                  <Run Text=" "/>
+                  <Run Text="{x:Bind ViewModel.ModpackLoaderVersion, Mode=OneWay}"/>
                 </TextBlock>
               </StackPanel>
             </cn:SettingsCard>
           </StackPanel>
         </ScrollViewer>
-
         <Grid Grid.Column="1" Padding="16,0,0,0">
           <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
-
           <StackPanel Margin="0,0,0,12" Spacing="4">
-            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{helpers:Localize KeyName=ModpackVersions}" />
-            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{helpers:Localize KeyName=ModpackVersionsDescription}" />
+            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{helpers:Localize KeyName=ModpackVersions}"/>
+            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{helpers:Localize KeyName=ModpackVersionsDescription}"/>
           </StackPanel>
-
           <Grid Grid.Row="1">
-            <ListView
-              ItemTemplate="{StaticResource ModpackVersionTemplate}"
-              ItemsSource="{x:Bind ViewModel.ModpackVersions, Mode=OneWay}"
-              SelectedItem="{x:Bind ViewModel.SelectedModpackVersion, Mode=TwoWay}"
-              SelectionMode="Single"
-              Visibility="{x:Bind ViewModel.HasModpackVersions, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
-            <StackPanel
-              HorizontalAlignment="Center"
-              VerticalAlignment="Center"
-              Spacing="12"
-              Visibility="{x:Bind ViewModel.IsLoadingModpackManifest, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-              <ProgressRing IsActive="True" />
-              <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="Inspecting modpack version..." />
+            <ListView ItemTemplate="{StaticResource ModpackVersionTemplate}" ItemsSource="{x:Bind ViewModel.ModpackVersions, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedModpackVersion, Mode=TwoWay}" SelectionMode="Single" Visibility="{x:Bind ViewModel.HasModpackVersions, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" Visibility="{x:Bind ViewModel.IsLoadingModpackManifest, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+              <ProgressRing IsActive="True"/>
+              <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="Inspecting modpack version..."/>
             </StackPanel>
-            <ProgressRing
-              HorizontalAlignment="Center"
-              VerticalAlignment="Center"
-              IsActive="{x:Bind ViewModel.IsLoadingModpackDetails, Mode=OneWay}"
-              Visibility="{x:Bind ViewModel.IsLoadingModpackDetails, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+            <ProgressRing HorizontalAlignment="Center" VerticalAlignment="Center" IsActive="{x:Bind ViewModel.IsLoadingModpackDetails, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsLoadingModpackDetails, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
           </Grid>
         </Grid>
       </Grid>
-
-      <ScrollViewer
-        VerticalScrollBarVisibility="Auto"
-        Visibility="{x:Bind ViewModel.IsOnModpackConfigurationStep, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" Visibility="{x:Bind ViewModel.IsOnModpackConfigurationStep, Mode=OneWay, Converter={StaticResource BoolToVis}}">
         <StackPanel Spacing="12">
-          <cn:SettingsCard
-            Header="{x:Bind ViewModel.SelectedModpackTitle, Mode=OneWay}"
-            Description="{x:Bind ViewModel.SelectedModpackSummary, Mode=OneWay}"
-            HeaderIcon="{helpers:FontIcon Glyph=&#xE8F1;}">
+          <cn:SettingsCard Header="{x:Bind ViewModel.SelectedModpackTitle, Mode=OneWay}" Description="{x:Bind ViewModel.SelectedModpackSummary, Mode=OneWay}" HeaderIcon="{helpers:FontIcon Glyph=&#xE8F1;}">
             <StackPanel Spacing="4">
               <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}">
-                <Run Text="{x:Bind ViewModel.SelectedModpackVersionTitle, Mode=OneWay}" />
-                <Run Text=" " />
-                <Run Text="{x:Bind ViewModel.SelectedModpackVersionNumber, Mode=OneWay}" />
+                <Run Text="{x:Bind ViewModel.SelectedModpackVersionTitle, Mode=OneWay}"/>
+                <Run Text=" "/>
+                <Run Text="{x:Bind ViewModel.SelectedModpackVersionNumber, Mode=OneWay}"/>
               </TextBlock>
               <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}">
-                <Run Text="Minecraft " />
-                <Run Text="{x:Bind ViewModel.ModpackMinecraftVersion, Mode=OneWay}" />
-                <Run Text=" | " />
-                <Run Text="{x:Bind ViewModel.ModpackLoaderDisplayName, Mode=OneWay}" />
-                <Run Text=" " />
-                <Run Text="{x:Bind ViewModel.ModpackLoaderVersion, Mode=OneWay}" />
+                <Run Text="Minecraft "/>
+                <Run Text="{x:Bind ViewModel.ModpackMinecraftVersion, Mode=OneWay}"/>
+                <Run Text=" | "/>
+                <Run Text="{x:Bind ViewModel.ModpackLoaderDisplayName, Mode=OneWay}"/>
+                <Run Text=" "/>
+                <Run Text="{x:Bind ViewModel.ModpackLoaderVersion, Mode=OneWay}"/>
               </TextBlock>
             </StackPanel>
           </cn:SettingsCard>
-
-          <cn:SettingsCard
-            Header="{helpers:Localize KeyName=InstanceName}"
-            Description="{helpers:Localize KeyName=InstanceNameDescription}"
-            HeaderIcon="{helpers:FontIcon Glyph=&#xE77B;}">
-            <TextBox
-              PlaceholderText="{helpers:Localize KeyName=InstanceNamePlaceholder}"
-              Text="{x:Bind ViewModel.NewGameName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+          <cn:SettingsCard Header="{helpers:Localize KeyName=InstanceName}" Description="{helpers:Localize KeyName=InstanceNameDescription}" HeaderIcon="{helpers:FontIcon Glyph=&#xE77B;}">
+            <TextBox PlaceholderText="{helpers:Localize KeyName=InstanceNamePlaceholder}" Text="{x:Bind ViewModel.NewGameName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
           </cn:SettingsCard>
-
           <StackPanel Spacing="10">
-            <cn:SettingsExpander
-            Header="{helpers:Localize KeyName=GameFolderSectionTitle}"
-            Description="{helpers:Localize KeyName=GameFolderNameDescription}"
-            HeaderIcon="{helpers:FontIcon Glyph=&#xE8B7;}">
+            <cn:SettingsExpander Header="{helpers:Localize KeyName=GameFolderSectionTitle}" Description="{helpers:Localize KeyName=GameFolderNameDescription}" HeaderIcon="{helpers:FontIcon Glyph=&#xE8B7;}">
               <cn:SettingsExpander.Items>
-                <cn:SettingsCard
-                  Header="{helpers:Localize KeyName=CustomizeGameFolderName}"
-                  Description="{helpers:Localize KeyName=UseGameNameDefault}">
-                  <ToggleSwitch
-                    IsOn="{x:Bind ViewModel.IsCustomFolderNameEnabled, Mode=TwoWay}"
-                    OffContent="{helpers:Localize KeyName=UseGameNameDefault}"
-                    OnContent="{helpers:Localize KeyName=OverrideFolderName}" />
+                <cn:SettingsCard Header="{helpers:Localize KeyName=CustomizeGameFolderName}" Description="{helpers:Localize KeyName=UseGameNameDefault}">
+                  <ToggleSwitch IsOn="{x:Bind ViewModel.IsCustomFolderNameEnabled, Mode=TwoWay}" OffContent="{helpers:Localize KeyName=UseGameNameDefault}" OnContent="{helpers:Localize KeyName=OverrideFolderName}"/>
                 </cn:SettingsCard>
-
-                <cn:SettingsCard
-                  Header="{helpers:Localize KeyName=GameFolderName}"
-                  Description="{helpers:Localize KeyName=GameFolderNamePlaceholder}">
-                  <TextBox
-                    MinWidth="280"
-                    IsEnabled="{x:Bind ViewModel.IsFolderNameReadOnly, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
-                    PlaceholderText="{helpers:Localize KeyName=GameFolderNamePlaceholder}"
-                    Text="{x:Bind ViewModel.NewGameFolderName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <cn:SettingsCard Header="{helpers:Localize KeyName=GameFolderName}" Description="{helpers:Localize KeyName=GameFolderNamePlaceholder}">
+                  <TextBox MinWidth="280" IsEnabled="{x:Bind ViewModel.IsFolderNameReadOnly, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}" PlaceholderText="{helpers:Localize KeyName=GameFolderNamePlaceholder}" Text="{x:Bind ViewModel.NewGameFolderName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                 </cn:SettingsCard>
               </cn:SettingsExpander.Items>
             </cn:SettingsExpander>
-
-            <Border
-              Padding="12"
-              CornerRadius="10"
-              Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
-              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-              BorderThickness="1"
-              Visibility="{x:Bind ViewModel.HasFolderValidationMessage, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-              <TextBlock Text="{x:Bind ViewModel.GameFolderValidationMessage, Mode=OneWay}" TextWrapping="WrapWholeWords" />
+            <Border Padding="12" CornerRadius="10" Background="{ThemeResource SystemFillColorCautionBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" Visibility="{x:Bind ViewModel.HasFolderValidationMessage, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+              <TextBlock Text="{x:Bind ViewModel.GameFolderValidationMessage, Mode=OneWay}" TextWrapping="WrapWholeWords"/>
             </Border>
-
-            <Border
-              Padding="12"
-              CornerRadius="10"
-              Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
-              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-              BorderThickness="1"
-              Visibility="{x:Bind ViewModel.HasFolderConflictWarning, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-              <TextBlock Text="{x:Bind ViewModel.GameFolderConflictWarningMessage, Mode=OneWay}" TextWrapping="WrapWholeWords" />
+            <Border Padding="12" CornerRadius="10" Background="{ThemeResource SystemFillColorCautionBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" Visibility="{x:Bind ViewModel.HasFolderConflictWarning, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+              <TextBlock Text="{x:Bind ViewModel.GameFolderConflictWarningMessage, Mode=OneWay}" TextWrapping="WrapWholeWords"/>
             </Border>
-
-            <Border
-              Padding="12"
-              CornerRadius="10"
-              Background="{ThemeResource LayerFillColorDefaultBrush}"
-              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-              BorderThickness="1"
-              Visibility="{x:Bind ViewModel.HasCurrentGameFolderPathPreview, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-              <TextBlock
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Text="{x:Bind ViewModel.CurrentGameFolderPathPreview, Mode=OneWay}"
-                TextWrapping="WrapWholeWords" />
+            <Border Padding="12" CornerRadius="10" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" Visibility="{x:Bind ViewModel.HasCurrentGameFolderPathPreview, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+              <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind ViewModel.CurrentGameFolderPathPreview, Mode=OneWay}" TextWrapping="WrapWholeWords"/>
             </Border>
           </StackPanel>
         </StackPanel>
       </ScrollViewer>
     </Grid>
-
-    <Border
-      Grid.Row="2"
-      CornerRadius="16"
-      BorderBrush="{ThemeResource SystemControlBackgroundBaseLowRevealBorderBrush}"
-      Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-      Padding="32,14">
+    <Border Grid.Row="2" CornerRadius="16" BorderBrush="{ThemeResource SystemControlBackgroundBaseLowRevealBorderBrush}" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" Padding="32,14">
       <Grid ColumnSpacing="12">
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="Auto" />
-          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-
-        <Button
-          Grid.Column="0"
-          Click="Cancel_Click"
-          Content="{helpers:Localize KeyName=Cancel}" />
-
-        <Button
-          Grid.Column="1"
-          Command="{x:Bind ViewModel.GoToPreviousStepCommand}"
-          Content="{helpers:Localize KeyName=Back}"
-          Visibility="{x:Bind ViewModel.CanGoToPreviousAddGameStep, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
-
-        <Button
-          Grid.Column="2"
-          Command="{x:Bind ViewModel.GoToNextStepCommand}"
-          Content="{helpers:Localize KeyName=Next}"
-          IsEnabled="{x:Bind ViewModel.CanGoToNextAddGameStep, Mode=OneWay}"
-          Style="{ThemeResource AccentButtonStyle}"
-          Visibility="{x:Bind ViewModel.ShowNormalNextButton, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
-
-        <Button
-          Grid.Column="2"
-          Command="{x:Bind ViewModel.GoToNextStepCommand}"
-          Content="{helpers:Localize KeyName=Next}"
-          IsEnabled="{x:Bind ViewModel.CanGoToNextAddGameStep, Mode=OneWay}"
-          Style="{ThemeResource AccentButtonStyle}"
-          Visibility="{x:Bind ViewModel.ShowModpackNextButton, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
-
-        <Button
-          Grid.Column="2"
-          Click="Create_Click"
-          Content="{helpers:Localize KeyName=Create}"
-          IsEnabled="{x:Bind ViewModel.CanCreateGame, Mode=OneWay}"
-          Style="{ThemeResource AccentButtonStyle}"
-          Visibility="{x:Bind ViewModel.ShowNormalCreateButton, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
-
-        <Button
-          Grid.Column="2"
-          Click="DownloadModpack_Click"
-          Content="{helpers:Localize KeyName=Download}"
-          IsEnabled="{x:Bind ViewModel.CanDownloadModpack, Mode=OneWay}"
-          Style="{ThemeResource AccentButtonStyle}"
-          Visibility="{x:Bind ViewModel.ShowModpackDownloadButton, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+        <Button Grid.Column="0" Click="Cancel_Click" Content="{helpers:Localize KeyName=Cancel}"/>
+        <Button Grid.Column="1" Command="{x:Bind ViewModel.GoToPreviousStepCommand}" Content="{helpers:Localize KeyName=Back}" Visibility="{x:Bind ViewModel.CanGoToPreviousAddGameStep, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+        <Button Grid.Column="2" Command="{x:Bind ViewModel.GoToNextStepCommand}" Content="{helpers:Localize KeyName=Next}" IsEnabled="{x:Bind ViewModel.CanGoToNextAddGameStep, Mode=OneWay}" Style="{ThemeResource AccentButtonStyle}" Visibility="{x:Bind ViewModel.ShowNormalNextButton, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+        <Button Grid.Column="2" Command="{x:Bind ViewModel.GoToNextStepCommand}" Content="{helpers:Localize KeyName=Next}" IsEnabled="{x:Bind ViewModel.CanGoToNextAddGameStep, Mode=OneWay}" Style="{ThemeResource AccentButtonStyle}" Visibility="{x:Bind ViewModel.ShowModpackNextButton, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+        <Button Grid.Column="2" Click="Create_Click" Content="{helpers:Localize KeyName=Create}" IsEnabled="{x:Bind ViewModel.CanCreateGame, Mode=OneWay}" Style="{ThemeResource AccentButtonStyle}" Visibility="{x:Bind ViewModel.ShowNormalCreateButton, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+        <Button Grid.Column="2" Click="DownloadModpack_Click" Content="{helpers:Localize KeyName=Download}" IsEnabled="{x:Bind ViewModel.CanDownloadModpack, Mode=OneWay}" Style="{ThemeResource AccentButtonStyle}" Visibility="{x:Bind ViewModel.ShowModpackDownloadButton, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
       </Grid>
     </Border>
   </Grid>

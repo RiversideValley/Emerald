@@ -1,272 +1,115 @@
-﻿<Page
-    x:Class="Emerald.Views.GamesPage"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:cn="using:CommunityToolkit.WinUI.Controls"
-    xmlns:conv="using:Emerald.Helpers.Converters"
-    xmlns:corex="using:Emerald.CoreX"
-    xmlns:corexIns="using:Emerald.CoreX.Installers"
-    xmlns:corexInstallation="using:Emerald.CoreX.Installation"
-    xmlns:corexVer="using:Emerald.CoreX.Versions"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:helpers="using:Emerald.Helpers"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:uc="using:Emerald.UserControls"
-    mc:Ignorable="d">
-
+<Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:cn="using:CommunityToolkit.WinUI.Controls" xmlns:conv="using:Emerald.Helpers.Converters" xmlns:corex="using:Emerald.CoreX" xmlns:corexIns="using:Emerald.CoreX.Installers" xmlns:corexInstallation="using:Emerald.CoreX.Installation" xmlns:corexVer="using:Emerald.CoreX.Versions" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:helpers="using:Emerald.Helpers" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:uc="using:Emerald.UserControls" x:Class="Emerald.Views.GamesPage" mc:Ignorable="d">
   <Page.Resources>
-
-    <conv:BoolToVisibility x:Key="BoolToVis" />
-    <conv:BoolToVisibility x:Key="InverseBoolToVis" Reversed="True" />
-    <conv:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
-    <conv:StepToVisibilityConverter x:Key="StepToVisibilityConverter" />
-
+    <conv:BoolToVisibility x:Key="BoolToVis"/>
+    <conv:BoolToVisibility x:Key="InverseBoolToVis" Reversed="True"/>
+    <conv:CountToVisibilityConverter x:Key="CountToVisibilityConverter"/>
+    <conv:StepToVisibilityConverter x:Key="StepToVisibilityConverter"/>
     <DataTemplate x:Key="GameItemTemplate" x:DataType="corex:Game">
-      <cn:SettingsCard
-                Margin="0,4"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+      <cn:SettingsCard Margin="0,4" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
         <cn:SettingsCard.HeaderIcon>
-          <FontIcon Glyph="&#xE7FC;" />
+          <FontIcon Glyph="&#xE7FC;"/>
         </cn:SettingsCard.HeaderIcon>
         <cn:SettingsCard.Header>
           <StackPanel>
-            <TextBlock
-                            Style="{StaticResource BodyStrongTextBlockStyle}"
-                            Text="{x:Bind Version.DisplayName}" />
+            <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind Version.DisplayName}"/>
             <TextBlock Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}">
-                            <Run Text="{x:Bind Version.Type}" />
-                            <Run Text="|" />
-                            <Run Text="{x:Bind Version.BasedOn}" />
-                            <Run Text="{x:Bind Version.ModVersion}" />
+              <Run Text="{x:Bind Version.Type}"/>
+              <Run Text="|"/>
+              <Run Text="{x:Bind Version.BasedOn}"/>
+              <Run Text="{x:Bind Version.ModVersion}"/>
             </TextBlock>
-            <TextBlock
-              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-              Style="{StaticResource CaptionTextBlockStyle}"
-              Text="{x:Bind StatusText, Mode=OneWay}" />
+            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind StatusText, Mode=OneWay}"/>
           </StackPanel>
         </cn:SettingsCard.Header>
         <StackPanel Spacing="8">
           <StackPanel Orientation="Horizontal" Spacing="8">
-          <Button
-                        x:Name="LaunchGame"
-                        Click="LaunchGame_Click"
-                        Content="{helpers:FontIcon Glyph=&#xE768;}"
-                        IsEnabled="{x:Bind CanLaunch, Mode=OneWay}"
-                        Tag="{x:Bind}"
-                        Visibility="{x:Bind CanLaunch, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                        ToolTipService.ToolTip="Launch" />
-          <Button
-                        Click="StopGame_Click"
-                        Content="{helpers:FontIcon Glyph=&#xE71A;}"
-                        Tag="{x:Bind}"
-                        ToolTipService.ToolTip="Stop"
-                        Visibility="{x:Bind CanStop, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
-          <Button
-                        Click="ForceStopGame_Click"
-                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                        Tag="{x:Bind}"
-                        Content="{helpers:FontIcon Glyph=&#xE711;}"
-                        ToolTipService.ToolTip="Force Stop"
-                        Visibility="{x:Bind CanStop, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
-          <Button
-                        Click="InstallGame_Click"
-                        Content="{helpers:FontIcon Glyph=&#xE896;}"
-                        IsEnabled="{x:Bind CanModify, Mode=OneWay}"
-                        Tag="{x:Bind}"
-                        Visibility="{x:Bind ShowDownload, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                        ToolTipService.ToolTip="Install/Update" />
-          <DropDownButton Content="{helpers:FontIcon Glyph=&#xE712;}" ToolTipService.ToolTip="More Options">
-            <DropDownButton.Flyout>
-              <MenuFlyout Placement="Bottom">
-                <MenuFlyoutItem
-                                    Click="ViewLogs_Click"
-                                    Icon="{helpers:FontIcon Glyph=&#xE756;}"
-                                    Tag="{x:Bind}"
-                                    Text="View Logs" />
-                <MenuFlyoutItem
-                                    Click="ForceStopGame_Click"
-                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                                    Icon="{helpers:FontIcon Glyph=&#xE711;}"
-                                    Tag="{x:Bind}"
-                                    Text="Force Stop"
-                                    Visibility="{x:Bind HasActiveSession, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
-                <MenuFlyoutSeparator />
-                <MenuFlyoutItem
-                                    Click="VerifyGame_Click"
-                                    Icon="{helpers:FontIcon Glyph=&#xE9D5;}"
-                                    IsEnabled="{x:Bind CanModify, Mode=OneWay}"
-                                    Tag="{x:Bind}"
-                                    Text="Verify installation" />
-                <MenuFlyoutItem
-                                    Click="RepairGame_Click"
-                                    Icon="{helpers:FontIcon Glyph=&#xE90F;}"
-                                    IsEnabled="{x:Bind CanModify, Mode=OneWay}"
-                                    Tag="{x:Bind}"
-                                    Text="Repair installation" />
-                <MenuFlyoutSeparator />
-                <MenuFlyoutItem
-                                    Click="ManageSettings_Click"
-                                    Icon="{helpers:FontIcon Glyph=&#xE713;}"
-                                    Tag="{x:Bind}"
-                                    IsEnabled="{x:Bind CanModify, Mode=OneWay}"
-                                    Text="Manage Settings" />
-                <MenuFlyoutSeparator />
-                <MenuFlyoutItem
-                                    Click="OpenFolder_Click"
-                                    Icon="{helpers:FontIcon Glyph=&#xE8B7;}"
-                                    Tag="{x:Bind}"
-                                    Text="Open Folder" />
-                <MenuFlyoutItem
-                                    Click="OpenStore_Click"
-                                    Icon="{helpers:FontIcon Glyph=&#xE719;}"
-                                    Tag="{x:Bind}"
-                                    Text="Open Store" />
-                <MenuFlyoutSeparator />
-                <MenuFlyoutItem
-                  Click="RemoveGame_Click"
-                                    Tag="{x:Bind}"
-                                    IsEnabled="{x:Bind CanModify, Mode=OneWay}"
-                                    Icon="{helpers:FontIcon Glyph=&#xE74D;}"
-                                    Text="Remove" />
-                <MenuFlyoutItem
-                                    Tag="{x:Bind}"
-                  Click="RemoveGameWFiles_Click"
-                                    IsEnabled="{x:Bind CanModify, Mode=OneWay}"
-                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                                    Icon="{helpers:FontIcon Glyph=&#xE74D;}"
-                                    Text="Remove with Files" />
-                <MenuFlyoutSeparator />
-                <MenuFlyoutItem
-                  Click="EditOptions_Click"
-                  Icon="{helpers:FontIcon Glyph=&#xE713;}"
-                  Tag="{x:Bind}"
-                  IsEnabled="{x:Bind CanModify, Mode=OneWay}"
-                  Text="Edit Options" />
-              </MenuFlyout>
-            </DropDownButton.Flyout>
-          </DropDownButton>
+            <Button x:Name="LaunchGame" Click="LaunchGame_Click" Content="{helpers:FontIcon Glyph=&#xE768;}" IsEnabled="{x:Bind CanLaunch, Mode=OneWay}" Tag="{x:Bind}" Visibility="{x:Bind CanLaunch, Mode=OneWay, Converter={StaticResource BoolToVis}}" ToolTipService.ToolTip="Launch"/>
+            <Button Click="StopGame_Click" Content="{helpers:FontIcon Glyph=&#xE71A;}" Tag="{x:Bind}" ToolTipService.ToolTip="Stop" Visibility="{x:Bind CanStop, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+            <Button Click="ForceStopGame_Click" Foreground="{ThemeResource SystemFillColorCriticalBrush}" Tag="{x:Bind}" Content="{helpers:FontIcon Glyph=&#xE711;}" ToolTipService.ToolTip="Force Stop" Visibility="{x:Bind CanStop, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+            <Button Click="InstallGame_Click" Content="{helpers:FontIcon Glyph=&#xE896;}" IsEnabled="{x:Bind CanModify, Mode=OneWay}" Tag="{x:Bind}" Visibility="{x:Bind ShowDownload, Mode=OneWay, Converter={StaticResource BoolToVis}}" ToolTipService.ToolTip="Install/Update"/>
+            <DropDownButton Content="{helpers:FontIcon Glyph=&#xE712;}" ToolTipService.ToolTip="More Options">
+              <DropDownButton.Flyout>
+                <MenuFlyout Placement="Bottom">
+                  <MenuFlyoutItem Click="ViewLogs_Click" Icon="{helpers:FontIcon Glyph=&#xE756;}" Tag="{x:Bind}" Text="View Logs"/>
+                  <MenuFlyoutItem Click="ForceStopGame_Click" Foreground="{ThemeResource SystemFillColorCriticalBrush}" Icon="{helpers:FontIcon Glyph=&#xE711;}" Tag="{x:Bind}" Text="Force Stop" Visibility="{x:Bind HasActiveSession, Mode=OneWay, Converter={StaticResource BoolToVis}}"/>
+                  <MenuFlyoutSeparator/>
+                  <MenuFlyoutItem Click="VerifyGame_Click" Icon="{helpers:FontIcon Glyph=&#xE9D5;}" IsEnabled="{x:Bind CanModify, Mode=OneWay}" Tag="{x:Bind}" Text="Verify installation"/>
+                  <MenuFlyoutItem Click="RepairGame_Click" Icon="{helpers:FontIcon Glyph=&#xE90F;}" IsEnabled="{x:Bind CanModify, Mode=OneWay}" Tag="{x:Bind}" Text="Repair installation"/>
+                  <MenuFlyoutSeparator/>
+                  <MenuFlyoutItem Click="ManageSettings_Click" Icon="{helpers:FontIcon Glyph=&#xE713;}" Tag="{x:Bind}" IsEnabled="{x:Bind CanModify, Mode=OneWay}" Text="Manage Settings"/>
+                  <MenuFlyoutSeparator/>
+                  <MenuFlyoutItem Click="OpenFolder_Click" Icon="{helpers:FontIcon Glyph=&#xE8B7;}" Tag="{x:Bind}" Text="Open Folder"/>
+                  <MenuFlyoutItem Click="OpenStore_Click" Icon="{helpers:FontIcon Glyph=&#xE719;}" Tag="{x:Bind}" Text="Open Store"/>
+                  <MenuFlyoutSeparator/>
+                  <MenuFlyoutItem Click="RemoveGame_Click" Tag="{x:Bind}" IsEnabled="{x:Bind CanModify, Mode=OneWay}" Icon="{helpers:FontIcon Glyph=&#xE74D;}" Text="Remove"/>
+                  <MenuFlyoutItem Tag="{x:Bind}" Click="RemoveGameWFiles_Click" IsEnabled="{x:Bind CanModify, Mode=OneWay}" Foreground="{ThemeResource SystemFillColorCriticalBrush}" Icon="{helpers:FontIcon Glyph=&#xE74D;}" Text="Remove with Files"/>
+                  <MenuFlyoutSeparator/>
+                  <MenuFlyoutItem Click="EditOptions_Click" Icon="{helpers:FontIcon Glyph=&#xE713;}" Tag="{x:Bind}" IsEnabled="{x:Bind CanModify, Mode=OneWay}" Text="Edit Options"/>
+                </MenuFlyout>
+              </DropDownButton.Flyout>
+            </DropDownButton>
           </StackPanel>
         </StackPanel>
       </cn:SettingsCard>
     </DataTemplate>
   </Page.Resources>
-
   <Grid>
     <Grid.RowDefinitions>
-      <RowDefinition Height="Auto" />
-      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
-
     <Grid Grid.Row="0" Padding="24,24,24,12">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*" />
-        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
       </Grid.ColumnDefinitions>
       <StackPanel Grid.Column="0">
-        <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Instances" />
-        <TextBlock
-                    Opacity="0.7"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="Manage your Minecraft game instances" />
+        <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Instances"/>
+        <TextBlock Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}" Text="Manage your Minecraft game instances"/>
       </StackPanel>
-      <CommandBar
-                Grid.Column="1"
-                Background="Transparent"
-                DefaultLabelPosition="Right"
-                OverflowButtonVisibility="Collapsed">
-        <AppBarButton Click="AddGame_Click" Icon="Add" Label="Add Game" />
+      <CommandBar Grid.Column="1" Background="Transparent" DefaultLabelPosition="Right" OverflowButtonVisibility="Collapsed">
+        <AppBarButton Click="AddGame_Click" Icon="Add" Label="Add Game"/>
       </CommandBar>
     </Grid>
-
     <Grid Grid.Row="1" Margin="24,0,24,24">
       <Grid.RowDefinitions>
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="*" />
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
-      <Border
-                Grid.Row="0"
-                Margin="0,0,0,12"
-                Padding="12"
-                Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="8"
-                Visibility="{x:Bind ViewModel.IsOfflineMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+      <Border Grid.Row="0" Margin="0,0,0,12" Padding="12" Background="{ThemeResource SystemFillColorCautionBackgroundBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Visibility="{x:Bind ViewModel.IsOfflineMode, Mode=OneWay, Converter={StaticResource BoolToVis}}">
         <Grid ColumnSpacing="12">
           <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
           </Grid.ColumnDefinitions>
-          <FontIcon
-                        Grid.Column="0"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource SystemFillColorCautionBrush}"
-                        Glyph="&#xE7BA;" />
+          <FontIcon Grid.Column="0" VerticalAlignment="Center" Foreground="{ThemeResource SystemFillColorCautionBrush}" Glyph="&#xE7BA;"/>
           <StackPanel Grid.Column="1" Spacing="2">
-            <TextBlock
-                            Style="{StaticResource BodyStrongTextBlockStyle}"
-                            Text="{helpers:Localize KeyName=OfflineMode}" />
-            <TextBlock
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="{helpers:Localize KeyName=OfflineModeDescription}"
-                            TextWrapping="WrapWholeWords" />
+            <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{helpers:Localize KeyName=OfflineMode}"/>
+            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" Text="{helpers:Localize KeyName=OfflineModeDescription}" TextWrapping="WrapWholeWords"/>
           </StackPanel>
         </Grid>
       </Border>
-      <AutoSuggestBox
-                Grid.Row="1"
-                MaxWidth="400"
-                Margin="0,0,0,12"
-                HorizontalAlignment="Stretch"
-                PlaceholderText="Search instances..."
-                QueryIcon="Find"
-                Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay}" />
+      <AutoSuggestBox Grid.Row="1" MaxWidth="400" Margin="0,0,0,12" HorizontalAlignment="Stretch" PlaceholderText="Search instances..." QueryIcon="Find" Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay}"/>
       <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
         <Grid>
-          <StackPanel
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Spacing="12"
-                        Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-            <ProgressRing IsActive="True" />
-            <TextBlock Text="{x:Bind ViewModel.GamesLoadingMessage, Mode=OneWay}" />
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+            <ProgressRing IsActive="True"/>
+            <TextBlock Text="{x:Bind ViewModel.GamesLoadingMessage, Mode=OneWay}"/>
           </StackPanel>
-          <StackPanel
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Spacing="12"
-                        Visibility="{x:Bind ViewModel.ShowNoGamesMessage, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-            <FontIcon FontSize="48" Glyph="&#xE7FC;" Opacity="0.5" />
-            <TextBlock
-                            HorizontalAlignment="Center"
-                            Style="{StaticResource SubtitleTextBlockStyle}"
-                            Text="No instances found" />
-            <TextBlock
-                            HorizontalAlignment="Center"
-                            Opacity="0.7"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="Click 'Add Game' to create your first game instance" />
-            <Button
-                            Click="AddGame_Click"
-                            Content="Add Game"
-                            HorizontalAlignment="Center"
-                            Style="{ThemeResource AccentButtonStyle}" />
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" Visibility="{x:Bind ViewModel.ShowNoGamesMessage, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+            <FontIcon FontSize="48" Glyph="&#xE7FC;" Opacity="0.5"/>
+            <TextBlock HorizontalAlignment="Center" Style="{StaticResource SubtitleTextBlockStyle}" Text="No instances found"/>
+            <TextBlock HorizontalAlignment="Center" Opacity="0.7" Style="{StaticResource CaptionTextBlockStyle}" Text="Click 'Add Game' to create your first game instance"/>
+            <Button Click="AddGame_Click" Content="Add Game" HorizontalAlignment="Center" Style="{ThemeResource AccentButtonStyle}"/>
           </StackPanel>
-          <ItemsRepeater
-                        x:Name="GamesItemsRepeater"
-                        ItemTemplate="{StaticResource GameItemTemplate}"
-                        ItemsSource="{x:Bind ViewModel.FilteredGames, Mode=OneWay}"
-                        Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
+          <ItemsRepeater x:Name="GamesItemsRepeater" ItemTemplate="{StaticResource GameItemTemplate}" ItemsSource="{x:Bind ViewModel.FilteredGames, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}">
             <ItemsRepeater.Layout>
-              <StackLayout Spacing="4" />
+              <StackLayout Spacing="4"/>
             </ItemsRepeater.Layout>
           </ItemsRepeater>
         </Grid>
       </ScrollViewer>
     </Grid>
-
   </Grid>
 </Page>

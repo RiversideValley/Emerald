@@ -30,7 +30,8 @@ internal static class MinecraftSkinImageFactory
             DrawNearest(canvas, source, new SKRect(4, 52, 8, 64), new SKRect(x, 192, x + 36, 252));
         });
 
-    private static async Task<ImageSource> CreateAsync(AccountSkinData skin, int width, int height, Action<SKCanvas> draw)
+    private static async Task<ImageSource> CreateAsync(AccountSkinData skin, int width, int height,
+        Action<SKCanvas> draw)
     {
         using var bitmap = new SKBitmap(new SKImageInfo(width, height, SKColorType.Rgba8888, SKAlphaType.Premul));
         using (var canvas = new SKCanvas(bitmap))
@@ -61,7 +62,7 @@ internal static class MinecraftSkinImageFactory
     internal static SKBitmap DecodeAndNormalize(byte[] pngBytes)
     {
         using var decoded = SKBitmap.Decode(pngBytes)
-            ?? throw new InvalidOperationException("The skin texture could not be decoded.");
+                            ?? throw new InvalidOperationException("The skin texture could not be decoded.");
         if (decoded.Width != 64 || (decoded.Height != 32 && decoded.Height != 64))
             throw new InvalidOperationException("Minecraft skins must be 64×64 or legacy 64×32 PNG textures.");
 
