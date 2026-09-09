@@ -178,7 +178,6 @@ public partial class Core(
             SaveGames();
         }
 
-
         _logger.LogInformation("Loaded {count} games from", Games.Count);
     }
 

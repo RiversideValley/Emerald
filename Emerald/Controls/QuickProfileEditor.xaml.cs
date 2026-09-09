@@ -21,7 +21,7 @@ public sealed partial class QuickProfileEditor : UserControl
     private bool _loadedBlocks;
 
     public QuickProfileEditorViewModel ViewModel { get; }
-    public ObservableCollection<QuickProfileGlyphOption> GlyphItems { get; } = [];
+    public ObservableCollection<ProfileGlyphOption> GlyphItems { get; } = [];
     public ObservableCollection<BlockIconOption> BlockItems { get; } = [];
     public ObservableCollection<ProfileColorOption> ColorItems { get; } = [];
 
@@ -119,7 +119,7 @@ public sealed partial class QuickProfileEditor : UserControl
         var query = IconSearch?.Text?.Trim() ?? string.Empty;
         foreach (var icon in ViewModel.Icons.Where(x => Matches(x.Key, query) || Matches(x.Label, query)))
         {
-            GlyphItems.Add(icon);
+            GlyphItems.Add(new ProfileGlyphOption(icon));
         }
     }
 
@@ -149,9 +149,9 @@ public sealed partial class QuickProfileEditor : UserControl
 
     private void GlyphChoices_ItemClick(object sender, ItemClickEventArgs e)
     {
-        if (e.ClickedItem is QuickProfileGlyphOption icon)
+        if (e.ClickedItem is ProfileGlyphOption icon)
         {
-            ViewModel.SelectGlyph(icon);
+            ViewModel.SelectGlyph(icon.ToGlyphOption());
             SelectCurrentItems();
         }
     }
@@ -252,6 +252,34 @@ public sealed class ProfileColorOption
         Value = value;
         Label = label;
         Brush = new SolidColorBrush(Color.FromArgb(255, (byte)(value >> 16), (byte)(value >> 8), (byte)value));
+    }
+}
+
+/// <summary>
+/// Mutable XAML projection for a glyph option. WinUI's generated XAML metadata assigns
+/// bound item properties, which is incompatible with the init-only properties on the
+/// domain record.
+/// </summary>
+public sealed class ProfileGlyphOption
+{
+    public string Key { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+    public string Glyph { get; set; } = string.Empty;
+
+    public ProfileGlyphOption()
+    {
+    }
+
+    public ProfileGlyphOption(QuickProfileGlyphOption option)
+    {
+        Key = option.Key;
+        Label = option.Label;
+        Glyph = option.Glyph;
+    }
+
+    public QuickProfileGlyphOption ToGlyphOption()
+    {
+        return new QuickProfileGlyphOption(Key, Label, Glyph);
     }
 }
 

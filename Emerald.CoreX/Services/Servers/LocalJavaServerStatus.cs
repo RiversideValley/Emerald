@@ -62,6 +62,27 @@ public static class LocalJavaServerStatus
         await client.ConnectAsync(address.Host, address.Port, token);
 
         using var stream = client.GetStream();
+        await WritePacketAsync(stream, CreateHandshake(address), token);
+        await WritePacketAsync(stream, [0], token);
+        var status = ReadStatus(await ReadPacketAsync(stream, token));
+        var latency = await TryMeasureLatencyAsync(stream, token);
+
+        return new ServerStatusSnapshot(
+            ServerStatusState.Online,
+            DateTimeOffset.UtcNow,
+            address,
+            Version: status.Version,
+            Protocol: status.Protocol,
+            Motd: status.Motd,
+            Players: status.Players,
+            MaxPlayers: status.MaxPlayers,
+            IconDataUrl: status.IconDataUrl,
+            Source: ServerStatusSource.Local,
+            LatencyMilliseconds: latency);
+    }
+
+    private static byte[] CreateHandshake(MinecraftServerAddress address)
+    {
         using var handshake = new MemoryStream();
         WriteVarInt(handshake, 0);
         WriteVarInt(handshake, -1); // Status negotiation, independent of the selected game version.
@@ -69,26 +90,21 @@ public static class LocalJavaServerStatus
         var host = Encoding.UTF8.GetBytes(address.Host);
         WriteVarInt(handshake, host.Length);
         handshake.Write(host);
-
         handshake.WriteByte((byte)(address.Port >> 8));
         handshake.WriteByte((byte)address.Port);
-
         WriteVarInt(handshake, 1);
+        return handshake.ToArray();
+    }
 
-        await WritePacketAsync(stream, handshake.ToArray(), token);
-        await WritePacketAsync(stream, [0], token);
-
-        var packet = await ReadPacketAsync(stream, token);
-
+    private static LocalServerStatus ReadStatus(byte[] packet)
+    {
         using var response = new MemoryStream(packet);
-
         if (ReadVarInt(response) != 0)
         {
             throw new InvalidDataException("Unexpected status packet.");
         }
 
         var length = ReadVarInt(response);
-
         if (length < 0 || length > response.Length - response.Position)
         {
             throw new InvalidDataException("Invalid status length.");
@@ -98,47 +114,37 @@ public static class LocalJavaServerStatus
         response.ReadExactly(json);
         using var document = JsonDocument.Parse(json);
         var root = document.RootElement;
-        var players = root.TryGetProperty("players", out var p) ? p : default;
-        var version = root.TryGetProperty("version", out var v) ? v : default;
-        var motd = root.TryGetProperty("description", out var d) ? CleanText(d) : null;
+        var players = root.TryGetProperty("players", out var playerData) ? playerData : default;
+        var version = root.TryGetProperty("version", out var versionData) ? versionData : default;
         var icon = Text(root, "favicon");
 
-        if (icon != null && !ValidIcon(icon))
-        {
-            icon = null;
-        }
+        return new LocalServerStatus(
+            Text(version, "name"),
+            Number(version, "protocol"),
+            root.TryGetProperty("description", out var description) ? CleanText(description) : null,
+            Number(players, "online") ?? 0,
+            Number(players, "max") ?? 0,
+            icon is not null && ValidIcon(icon) ? icon : null);
+    }
 
-        long? latency = null;
-
+    private static async Task<long?> TryMeasureLatencyAsync(Stream stream, CancellationToken token)
+    {
         try
         {
             byte[] ping = [1, 0, 0, 0, 0, 0, 0, 0, 1];
             var watch = Stopwatch.StartNew();
             await WritePacketAsync(stream, ping, token);
             var pong = await ReadPacketAsync(stream, token);
-
-            if (pong.AsSpan().SequenceEqual(ping))
-            {
-                latency = watch.ElapsedMilliseconds;
-            }
+            return pong.AsSpan().SequenceEqual(ping) ? watch.ElapsedMilliseconds : null;
         }
         catch (Exception ex) when (ex is IOException or OperationCanceledException or SocketException)
         {
+            return null;
         }
-
-        return new ServerStatusSnapshot(
-            ServerStatusState.Online,
-            DateTimeOffset.UtcNow,
-            address,
-            Version: Text(version, "name"),
-            Protocol: Number(version, "protocol"),
-            Motd: motd,
-            Players: Number(players, "online") ?? 0,
-            MaxPlayers: Number(players, "max") ?? 0,
-            IconDataUrl: icon,
-            Source: ServerStatusSource.Local,
-            LatencyMilliseconds: latency);
     }
+
+    private sealed record LocalServerStatus(string? Version, int? Protocol, string? Motd, int Players,
+        int MaxPlayers, string? IconDataUrl);
 
     public static bool ValidIcon(string icon)
     {

@@ -18,7 +18,8 @@ public sealed class ResponsiveCardPanel : Panel
     {
         var width = double.IsInfinity(availableSize.Width) ? MinimumWidth : availableSize.Width;
         var columns = Columns(width);
-        var itemWidth = Math.Max(0, (width - (columns - 1) * Gap) / columns);
+        var totalSpacing = (columns - 1) * Gap;
+        var itemWidth = Math.Max(0, (width - totalSpacing) / columns);
         double height = 0;
         for (var i = 0; i < Children.Count; i += columns)
         {
@@ -38,7 +39,8 @@ public sealed class ResponsiveCardPanel : Panel
     protected override Size ArrangeOverride(Size finalSize)
     {
         var columns = Columns(finalSize.Width);
-        var width = Math.Max(0, (finalSize.Width - (columns - 1) * Gap) / columns);
+        var totalSpacing = (columns - 1) * Gap;
+        var width = Math.Max(0, (finalSize.Width - totalSpacing) / columns);
         double y = 0;
         for (var i = 0; i < Children.Count; i += columns)
         {

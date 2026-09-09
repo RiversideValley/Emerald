@@ -184,7 +184,7 @@ public sealed class ModpackInstanceCreationService : IModpackInstanceCreationSer
             _notificationService.Update(notification.Id, message: "Installing modpack files...", progress: 10);
             var fileProgress = new Progress<double>(value =>
             {
-                var scaled = 10 + value * 0.85;
+                var scaled = 10 + (value * 0.85);
                 progress?.Report(scaled);
                 _notificationService.Update(notification.Id, progress: scaled);
             });

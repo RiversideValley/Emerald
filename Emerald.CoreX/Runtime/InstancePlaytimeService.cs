@@ -210,68 +210,35 @@ public sealed class InstancePlaytimeService : IInstancePlaytimeService
         var instant = now ?? DateTimeOffset.Now;
         var zone = timeZone ?? TimeZoneInfo.Local;
         var localNow = TimeZoneInfo.ConvertTime(instant, zone);
-        var firstDate = range switch
-        {
-            PlaytimeRange.SevenDays => DateOnly.FromDateTime(localNow.Date).AddDays(-6),
-            PlaytimeRange.ThirtyDays => DateOnly.FromDateTime(localNow.Date).AddDays(-29),
-            PlaytimeRange.NinetyDays => DateOnly.FromDateTime(localNow.Date).AddDays(-89),
-            _ => DateOnly.MinValue
-        };
-        var sessions = GetSessions(scope).Where(x =>
-            x.StartedAt <= instant &&
-            DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(x.EndedAt, zone).Date) >= firstDate).ToArray();
+        var firstDate = FirstDateFor(range, localNow);
+        var sessions = GetSessionsInRange(scope, firstDate, instant, zone);
         var completedIds = sessions.Select(x => x.Id).ToHashSet();
-        var active = (activeSessions ?? []).Where(x => !completedIds.Contains(x.Id)
-                                                       && (scope.Kind == PlaytimeScopeKind.AllEmerald ||
-                                                           PathsEqual(x.BasePathSnapshot, scope.BasePath))
-                                                       && (scope.Kind != PlaytimeScopeKind.Instance ||
-                                                           x.InstanceId == scope.InstanceId)).ToArray();
+        var active = FilterActiveSessions(scope, activeSessions, completedIds);
         var contributions = sessions.Concat(active).ToArray();
-        var dayDurations = new Dictionary<DateOnly, TimeSpan>();
-        var heat = new Dictionary<(DayOfWeek, int), TimeSpan>();
-        foreach (var session in contributions)
-        {
-            SplitSession(session, zone, firstDate, localNow, dayDurations, heat);
-        }
+        var (dayDurations, heat) = AllocateContributions(contributions, zone, firstDate, localNow);
 
         var daily = dayDurations.OrderBy(x => x.Key).Select(x => new PlaytimeDayBucket(x.Key, x.Value)).ToArray();
         var total = daily.Aggregate(TimeSpan.Zero, (sum, x) => sum + x.Duration);
         var weekStart = DateOnly.FromDateTime(localNow.Date).AddDays(-(((int)localNow.DayOfWeek + 6) % 7));
         var currentWeek = daily.Where(x => x.Date >= weekStart).Aggregate(TimeSpan.Zero, (sum, x) => sum + x.Duration);
-        var calendarDays = range == PlaytimeRange.AllTime
-            ? Math.Max(1,
-                daily.Length == 0 ? 1 : DateOnly.FromDateTime(localNow.Date).DayNumber - daily[0].Date.DayNumber + 1)
-            : range switch { PlaytimeRange.SevenDays => 7, PlaytimeRange.ThirtyDays => 30, _ => 90 };
+        var calendarDays = CalendarDayCount(range, localNow, daily);
         var activeDates = dayDurations.Keys.Order().ToArray();
         var (currentStreak, longestStreak) = CalculateStreaks(activeDates, DateOnly.FromDateTime(localNow.Date));
         var weekday = daily.GroupBy(x => x.Date.DayOfWeek).OrderByDescending(g => g.Sum(x => x.Duration.Ticks))
             .FirstOrDefault()?.Key;
         var peak = heat.OrderByDescending(x => x.Value).Select(x => (int?)x.Key.Item2).FirstOrDefault();
-        var ranking = contributions.GroupBy(x => (x.InstanceId,
-                Base: OperatingSystem.IsWindows() ? x.BasePathSnapshot.ToUpperInvariant() : x.BasePathSnapshot))
-            .Select(g => new InstancePlaytimeRanking(g.Key.InstanceId, g.First().BasePathSnapshot,
-                g.OrderByDescending(x => x.StartedAt).First().InstanceNameSnapshot,
-                g.Aggregate(TimeSpan.Zero, (sum, session) => sum + Contribution(session)),
-                g.Count(x => completedIds.Contains(x.Id))))
-            .OrderByDescending(x => x.Duration).ToArray();
-
-        TimeSpan Contribution(InstancePlaytimeSession session)
-        {
-            var allocated = new Dictionary<DateOnly, TimeSpan>();
-            SplitSession(session, zone, firstDate, localNow, allocated, new Dictionary<(DayOfWeek, int), TimeSpan>());
-            return allocated.Values.Aggregate(TimeSpan.Zero, (sum, value) => sum + value);
-        }
+        var ranking = BuildRanking(contributions, completedIds, zone, firstDate, localNow);
 
         return new PlaytimeAnalyticsSnapshot
         {
             TotalPlaytime = total,
             CurrentWeekPlaytime = currentWeek,
-            CompletedSessionCount = sessions.Length,
+            CompletedSessionCount = sessions.Count,
             ActiveDayCount = daily.Length,
             AveragePerCalendarDay = Divide(total, calendarDays),
             AveragePerActiveDay = Divide(total, daily.Length),
-            AverageCompletedSession = Divide(TimeSpan.FromTicks(sessions.Sum(x => x.Playtime.Ticks)), sessions.Length),
-            LongestCompletedSession = sessions.Length == 0 ? TimeSpan.Zero : sessions.Max(x => x.Playtime),
+            AverageCompletedSession = Divide(TimeSpan.FromTicks(sessions.Sum(x => x.Playtime.Ticks)), sessions.Count),
+            LongestCompletedSession = sessions.Count == 0 ? TimeSpan.Zero : sessions.Max(x => x.Playtime),
             MostPlayedDate = daily.OrderByDescending(x => x.Duration).Select(x => (DateOnly?)x.Date).FirstOrDefault(),
             MostPlayedWeekday = weekday,
             PeakLocalHour = peak,
@@ -283,6 +250,83 @@ public sealed class InstancePlaytimeService : IInstancePlaytimeService
             InstanceRanking = ranking,
             Sessions = sessions
         };
+    }
+
+    private static DateOnly FirstDateFor(PlaytimeRange range, DateTimeOffset localNow)
+    {
+        return range switch
+        {
+            PlaytimeRange.SevenDays => DateOnly.FromDateTime(localNow.Date).AddDays(-6),
+            PlaytimeRange.ThirtyDays => DateOnly.FromDateTime(localNow.Date).AddDays(-29),
+            PlaytimeRange.NinetyDays => DateOnly.FromDateTime(localNow.Date).AddDays(-89),
+            _ => DateOnly.MinValue
+        };
+    }
+
+    private IReadOnlyList<InstancePlaytimeSession> GetSessionsInRange(PlaytimeScope scope, DateOnly firstDate,
+        DateTimeOffset instant, TimeZoneInfo zone)
+    {
+        return GetSessions(scope).Where(x =>
+            x.StartedAt <= instant &&
+            DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(x.EndedAt, zone).Date) >= firstDate).ToArray();
+    }
+
+    private static IReadOnlyList<InstancePlaytimeSession> FilterActiveSessions(PlaytimeScope scope,
+        IReadOnlyList<InstancePlaytimeSession>? activeSessions, IReadOnlySet<Guid> completedIds)
+    {
+        return (activeSessions ?? []).Where(x =>
+                !completedIds.Contains(x.Id) &&
+                (scope.Kind == PlaytimeScopeKind.AllEmerald || PathsEqual(x.BasePathSnapshot, scope.BasePath)) &&
+                (scope.Kind != PlaytimeScopeKind.Instance || x.InstanceId == scope.InstanceId))
+            .ToArray();
+    }
+
+    private static (Dictionary<DateOnly, TimeSpan> Days, Dictionary<(DayOfWeek, int), TimeSpan> Hours)
+        AllocateContributions(IEnumerable<InstancePlaytimeSession> sessions, TimeZoneInfo zone, DateOnly firstDate,
+            DateTimeOffset localNow)
+    {
+        var days = new Dictionary<DateOnly, TimeSpan>();
+        var hours = new Dictionary<(DayOfWeek, int), TimeSpan>();
+        foreach (var session in sessions)
+        {
+            SplitSession(session, zone, firstDate, localNow, days, hours);
+        }
+
+        return (days, hours);
+    }
+
+    private static int CalendarDayCount(PlaytimeRange range, DateTimeOffset localNow,
+        IReadOnlyList<PlaytimeDayBucket> daily)
+    {
+        if (range != PlaytimeRange.AllTime)
+        {
+            return range switch { PlaytimeRange.SevenDays => 7, PlaytimeRange.ThirtyDays => 30, _ => 90 };
+        }
+
+        return Math.Max(1, daily.Count == 0
+            ? 1
+            : DateOnly.FromDateTime(localNow.Date).DayNumber - daily[0].Date.DayNumber + 1);
+    }
+
+    private static IReadOnlyList<InstancePlaytimeRanking> BuildRanking(
+        IEnumerable<InstancePlaytimeSession> contributions, IReadOnlySet<Guid> completedIds, TimeZoneInfo zone,
+        DateOnly firstDate, DateTimeOffset localNow)
+    {
+        return contributions.GroupBy(x => (x.InstanceId,
+                Base: OperatingSystem.IsWindows() ? x.BasePathSnapshot.ToUpperInvariant() : x.BasePathSnapshot))
+            .Select(g => new InstancePlaytimeRanking(g.Key.InstanceId, g.First().BasePathSnapshot,
+                g.OrderByDescending(x => x.StartedAt).First().InstanceNameSnapshot,
+                g.Aggregate(TimeSpan.Zero, (sum, session) => sum + Contribution(session, zone, firstDate, localNow)),
+                g.Count(x => completedIds.Contains(x.Id))))
+            .OrderByDescending(x => x.Duration).ToArray();
+    }
+
+    private static TimeSpan Contribution(InstancePlaytimeSession session, TimeZoneInfo zone, DateOnly firstDate,
+        DateTimeOffset localNow)
+    {
+        var days = new Dictionary<DateOnly, TimeSpan>();
+        SplitSession(session, zone, firstDate, localNow, days, new Dictionary<(DayOfWeek, int), TimeSpan>());
+        return days.Values.Aggregate(TimeSpan.Zero, (sum, value) => sum + value);
     }
 
     private PlaytimeHistoryEnvelope ReadEnvelope()

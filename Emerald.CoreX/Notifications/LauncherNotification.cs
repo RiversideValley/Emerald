@@ -21,7 +21,6 @@ public partial class Notification : ObservableObject
 
     [ObservableProperty] private Exception _exception;
 
-
     public DateTime Timestamp { get; set; }
     public TimeSpan? Duration { get; set; }
     public bool IsCancellable => CancellationSource != null && !CancellationSource.IsCancellationRequested;

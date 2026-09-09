@@ -10,7 +10,6 @@ public partial class NavViewHeader : Model
 
     public Visibility CustomButtonVisibility => CustomButtonText == null ? Visibility.Collapsed : Visibility.Visible;
 
-
     [ObservableProperty] private string _CustomContent;
 
     public Visibility CustomContentVisibility => CustomContent == null ? Visibility.Collapsed : Visibility.Visible;

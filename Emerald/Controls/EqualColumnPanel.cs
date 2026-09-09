@@ -12,7 +12,8 @@ public sealed class EqualColumnPanel : Panel
     protected override Size MeasureOverride(Size availableSize)
     {
         var width = double.IsInfinity(availableSize.Width) ? Children.Count * 48 : availableSize.Width;
-        var itemWidth = Math.Max(0, (width - Spacing * Math.Max(0, Children.Count - 1)) / Math.Max(1, Children.Count));
+        var totalSpacing = Spacing * Math.Max(0, Children.Count - 1);
+        var itemWidth = Math.Max(0, (width - totalSpacing) / Math.Max(1, Children.Count));
         double height = 0;
         foreach (var child in Children)
         {
@@ -25,8 +26,8 @@ public sealed class EqualColumnPanel : Panel
 
     protected override Size ArrangeOverride(Size finalSize)
     {
-        var width = Math.Max(0,
-            (finalSize.Width - Spacing * Math.Max(0, Children.Count - 1)) / Math.Max(1, Children.Count));
+        var totalSpacing = Spacing * Math.Max(0, Children.Count - 1);
+        var width = Math.Max(0, (finalSize.Width - totalSpacing) / Math.Max(1, Children.Count));
         for (var i = 0; i < Children.Count; i++)
         {
             Children[i].Arrange(new Rect(i * (width + Spacing), 0, width, finalSize.Height));

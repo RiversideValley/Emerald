@@ -142,7 +142,7 @@ public partial class PlaytimePageViewModel(Core core, IInstancePlaytimeService p
                 .Range(0, 24).Select(hour =>
                 {
                     var duration = heat.GetValueOrDefault((day, hour))?.Duration ?? TimeSpan.Zero;
-                    return new PlaytimeHeatCellViewModel($"{day} {hour:00}", 0.08 + 0.92 * duration.TotalSeconds / max,
+                    return new PlaytimeHeatCellViewModel($"{day} {hour:00}", 0.08 + (0.92 * duration.TotalSeconds / max),
                         $"{System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(day)} {hour:00}:00 · {DashboardText.Duration(duration)}");
                 }).ToArray())));
         var weekdayTotals = weekdays.Select(day => new
@@ -154,7 +154,7 @@ public partial class PlaytimePageViewModel(Core core, IInstancePlaytimeService p
         WeekdayBars.ReplaceWith(weekdayTotals.Select(x =>
             new PlaytimeBarViewModel(
                 System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedDayName(x.Day),
-                DashboardText.Duration(x.Duration), 48 * x.Duration.TotalSeconds / dayMax)));
+                DashboardText.Duration(x.Duration), 48 * (x.Duration.TotalSeconds / dayMax))));
         BestDate = r.MostPlayedDate?.ToString("m") ?? DashboardText.Get("NoPatterns");
         BestDateDuration = r.MostPlayedDate is { } best
             ? DashboardText.Duration(r.DailyBuckets.First(x => x.Date == best).Duration)
@@ -205,7 +205,7 @@ public partial class PlaytimePageViewModel(Core core, IInstancePlaytimeService p
                 ? x.Start.ToString(mode == 2 ? "MMM yy" : "MMM d")
                 : string.Empty,
             $"{x.Start:d}" + (x.End != x.Start ? $" – {x.End:d}" : string.Empty) +
-            $" · {DashboardText.Duration(x.Duration)}", 136 * x.Duration.TotalSeconds / max)));
+            $" · {DashboardText.Duration(x.Duration)}", 136 * (x.Duration.TotalSeconds / max))));
     }
 
     private static string PageText(int page, int size, int count)
@@ -236,7 +236,7 @@ public partial class PlaytimePageViewModel(Core core, IInstancePlaytimeService p
         var max = Math.Max(1, _result.InstanceRanking.Select(x => x.Duration.TotalSeconds).DefaultIfEmpty().Max());
         Rankings.ReplaceWith(_result.InstanceRanking.Skip(_rankingPage * 5).Take(5).Select((s, i) =>
             new PlaytimeRankingRow(_rankingPage * 5 + i + 1, s.DisplayName, DashboardText.Duration(s.Duration),
-                100 * s.Duration.TotalSeconds / max)));
+                100 * (s.Duration.TotalSeconds / max))));
         foreach (var name in new[]
                  {
                      nameof(HasSessions), nameof(CanPreviousSession), nameof(CanNextSession),

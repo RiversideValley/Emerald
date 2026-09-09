@@ -61,20 +61,32 @@ public partial class QuickProfileEditorViewModel : ObservableObject
         Games = new ObservableCollection<Game>(home.Games);
         Accounts = new ObservableCollection<EAccount>(accounts.Accounts);
         Servers = new ObservableCollection<SavedServer>(home.FavoriteServers);
-        Colors = new[]
-        {
-            new Choice<uint>(0xFF107C10, DashboardText.Get("Emerald")), new(0xFF0067C0, DashboardText.Get("Blue")),
+        Colors = CreateColors(original);
+        SetInitialValues(home, accounts, original);
+        _initializing = false;
+        Update();
+        _ = LoadWorldsAsync(original?.WorldFolderName ?? home.SelectedWorld?.FolderName);
+    }
+
+    private static IReadOnlyList<Choice<uint>> CreateColors(QuickProfile? original)
+    {
+        IReadOnlyList<Choice<uint>> colors =
+        [
+            new(0xFF107C10, DashboardText.Get("Emerald")), new(0xFF0067C0, DashboardText.Get("Blue")),
             new(0xFF744DA9, DashboardText.Get("Purple")), new(0xFFCA5010, DashboardText.Get("Orange")),
             new(0xFFC239B3, DashboardText.Get("Rose")), new(0xFFD13438, DashboardText.Get("Red")),
             new(0xFFFFB900, DashboardText.Get("Amber")), new(0xFF498205, DashboardText.Get("Lime")),
             new(0xFF038387, DashboardText.Get("Teal")), new(0xFF0099BC, DashboardText.Get("Cyan")),
             new(0xFF4F4DAB, DashboardText.Get("Indigo")), new(0xFF69797E, DashboardText.Get("Slate"))
-        };
-        if (original != null && Colors.All(x => x.Value != original.AccentArgb))
-        {
-            Colors = Colors.Append(new Choice<uint>(original.AccentArgb, DashboardText.Get("Custom"))).ToArray();
-        }
+        ];
 
+        return original != null && colors.All(x => x.Value != original.AccentArgb)
+            ? colors.Append(new Choice<uint>(original.AccentArgb, DashboardText.Get("Custom"))).ToArray()
+            : colors;
+    }
+
+    private void SetInitialValues(HomePageViewModel home, IAccountService accounts, QuickProfile? original)
+    {
         SelectedGame = original == null
             ? home.SelectedGame
             : Games.FirstOrDefault(x => x.InstanceId == original.InstanceId);
@@ -99,9 +111,6 @@ public partial class QuickProfileEditorViewModel : ObservableObject
                (IsServer ? SelectedServer?.Name :
                    IsWorld ? home.SelectedWorld?.DisplayName : SelectedGame?.Version.DisplayName) ??
                DashboardText.Get("QuickPlay");
-        _initializing = false;
-        Update();
-        _ = LoadWorldsAsync(original?.WorldFolderName ?? home.SelectedWorld?.FolderName);
     }
 
     partial void OnSelectedGameChanged(Game? value)

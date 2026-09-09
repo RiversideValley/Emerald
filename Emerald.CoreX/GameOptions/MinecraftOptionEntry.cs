@@ -54,7 +54,7 @@ public partial class MinecraftOptionEntry : ObservableObject
     {
         get => double.TryParse(RawValue, NumberStyles.Float,
             CultureInfo.InvariantCulture, out var d)
-            ? d * SliderStorageMultiplier + SliderStorageOffset
+            ? (d * SliderStorageMultiplier) + SliderStorageOffset
             : SliderMin;
         set
         {

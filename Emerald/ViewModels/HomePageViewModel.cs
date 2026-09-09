@@ -220,12 +220,24 @@ public partial class HomePageViewModel : ObservableObject
             return;
         }
 
-        if (e.PropertyName is nameof(EAccount.IsSelected) or nameof(EAccount.Name) or nameof(EAccount.Skin))
+        RefreshAccountSelection(e);
+    }
+
+    private void RefreshAccountSelection(PropertyChangedEventArgs e)
+    {
+        if (!AccountAffectsHome(e))
         {
-            SelectedAccount = _accounts.GetSelectedAccount();
-            OnPropertyChanged(nameof(AccountName));
-            _ = UpdateAvatarAsync();
+            return;
         }
+
+        SelectedAccount = _accounts.GetSelectedAccount();
+        OnPropertyChanged(nameof(AccountName));
+        _ = UpdateAvatarAsync();
+    }
+
+    private static bool AccountAffectsHome(PropertyChangedEventArgs e)
+    {
+        return e.PropertyName is nameof(EAccount.IsSelected) or nameof(EAccount.Name) or nameof(EAccount.Skin);
     }
 
     partial void OnSelectedAccountChanged(EAccount? value)

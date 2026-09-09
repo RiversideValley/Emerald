@@ -37,57 +37,13 @@ public static class MinecraftServerAddressParser
         }
 
         string host;
-        var port = 25565;
-        if (value.StartsWith('['))
+        int port;
+        var valid = value.StartsWith('[')
+            ? TryParseBracketedAddress(value, out host, out port, out error)
+            : TryParseUnbracketedAddress(value, out host, out port, out error);
+        if (!valid)
         {
-            var close = value.IndexOf(']');
-            if (close < 2 || (close + 1 < value.Length && value[close + 1] != ':'))
-            {
-                error = "The bracketed IPv6 address is invalid.";
-                return false;
-            }
-
-            host = value[1..close];
-
-            if (close + 1 < value.Length && !TryPort(value[(close + 2)..], out port, out error))
-            {
-                return false;
-            }
-
-            if (!IPAddress.TryParse(host, out var parsed) ||
-                parsed.AddressFamily != System.Net.Sockets.AddressFamily.InterNetworkV6)
-            {
-                error = "The bracketed address is not valid IPv6.";
-                return false;
-            }
-        }
-        else
-        {
-            var colonCount = value.Count(c => c == ':');
-            if (colonCount > 1)
-            {
-                if (!IPAddress.TryParse(value, out var parsed) ||
-                    parsed.AddressFamily != System.Net.Sockets.AddressFamily.InterNetworkV6)
-                {
-                    error = "The IPv6 address is invalid.";
-                    return false;
-                }
-
-                host = value;
-            }
-            else if (colonCount == 1)
-            {
-                var index = value.LastIndexOf(':');
-                host = value[..index];
-                if (!TryPort(value[(index + 1)..], out port, out error))
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                host = value;
-            }
+            return false;
         }
 
         if (string.IsNullOrWhiteSpace(host) || host is "." or "-")
@@ -103,6 +59,66 @@ public static class MinecraftServerAddressParser
     public static MinecraftServerAddress Parse(string input)
     {
         return TryParse(input, out var address, out var error) ? address : throw new FormatException(error);
+    }
+
+    private static bool TryParseBracketedAddress(string value, out string host, out int port, out string? error)
+    {
+        host = string.Empty;
+        port = 25565;
+        error = null;
+        var close = value.IndexOf(']');
+        if (close < 2 || (close + 1 < value.Length && value[close + 1] != ':'))
+        {
+            error = "The bracketed IPv6 address is invalid.";
+            return false;
+        }
+
+        host = value[1..close];
+        if (close + 1 < value.Length && !TryPort(value[(close + 2)..], out port, out error))
+        {
+            return false;
+        }
+
+        if (IsIpv6(host))
+        {
+            return true;
+        }
+
+        error = "The bracketed address is not valid IPv6.";
+        return false;
+    }
+
+    private static bool TryParseUnbracketedAddress(string value, out string host, out int port, out string? error)
+    {
+        host = value;
+        port = 25565;
+        error = null;
+        var colonCount = value.Count(c => c == ':');
+        if (colonCount > 1)
+        {
+            if (IsIpv6(value))
+            {
+                return true;
+            }
+
+            error = "The IPv6 address is invalid.";
+            return false;
+        }
+
+        if (colonCount == 1)
+        {
+            var index = value.LastIndexOf(':');
+            host = value[..index];
+            return TryPort(value[(index + 1)..], out port, out error);
+        }
+
+        return true;
+    }
+
+    private static bool IsIpv6(string value)
+    {
+        return IPAddress.TryParse(value, out var parsed) &&
+               parsed.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6;
     }
 
     private static bool TryPort(string value, out int port, out string? error)
@@ -192,31 +208,14 @@ public sealed class SavedServerService(IBaseSettingsService settings, ILogger<Sa
                 return server;
             }
 
-            var duplicate = envelope.Servers
-                .FirstOrDefault(x =>
-                    new MinecraftServerAddress(x.Host, x.Port).CanonicalKey == parsed.CanonicalKey
-                    && x.Id != server.Id);
-
-            if (duplicate != null)
+            if (TryUpdateDuplicate(envelope, server, parsed, out var duplicate))
             {
-                duplicate.Name = string.IsNullOrWhiteSpace(server.Name) ? duplicate.Name : server.Name.Trim();
                 Write(envelope);
                 Changed?.Invoke(this, EventArgs.Empty);
-                return duplicate;
+                return duplicate!;
             }
 
-            var existing =
-                envelope.Servers.FirstOrDefault(x => x.Id == server.Id);
-
-            if (existing == null)
-            {
-                envelope.Servers.Add(server);
-            }
-            else
-            {
-                Copy(server, existing);
-            }
-
+            Upsert(envelope, server);
             Write(envelope);
         }
 
@@ -290,6 +289,32 @@ public sealed class SavedServerService(IBaseSettingsService settings, ILogger<Sa
     private void Write(SavedServerEnvelope value)
     {
         settings.Set(SettingsKeys.SavedServers, value);
+    }
+
+    private static bool TryUpdateDuplicate(SavedServerEnvelope envelope, SavedServer server,
+        MinecraftServerAddress parsed, out SavedServer? duplicate)
+    {
+        duplicate = envelope.Servers.FirstOrDefault(x =>
+            new MinecraftServerAddress(x.Host, x.Port).CanonicalKey == parsed.CanonicalKey && x.Id != server.Id);
+        if (duplicate == null)
+        {
+            return false;
+        }
+
+        duplicate.Name = string.IsNullOrWhiteSpace(server.Name) ? duplicate.Name : server.Name.Trim();
+        return true;
+    }
+
+    private static void Upsert(SavedServerEnvelope envelope, SavedServer server)
+    {
+        var existing = envelope.Servers.FirstOrDefault(x => x.Id == server.Id);
+        if (existing == null)
+        {
+            envelope.Servers.Add(server);
+            return;
+        }
+
+        Copy(server, existing);
     }
 
     private static void Copy(SavedServer source, SavedServer destination)
