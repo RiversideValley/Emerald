@@ -68,7 +68,7 @@
           <RowDefinition Height="Auto" />
           <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Button Click="Back_Click" AutomationProperties.Name="{helpers:Localize KeyName=RefineBack}">
+        <Button Click="Back_Click" Padding="8" Background="Transparent" BorderBrush="Transparent" AutomationProperties.Name="{helpers:Localize KeyName=RefineBack}">
           <FontIcon Glyph="&#xE72B;" />
         </Button>
         <StackPanel Grid.Column="1">

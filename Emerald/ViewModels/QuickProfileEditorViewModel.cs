@@ -95,7 +95,7 @@ public partial class QuickProfileEditorViewModel : ObservableObject
             : Accounts.FirstOrDefault(x => x.UniqueId == original.AccountUniqueId);
         Destination = Destinations.First(x => x.Value == (original?.TargetKind ?? home.SelectedDestination));
         SelectedServer = original == null
-            ? home.SelectedServer
+            ? Servers.FirstOrDefault(x => x.Id == home.SelectedServer?.Id)
             : Servers.FirstOrDefault(x => x.Id == original.SavedServerId);
         Icon = Icons.FirstOrDefault(x => x.Key == original?.GlyphKey) ??
                Icons.First(x => x.Key == (IsWorld ? "World" : IsServer ? "Server" : "Play"));

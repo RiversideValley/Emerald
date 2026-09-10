@@ -372,6 +372,13 @@ public partial class ServersPageViewModel(
 
     public SavedServer EnsureSaved(ServerRowViewModel row)
     {
+        var server = ResolveServer(row);
+        return saved.Find(server.Id) ?? saved.Save(server);
+    }
+
+    // Selection and launch can use a directory entry without persisting a favorite.
+    public SavedServer ResolveServer(ServerRowViewModel row)
+    {
         if (row.Saved != null)
         {
             return row.Saved;
@@ -383,15 +390,14 @@ public partial class ServersPageViewModel(
             new MinecraftServerAddress(entry.Host, entry.Port).CanonicalKey);
         if (existing != null)
         {
-            EnrichSavedServer(entry, existing);
-            return saved.Find(existing.Id) ?? existing;
+            return existing;
         }
 
-        return saved.Save(new SavedServer
+        return new SavedServer
         {
             Name = entry.Name, Host = entry.Host, Port = entry.Port, SourceKind = SavedServerSourceKind.Directory,
             SourceSlug = entry.Slug, SourcePageUrl = entry.PageUrl, IconUrl = entry.IconUrl, BannerUrl = entry.BannerUrl
-        });
+        };
     }
 
     private void EnrichSavedServer(ServerDirectoryEntry entry, SavedServer? existing = null)
@@ -474,7 +480,7 @@ public partial class ServersPageViewModel(
 
         try
         {
-            var server = EnsureSaved(row);
+            var server = ResolveServer(row);
             var result = await runtime.LaunchAsync(new GameLaunchRequest(game, account,
                 MinecraftLaunchTarget.ForServer(server.Host, server.Port, server.Name)));
             if (result != null)

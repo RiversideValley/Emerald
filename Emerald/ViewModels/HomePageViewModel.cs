@@ -745,8 +745,9 @@ public partial class HomePageViewModel : ObservableObject
 
         var active = ActiveQuickProfileId;
         var selectedServerId = SelectedServer?.Id;
+        var selectedWasFavorite = FavoriteServers.Any(x => x.Id == selectedServerId);
         FavoriteServers.ReplaceWith(_servers.GetAll());
-        if (selectedServerId is Guid id)
+        if (selectedWasFavorite && selectedServerId is Guid id)
         {
             SelectedServer = FavoriteServers.FirstOrDefault(x => x.Id == id);
         }

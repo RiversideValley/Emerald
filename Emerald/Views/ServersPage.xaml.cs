@@ -43,7 +43,7 @@ public sealed partial class ServersPage : Page
         {
             await Ioc.Default.GetRequiredService<HomePageViewModel>()
                 .ApplySelectionAsync(new HomeSelection(game, MinecraftLaunchTargetKind.Server,
-                    ViewModel.EnsureSaved(row)));
+                    ViewModel.ResolveServer(row)));
             if (Frame?.Content != this) return;
             AppMotion.Back(Frame, typeof(HomePage), AppMotion.DestinationBack, source.AnimationIcon);
         }
