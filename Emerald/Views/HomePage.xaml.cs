@@ -24,6 +24,7 @@ public sealed partial class HomePage : Page
         {
             AppMotion.Start(AppMotion.PlaytimeBack, HomePlaytimeChart);
             AppMotion.Start(AppMotion.DestinationBack, DestinationIcon);
+            AppMotion.Start(AppMotion.AccountNameToHome, AccountNameText);
             ProfileItems.ItemContainerTransitions = AppMotion.ItemTransitions();
         };
         var ticks = 0;

@@ -22,6 +22,9 @@ public partial class AccountsPageViewModel : ObservableObject
     private bool _isLoading;
 
     [ObservableProperty]
+    private bool _isActivatingAccount;
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LoadingMessage))]
     [NotifyPropertyChangedFor(nameof(CanCancelLogin))]
     [NotifyCanExecuteChangedFor(nameof(CancelLoginCommand))]
@@ -233,7 +236,8 @@ public partial class AccountsPageViewModel : ObservableObject
             return;
         }
 
-        IsLoading = true;
+        // Keep the selected card realized for the connected transition to Home.
+        IsActivatingAccount = true;
         LoadErrorMessage = null;
 
         try
@@ -256,7 +260,7 @@ public partial class AccountsPageViewModel : ObservableObject
         }
         finally
         {
-            IsLoading = false;
+            IsActivatingAccount = false;
         }
     }
 

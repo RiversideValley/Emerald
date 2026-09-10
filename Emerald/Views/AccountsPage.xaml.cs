@@ -130,12 +130,31 @@ public sealed partial class AccountsPage : Page
 
     private async void AccountCard_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.Tag is not EAccount account)
+        if ((sender as FrameworkElement)?.Tag is not EAccount account ||
+            ViewModel.ActivateAccountCommand.IsRunning)
         {
             return;
         }
 
         await ViewModel.ActivateAccountCommand.ExecuteAsync(account);
+        if (Frame?.Content != this || !account.IsSelected) return;
+
+        var card = sender as SettingsCard;
+        var identity = (card?.Header as Grid)?.Children.OfType<StackPanel>().FirstOrDefault();
+        var username = identity?.Children.OfType<TextBlock>().FirstOrDefault();
+        if (App.Current?.MainWindow?.Content is Frame { Content: MainPage shell })
+        {
+            if (username != null) shell.NavigateHomeFromAccount(username);
+            else shell.NavigateToTag("Home");
+        }
+        else if (username != null)
+        {
+            AppMotion.NavigateConnected(Frame, typeof(HomePage), null, AppMotion.AccountNameToHome, username);
+        }
+        else
+        {
+            Frame.Navigate(typeof(HomePage), null, AppMotion.Entrance());
+        }
     }
 
     private async void RefreshAccount_Click(object sender, RoutedEventArgs e)

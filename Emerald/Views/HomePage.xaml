@@ -35,7 +35,7 @@
                   <ColumnDefinition Width="*" />
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Border x:Name="DestinationIcon" Width="48" Height="48" CornerRadius="8" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                <Border Width="48" Height="48" CornerRadius="8" Background="{ThemeResource LayerFillColorDefaultBrush}">
                   <Grid>
                     <FontIcon Glyph="&#xE77B;" />
                     <Image Source="{x:Bind ViewModel.AccountAvatar, Mode=OneWay}" />
@@ -45,7 +45,7 @@
                   <TextBlock Text="{helpers:Localize KeyName=RefinePlayingAs}"
                              Style="{ThemeResource CaptionTextBlockStyle}"
                              Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                  <TextBlock Text="{x:Bind ViewModel.AccountName, Mode=OneWay}"
+                  <TextBlock x:Name="AccountNameText" Text="{x:Bind ViewModel.AccountName, Mode=OneWay}"
                              Style="{ThemeResource SubtitleTextBlockStyle}" TextTrimming="CharacterEllipsis"
                              ToolTipService.ToolTip="{x:Bind ViewModel.AccountName, Mode=OneWay}" />
                 </StackPanel>
@@ -86,7 +86,7 @@
                   <ColumnDefinition Width="*" />
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Border Width="48" Height="48" CornerRadius="8" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                <Border x:Name="DestinationIcon" Width="48" Height="48" CornerRadius="8" Background="{ThemeResource LayerFillColorDefaultBrush}">
                   <Grid>
                     <FontIcon Glyph="{x:Bind ViewModel.DestinationGlyph, Mode=OneWay}" />
                     <controls:WorldThumbnail Path="{x:Bind ViewModel.DestinationImage, Mode=OneWay}"

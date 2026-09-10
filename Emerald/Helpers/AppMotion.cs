@@ -11,6 +11,7 @@ public static class AppMotion
     public const string PlaytimeForward = "Emerald.Playtime.Forward";
     public const string PlaytimeBack = "Emerald.Playtime.Back";
     public const string DestinationBack = "Emerald.Destination.Back";
+    public const string AccountNameToHome = "Emerald.Account.NameToHome";
 
     // Read at the point of use so a changed accessibility preference takes effect.
     public static bool Enabled => new UISettings().AnimationsEnabled;

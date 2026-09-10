@@ -340,6 +340,19 @@ public sealed partial class MainPage : Page
         Navigate(target, parameter);
     }
 
+    public void NavigateHomeFromAccount(FrameworkElement username)
+    {
+        var target = NavView.MenuItems.OfType<SquareNavigationViewItem>()
+            .FirstOrDefault(item => string.Equals(item.Tag as string, "Home", StringComparison.Ordinal));
+        if (target == null) return;
+
+        HideTasksFlyout();
+        NavView.SelectedItem = target;
+        _lastNonTaskNavigationItem = target;
+        AppMotion.NavigateConnected(frame, typeof(HomePage), null, AppMotion.AccountNameToHome, username);
+        UpdateHeader(target);
+    }
+
     public void NavigateToCrashReports(string? reportId)
     {
         var items = NavView.MenuItems.Cast<object>().Concat(NavView.FooterMenuItems.Cast<object>());
