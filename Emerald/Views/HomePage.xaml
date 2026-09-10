@@ -35,7 +35,7 @@
                   <ColumnDefinition Width="*" />
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Border Width="48" Height="48" CornerRadius="8" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                <Border x:Name="DestinationIcon" Width="48" Height="48" CornerRadius="8" Background="{ThemeResource LayerFillColorDefaultBrush}">
                   <Grid>
                     <FontIcon Glyph="&#xE77B;" />
                     <Image Source="{x:Bind ViewModel.AccountAvatar, Mode=OneWay}" />
@@ -195,7 +195,7 @@
                   </StackPanel>
                 </Grid>
                 <Grid Grid.Row="2" VerticalAlignment="Bottom">
-                  <ItemsControl ItemsSource="{x:Bind ViewModel.HomeDailyBars, Mode=OneWay}"
+                  <ItemsControl x:Name="HomePlaytimeChart" ItemsSource="{x:Bind ViewModel.HomeDailyBars, Mode=OneWay}"
                                 HorizontalContentAlignment="Stretch">
                     <ItemsControl.ItemsPanel>
                       <ItemsPanelTemplate>
@@ -238,7 +238,7 @@
           <Button Content="{helpers:Localize KeyName=RefineNewProfile}" HorizontalAlignment="Right"
                   Click="AddProfile_Click" />
         </Grid>
-        <ItemsControl ItemsSource="{x:Bind ViewModel.QuickProfiles, Mode=OneWay}" HorizontalContentAlignment="Stretch">
+        <ItemsControl x:Name="ProfileItems" ItemsSource="{x:Bind ViewModel.QuickProfiles, Mode=OneWay}" HorizontalContentAlignment="Stretch">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <controls:ResponsiveCardPanel />

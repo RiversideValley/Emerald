@@ -1,3 +1,4 @@
+using Emerald.Helpers;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.Controls;
 using Emerald.CoreX.Runtime;
@@ -33,24 +34,18 @@ public sealed partial class ServersPage : Page
 
     private void Back_Click(object sender, RoutedEventArgs e)
     {
-        if (Frame.CanGoBack)
-        {
-            Frame.GoBack();
-        }
-        else
-        {
-            Frame.Navigate(typeof(HomePage));
-        }
+        AppMotion.Back(Frame, typeof(HomePage));
     }
 
     private async void Select_Row(object? sender, EventArgs e)
     {
-        if (sender is ServerRow { Model: { } row } && ViewModel.SelectedGame is { } game)
+        if (sender is ServerRow { Model: { } row } source && ViewModel.SelectedGame is { } game)
         {
             await Ioc.Default.GetRequiredService<HomePageViewModel>()
                 .ApplySelectionAsync(new HomeSelection(game, MinecraftLaunchTargetKind.Server,
                     ViewModel.EnsureSaved(row)));
-            Back_Click(this, new RoutedEventArgs());
+            if (Frame?.Content != this) return;
+            AppMotion.Back(Frame, typeof(HomePage), AppMotion.DestinationBack, source.AnimationIcon);
         }
     }
 

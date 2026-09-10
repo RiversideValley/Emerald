@@ -15,6 +15,8 @@ public sealed partial class ServerRow : UserControl
         set => SetValue(ModelProperty, value);
     }
 
+    public FrameworkElement AnimationIcon => ServerImage;
+
     public event EventHandler? Selected;
     public event EventHandler? Play;
     public event EventHandler? Favorite;

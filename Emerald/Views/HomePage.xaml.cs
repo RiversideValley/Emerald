@@ -20,6 +20,12 @@ public sealed partial class HomePage : Page
     public HomePage()
     {
         InitializeComponent();
+        Loaded += (_, _) =>
+        {
+            AppMotion.Start(AppMotion.PlaytimeBack, HomePlaytimeChart);
+            AppMotion.Start(AppMotion.DestinationBack, DestinationIcon);
+            ProfileItems.ItemContainerTransitions = AppMotion.ItemTransitions();
+        };
         var ticks = 0;
         _timer.Tick += (_, _) =>
         {
@@ -80,18 +86,19 @@ public sealed partial class HomePage : Page
 
     private void Servers_Click(object sender, RoutedEventArgs e)
     {
-        Frame.Navigate(typeof(ServersPage), ViewModel.SelectedGame);
+        Frame.Navigate(typeof(ServersPage), ViewModel.SelectedGame, AppMotion.DrillIn());
     }
 
     private void Worlds_Click(object sender, RoutedEventArgs e)
     {
-        Frame.Navigate(typeof(WorldsPage), ViewModel.SelectedGame);
+        Frame.Navigate(typeof(WorldsPage), ViewModel.SelectedGame, AppMotion.DrillIn());
     }
 
     private void PlaytimeCard_Click(object sender, RoutedEventArgs e)
     {
-        Frame.Navigate(typeof(PlaytimePage),
-            new PlaytimeNavigation(ViewModel.CurrentPlaytimeScope, PlaytimeRange.SevenDays));
+        AppMotion.NavigateConnected(Frame, typeof(PlaytimePage),
+            new PlaytimeNavigation(ViewModel.CurrentPlaytimeScope, PlaytimeRange.SevenDays),
+            AppMotion.PlaytimeForward, HomePlaytimeChart);
     }
 
     private void MainMenu_Click(object sender, RoutedEventArgs e)

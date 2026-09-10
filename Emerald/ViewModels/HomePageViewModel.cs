@@ -685,11 +685,42 @@ public partial class HomePageViewModel : ObservableObject
 
     private void RefreshProfiles()
     {
-        QuickProfiles.ReplaceWith(_profiles.GetAll().Select(x =>
-            new QuickProfileCardViewModel(x, _profiles.Validate(x, Games, _accounts.Accounts, FavoriteServers),
-                    Games.FirstOrDefault(g => g.InstanceId == x.InstanceId)?.Version.DisplayName,
-                    _accounts.Accounts.FirstOrDefault(a => a.UniqueId == x.AccountUniqueId)?.Name)
-                { IsSelected = x.Id == ActiveQuickProfileId }));
+        var profiles = _profiles.GetAll();
+        var ids = profiles.Select(profile => profile.Id).ToHashSet();
+        for (var index = QuickProfiles.Count - 1; index >= 0; index--)
+        {
+            if (!ids.Contains(QuickProfiles[index].Profile.Id)) QuickProfiles.RemoveAt(index);
+        }
+
+        for (var index = 0; index < profiles.Count; index++)
+        {
+            var profile = profiles[index];
+            var card = new QuickProfileCardViewModel(profile,
+                _profiles.Validate(profile, Games, _accounts.Accounts, FavoriteServers),
+                Games.FirstOrDefault(game => game.InstanceId == profile.InstanceId)?.Version.DisplayName,
+                _accounts.Accounts.FirstOrDefault(account => account.UniqueId == profile.AccountUniqueId)?.Name)
+                { IsSelected = profile.Id == ActiveQuickProfileId };
+            var existing = QuickProfiles.FirstOrDefault(item => item.Profile.Id == profile.Id);
+            if (existing == null)
+            {
+                QuickProfiles.Insert(index, card);
+                continue;
+            }
+
+            // Preserve the card container for add/delete/reorder transitions and focus.
+            var previousIndex = QuickProfiles.IndexOf(existing);
+            if (previousIndex != index) QuickProfiles.Move(previousIndex, index);
+            if (existing.Revision != profile.UpdatedAt || existing.Context != card.Context ||
+                existing.NeedsAttention != card.NeedsAttention)
+            {
+                QuickProfiles[index] = card;
+            }
+            else
+            {
+                existing.IsSelected = card.IsSelected;
+            }
+        }
+
         OnPropertyChanged(nameof(HasProfiles));
     }
 

@@ -220,7 +220,7 @@ public sealed partial class GamesPage : Page
             return;
         }
 
-        Frame?.Navigate(typeof(LogsPage), game.Path.BasePath, new EntranceNavigationTransitionInfo());
+        Frame?.Navigate(typeof(LogsPage), game.Path.BasePath, AppMotion.DrillIn());
     }
 
     private void OpenStore_Click(object sender, RoutedEventArgs e)
@@ -236,7 +236,7 @@ public sealed partial class GamesPage : Page
             return;
         }
 
-        Frame?.Navigate(typeof(ModrinthStorePage), game.Path.BasePath, new EntranceNavigationTransitionInfo());
+        Frame?.Navigate(typeof(ModrinthStorePage), game.Path.BasePath, AppMotion.DrillIn());
     }
 
     private void RemoveGame_Click(object sender, RoutedEventArgs e)
@@ -263,7 +263,7 @@ public sealed partial class GamesPage : Page
             return;
         }
 
-        Frame?.Navigate(typeof(AccountsPage), null, new EntranceNavigationTransitionInfo());
+        Frame?.Navigate(typeof(AccountsPage), null, AppMotion.Entrance());
     }
 
     private async void EditOptions_Click(object sender, RoutedEventArgs e)

@@ -452,7 +452,7 @@ public sealed partial class MainPage : Page
         {
             this.Log().LogDebug("Navigating frame to {PageType}. ForceNavigate: {ForceNavigate}.", type.Name,
                 forceNavigate);
-            frame.Navigate(type, parameter, new EntranceNavigationTransitionInfo());
+            frame.Navigate(type, parameter, AppMotion.Entrance());
         }
     }
 

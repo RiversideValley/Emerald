@@ -106,7 +106,7 @@
             <TextBlock Text="{x:Bind ViewModel.ChartScale, Mode=OneWay}" HorizontalAlignment="Right"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
           </Grid>
-          <ItemsControl ItemsSource="{x:Bind ViewModel.DailyBars, Mode=OneWay}"
+          <ItemsControl x:Name="DailyChart" ItemsSource="{x:Bind ViewModel.DailyBars, Mode=OneWay}"
                         ItemTemplate="{StaticResource BarTemplate}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>

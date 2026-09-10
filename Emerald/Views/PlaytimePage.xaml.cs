@@ -1,3 +1,4 @@
+using Emerald.Helpers;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.ViewModels;
 using Microsoft.UI.Xaml;
@@ -18,6 +19,7 @@ public sealed partial class PlaytimePage : Page
     public PlaytimePage()
     {
         InitializeComponent();
+        Loaded += (_, _) => AppMotion.Start(AppMotion.PlaytimeForward, DailyChart);
         _timer.Tick += (_, _) =>
         {
             if (ViewModel.HasActive)
@@ -70,14 +72,7 @@ public sealed partial class PlaytimePage : Page
 
     private void Back_Click(object sender, RoutedEventArgs e)
     {
-        if (Frame.CanGoBack)
-        {
-            Frame.GoBack();
-        }
-        else
-        {
-            Frame.Navigate(typeof(HomePage));
-        }
+        AppMotion.Back(Frame, typeof(HomePage), AppMotion.PlaytimeBack, DailyChart);
     }
 
     private void PreviousSession_Click(object sender, RoutedEventArgs e)

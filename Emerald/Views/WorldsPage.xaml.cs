@@ -1,3 +1,4 @@
+using AppMotion = Emerald.Helpers.AppMotion;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.CoreX.Helpers;
 using Emerald.CoreX.Runtime;
@@ -33,14 +34,7 @@ public sealed partial class WorldsPage : Page
 
     private void Back_Click(object sender, RoutedEventArgs e)
     {
-        if (Frame.CanGoBack)
-        {
-            Frame.GoBack();
-        }
-        else
-        {
-            Frame.Navigate(typeof(HomePage));
-        }
+        AppMotion.Back(Frame, typeof(HomePage));
     }
 
     private async void Refresh_Click(object sender, RoutedEventArgs e)
@@ -51,11 +45,13 @@ public sealed partial class WorldsPage : Page
 
     private async void Select_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { Tag: WorldRowViewModel row } && ViewModel.SelectedGame is { } game)
+        if (sender is Button { Tag: WorldRowViewModel row, Content: Grid content } && ViewModel.SelectedGame is { } game)
         {
             await Ioc.Default.GetRequiredService<HomePageViewModel>()
                 .ApplySelectionAsync(new HomeSelection(game, MinecraftLaunchTargetKind.World, World: row.World));
-            Back_Click(sender, e);
+            if (Frame?.Content != this) return;
+            AppMotion.Back(Frame, typeof(HomePage), AppMotion.DestinationBack,
+                content.Children.OfType<Controls.WorldThumbnail>().FirstOrDefault());
         }
     }
 

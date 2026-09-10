@@ -491,7 +491,7 @@ public sealed partial class AboutPage : Page
 
     private void OpenCrashReports_Click(object sender, RoutedEventArgs e)
     {
-        Frame?.Navigate(typeof(CrashReportsPage));
+        Frame?.Navigate(typeof(CrashReportsPage), null, Emerald.Helpers.AppMotion.DrillIn());
     }
 
     private async void OpenNightlyArtifacts_Click(object sender, RoutedEventArgs e)

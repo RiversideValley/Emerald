@@ -12,6 +12,7 @@ public partial class QuickProfileCardViewModel(
     string? account = null) : ObservableObject
 {
     public QuickProfile Profile { get; } = profile;
+    internal DateTimeOffset Revision { get; } = profile.UpdatedAt;
     public string Name => Profile.Name;
     public string Glyph => QuickProfileGlyphs.Resolve(Profile.GlyphKey);
 

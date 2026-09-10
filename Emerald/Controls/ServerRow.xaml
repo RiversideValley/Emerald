@@ -16,7 +16,7 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
-          <Border Width="48" Height="48" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="8">
+          <Border x:Name="ServerImage" Width="48" Height="48" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="8">
             <controls:ServerIcon Source="{Binding Icon}" />
           </Border>
           <StackPanel Grid.Column="1" Spacing="4">

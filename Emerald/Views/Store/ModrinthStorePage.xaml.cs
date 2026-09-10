@@ -1,3 +1,4 @@
+using Emerald.Helpers;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Emerald.ViewModels;
 using Microsoft.UI.Xaml.Controls;
@@ -70,7 +71,7 @@ public sealed partial class ModrinthStorePage : Page
 
         if (contentframe.Content?.GetType() != pageType)
         {
-            contentframe.Navigate(pageType, ViewModel, new DrillInNavigationTransitionInfo());
+            contentframe.Navigate(pageType, ViewModel, AppMotion.DrillIn());
         }
     }
 
