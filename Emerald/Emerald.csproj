@@ -3,6 +3,8 @@
     <TargetFrameworks>net10.0-windows10.0.26100;net10.0-desktop</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <UnoSingleProject>true</UnoSingleProject>
+    <!-- Icon Composer source is compiled and injected by the macOS publish workflow. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);Assets\Icons\Emerald.icon\**</DefaultItemExcludes>
 
     <VersionPrefix Condition="'$(VersionPrefix)' == ''">0.1.0</VersionPrefix>
     <EmeraldUpdateChannel Condition="'$(EmeraldUpdateChannel)' == ''">nightly</EmeraldUpdateChannel>
