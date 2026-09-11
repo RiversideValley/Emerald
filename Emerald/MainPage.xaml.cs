@@ -115,11 +115,12 @@ public sealed partial class MainPage : Page
     {
         _ = this.GetThemeService().SetThemeAsync((AppTheme)SS.Settings.App.Appearance.Theme);
 
-        SystemBackdrop backdrop = SS.Settings.App.Appearance.BackdropType switch
+        SystemBackdrop? backdrop = SS.Settings.App.Appearance.BackdropType switch
         {
             0 => new MicaBackdrop { Kind = MicaKind.Base },
             1 => new MicaBackdrop { Kind = MicaKind.BaseAlt },
-            _ => new DesktopAcrylicBackdrop()
+            2 => new DesktopAcrylicBackdrop(),
+            _ => null
         };
         App.Current.MainWindow.SystemBackdrop = backdrop;
 

@@ -36,6 +36,8 @@
             Content="Mica Alt" />
           <ComboBoxItem
             Content="Acrylic" />
+          <ComboBoxItem
+            Content="None" />
         </ComboBox>
       </cn:SettingsCard>
       <cn:SettingsCard
