@@ -33,17 +33,17 @@ namespace Emerald;
 public partial class App : Application
 {
     private const string CurrentReleaseNotes = """
-What's new
-- Emerald now stores Windows app data in the app's local ApplicationData folder.
-- Minecraft instances now use the Instances folder by default.
-- Release notes now appear once after a fresh install or app update.
+                                               What's new
+                                               - Emerald now stores Windows app data in the app's local ApplicationData folder.
+                                               - Minecraft instances now use the Instances folder by default.
+                                               - Release notes now appear once after a fresh install or app update.
 
-Notes
-- Existing custom Minecraft paths and saved instances are left where they are.
-- You can still change the Minecraft path from Settings.
-""";
+                                               Notes
+                                               - Existing custom Minecraft paths and saved instances are left where they are.
+                                               - You can still change the Minecraft path from Settings.
+                                               """;
 
-    private Services.SettingsService SS = null!;
+    private SettingsService SS = null!;
     private readonly CrashCoordinator _crashCoordinator;
     private Task? _startupTask;
     private int _normalShutdownStarted;
@@ -59,11 +59,11 @@ Notes
 
         try
         {
-            this.InitializeComponent();
+            InitializeComponent();
             // Uno's generated handler is registered during application setup. Subscribe
             // afterward so an attached Debugger can break there before Emerald records
             // and terminates if execution resumes.
-            this.UnhandledException += App_UnhandledException;
+            UnhandledException += App_UnhandledException;
         }
         catch (Exception exception)
         {
@@ -75,7 +75,7 @@ Notes
     protected IHost? Host { get; private set; }
     public CrashCoordinator CrashCoordinator => _crashCoordinator;
 
-    #region  Services
+    #region Services
 
     private void ConfigureAuthServices(IServiceCollection services)
     {
@@ -92,14 +92,16 @@ Notes
             new CoreX.Services.Auth.ElyBy.ElyByAuthClient(
                 provider.GetRequiredService<ILogger<CoreX.Services.Auth.ElyBy.ElyByAuthClient>>(),
                 provider.GetRequiredService<CoreX.Services.Auth.ElyBy.ElyByOAuthOptions>()));
-        services.AddSingleton<CoreX.Services.Auth.ElyBy.IElyByAccountStore, CoreX.Services.Auth.ElyBy.ElyByAccountStore>();
+        services
+            .AddSingleton<CoreX.Services.Auth.ElyBy.IElyByAccountStore, CoreX.Services.Auth.ElyBy.ElyByAccountStore>();
         services.AddSingleton<CoreX.Services.Auth.OAuth.ISystemBrowserLauncher>(provider =>
         {
             var dispatcherQueue = MainWindow?.DispatcherQueue
                                   ?? DispatcherQueue.GetForCurrentThread()
-                                  ?? throw new InvalidOperationException("A DispatcherQueue is required for Ely.by browser authentication.");
+                                  ?? throw new InvalidOperationException(
+                                      "A DispatcherQueue is required for Ely.by browser authentication.");
 
-            return new Services.UnoSystemBrowserLauncher(dispatcherQueue);
+            return new UnoSystemBrowserLauncher(dispatcherQueue);
         });
         services.AddSingleton<CoreX.Services.Auth.OAuth.IBrowserOAuthBroker>(provider =>
             new CoreX.Services.Auth.OAuth.LoopbackBrowserOAuthBroker(
@@ -120,7 +122,7 @@ Notes
                 provider.GetRequiredService<HttpClient>(),
                 provider.GetRequiredService<DownloadTimeouts>()));
 
-        services.AddSingleton(new CoreX.Services.Auth.AccountProviderPolicyOptions
+        services.AddSingleton(new AccountProviderPolicyOptions
         {
             RequireMicrosoftForOfflineAccounts = false,
             RequireMicrosoftForElyByAccounts = false
@@ -132,23 +134,26 @@ Notes
         {
             var dispatcherQueue = MainWindow?.DispatcherQueue
                                   ?? DispatcherQueue.GetForCurrentThread()
-                                  ?? throw new InvalidOperationException("A DispatcherQueue is required for the account service.");
+                                  ?? throw new InvalidOperationException(
+                                      "A DispatcherQueue is required for the account service.");
 
             return new CoreX.Services.AccountService(
                 provider.GetRequiredService<ILogger<CoreX.Services.AccountService>>(),
-                provider.GetRequiredService<Services.IBaseSettingsService>(),
-                new Services.DispatcherQueueUiDispatcher(dispatcherQueue),
-                provider.GetServices<CoreX.Services.Auth.IAccountProvider>(),
+                provider.GetRequiredService<IBaseSettingsService>(),
+                new DispatcherQueueUiDispatcher(dispatcherQueue),
+                provider.GetServices<IAccountProvider>(),
                 Path.Combine(DirectResoucres.LocalDataPath, "accounts", "cml_accounts.json"),
-                notificationService: provider.GetRequiredService<CoreX.Notifications.INotificationService>());
+                provider.GetRequiredService<INotificationService>());
         });
     }
 
     private static string GetBuildMetadata(string key)
-        => typeof(App).Assembly
+    {
+        return typeof(App).Assembly
             .GetCustomAttributes<AssemblyMetadataAttribute>()
             .FirstOrDefault(attribute => string.Equals(attribute.Key, key, StringComparison.Ordinal))
             ?.Value ?? string.Empty;
+    }
 
     private void ConfigureCoreServices(IServiceCollection services)
     {
@@ -161,32 +166,42 @@ Notes
             return client;
         });
         services.AddSingleton<INetworkCapabilityService, NetworkCapabilityService>();
+        services.AddSingleton<IMinecraftLaunchCapabilityResolver, MinecraftLaunchCapabilityResolver>();
+        services
+            .AddSingleton<CoreX.Services.Servers.IServerDirectoryService,
+                CoreX.Services.Servers.ServerDirectoryService>();
+        services
+            .AddSingleton<CoreX.Services.Servers.IServerStatusService, CoreX.Services.Servers.ServerStatusService>();
+        services
+            .AddSingleton<CoreX.Services.Worlds.IMinecraftWorldService, CoreX.Services.Worlds.MinecraftWorldService>();
         services.AddSingleton<IDownloadActivityService, DownloadActivityService>();
         services.AddSingleton<DownloadTimeouts>();
         services.AddSingleton<CoreX.Services.IUiDispatcher>(_ =>
-            new Services.DispatcherQueueUiDispatcher(MainWindow.DispatcherQueue));
+            new DispatcherQueueUiDispatcher(MainWindow.DispatcherQueue));
         services.AddSingleton<IInstallationStateStore, InstallationStateStore>();
         services.AddSingleton<VerifiedGameInstaller>();
         services.AddSingleton<IInstanceInstallationService, InstanceInstallationService>();
 
-        services.AddSingleton<CoreX.Runtime.IGameRuntimeService>(provider =>
+        services.AddSingleton<IGameRuntimeService>(provider =>
         {
             var logger = provider.GetRequiredService<ILogger<GameRuntimeService>>();
-            var notificationService = provider.GetRequiredService<CoreX.Notifications.INotificationService>();
+            var notificationService = provider.GetRequiredService<INotificationService>();
             var accountService = provider.GetRequiredService<CoreX.Services.IAccountService>();
-            var runtimeSettings = provider.GetRequiredService<CoreX.Runtime.IGameRuntimeSettings>();
+            var runtimeSettings = provider.GetRequiredService<IGameRuntimeSettings>();
             var dispatcherQueue = MainWindow?.DispatcherQueue
                                   ?? DispatcherQueue.GetForCurrentThread()
-                                  ?? throw new InvalidOperationException("A DispatcherQueue is required for the game runtime service.");
+                                  ?? throw new InvalidOperationException(
+                                      "A DispatcherQueue is required for the game runtime service.");
 
             return new GameRuntimeService(
                 logger,
                 notificationService,
                 accountService,
                 runtimeSettings,
-                new Services.DispatcherQueueUiDispatcher(dispatcherQueue),
+                new DispatcherQueueUiDispatcher(dispatcherQueue),
                 provider.GetRequiredService<IInstanceInstallationService>(),
-                provider.GetRequiredService<INetworkCapabilityService>());
+                provider.GetRequiredService<INetworkCapabilityService>(),
+                provider.GetRequiredService<IInstancePlaytimeService>());
         });
 
         //Mod Loaders
@@ -198,7 +213,7 @@ Notes
         services.AddTransient<CoreX.Installers.IModLoaderInstaller, CoreX.Installers.Optifine>();
 
         services.AddTransient<CoreX.Installers.ModLoaderRouter>();
-        
+
         // Options.txt
         services.AddTransient<CoreX.GameOptions.IMinecraftOptionsService,
             CoreX.GameOptions.MinecraftOptionsService>();
@@ -224,24 +239,31 @@ Notes
         services.AddTransient<IGameStoreContentService, GameStoreContentService>();
         services.AddTransient<CoreX.Modpacks.IMrPackReader, CoreX.Modpacks.MrPackReader>();
         services.AddTransient<CoreX.Modpacks.IMrPackFileInstaller, CoreX.Modpacks.MrPackFileInstaller>();
-        services.AddTransient<CoreX.Modpacks.IModpackInstanceCreationService, CoreX.Modpacks.ModpackInstanceCreationService>();
+        services
+            .AddTransient<CoreX.Modpacks.IModpackInstanceCreationService,
+                CoreX.Modpacks.ModpackInstanceCreationService>();
     }
 
     private void ConfigureSettingsServices(IServiceCollection services)
     {
         //Settings
-        services.AddSingleton<Services.SettingsService>();
-        services.AddSingleton<Services.IBaseSettingsService, Services.BaseSettingsService>(provider =>
+        services.AddSingleton<SettingsService>();
+        services.AddSingleton<IBaseSettingsService, BaseSettingsService>(provider =>
         {
-            var logger = provider.GetRequiredService<ILogger<Services.BaseSettingsService>>();
+            var logger = provider.GetRequiredService<ILogger<BaseSettingsService>>();
             var path = Path.Combine(DirectResoucres.LocalDataPath, "settings");
             return new BaseSettingsService(logger, path);
         });
-        services.AddSingleton<CoreX.Services.IMinecraftBaseSettingsService, CoreX.Services.MinecraftBaseSettingsService>();
-        services.AddSingleton<Services.IAppUpdateService, Services.AppUpdateService>();
+        services
+            .AddSingleton<CoreX.Services.IMinecraftBaseSettingsService, CoreX.Services.MinecraftBaseSettingsService>();
+        services.AddSingleton<IInstancePlaytimeService, InstancePlaytimeService>();
+        services.AddSingleton<CoreX.Services.IHomePreferencesService, CoreX.Services.HomePreferencesService>();
+        services.AddSingleton<CoreX.Services.IQuickProfileService, CoreX.Services.QuickProfileService>();
+        services.AddSingleton<CoreX.Services.Servers.ISavedServerService, CoreX.Services.Servers.SavedServerService>();
+        services.AddSingleton<IAppUpdateService, AppUpdateService>();
         services.AddSingleton<CoreX.Services.IGlobalGameSettingsService, CoreX.Services.GlobalGameSettingsService>();
-        services.AddSingleton<CoreX.Runtime.IGameRuntimeSettings, Services.GameRuntimeSettingsAdapter>();
-        services.AddSingleton<CoreX.Services.Auth.Authlib.IAuthlibInjectorSettings, Services.AuthlibInjectorSettingsAdapter>();
+        services.AddSingleton<IGameRuntimeSettings, GameRuntimeSettingsAdapter>();
+        services.AddSingleton<CoreX.Services.Auth.Authlib.IAuthlibInjectorSettings, AuthlibInjectorSettingsAdapter>();
         services.AddSingleton<CoreX.Services.IJavaRuntimeProbe, CoreX.Services.ProcessJavaRuntimeProbe>();
         services.AddSingleton<CoreX.Services.IJavaRuntimeCatalogService, CoreX.Services.JavaRuntimeCatalogService>();
     }
@@ -249,15 +271,19 @@ Notes
     private void ConfigureUiServices(IServiceCollection services)
     {
         //Notifications
-        services.AddSingleton<CoreX.Notifications.INotificationService>(provider =>
+        services.AddSingleton<INotificationService>(provider =>
         {
-            var logger = provider.GetRequiredService<ILogger<CoreX.Notifications.NotificationService>>();
-            var inner = new CoreX.Notifications.NotificationService(logger);
+            var logger = provider.GetRequiredService<ILogger<NotificationService>>();
+            var inner = new NotificationService(logger);
             return new DispatchedNotificationService(inner, MainWindow.DispatcherQueue);
         });
 
         //ViewModels
         services.AddSingleton<ViewModels.GamesPageViewModel>();
+        services.AddSingleton<ViewModels.HomePageViewModel>();
+        services.AddTransient<ViewModels.PlaytimePageViewModel>();
+        services.AddTransient<ViewModels.ServersPageViewModel>();
+        services.AddTransient<ViewModels.WorldsPageViewModel>();
         services.AddTransient<ViewModels.NotificationListViewModel>();
         services.AddSingleton<ViewModels.AccountsPageViewModel>();
         services.AddTransient<ViewModels.LogsPageViewModel>();
@@ -266,9 +292,9 @@ Notes
         services.AddTransient<ViewModels.GameOptionsViewModel>();
         services.AddTransient<ViewModels.AdvancedSettingsPageViewModel>();
     }
-    
+
     #endregion
-    
+
     /// <summary>
     /// Registers the maintained services and viewmodels used by the active Uno shell.
     /// </summary>
@@ -328,7 +354,8 @@ Notes
                     .WriteTo.File(logPath,
                         rollingInterval: RollingInterval.Day,
                         retainedFileCountLimit: 7,
-                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] ({SourceContext}) {Message}{NewLine}{Exception}"))
+                        outputTemplate:
+                        "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] ({SourceContext}) {Message}{NewLine}{Exception}"))
                 .ConfigureServices((context, services) => ConfigureServices(services))
             );
 
@@ -372,7 +399,11 @@ Notes
         {
             await WaitForRootAsync(rootFrame);
             var showRecovery = await ShowRecoveryIfNeededAsync(rootFrame);
-            if (showRecovery && !_normalStartupChosen) return;
+            if (showRecovery && !_normalStartupChosen)
+            {
+                return;
+            }
+
             _crashCoordinator.MarkNormalStartupAttempted();
             BuildHost(builder);
             await InitializeApplicationAsync(args, rootFrame, showRecovery);
@@ -387,8 +418,11 @@ Notes
     {
         var pendingReport = _crashCoordinator.GetUnacknowledgedReports().FirstOrDefault();
         var shouldShow = !CrashFaultInjection.IsArmed
-            && (pendingReport is not null || _crashCoordinator.IsRecoveryMode);
-        if (!shouldShow) return false;
+                         && (pendingReport is not null || _crashCoordinator.IsRecoveryMode);
+        if (!shouldShow)
+        {
+            return false;
+        }
 
         await ShowPendingCrashAtStartupAsync(rootFrame,
             pendingReport ?? _crashCoordinator.GetReports().FirstOrDefault());
@@ -401,7 +435,8 @@ Notes
         Ioc.Default.ConfigureServices(Host.Services);
         NativeDispatcherFatalLoggerProvider.AttachHost(Host.Services.GetRequiredService<ILoggerFactory>());
         _crashCoordinator.SetLogger(Host.Services.GetRequiredService<ILogger<CrashCoordinator>>());
-        this.Log().LogInformation("Application host built successfully. LogPath: {LogPath}.", _crashCoordinator.ApplicationLogPath);
+        this.Log().LogInformation("Application host built successfully. LogPath: {LogPath}.",
+            _crashCoordinator.ApplicationLogPath);
     }
 
     private async Task InitializeApplicationAsync(
@@ -418,7 +453,7 @@ Notes
 
     private void LoadSettings()
     {
-        SS = Ioc.Default.GetRequiredService<Services.SettingsService>();
+        SS = Ioc.Default.GetRequiredService<SettingsService>();
         SS.LoadData();
         this.Log().LogInformation("Application settings loaded.");
     }
@@ -475,8 +510,16 @@ Notes
 
     private async Task ShowOptionalStartupDialogsAsync(bool showedRecovery)
     {
-        if (_crashCoordinator.IsRecoveryMode) return;
-        if (!showedRecovery) await ShowReleaseNotesAtStartupAsync();
+        if (_crashCoordinator.IsRecoveryMode)
+        {
+            return;
+        }
+
+        if (!showedRecovery)
+        {
+            await ShowReleaseNotesAtStartupAsync();
+        }
+
         await CheckForUpdatesAtStartupAsync();
     }
 
@@ -490,6 +533,7 @@ Notes
         }
 
         var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
         void OnLoaded(object sender, RoutedEventArgs args)
         {
             root.Loaded -= OnLoaded;
@@ -610,7 +654,7 @@ Notes
         return new ScrollViewer
         {
             Content = content,
-            Padding = new(12)
+            Padding = new Thickness(12)
         }.ToContentDialog("ReleaseNotes".Localize(), "Close".Localize());
     }
 
@@ -623,8 +667,8 @@ Notes
                 return;
             }
 
-            var updateService = Ioc.Default.GetService<Services.IAppUpdateService>();
-            var notificationService = Ioc.Default.GetService<CoreX.Notifications.INotificationService>();
+            var updateService = Ioc.Default.GetService<IAppUpdateService>();
+            var notificationService = Ioc.Default.GetService<INotificationService>();
 
             if (updateService is null || notificationService is null)
             {
@@ -632,7 +676,7 @@ Notes
             }
 
             var result = await updateService.CheckForUpdatesAsync(SS.Settings.App.Updates.PreferredChannel);
-            if (result.Status == Services.AppUpdateStatus.UpdateAvailable)
+            if (result.Status == AppUpdateStatus.UpdateAvailable)
             {
                 var message = $"{result.LatestPublicVersion ?? result.LatestPackageVersion?.ToString() ?? "-"}";
                 notificationService.Info("UpdateAvailable".Localize(), message);
@@ -649,7 +693,9 @@ Notes
     #region UnhandledExceptions
 
     private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
-        => HandleUnoUnhandledException(e.Exception);
+    {
+        HandleUnoUnhandledException(e.Exception);
+    }
 
     /// <summary>
     /// Applies Emerald's fatal policy after Uno has surfaced an unhandled UI exception.
@@ -696,7 +742,8 @@ Notes
         });
         content.Children.Add(new TextBlock
         {
-            Text = record is null ? string.Empty
+            Text = record is null
+                ? string.Empty
                 : $"{record.AppVersion} · {record.Platform} · {record.OccurredUtc.ToLocalTime():g}",
             TextWrapping = TextWrapping.WrapWholeWords
         });
@@ -721,8 +768,16 @@ Notes
 
     private string GetRecoveryDescription(CrashRecord? record)
     {
-        if (_crashCoordinator.IsRecoveryMode) return "RecoveryModeDescription".Localize();
-        if (record?.Kind == CrashRecordKind.UnexpectedShutdown) return "UnexpectedShutdownDescription".Localize();
+        if (_crashCoordinator.IsRecoveryMode)
+        {
+            return "RecoveryModeDescription".Localize();
+        }
+
+        if (record?.Kind == CrashRecordKind.UnexpectedShutdown)
+        {
+            return "UnexpectedShutdownDescription".Localize();
+        }
+
         return "CrashRecoveryDescription".Localize();
     }
 
@@ -768,7 +823,10 @@ Notes
 
     private void Acknowledge(CrashRecord? record)
     {
-        if (record is not null) _crashCoordinator.Acknowledge(record.Id);
+        if (record is not null)
+        {
+            _crashCoordinator.Acknowledge(record.Id);
+        }
     }
 
     private async Task ReportFromRecoveryDialogAsync(
@@ -780,7 +838,10 @@ Notes
         context.Dialog.IsSecondaryButtonEnabled = false;
         try
         {
-            if (context.Record is not null) await ReportCrashOnGitHubAsync(context.Record);
+            if (context.Record is not null)
+            {
+                await ReportCrashOnGitHubAsync(context.Record);
+            }
         }
         catch (Exception exception)
         {
@@ -796,7 +857,10 @@ Notes
     private async Task OpenLogsFromRecoveryAsync(CrashRecord? record)
     {
         Acknowledge(record);
-        try { await OpenCrashLogsAsync(); }
+        try
+        {
+            await OpenCrashLogsAsync();
+        }
         catch (Exception exception)
         {
             this.Log().LogWarning(exception, "Could not open logs from recovery.");
@@ -807,20 +871,27 @@ Notes
     {
         // Escape or programmatic cancellation is not a user acknowledgement.
         // Keep recovery accessible inline instead of presenting another modal.
-        if (!_normalStartupChosen) await ShowEmergencyRecoveryPanelAsync(root, record);
+        if (!_normalStartupChosen)
+        {
+            await ShowEmergencyRecoveryPanelAsync(root, record);
+        }
     }
 
     private static FrameworkElement CreateRecoveryDetails(CrashRecord? record)
-        => new ScrollViewer
+    {
+        return new ScrollViewer
         {
             MaxHeight = 320,
             Content = new TextBlock
             {
-                Text = record is null ? "UnexpectedShutdownDescription".Localize() : CrashReportFormatter.ToText(record),
+                Text = record is null
+                    ? "UnexpectedShutdownDescription".Localize()
+                    : CrashReportFormatter.ToText(record),
                 TextWrapping = TextWrapping.WrapWholeWords,
                 IsTextSelectionEnabled = true
             }
         };
+    }
 
     private async Task ShowEmergencyRecoveryPanelAsync(FrameworkElement root, CrashRecord? record)
     {
@@ -830,6 +901,7 @@ Notes
         {
             frame.Content = panel;
         }
+
         await completion.Task;
     }
 
@@ -837,7 +909,7 @@ Notes
         CrashRecord? record,
         TaskCompletionSource completion)
     {
-        var panel = new StackPanel { Spacing = 12, Padding = new(24) };
+        var panel = new StackPanel { Spacing = 12, Padding = new Thickness(24) };
         panel.Children.Add(new TextBlock
         {
             Text = record is null ? "RecoveryModeDescription".Localize() : "CrashRecoveryDescription".Localize(),
@@ -862,7 +934,10 @@ Notes
 
     private void AddEmergencyReportActions(StackPanel panel, CrashRecord? record)
     {
-        if (record is null) return;
+        if (record is null)
+        {
+            return;
+        }
 
         var reportButton = new Button { Content = "ReportToGitHub".Localize() };
         reportButton.Click += async (_, _) =>

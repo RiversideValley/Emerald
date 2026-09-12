@@ -74,8 +74,9 @@ public sealed class GameOverrideResolutionTests
         Assert.Equal("/global/java", secondGame.CustomGameSettings.JavaPath);
     }
 
-    private static CoreX.Game CreateGame(IGlobalGameSettingsService globalGameSettingsService, string displayName = "Test")
-        => new(
+    private static Game CreateGame(IGlobalGameSettingsService globalGameSettingsService, string displayName = "Test")
+    {
+        return new Game(
             new MinecraftPath($"/tmp/{displayName.ToLowerInvariant()}"),
             new Emerald.CoreX.Versions.Version
             {
@@ -84,13 +85,16 @@ public sealed class GameOverrideResolutionTests
                 ReleaseType = "release"
             },
             globalGameSettingsService: globalGameSettingsService);
+    }
 
     private sealed class TestGlobalGameSettingsService(GameSettings settings) : IGlobalGameSettingsService
     {
         public GameSettings Settings { get; } = settings;
 
         public GameSettings CloneCurrent()
-            => Settings.Clone();
+        {
+            return Settings.Clone();
+        }
 
         public void LoadForBasePath(string basePath)
         {

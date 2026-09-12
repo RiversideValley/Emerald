@@ -10,17 +10,17 @@ public sealed class GameLogProjectionBuilderTests
     {
         var entries = new[]
         {
-            CreateEntry("Backend initialized", level: GameLogLevel.Info),
+            CreateEntry("Backend initialized", GameLogLevel.Info),
             CreateEntry("Error headline", detailsText: "SignedJWT parsing failed", level: GameLogLevel.Error),
             CreateEntry("Thread sample", threadName: "IO-Worker-1", level: GameLogLevel.Warn),
             CreateEntry("Logger sample", loggerName: "com.mojang.auth", level: GameLogLevel.Debug)
         };
 
-        Assert.Single(Build(entries, searchQuery: "backend").VisibleEntries);
-        Assert.Single(Build(entries, searchQuery: "signedjwt").VisibleEntries);
-        Assert.Single(Build(entries, searchQuery: "io-worker-1").VisibleEntries);
-        Assert.Single(Build(entries, searchQuery: "com.mojang.auth").VisibleEntries);
-        Assert.Single(Build(entries, searchQuery: "warn").VisibleEntries);
+        Assert.Single(Build(entries, "backend").VisibleEntries);
+        Assert.Single(Build(entries, "signedjwt").VisibleEntries);
+        Assert.Single(Build(entries, "io-worker-1").VisibleEntries);
+        Assert.Single(Build(entries, "com.mojang.auth").VisibleEntries);
+        Assert.Single(Build(entries, "warn").VisibleEntries);
     }
 
     [Fact]
@@ -28,9 +28,9 @@ public sealed class GameLogProjectionBuilderTests
     {
         var entries = new[]
         {
-            CreateEntry("Info one", level: GameLogLevel.Info),
-            CreateEntry("Warn one", level: GameLogLevel.Warn),
-            CreateEntry("Error one", level: GameLogLevel.Error)
+            CreateEntry("Info one", GameLogLevel.Info),
+            CreateEntry("Warn one", GameLogLevel.Warn),
+            CreateEntry("Error one", GameLogLevel.Error)
         };
 
         var projection = Build(entries, selectedLevelFilter: "Warn");
@@ -94,7 +94,7 @@ public sealed class GameLogProjectionBuilderTests
         var entries = CreateSequencedEntries(120);
         var projection = Build(
             entries,
-            searchQuery: "Match",
+            "Match",
             pageSize: 100,
             currentPageNumber: 1,
             autoScroll: false,
@@ -115,19 +115,26 @@ public sealed class GameLogProjectionBuilderTests
         bool autoScroll = false,
         GameLogProjectionRefreshReason reason = GameLogProjectionRefreshReason.FilterChanged,
         int previousFilteredCount = 0)
-        => GameLogProjectionBuilder.Build(entries, searchQuery, selectedLevelFilter, pageSize, currentPageNumber, autoScroll, reason, previousFilteredCount);
+    {
+        return GameLogProjectionBuilder.Build(entries, searchQuery, selectedLevelFilter, pageSize, currentPageNumber,
+            autoScroll, reason, previousFilteredCount);
+    }
 
     private static IReadOnlyList<GameLogEntry> CreateSequencedEntries(int count)
-        => Enumerable.Range(1, count)
+    {
+        return Enumerable.Range(1, count)
             .Select(index => CreateEntry($"Entry {index:000}"))
             .ToList();
+    }
 
     private static GameLogEntry CreateEntry(
         string message,
         GameLogLevel level = GameLogLevel.Info,
         string? detailsText = null,
         string? threadName = "Render thread",
-        string? loggerName = "net.minecraft.client.Minecraft") => new()
+        string? loggerName = "net.minecraft.client.Minecraft")
+    {
+        return new GameLogEntry
         {
             Timestamp = DateTimeOffset.UtcNow,
             OriginalTimeText = "11:14:57",
@@ -139,4 +146,5 @@ public sealed class GameLogProjectionBuilderTests
             Source = GameLogSource.StandardOutput,
             RawPayload = message
         };
+    }
 }

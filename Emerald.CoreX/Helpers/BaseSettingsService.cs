@@ -7,6 +7,7 @@ public class BaseSettingsService : IBaseSettingsService
 {
     private readonly ILogger<BaseSettingsService> _logger;
     private readonly string? _defaultHeaderComment;
+
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
         WriteIndented = true,
@@ -24,7 +25,9 @@ public class BaseSettingsService : IBaseSettingsService
         _defaultHeaderComment = defaultHeaderComment;
 
         // Use the LocalFolder path as the base folder for file-based settings
-        _settingsFolder =  settingsFolderPath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Emerald", "Settings");
+        _settingsFolder = settingsFolderPath ??
+                          Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                              "Emerald", "Settings");
 
         // Ensure the directory exists immediately
         if (!Directory.Exists(_settingsFolder))
@@ -70,7 +73,9 @@ public class BaseSettingsService : IBaseSettingsService
     }
 
     public bool Exists(string key)
-        => File.Exists(GetFilePath(key));
+    {
+        return File.Exists(GetFilePath(key));
+    }
 
     public void Delete(string key)
     {
@@ -113,7 +118,7 @@ public class BaseSettingsService : IBaseSettingsService
 
         try
         {
-            string json = File.ReadAllText(filePath);
+            var json = File.ReadAllText(filePath);
             return JsonSerializer.Deserialize<T>(json, _jsonOptions) ?? defaultVal;
         }
         catch (JsonException jsonEx)
@@ -124,7 +129,9 @@ public class BaseSettingsService : IBaseSettingsService
     }
 
     private string GetFilePath(string key)
-        => Path.Combine(_settingsFolder, $"{key}.json");
+    {
+        return Path.Combine(_settingsFolder, $"{key}.json");
+    }
 
     private static string FormatHeaderComment(string headerComment)
     {

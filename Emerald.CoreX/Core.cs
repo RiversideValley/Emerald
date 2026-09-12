@@ -14,10 +14,13 @@ using Emerald.CoreX.Services;
 using Emerald.CoreX.Store;
 using Emerald.Services;
 using Microsoft.Extensions.Logging;
+
 namespace Emerald.CoreX;
 
 public sealed class SavedGame
 {
+    public Guid InstanceId { get; set; }
+
     public string Path { get; set; } = string.Empty;
 
     public Versions.Version Version { get; set; } = new();
@@ -30,17 +33,22 @@ public sealed class SavedGame
     public Models.GameSettings? GameOptions { get; set; }
 
     public Game ToGame(IGlobalGameSettingsService globalGameSettingsService, string? sharedMinecraftBasePath = null)
-        => new(
+    {
+        return new Game(
             new MinecraftPath(Path),
             Version,
             UsesCustomGameSettings || GameOptions != null,
             CustomGameSettings ?? GameOptions,
             sharedMinecraftBasePath,
-            globalGameSettingsService);
+            globalGameSettingsService,
+            InstanceId);
+    }
 
     public static SavedGame FromGame(Game game)
-        => new()
+    {
+        return new SavedGame
         {
+            InstanceId = game.InstanceId,
             Path = game.Path.BasePath,
             Version = game.Version,
             UsesCustomGameSettings = game.UsesCustomGameSettings,
@@ -48,6 +56,7 @@ public sealed class SavedGame
                 ? game.CustomGameSettings?.Clone()
                 : null
         };
+    }
 }
 
 public sealed class SavedGameCollection
@@ -96,6 +105,7 @@ public partial class Core(
         public IntegrityCheckLevel CheckLevel { get; set; } = IntegrityCheckLevel.Quick;
         public CancellationTokenSource Cancellation { get; } = new();
     }
+
     public const string GamesFolderName = "Instances";
     public MinecraftLauncher Launcher { get; set; }
     public IGlobalGameSettingsService GlobalGameSettingsService => globalGameSettingsService;
@@ -104,18 +114,15 @@ public partial class Core(
 
     public bool IsRunning { get; set; } = false;
     public MinecraftPath? BasePath { get; private set; } = null;
-    [ObservableProperty]
-    private bool _isOfflineMode = false;
+    [ObservableProperty] private bool _isOfflineMode = false;
 
     public readonly ObservableCollection<Versions.Version> VanillaVersions = new();
 
     public readonly ObservableCollection<Game> Games = new();
 
-    [ObservableProperty]
-    private bool _initialized = false;
+    [ObservableProperty] private bool _initialized = false;
 
-    [ObservableProperty]
-    private bool _isRefreshing = false;
+    [ObservableProperty] private bool _isRefreshing = false;
 
     public Models.GameSettings GameOptions => globalGameSettingsService.Settings;
     private IUiDispatcher UiDispatcher => uiDispatcher ?? new InlineUiDispatcher();
@@ -137,6 +144,7 @@ public partial class Core(
 
         PrepareBaseScopedServices();
         var savedGames = LoadOrMigrateSavedGames();
+        var identitiesChanged = RepairInstanceIdentities(savedGames);
         var generation = Interlocked.Increment(ref _gamesGeneration);
         lock (_auditGate)
         {
@@ -165,8 +173,31 @@ public partial class Core(
             }
         }
 
+        if (identitiesChanged)
+        {
+            SaveGames();
+        }
+
         _logger.LogInformation("Loaded {count} games from", Games.Count);
     }
+
+    private static bool RepairInstanceIdentities(IEnumerable<SavedGame> savedGames)
+    {
+        var changed = false;
+        var seen = new HashSet<Guid>();
+        foreach (var savedGame in savedGames)
+        {
+            if (savedGame.InstanceId == Guid.Empty || !seen.Add(savedGame.InstanceId))
+            {
+                savedGame.InstanceId = Guid.NewGuid();
+                seen.Add(savedGame.InstanceId);
+                changed = true;
+            }
+        }
+
+        return changed;
+    }
+
     public void SaveGames()
     {
         _logger.LogInformation("Saving {count} games", Games.Count);
@@ -248,7 +279,11 @@ public partial class Core(
     {
         lock (_refreshGate)
         {
-            if (_localInitializationTask is { IsCompleted: false }) return _localInitializationTask;
+            if (_localInitializationTask is { IsCompleted: false })
+            {
+                return _localInitializationTask;
+            }
+
             _localInitializationTask = InitializeLocalCoreAsync(basePath);
             return _localInitializationTask;
         }
@@ -259,12 +294,16 @@ public partial class Core(
         SubscribeToNetworkState();
         SubscribeToDownloadActivity();
         if (!Initialized && basePath == null)
+        {
             throw new InvalidOperationException("Minecraft Path must be set on first initialize");
+        }
 
         if (basePath != null && (!Initialized || !PathsEqual(basePath.BasePath, BasePath?.BasePath)))
         {
             if (downloadActivity?.Snapshot.ActiveDownloads > 0)
+            {
                 throw new InvalidOperationException("Minecraft path cannot be changed while downloads are active.");
+            }
 
             BasePath = basePath;
             Launcher = CreateCatalogLauncher(basePath);
@@ -273,7 +312,11 @@ public partial class Core(
         }
 
         Initialized = true;
-        foreach (var game in Games) game.CreateMCLauncher(IsOfflineMode);
+        foreach (var game in Games)
+        {
+            game.CreateMCLauncher(IsOfflineMode);
+        }
+
         return Task.CompletedTask;
     }
 
@@ -282,7 +325,11 @@ public partial class Core(
     {
         lock (_refreshGate)
         {
-            if (_refreshTask is { IsCompleted: false }) return _refreshTask;
+            if (_refreshTask is { IsCompleted: false })
+            {
+                return _refreshTask;
+            }
+
             _refreshTask = RefreshVersionCatalogCoreAsync(cancellationToken);
             return _refreshTask;
         }
@@ -297,7 +344,11 @@ public partial class Core(
 
     private async Task RefreshVersionCatalogCoreAsync(CancellationToken cancellationToken)
     {
-        if (!Initialized || BasePath == null) return;
+        if (!Initialized || BasePath == null)
+        {
+            return;
+        }
+
         if (!TryAcquireCatalogRefresh(out var refreshLease))
         {
             _catalogRefreshPending = true;
@@ -309,7 +360,11 @@ public partial class Core(
             IsRefreshing = true;
             try
             {
-                if (!await IsMinecraftMetadataAvailableAsync(cancellationToken)) return;
+                if (!await IsMinecraftMetadataAvailableAsync(cancellationToken))
+                {
+                    return;
+                }
+
                 await LoadAndApplyRemoteVersionsAsync(cancellationToken);
                 networkCapabilityService?.ReportSuccess(NetworkCapability.MinecraftMetadata);
             }
@@ -325,7 +380,7 @@ public partial class Core(
             finally
             {
                 IsRefreshing = false;
-                VersionsRefreshed?.Invoke(this, new());
+                VersionsRefreshed?.Invoke(this, new EventArgs());
             }
         }
     }
@@ -338,9 +393,19 @@ public partial class Core(
 
     private async Task<bool> IsMinecraftMetadataAvailableAsync(CancellationToken cancellationToken)
     {
-        if (networkCapabilityService == null) return true;
-        var capability = await networkCapabilityService.ProbeAsync(NetworkCapability.MinecraftMetadata, cancellationToken);
-        if (capability.EffectiveState is not (NetworkAvailabilityState.Unavailable or NetworkAvailabilityState.Degraded)) return true;
+        if (networkCapabilityService == null)
+        {
+            return true;
+        }
+
+        var capability =
+            await networkCapabilityService.ProbeAsync(NetworkCapability.MinecraftMetadata, cancellationToken);
+        if (capability.EffectiveState is not (NetworkAvailabilityState.Unavailable
+            or NetworkAvailabilityState.Degraded))
+        {
+            return true;
+        }
+
         IsOfflineMode = true;
         return false;
     }
@@ -360,7 +425,10 @@ public partial class Core(
                 ReleaseType = x.Type ?? string.Empty
             }));
             IsOfflineMode = false;
-            foreach (var game in Games) game.CreateMCLauncher(false);
+            foreach (var game in Games)
+            {
+                game.CreateMCLauncher(false);
+            }
         });
     }
 
@@ -373,13 +441,21 @@ public partial class Core(
     private MinecraftLauncher CreateCatalogLauncher(MinecraftPath basePath)
     {
         var parameters = MinecraftLauncherParameters.CreateDefault(basePath);
-        if (httpClient != null) parameters.HttpClient = httpClient;
+        if (httpClient != null)
+        {
+            parameters.HttpClient = httpClient;
+        }
+
         return new MinecraftLauncher(parameters);
     }
 
     private void SubscribeToDownloadActivity()
     {
-        if (_downloadActivitySubscribed || downloadActivity == null) return;
+        if (_downloadActivitySubscribed || downloadActivity == null)
+        {
+            return;
+        }
+
         downloadActivity.Changed += (_, snapshot) =>
         {
             if (snapshot.ActiveDownloads == 0 && _catalogRefreshPending)
@@ -424,8 +500,9 @@ public partial class Core(
         var version = game.Version;
         _logger.LogInformation("Installing game {version}", version.BasedOn);
 
-        var installer = installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstanceInstallationService>()
-            ?? throw new InvalidOperationException("Instance installation service is not available.");
+        var installer = installationService ??
+                        CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstanceInstallationService>()
+                        ?? throw new InvalidOperationException("Instance installation service is not available.");
         var result = await installer.InstallAsync(game);
         if (!result.Success)
         {
@@ -435,15 +512,24 @@ public partial class Core(
         SaveGames();
     }
 
-    public Task<InstanceIntegrityReport> VerifyGameAsync(Game game, IntegrityCheckLevel level, CancellationToken cancellationToken = default)
-        => (installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetRequiredService<IInstanceInstallationService>())
+    public Task<InstanceIntegrityReport> VerifyGameAsync(Game game, IntegrityCheckLevel level,
+        CancellationToken cancellationToken = default)
+    {
+        return (installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default
+                .GetRequiredService<IInstanceInstallationService>())
             .VerifyAsync(game, level, cancellationToken: cancellationToken);
+    }
 
     public async Task<InstanceInstallResult> RepairGameAsync(Game game, CancellationToken cancellationToken = default)
     {
-        var installer = installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetRequiredService<IInstanceInstallationService>();
+        var installer = installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default
+            .GetRequiredService<IInstanceInstallationService>();
         var result = await installer.RepairAsync(game, cancellationToken: cancellationToken);
-        if (result.Success) SaveGames();
+        if (result.Success)
+        {
+            SaveGames();
+        }
+
         return result;
     }
 
@@ -461,7 +547,8 @@ public partial class Core(
             : folderName.Trim();
         var path = Path.Combine(BasePath.BasePath, GamesFolderName, resolvedFolderName);
 
-        var game = new Game(new(path), version, sharedMinecraftBasePath: BasePath.BasePath, globalGameSettingsService: globalGameSettingsService);
+        var game = new Game(new MinecraftPath(path), version, sharedMinecraftBasePath: BasePath.BasePath,
+            globalGameSettingsService: globalGameSettingsService);
         game.InstallationState = InstanceInstallationState.NotInstalled;
 
         Games.Add(game);
@@ -495,7 +582,7 @@ public partial class Core(
             _notify.Error(
                 "FailedToAddGame",
                 $"Failed to add game {version.DisplayName} based on {version.BasedOn} {version.Type}",
-               ex: ex
+                ex: ex
             );
         }
     }
@@ -514,7 +601,8 @@ public partial class Core(
             if (runtimeService.TryGetActiveSession(game) != null)
             {
                 _logger.LogWarning("Refusing to remove running game {version}", game.Version.BasedOn);
-                _notify.Warning("GameStillRunning", $"{game.Version.DisplayName} is still running. Stop it before removing the game.");
+                _notify.Warning("GameStillRunning",
+                    $"{game.Version.DisplayName} is still running. Stop it before removing the game.");
                 return;
             }
 
@@ -539,31 +627,48 @@ public partial class Core(
             _notify.Error(
                 "FailedToRemoveGame",
                 $"Failed to remove game {game.Version.DisplayName} based on {game.Version.BasedOn} {game.Version.Type}",
-               ex: ex
+                ex: ex
             );
         }
     }
 
     private void SubscribeToNetworkState()
     {
-        if (_networkSubscribed || networkCapabilityService == null) return;
+        if (_networkSubscribed || networkCapabilityService == null)
+        {
+            return;
+        }
+
         networkCapabilityService.Changed += NetworkCapabilityService_Changed;
         _networkSubscribed = true;
     }
 
     private void NetworkCapabilityService_Changed(object? sender, NetworkCapabilitySnapshot snapshot)
     {
-        if (snapshot.Capability != NetworkCapability.MinecraftMetadata) return;
+        if (snapshot.Capability != NetworkCapability.MinecraftMetadata)
+        {
+            return;
+        }
+
         // Checking is a transient probe state. Keep the last terminal result so
         // recovery polling cannot make the Home page flicker online/offline.
-        if (snapshot.State == NetworkAvailabilityState.Checking) return;
+        if (snapshot.State == NetworkAvailabilityState.Checking)
+        {
+            return;
+        }
+
         IsOfflineMode = snapshot.EffectiveState == NetworkAvailabilityState.Unavailable;
     }
 
     private void QueueInstallationAudit(Game game, int generation)
     {
-        var installer = installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstanceInstallationService>();
-        if (installer == null) return;
+        var installer = installationService ??
+                        CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default
+                            .GetService<IInstanceInstallationService>();
+        if (installer == null)
+        {
+            return;
+        }
 
         var startWorker = false;
         lock (_auditGate)
@@ -580,7 +685,10 @@ public partial class Core(
             }
         }
 
-        if (startWorker) _ = Task.Run(ProcessInstallationAuditsAsync);
+        if (startWorker)
+        {
+            _ = Task.Run(ProcessInstallationAuditsAsync);
+        }
     }
 
     /// <summary>
@@ -589,10 +697,16 @@ public partial class Core(
     /// </summary>
     private async Task ProcessInstallationAuditsAsync()
     {
-        var installer = installationService ?? CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstanceInstallationService>();
+        var installer = installationService ??
+                        CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default
+                            .GetService<IInstanceInstallationService>();
         if (installer == null)
         {
-            lock (_auditGate) _auditWorkerRunning = false;
+            lock (_auditGate)
+            {
+                _auditWorkerRunning = false;
+            }
+
             return;
         }
 
@@ -602,7 +716,11 @@ public partial class Core(
             {
                 await WaitForCatalogRefreshAsync();
                 var item = TakeNextInstallationAudit();
-                if (item == null) break;
+                if (item == null)
+                {
+                    break;
+                }
+
                 await ProcessInstallationAuditItemAsync(installer, item);
             }
         }
@@ -627,24 +745,34 @@ public partial class Core(
     private async Task WaitForCatalogRefreshAsync()
     {
         while (IsRefreshing)
+        {
             await Task.Delay(TimeSpan.FromMilliseconds(100));
+        }
     }
 
-    private async Task ProcessInstallationAuditItemAsync(IInstanceInstallationService installer, InstallationAuditWorkItem item)
+    private async Task ProcessInstallationAuditItemAsync(IInstanceInstallationService installer,
+        InstallationAuditWorkItem item)
     {
         var requeued = false;
         try
         {
-            var result = await installer.VerifyWhenIdleAsync(item.Game, item.CheckLevel, cancellationToken: item.Cancellation.Token);
+            var result = await installer.VerifyWhenIdleAsync(item.Game, item.CheckLevel,
+                cancellationToken: item.Cancellation.Token);
             if (result == null)
             {
                 requeued = RequeueInstallationAudit(item);
-                if (requeued) await Task.Delay(TimeSpan.FromSeconds(1));
+                if (requeued)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                }
+
                 return;
             }
 
             if (item.CheckLevel == IntegrityCheckLevel.Quick)
+            {
                 requeued = await RequeueStaleFullAuditAsync(item, result);
+            }
         }
         catch (OperationCanceledException) when (item.Cancellation.IsCancellationRequested)
         {
@@ -656,7 +784,10 @@ public partial class Core(
         }
         finally
         {
-            if (!requeued) CompleteInstallationAudit(item);
+            if (!requeued)
+            {
+                CompleteInstallationAudit(item);
+            }
         }
     }
 
@@ -664,8 +795,16 @@ public partial class Core(
     {
         var store = CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetService<IInstallationStateStore>();
         var receipt = store == null ? null : await store.ReadAsync(item.Game, item.Cancellation.Token);
-        if (!result.CanLaunch || receipt?.FullVerificationAt is not DateTimeOffset verified) return false;
-        if (DateTimeOffset.UtcNow - verified <= TimeSpan.FromDays(7)) return false;
+        if (!result.CanLaunch || receipt?.FullVerificationAt is not DateTimeOffset verified)
+        {
+            return false;
+        }
+
+        if (DateTimeOffset.UtcNow - verified <= TimeSpan.FromDays(7))
+        {
+            return false;
+        }
+
         item.CheckLevel = IntegrityCheckLevel.Full;
         return RequeueInstallationAudit(item);
     }
@@ -756,14 +895,18 @@ public partial class Core(
     }
 
     private bool IsCurrentInstallationAuditLocked(InstallationAuditWorkItem item)
-        => item.Generation == Volatile.Read(ref _gamesGeneration)
-            && !item.Cancellation.IsCancellationRequested
-            && _auditsByGame.TryGetValue(item.Game, out var current)
-            && ReferenceEquals(current, item);
+    {
+        return item.Generation == Volatile.Read(ref _gamesGeneration)
+               && !item.Cancellation.IsCancellationRequested
+               && _auditsByGame.TryGetValue(item.Game, out var current)
+               && ReferenceEquals(current, item);
+    }
 
     private static bool PathsEqual(string left, string right)
-        => string.Equals(
+    {
+        return string.Equals(
             Path.GetFullPath(left).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
             Path.GetFullPath(right).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
             OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+    }
 }

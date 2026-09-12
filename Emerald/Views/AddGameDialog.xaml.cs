@@ -22,7 +22,9 @@ public sealed partial class AddGameDialog : ContentDialog
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e)
-        => Hide();
+    {
+        Hide();
+    }
 
     private async void Create_Click(object sender, RoutedEventArgs e)
     {

@@ -9,7 +9,7 @@
   <Identity
     Name="Riverside.Emerald"
     Publisher="CN=Riverside Valley"
-    Version="1.0.0.0" />
+    Version="1.0.0.0"/>
 
   <Properties>
     <DisplayName>Emerald</DisplayName>
@@ -18,8 +18,8 @@
   </Properties>
 
   <Dependencies>
-    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" />
-    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" />
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0"/>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0"/>
   </Dependencies>
 
   <Resources>
@@ -28,19 +28,22 @@
 
   <Applications>
     <Application Id="App"
-      Executable="$targetnametoken$.exe"
-      EntryPoint="$targetentrypoint$">
+                 Executable="$targetnametoken$.exe"
+                 EntryPoint="$targetentrypoint$">
       <uap:VisualElements
         DisplayName="Emerald"
-        Description="Emerald" Square150x150Logo="Assets\AppsIcons\MediumTile.png" Square44x44Logo="Assets\AppsIcons\AppIcon.png">
-        <uap:SplashScreen  Image="Assets\AppsIcons\SplashScreen.png"/>
-        <uap:DefaultTile Square71x71Logo="Assets\AppsIcons\SmallTile.png" Wide310x150Logo="Assets\AppsIcons\WideTile.png" Square310x310Logo="Assets\AppsIcons\LargeTile.png"/>
+        Description="Emerald" Square150x150Logo="Assets\AppsIcons\MediumTile.png"
+        Square44x44Logo="Assets\AppsIcons\AppIcon.png">
+        <uap:SplashScreen Image="Assets\AppsIcons\SplashScreen.png"/>
+        <uap:DefaultTile Square71x71Logo="Assets\AppsIcons\SmallTile.png"
+                         Wide310x150Logo="Assets\AppsIcons\WideTile.png"
+                         Square310x310Logo="Assets\AppsIcons\LargeTile.png"/>
       </uap:VisualElements>
     </Application>
   </Applications>
 
   <Capabilities>
-    <rescap:Capability Name="runFullTrust" />
-    <rescap:Capability Name="packageManagement" />
+    <rescap:Capability Name="runFullTrust"/>
+    <rescap:Capability Name="packageManagement"/>
   </Capabilities>
 </Package>

@@ -24,8 +24,8 @@ public sealed class ModLoaderRouterTests
         var resolved = await router.RouteAndInitializeAsync(
             new MinecraftPath("/tmp/emerald-router-test"),
             version,
-            online: false,
-            installedVersion: version.RealVersion);
+            false,
+            version.RealVersion);
 
         Assert.Equal(version.RealVersion, resolved);
         Assert.Empty(installer.Calls);
@@ -48,7 +48,7 @@ public sealed class ModLoaderRouterTests
                 BasedOn = "1.21.4",
                 ModVersion = "0.16.10"
             },
-            online: false);
+            false);
 
         Assert.Equal("fabric-loader-0.16.10-1.21.4", resolved);
         var call = Assert.Single(installer.Calls);
@@ -65,7 +65,9 @@ public sealed class ModLoaderRouterTests
         public LauncherVersionType Type { get; } = type;
 
         public Task<List<LoaderInfo>> GetVersionsAsync(string mcVersion)
-            => Task.FromResult(new List<LoaderInfo>());
+        {
+            return Task.FromResult(new List<LoaderInfo>());
+        }
 
         public Task<string> InstallAsync(
             MinecraftPath path,

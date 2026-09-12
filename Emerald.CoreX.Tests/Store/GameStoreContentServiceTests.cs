@@ -29,7 +29,8 @@ public sealed class GameStoreContentServiceTests
         var path = new MinecraftPath(temp.Path);
 
         Assert.Equal("mods", new ModStore(path, NullLogger<ModStore>.Instance).InstallFolderName);
-        Assert.Equal("resourcepacks", new ResourcePackStore(path, NullLogger<ResourcePackStore>.Instance).InstallFolderName);
+        Assert.Equal("resourcepacks",
+            new ResourcePackStore(path, NullLogger<ResourcePackStore>.Instance).InstallFolderName);
         Assert.Equal("datapacks", new DataPackStore(path, NullLogger<DataPackStore>.Instance).InstallFolderName);
         Assert.Equal("shaderpacks", new ShaderStore(path, NullLogger<ShaderStore>.Instance).InstallFolderName);
         Assert.Equal("modpacks", new ModPackStore(path, NullLogger<ModPackStore>.Instance).InstallFolderName);
@@ -102,20 +103,21 @@ public sealed class GameStoreContentServiceTests
         var baseSettings = new InMemoryBaseSettingsService();
         var runtime = new FakeRuntimeService();
         var fakeStore = new FakeModrinthStore(StoreContentType.Mod, "mods");
-        var service = CreateService(baseSettings, runtime, fakeStore, out InMemoryMinecraftBaseSettingsService minecraftBaseSettings);
+        var service = CreateService(baseSettings, runtime, fakeStore,
+            out InMemoryMinecraftBaseSettingsService minecraftBaseSettings);
 
         using var temp = new TemporaryDirectory();
         var firstGame = CreateGame(
             Path.Combine(temp.Path, "Instances", "One"),
             GameVersionType.Fabric,
             "1.21.4",
-            sharedBasePath: temp.Path,
+            temp.Path,
             settings => settings.UseSharedStoreModsPath = true);
         var secondGame = CreateGame(
             Path.Combine(temp.Path, "Instances", "Two"),
             GameVersionType.Fabric,
             "1.21.4",
-            sharedBasePath: temp.Path,
+            temp.Path,
             settings => settings.UseSharedStoreModsPath = true);
         var version = CreateVersion("v1", "sodium.jar", FakeModrinthStore.FileBytes);
         var project = CreateProject("abc", "Sodium");
@@ -129,7 +131,8 @@ public sealed class GameStoreContentServiceTests
         Assert.True(File.Exists(first.SharedFilePath));
         Assert.Equal(first.SharedFilePath, second.SharedFilePath);
 
-        var records = minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ?? [];
+        var records = minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ??
+                      [];
         Assert.Equal(2, records.Count(record => record.SharedFilePath == first.SharedFilePath));
     }
 
@@ -139,7 +142,8 @@ public sealed class GameStoreContentServiceTests
         var baseSettings = new InMemoryBaseSettingsService();
         var runtime = new FakeRuntimeService();
         var fakeStore = new FakeModrinthStore(StoreContentType.Mod, "mods");
-        var service = CreateService(baseSettings, runtime, fakeStore, out InMemoryMinecraftBaseSettingsService minecraftBaseSettings);
+        var service = CreateService(baseSettings, runtime, fakeStore,
+            out InMemoryMinecraftBaseSettingsService minecraftBaseSettings);
 
         using var temp = new TemporaryDirectory();
         var firstGame = CreateGame(
@@ -169,7 +173,8 @@ public sealed class GameStoreContentServiceTests
 
         Assert.True(await service.RemoveAsync(secondGame, StoreContentType.Mod, second));
         Assert.False(File.Exists(sharedPath));
-        Assert.Empty(minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ?? []);
+        Assert.Empty(
+            minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ?? []);
     }
 
     [Fact]
@@ -178,7 +183,8 @@ public sealed class GameStoreContentServiceTests
         var baseSettings = new InMemoryBaseSettingsService();
         var runtime = new FakeRuntimeService();
         var fakeStore = new FakeModrinthStore(StoreContentType.Mod, "mods");
-        var service = CreateService(baseSettings, runtime, fakeStore, out var sharedContent, out InMemoryMinecraftBaseSettingsService minecraftBaseSettings);
+        var service = CreateService(baseSettings, runtime, fakeStore, out var sharedContent,
+            out var minecraftBaseSettings);
 
         using var temp = new TemporaryDirectory();
         var game = CreateGame(
@@ -195,8 +201,11 @@ public sealed class GameStoreContentServiceTests
         var plan = await sharedContent.CreateMigrationPlanAsync(game, StoreContentType.Mod, true, "mods");
         Assert.Equal(1, plan.TrackedConvertibleCount);
 
-        var summary = await sharedContent.ApplyMigrationAsync(plan, StoreSharedContentMigrationAction.ConvertTrackedFiles);
-        var record = Assert.Single(minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ?? []);
+        var summary =
+            await sharedContent.ApplyMigrationAsync(plan, StoreSharedContentMigrationAction.ConvertTrackedFiles);
+        var record =
+            Assert.Single(
+                minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ?? []);
 
         Assert.Equal(1, summary.ChangedCount);
         Assert.Equal(StoreLinkKind.Copy, record.LinkKind);
@@ -209,7 +218,8 @@ public sealed class GameStoreContentServiceTests
         var baseSettings = new InMemoryBaseSettingsService();
         var runtime = new FakeRuntimeService();
         var fakeStore = new FakeModrinthStore(StoreContentType.Mod, "mods");
-        var service = CreateService(baseSettings, runtime, fakeStore, out var sharedContent, out InMemoryMinecraftBaseSettingsService minecraftBaseSettings);
+        var service = CreateService(baseSettings, runtime, fakeStore, out var sharedContent,
+            out var minecraftBaseSettings);
 
         using var temp = new TemporaryDirectory();
         var game = CreateGame(
@@ -228,7 +238,9 @@ public sealed class GameStoreContentServiceTests
         Assert.Equal(1, plan.SharedInstallCount);
 
         await sharedContent.ApplyMigrationAsync(plan, StoreSharedContentMigrationAction.MaterializeFiles);
-        var record = Assert.Single(minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ?? []);
+        var record =
+            Assert.Single(
+                minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ?? []);
 
         Assert.Equal(StoreLinkKind.None, record.LinkKind);
         Assert.Null(record.GodFolderHash);
@@ -242,7 +254,7 @@ public sealed class GameStoreContentServiceTests
         var baseSettings = new InMemoryBaseSettingsService();
         var runtime = new FakeRuntimeService();
         var fakeStore = new FakeModrinthStore(StoreContentType.Mod, "mods");
-        _ = CreateService(baseSettings, runtime, fakeStore, out var sharedContent, out InMemoryMinecraftBaseSettingsService minecraftBaseSettings);
+        _ = CreateService(baseSettings, runtime, fakeStore, out var sharedContent, out var minecraftBaseSettings);
 
         using var temp = new TemporaryDirectory();
         var game = CreateGame(
@@ -259,7 +271,9 @@ public sealed class GameStoreContentServiceTests
         Assert.Equal(1, plan.UntrackedFileCount);
 
         await sharedContent.ApplyMigrationAsync(plan, StoreSharedContentMigrationAction.ConvertAllCompatibleFiles);
-        var record = Assert.Single(minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ?? []);
+        var record =
+            Assert.Single(
+                minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems) ?? []);
 
         Assert.Equal("manual.jar", record.FileName);
         Assert.Equal(StoreLinkKind.Copy, record.LinkKind);
@@ -285,11 +299,11 @@ public sealed class GameStoreContentServiceTests
         var untracked = Assert.Single(installed);
         Assert.False(untracked.IsTracked);
 
-        var removedWithoutForce = await service.RemoveAsync(game, StoreContentType.Mod, untracked, forceUntracked: false);
+        var removedWithoutForce = await service.RemoveAsync(game, StoreContentType.Mod, untracked, false);
         Assert.False(removedWithoutForce);
         Assert.True(File.Exists(manualFile));
 
-        var removedWithForce = await service.RemoveAsync(game, StoreContentType.Mod, untracked, forceUntracked: true);
+        var removedWithForce = await service.RemoveAsync(game, StoreContentType.Mod, untracked, true);
         Assert.True(removedWithForce);
         Assert.False(File.Exists(manualFile));
     }
@@ -319,28 +333,34 @@ public sealed class GameStoreContentServiceTests
         };
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            service.RemoveAsync(game, StoreContentType.Mod, item, forceUntracked: false));
+            service.RemoveAsync(game, StoreContentType.Mod, item, false));
     }
 
     private static GameStoreContentService CreateService(
         InMemoryBaseSettingsService settings,
         FakeRuntimeService runtime,
         params IModrinthStore[] stores)
-        => CreateService(settings, runtime, stores, out _, out _);
+    {
+        return CreateService(settings, runtime, stores, out _, out _);
+    }
 
     private static GameStoreContentService CreateService(
         InMemoryBaseSettingsService settings,
         FakeRuntimeService runtime,
         IModrinthStore store,
         out InMemoryMinecraftBaseSettingsService minecraftBaseSettings)
-        => CreateService(settings, runtime, [store], out _, out minecraftBaseSettings);
+    {
+        return CreateService(settings, runtime, [store], out _, out minecraftBaseSettings);
+    }
 
     private static GameStoreContentService CreateService(
         InMemoryBaseSettingsService settings,
         FakeRuntimeService runtime,
         IModrinthStore store,
         out IStoreSharedContentService sharedContentService)
-        => CreateService(settings, runtime, [store], out sharedContentService, out _);
+    {
+        return CreateService(settings, runtime, [store], out sharedContentService, out _);
+    }
 
     private static GameStoreContentService CreateService(
         InMemoryBaseSettingsService settings,
@@ -348,7 +368,9 @@ public sealed class GameStoreContentServiceTests
         IModrinthStore store,
         out IStoreSharedContentService sharedContentService,
         out InMemoryMinecraftBaseSettingsService minecraftBaseSettings)
-        => CreateService(settings, runtime, [store], out sharedContentService, out minecraftBaseSettings);
+    {
+        return CreateService(settings, runtime, [store], out sharedContentService, out minecraftBaseSettings);
+    }
 
     private static GameStoreContentService CreateService(
         InMemoryBaseSettingsService settings,
@@ -405,7 +427,8 @@ public sealed class GameStoreContentServiceTests
     }
 
     private static StoreItem CreateProject(string id, string title)
-        => new()
+    {
+        return new StoreItem
         {
             ID = id,
             Title = title,
@@ -413,9 +436,11 @@ public sealed class GameStoreContentServiceTests
             Categories = [],
             Versions = []
         };
+    }
 
     private static ItemVersion CreateVersion(string id, string fileName = "file.jar", byte[]? bytes = null)
-        => new()
+    {
+        return new ItemVersion
         {
             ID = id,
             Name = id,
@@ -435,13 +460,16 @@ public sealed class GameStoreContentServiceTests
             ],
             Dependencies = []
         };
+    }
 
     private static Hashes CreateHashes(byte[] bytes)
-        => new()
+    {
+        return new Hashes
         {
             Sha1 = bytes.Length == 0 ? string.Empty : Convert.ToHexString(SHA1.HashData(bytes)).ToLowerInvariant(),
             Sha512 = bytes.Length == 0 ? string.Empty : Convert.ToHexString(SHA512.HashData(bytes)).ToLowerInvariant()
         };
+    }
 
     private sealed class FakeRuntimeService : IGameRuntimeService
     {
@@ -449,16 +477,24 @@ public sealed class GameStoreContentServiceTests
         public bool IsRunning { get; set; }
 
         public Task<GameSession?> LaunchAsync(Game game, EAccount? account = null)
-            => Task.FromResult<GameSession?>(null);
+        {
+            return Task.FromResult<GameSession?>(null);
+        }
 
         public Task StopAsync(Game game, GameStopMode mode)
-            => Task.CompletedTask;
+        {
+            return Task.CompletedTask;
+        }
 
         public GameSession? TryGetActiveSession(Game game)
-            => IsRunning ? new GameSession(game, DateTimeOffset.UtcNow) : null;
+        {
+            return IsRunning ? new GameSession(game, DateTimeOffset.UtcNow) : null;
+        }
 
         public GameSession? FindLatestSession(string gamePath)
-            => null;
+        {
+            return null;
+        }
     }
 
     private sealed class FakeModrinthStore : IModrinthStore
@@ -489,13 +525,22 @@ public sealed class GameStoreContentServiceTests
             int limit = 15,
             SearchSortOptions sortOptions = SearchSortOptions.Relevance,
             string[]? categories = null)
-            => Task.FromResult<SearchResult?>(null);
+        {
+            return Task.FromResult<SearchResult?>(null);
+        }
 
-        public Task LoadCategoriesAsync() => Task.CompletedTask;
+        public Task LoadCategoriesAsync()
+        {
+            return Task.CompletedTask;
+        }
 
-        public Task<StoreItem?> GetItemAsync(string id) => Task.FromResult<StoreItem?>(null);
+        public Task<StoreItem?> GetItemAsync(string id)
+        {
+            return Task.FromResult<StoreItem?>(null);
+        }
 
-        public Task<List<ItemVersion>?> GetVersionsAsync(string id, string[]? gameVersions = null, string[]? loaders = null)
+        public Task<List<ItemVersion>?> GetVersionsAsync(string id, string[]? gameVersions = null,
+            string[]? loaders = null)
         {
             VersionCalls.Add((gameVersions, loaders));
             if (OnGetVersionsAsync != null)
@@ -506,7 +551,8 @@ public sealed class GameStoreContentServiceTests
             return Task.FromResult<List<ItemVersion>?>([]);
         }
 
-        public async Task DownloadItemAsync(ItemFile file, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+        public async Task DownloadItemAsync(ItemFile file, IProgress<double>? progress = null,
+            CancellationToken cancellationToken = default)
         {
             var filePath = Path.Combine(MCPath.BasePath, InstallFolderName, file.Filename);
             await DownloadItemToPathAsync(file, filePath, progress, cancellationToken);
@@ -527,21 +573,34 @@ public sealed class GameStoreContentServiceTests
 
     private sealed class FakeStoreFileLinkService : IStoreFileLinkService
     {
-        public StoreLinkCreationResult CreateLinkOrCopy(string sourcePath, string targetPath, StoreLinkMode preferredMode)
+        public StoreLinkCreationResult CreateLinkOrCopy(string sourcePath, string targetPath,
+            StoreLinkMode preferredMode)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
-            File.Copy(sourcePath, targetPath, overwrite: true);
+            File.Copy(sourcePath, targetPath, true);
             return new StoreLinkCreationResult { LinkKind = StoreLinkKind.Copy };
         }
 
-        public StoreLinkCreationResult ReplaceWithLinkOrCopy(string sourcePath, string targetPath, StoreLinkMode preferredMode)
-            => CreateLinkOrCopy(sourcePath, targetPath, preferredMode);
+        public StoreLinkCreationResult ReplaceWithLinkOrCopy(string sourcePath, string targetPath,
+            StoreLinkMode preferredMode)
+        {
+            return CreateLinkOrCopy(sourcePath, targetPath, preferredMode);
+        }
 
-        public bool AreOnSameRoot(string sourcePath, string targetPath) => true;
+        public bool AreOnSameRoot(string sourcePath, string targetPath)
+        {
+            return true;
+        }
 
-        public bool IsSymbolicLink(string path) => false;
+        public bool IsSymbolicLink(string path)
+        {
+            return false;
+        }
 
-        public string? GetSymbolicLinkTarget(string path) => null;
+        public string? GetSymbolicLinkTarget(string path)
+        {
+            return null;
+        }
     }
 
     private sealed class TemporaryDirectory : IDisposable
@@ -560,7 +619,7 @@ public sealed class GameStoreContentServiceTests
             {
                 if (Directory.Exists(Path))
                 {
-                    Directory.Delete(Path, recursive: true);
+                    Directory.Delete(Path, true);
                 }
             }
             catch

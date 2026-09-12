@@ -24,7 +24,9 @@ public interface IAccountProvider
     /// configuration can disable new sign-in without necessarily stranding legacy accounts.
     /// </summary>
     AccountProviderUsability GetAccountUsability(EAccount account)
-        => AccountProviderUsability.Available;
+    {
+        return AccountProviderUsability.Available;
+    }
 
     Task<EAccount> SignInAsync(
         AccountSignInRequest request,
@@ -34,7 +36,9 @@ public interface IAccountProvider
 
     /// <summary>Returns a provider-owned skin when available; null delegates to Emerald's Steve fallback.</summary>
     Task<AccountSkinData?> GetSkinAsync(EAccount account, CancellationToken cancellationToken = default)
-        => Task.FromResult<AccountSkinData?>(null);
+    {
+        return Task.FromResult<AccountSkinData?>(null);
+    }
 
     Task<GameAuthenticationResult> AuthenticateForLaunchAsync(
         EAccount account,
@@ -59,6 +63,7 @@ public sealed record AccountProviderDescriptor(
 {
     public IReadOnlyList<AccountProviderActionDescriptor> EffectiveActions { get; }
         = Actions ?? [];
+
     public IReadOnlyList<AccountProviderRequirement> EffectiveRequirements { get; }
         = Requirements ?? [];
 }

@@ -36,7 +36,7 @@ public sealed partial class AccountService
             {
                 if (account is null)
                 {
-                    ApplySelectedAccountCore(null, persist: true);
+                    ApplySelectedAccountCore(null, true);
                     return;
                 }
 
@@ -57,7 +57,7 @@ public sealed partial class AccountService
                 EnsureProviderId(matched);
                 EnsureAccountUsableCore(matched);
 
-                ApplySelectedAccountCore(matched.UniqueId, persist: true);
+                ApplySelectedAccountCore(matched.UniqueId, true);
             });
         }
         finally
@@ -73,28 +73,34 @@ public sealed partial class AccountService
         if (!string.IsNullOrWhiteSpace(_selectedAccountId) && GetSelectedAccountCore() is null)
         {
             _logger.LogInformation("Previously selected account no longer exists; clearing selection.");
-            ApplySelectedAccountCore(null, persist: false);
+            ApplySelectedAccountCore(null, false);
             return;
         }
 
-        ApplySelectedAccountCore(_selectedAccountId, persist: false);
+        ApplySelectedAccountCore(_selectedAccountId, false);
     }
 
     private EAccount? GetSelectedAccountCore()
-        => string.IsNullOrWhiteSpace(_selectedAccountId)
+    {
+        return string.IsNullOrWhiteSpace(_selectedAccountId)
             ? null
             : _accounts.FirstOrDefault(account =>
                 string.Equals(account.UniqueId, _selectedAccountId, StringComparison.Ordinal));
+    }
 
     private void ApplySelectedAccountCore(string? uniqueId, bool persist)
     {
         _selectedAccountId = string.IsNullOrWhiteSpace(uniqueId) ? null : uniqueId;
 
         foreach (var account in _accounts)
+        {
             account.IsSelected = string.Equals(account.UniqueId, _selectedAccountId, StringComparison.Ordinal);
+        }
 
         if (persist)
+        {
             _settingsService.Set(SettingsKeys.SelectedMinecraftAccount, _selectedAccountId);
+        }
     }
 
     public AccountProviderUsability GetProviderUsability(string providerId)
@@ -115,7 +121,9 @@ public sealed partial class AccountService
     private AccountProviderUsability GetProviderUsabilityCore(string providerId)
     {
         if (!_providers.TryGetValue(providerId, out var provider))
+        {
             return new AccountProviderUsability(false, $"Unknown account provider: {providerId}");
+        }
 
         var descriptor = provider.Descriptor;
         if (!descriptor.IsConfigured)
@@ -128,7 +136,9 @@ public sealed partial class AccountService
         foreach (var requirement in descriptor.EffectiveRequirements)
         {
             if (!HasUsableAccountForProviderCore(requirement.ProviderId))
+            {
                 return new AccountProviderUsability(false, requirement.UnavailableMessage);
+            }
         }
 
         return AccountProviderUsability.Available;
@@ -138,12 +148,16 @@ public sealed partial class AccountService
     {
         EnsureProviderId(account);
         if (!_providers.TryGetValue(account.ProviderId, out var provider))
+        {
             return new AccountProviderUsability(false, $"Unknown account provider: {account.ProviderId}");
+        }
 
         foreach (var requirement in provider.Descriptor.EffectiveRequirements)
         {
             if (!HasUsableAccountForProviderCore(requirement.ProviderId))
+            {
                 return new AccountProviderUsability(false, requirement.UnavailableMessage);
+            }
         }
 
         return provider.GetAccountUsability(account);
@@ -152,7 +166,9 @@ public sealed partial class AccountService
     private bool HasUsableAccountForProviderCore(string providerId)
     {
         if (!_providers.TryGetValue(providerId, out var provider))
+        {
             return false;
+        }
 
         return _accounts.Any(account =>
             string.Equals(account.ProviderId, providerId, StringComparison.Ordinal)
@@ -163,14 +179,18 @@ public sealed partial class AccountService
     {
         var usability = GetProviderUsabilityCore(providerId);
         if (!usability.IsAvailable)
+        {
             throw new InvalidOperationException(usability.UnavailableReason);
+        }
     }
 
     private void EnsureAccountUsableCore(EAccount account)
     {
         var usability = GetAccountUsabilityCore(account);
         if (!usability.IsAvailable)
+        {
             throw new InvalidOperationException(usability.UnavailableReason);
+        }
     }
 
     private void EnforceAccountSelectionPoliciesCore(bool persist)

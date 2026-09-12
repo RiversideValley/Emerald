@@ -77,6 +77,7 @@ public sealed partial class AppearancePage : Page
     };
 
     private readonly Services.SettingsService SS;
+
     public AppearancePage()
     {
         InitializeComponent();
@@ -101,7 +102,8 @@ public sealed partial class AppearancePage : Page
                 {
                     TintColorsList.Add(cl);
                     GVColorList.SelectedIndex = TintColorsList.Count - 1;
-                    this.Log().Info($"Added new custom color: {cl}. Updated selected index: {GVColorList.SelectedIndex}");
+                    this.Log().Info(
+                        $"Added new custom color: {cl}. Updated selected index: {GVColorList.SelectedIndex}");
                 }
             }
         }
@@ -116,10 +118,10 @@ public sealed partial class AppearancePage : Page
         this.Log().Info($"Selected tint color changed to: {c}");
     }
 
-    private void CustomTintColor_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    private void CustomTintColor_Click(object sender, RoutedEventArgs e)
     {
         var c = SS.Settings.App.Appearance.CustomMicaTintColor;
-        var cp = new ColorPicker()
+        var cp = new ColorPicker
         {
             ColorSpectrumShape = ColorSpectrumShape.Box,
             IsMoreButtonVisible = false,

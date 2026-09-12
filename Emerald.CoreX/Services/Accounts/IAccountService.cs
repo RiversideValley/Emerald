@@ -17,9 +17,15 @@ public interface IAccountService
     AccountProviderUsability GetAccountUsability(EAccount account);
 
     Task LoadAllAccountsAsync();
-    Task<EAccount> SignInAsync(string providerId, AccountSignInRequest request, CancellationToken cancellationToken = default);
+
+    Task<EAccount> SignInAsync(string providerId, AccountSignInRequest request,
+        CancellationToken cancellationToken = default);
+
     Task RefreshAccountAsync(EAccount account, CancellationToken cancellationToken = default);
-    Task<AccountSkinData> GetSkinAsync(EAccount account, bool forceRefresh = false, CancellationToken cancellationToken = default);
+
+    Task<AccountSkinData> GetSkinAsync(EAccount account, bool forceRefresh = false,
+        CancellationToken cancellationToken = default);
+
     Task RemoveAccountAsync(EAccount account);
     Task<GameAuthenticationResult> AuthenticateAccountAsync(EAccount account);
     Task<GameAuthenticationResult> AuthenticateLaunchAccountAsync(EAccount account, bool useOfflineFallback);

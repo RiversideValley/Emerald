@@ -4,8 +4,11 @@ namespace Emerald.Services;
 
 public interface IAppUpdateService
 {
-    Task<AppUpdateCheckResult> CheckForUpdatesAsync(AppReleaseChannel preferredChannel, CancellationToken cancellationToken = default);
-    Task<AppUpdateInstallResult> TryInstallUpdateAsync(AppUpdateCheckResult updateResult, CancellationToken cancellationToken = default);
+    Task<AppUpdateCheckResult> CheckForUpdatesAsync(AppReleaseChannel preferredChannel,
+        CancellationToken cancellationToken = default);
+
+    Task<AppUpdateInstallResult> TryInstallUpdateAsync(AppUpdateCheckResult updateResult,
+        CancellationToken cancellationToken = default);
 }
 
 public enum AppUpdateStatus

@@ -9,6 +9,7 @@ namespace Emerald.CoreX.Runtime;
 /// </summary>
 public partial class GameSession(Game game, DateTimeOffset startedAt) : ObservableObject
 {
+    public Guid SessionId { get; } = Guid.NewGuid();
     public Game Game { get; } = game;
 
     public ObservableCollection<GameLogEntry> Entries { get; } = new();
@@ -16,6 +17,17 @@ public partial class GameSession(Game game, DateTimeOffset startedAt) : Observab
     public string GamePath => Game.Path.BasePath;
 
     public string DisplayName => Game.Version.DisplayName;
+
+    public MinecraftLaunchTarget Target { get; internal set; } = MinecraftLaunchTarget.Configured;
+    public Guid? QuickProfileId { get; internal set; }
+
+    public string TargetDisplayName => Target.DisplayName ?? Target.Kind switch
+    {
+        MinecraftLaunchTargetKind.Server => Target.ServerHost ?? "Server",
+        MinecraftLaunchTargetKind.World => Target.WorldFolderName ?? "World",
+        MinecraftLaunchTargetKind.MainMenu => "Main menu",
+        _ => "Configured"
+    };
 
     public string VersionText
     {
@@ -43,34 +55,27 @@ public partial class GameSession(Game game, DateTimeOffset startedAt) : Observab
     [NotifyPropertyChangedFor(nameof(LogCaptureNotice))]
     private GameCaptureMode _captureMode = GameCaptureMode.LifecycleOnly;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(StatusText))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(StatusText))]
     private int? _processId;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(StatusText))]
-    [NotifyPropertyChangedFor(nameof(ExitCodeText))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(StatusText))] [NotifyPropertyChangedFor(nameof(ExitCodeText))]
     private int? _exitCode;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(StatusText))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(StatusText))]
     private DateTimeOffset? _endedAt;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(StatusText))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(StatusText))]
     private bool _hasCrashReport;
 
-    [ObservableProperty]
-    private string? _crashReportPath;
+    [ObservableProperty] private string? _crashReportPath;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasLogs))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasLogs))]
     private int _entryCount;
 
-    [ObservableProperty]
-    private string? _lastMessagePreview;
+    [ObservableProperty] private string? _lastMessagePreview;
 
     public DateTimeOffset StartedAt { get; } = startedAt;
+    public DateTimeOffset? ProcessStartedAt { get; internal set; }
 
     public bool IsActive => State is GameRunState.Launching or GameRunState.Running or GameRunState.Stopping;
 
@@ -102,7 +107,8 @@ public partial class GameSession(Game game, DateTimeOffset startedAt) : Observab
     public string? LogCaptureNotice => CaptureMode switch
     {
         GameCaptureMode.StandardOutputOnly => "Using standard output log capture for this session.",
-        GameCaptureMode.StandardOutputUnavailable => "Standard output capture is unavailable for this session. Only lifecycle events are shown.",
+        GameCaptureMode.StandardOutputUnavailable =>
+            "Standard output capture is unavailable for this session. Only lifecycle events are shown.",
         GameCaptureMode.LifecycleOnly => "Log capture is disabled. Only lifecycle events are shown.",
         _ => null
     };

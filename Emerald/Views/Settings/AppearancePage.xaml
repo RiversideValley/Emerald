@@ -1,7 +1,11 @@
 ﻿<Page
-  x:Class="Emerald.Views.Settings.AppearancePage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="using:Emerald.Views.Settings" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-  mc:Ignorable="d" xmlns:Main="using:Emerald" xmlns:helpers="using:Emerald.Helpers"
-  DataContext="{x:Bind SS.Settings}" xmlns:cn="using:CommunityToolkit.WinUI.Controls" xmlns:uc="using:Emerald.UserControls" xmlns:windowsui="using:Windows.UI">
+  x:Class="Emerald.Views.Settings.AppearancePage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  mc:Ignorable="d" xmlns:helpers="using:Emerald.Helpers"
+  DataContext="{x:Bind SS.Settings}" xmlns:cn="using:CommunityToolkit.WinUI.Controls"
+  xmlns:windowsui="using:Windows.UI">
   <Grid
     Margin="16">
     <StackPanel
@@ -32,6 +36,8 @@
             Content="Mica Alt" />
           <ComboBoxItem
             Content="Acrylic" />
+          <ComboBoxItem
+            Content="None" />
         </ComboBox>
       </cn:SettingsCard>
       <cn:SettingsCard
@@ -110,8 +116,8 @@
                 Maximum="100"
                 SmallChange="1"
                 LargeChange="10"
-                Value="{Binding App.Appearance.TintOpacity, Mode=TwoWay}"/>
-              <TextBlock Text="{Binding App.Appearance.TintOpacity, Mode=OneWay}"/>
+                Value="{Binding App.Appearance.TintOpacity, Mode=TwoWay}" />
+              <TextBlock Text="{Binding App.Appearance.TintOpacity, Mode=OneWay}" />
             </StackPanel>
           </cn:SettingsCard>
         </cn:SettingsExpander.Items>

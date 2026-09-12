@@ -13,6 +13,7 @@ public enum AccountType
     Offline,
     Microsoft,
     ElyBy,
+
     /// <summary>
     /// Compatibility bucket for providers that are not built in to Emerald.
     /// ProviderId is the canonical identity for all new providers.
@@ -23,54 +24,38 @@ public enum AccountType
 [ObservableObject]
 public partial class EAccount
 {
-    [ObservableProperty]
-    private string _name = string.Empty;
+    [ObservableProperty] private string _name = string.Empty;
 
     // Retained for settings compatibility; ProviderId is the canonical provider identity.
-    [ObservableProperty]
-    private AccountType _type;
+    [ObservableProperty] private AccountType _type;
 
-    [ObservableProperty]
-    private string _UUID = string.Empty;
+    [ObservableProperty] private string _UUID = string.Empty;
 
-    [ObservableProperty]
-    private DateTime _lastUsed;
+    [ObservableProperty] private DateTime _lastUsed;
 
-    [ObservableProperty]
-    private string _uniqueId = string.Empty;
+    [ObservableProperty] private string _uniqueId = string.Empty;
 
-    [ObservableProperty]
-    private string _providerId = string.Empty;
+    [ObservableProperty] private string _providerId = string.Empty;
 
-    [JsonIgnore]
-    [ObservableProperty]
-    private bool _isSelected;
+    [JsonIgnore] [ObservableProperty] private bool _isSelected;
 
-    [JsonIgnore]
-    [ObservableProperty]
-    private string _providerDisplayName = string.Empty;
+    [JsonIgnore] [ObservableProperty] private string _providerDisplayName = string.Empty;
 
-    [JsonIgnore]
-    [ObservableProperty]
-    private AccountAvailability _availability = AccountAvailability.Ready;
+    [JsonIgnore] [ObservableProperty] private AccountAvailability _availability = AccountAvailability.Ready;
 
-    [JsonIgnore]
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasAvailabilityMessage))]
+    [JsonIgnore] [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasAvailabilityMessage))]
     private string? _availabilityMessage;
 
-    [JsonIgnore]
-    [ObservableProperty]
-    private IReadOnlyList<AccountProviderActionDescriptor> _providerActions = [];
+    [JsonIgnore] [ObservableProperty] private IReadOnlyList<AccountProviderActionDescriptor> _providerActions = [];
 
     /// <summary>Runtime-only skin data used by launcher presentation surfaces.</summary>
-    [JsonIgnore]
-    [ObservableProperty]
-    private AccountSkinData? _skin;
+    [JsonIgnore] [ObservableProperty] private AccountSkinData? _skin;
 
     public bool HasAvailabilityMessage => !string.IsNullOrWhiteSpace(AvailabilityMessage);
 
-    public EAccount() { }
+    public EAccount()
+    {
+    }
 
     public EAccount(string name, AccountType type, string uuid = "", string uniqueId = "")
     {

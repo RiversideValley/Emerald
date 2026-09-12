@@ -16,4 +16,8 @@ public static class SettingsKeys
     public const string ElyByAccounts = "ElyByAccounts";
     public const string StoreInstalledItems = "StoreInstalledItems";
     public const string StoreSharedContentSettings = "StoreSharedContentSettings";
+    public const string PlaytimeHistory = "PlaytimeHistory";
+    public const string SavedServers = "SavedServers";
+    public const string HomePreferences = "HomePreferences";
+    public const string QuickProfiles = "QuickProfiles";
 }

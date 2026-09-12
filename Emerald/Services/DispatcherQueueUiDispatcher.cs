@@ -10,7 +10,9 @@ internal sealed class DispatcherQueueUiDispatcher(DispatcherQueue dispatcherQueu
     public bool HasThreadAccess => _dispatcherQueue.HasThreadAccess;
 
     public void Invoke(Action action)
-        => InvokeAsync(action).GetAwaiter().GetResult();
+    {
+        InvokeAsync(action).GetAwaiter().GetResult();
+    }
 
     public Task InvokeAsync(Action action)
     {

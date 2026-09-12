@@ -34,7 +34,7 @@ internal sealed class NativeDispatcherFatalLoggerProvider(CrashCoordinator coord
             }
 
             _earlyFactory = new BridgeLoggerFactory(coordinator);
-            Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory = _earlyFactory;
+            LogExtensionPoint.AmbientLoggerFactory = _earlyFactory;
             // Uno.Foundation.Logging has its own adapter and caches loggers.
             // Setting AmbientLoggerFactory alone leaves framework loggers null.
             Uno.UI.Adapter.Microsoft.Extensions.Logging.LoggingAdapter.Initialize();
@@ -51,14 +51,16 @@ internal sealed class NativeDispatcherFatalLoggerProvider(CrashCoordinator coord
             }
 
             _earlyFactory.AttachHost(hostFactory);
-            Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory = _earlyFactory;
+            LogExtensionPoint.AmbientLoggerFactory = _earlyFactory;
         }
     }
 
     public ILogger CreateLogger(string categoryName)
-        => string.Equals(categoryName, "Uno.UI.Dispatching.NativeDispatcher", StringComparison.Ordinal)
+    {
+        return string.Equals(categoryName, "Uno.UI.Dispatching.NativeDispatcher", StringComparison.Ordinal)
             ? new NativeDispatcherLogger(coordinator)
             : NullLogger.Instance;
+    }
 
     public void Dispose()
     {
@@ -69,28 +71,59 @@ internal sealed class NativeDispatcherFatalLoggerProvider(CrashCoordinator coord
         private readonly NativeDispatcherFatalLoggerProvider _fatalProvider = new(coordinator);
         private ILoggerFactory? _host;
 
-        public void AttachHost(ILoggerFactory host) => Volatile.Write(ref _host, host);
+        public void AttachHost(ILoggerFactory host)
+        {
+            Volatile.Write(ref _host, host);
+        }
+
         public ILogger CreateLogger(string categoryName)
-            => new BridgeLogger(this, categoryName, _fatalProvider.CreateLogger(categoryName));
-        public void AddProvider(ILoggerProvider provider) => Volatile.Read(ref _host)?.AddProvider(provider);
-        public void Dispose() { } // The host owns its own lifetime; this bridge is process-wide.
+        {
+            return new BridgeLogger(this, categoryName, _fatalProvider.CreateLogger(categoryName));
+        }
+
+        public void AddProvider(ILoggerProvider provider)
+        {
+            Volatile.Read(ref _host)?.AddProvider(provider);
+        }
+
+        public void Dispose()
+        {
+        } // The host owns its own lifetime; this bridge is process-wide.
 
         private sealed class BridgeLogger(BridgeLoggerFactory owner, string category, ILogger fatal) : ILogger
         {
             private ILogger? _forward;
+
             private ILogger Forward
             {
                 get
                 {
-                    if (Volatile.Read(ref _forward) is { } cached) return cached;
+                    if (Volatile.Read(ref _forward) is { } cached)
+                    {
+                        return cached;
+                    }
+
                     var host = Volatile.Read(ref owner._host);
-                    if (host is null) return NullLogger.Instance;
+                    if (host is null)
+                    {
+                        return NullLogger.Instance;
+                    }
+
                     var logger = host.CreateLogger(category);
                     return Interlocked.CompareExchange(ref _forward, logger, null) ?? logger;
                 }
             }
-            public IDisposable? BeginScope<TState>(TState state) where TState : notnull => Forward.BeginScope(state);
-            public bool IsEnabled(LogLevel level) => fatal.IsEnabled(level) || Forward.IsEnabled(level);
+
+            public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+            {
+                return Forward.BeginScope(state);
+            }
+
+            public bool IsEnabled(LogLevel level)
+            {
+                return fatal.IsEnabled(level) || Forward.IsEnabled(level);
+            }
+
             public void Log<TState>(LogLevel level, EventId id, TState state, Exception? exception,
                 Func<TState, Exception?, string> formatter)
             {
@@ -104,10 +137,14 @@ internal sealed class NativeDispatcherFatalLoggerProvider(CrashCoordinator coord
     private sealed class NativeDispatcherLogger(CrashCoordinator coordinator) : ILogger
     {
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull
-            => NullScope.Instance;
+        {
+            return NullScope.Instance;
+        }
 
         public bool IsEnabled(LogLevel logLevel)
-            => logLevel >= LogLevel.Error;
+        {
+            return logLevel >= LogLevel.Error;
+        }
 
         public void Log<TState>(
             LogLevel logLevel,
@@ -141,6 +178,7 @@ internal sealed class NativeDispatcherFatalLoggerProvider(CrashCoordinator coord
     private sealed class NullScope : IDisposable
     {
         public static readonly NullScope Instance = new();
+
         public void Dispose()
         {
         }

@@ -174,7 +174,8 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
 
     private async Task DownloadFileAsync(string url, string destinationPath, CancellationToken cancellationToken)
     {
-        using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        using var response =
+            await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         await using var source = await response.Content.ReadAsStreamAsync(cancellationToken);
@@ -183,8 +184,8 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
             FileMode.CreateNew,
             FileAccess.Write,
             FileShare.None,
-            bufferSize: 81920,
-            useAsync: true);
+            81920,
+            true);
 
         await source.CopyToAsync(destination, cancellationToken);
     }
@@ -238,8 +239,8 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
                     FileMode.Create,
                     FileAccess.Write,
                     FileShare.None,
-                    bufferSize: 81920,
-                    useAsync: true);
+                    81920,
+                    true);
 
                 await source.CopyToAsync(destination, cancellationToken);
             }
@@ -295,7 +296,7 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
 
             foreach (var existingRecord in existing)
             {
-                _sharedContentService.RemoveReferenceAsync(existingRecord, deleteInstanceFile: false).GetAwaiter().GetResult();
+                _sharedContentService.RemoveReferenceAsync(existingRecord, false).GetAwaiter().GetResult();
             }
         }
 
@@ -325,7 +326,8 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
     }
 
     private static ItemFile ToItemFile(MrPackFile file, string fileName)
-        => new()
+    {
+        return new ItemFile
         {
             Filename = fileName,
             Url = file.Downloads.FirstOrDefault() ?? string.Empty,
@@ -337,6 +339,7 @@ public sealed class MrPackFileInstaller : IMrPackFileInstaller
                 Sha512 = file.Hashes.GetValueOrDefault("sha512") ?? string.Empty
             }
         };
+    }
 
     private static bool TryResolveSharedContent(
         string relativePath,

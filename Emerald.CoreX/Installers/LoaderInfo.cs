@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Emerald.CoreX.Installers;
+
 public class LoaderInfo
 {
     public string? Tag { get; set; }

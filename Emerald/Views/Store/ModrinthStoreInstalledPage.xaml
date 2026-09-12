@@ -1,15 +1,15 @@
 <Page
-    x:Class="Emerald.Views.Store.ModrinthStoreInstalledPage"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:cn="using:CommunityToolkit.WinUI.Controls"
-    xmlns:conv="using:Emerald.Helpers.Converters"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:corex="using:Emerald.CoreX"
-    xmlns:helpers="using:Emerald.Helpers"
-    xmlns:store="using:Emerald.CoreX.Store"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+  x:Class="Emerald.Views.Store.ModrinthStoreInstalledPage"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:cn="using:CommunityToolkit.WinUI.Controls"
+  xmlns:conv="using:Emerald.Helpers.Converters"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:corex="using:Emerald.CoreX"
+  xmlns:helpers="using:Emerald.Helpers"
+  xmlns:store="using:Emerald.CoreX.Store"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  mc:Ignorable="d">
   <Page.Resources>
     <conv:BoolToVisibility x:Key="BoolToVis" />
     <conv:BoolToVisibility x:Key="InverseBoolToVis" Reversed="True" />
@@ -18,7 +18,7 @@
 
   <Grid Margin="24,0,24,24" ColumnSpacing="16">
     <Grid.ColumnDefinitions>
-      <ColumnDefinition MinWidth="320" MaxWidth="480"/>
+      <ColumnDefinition MinWidth="320" MaxWidth="480" />
       <ColumnDefinition Width="*" />
     </Grid.ColumnDefinitions>
 
@@ -49,14 +49,14 @@
             DisplayMemberPath="DisplayName"
             ItemsSource="{Binding ContentTypes}"
             SelectedItem="{Binding SelectedContentTypeOption, Mode=TwoWay}" />
-          </cn:SettingsCard>
+        </cn:SettingsCard>
         <InfoBar
           IsOpen="True"
           Severity="Informational"
           IsClosable="False"
           Opacity="0.8"
           Title="What you can do here"
-          Message="Tracked installs are safe to remove directly. Untracked files stay read-only until you explicitly force remove them."/>
+          Message="Tracked installs are safe to remove directly. Untracked files stay read-only until you explicitly force remove them." />
       </StackPanel>
     </ScrollViewer>
 
@@ -75,9 +75,9 @@
 
       <Grid>
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto"/>
-          <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Margin="12,0,0,12" Spacing="4">
           <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Installed Content" />

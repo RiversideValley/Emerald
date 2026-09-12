@@ -59,10 +59,16 @@ public sealed class InstanceInstallationServiceTests
         await File.WriteAllTextAsync(destination, "last-good-copy");
         var expected = Convert.ToHexString(SHA1.HashData("expected-copy"u8.ToArray())).ToLowerInvariant();
         using var network = new NetworkCapabilityService(new HttpClient(new StaticHttpHandler("bad-copy"u8.ToArray())));
-        var installer = new VerifiedGameInstaller(new HttpClient(new StaticHttpHandler("bad-copy"u8.ToArray())), network);
-        var file = new GameFile("client.jar") { Path = destination, Url = "https://invalid.example/client.jar", Hash = expected, Size = "expected-copy"u8.Length };
+        var installer =
+            new VerifiedGameInstaller(new HttpClient(new StaticHttpHandler("bad-copy"u8.ToArray())), network);
+        var file = new GameFile("client.jar")
+        {
+            Path = destination, Url = "https://invalid.example/client.jar", Hash = expected,
+            Size = "expected-copy"u8.Length
+        };
 
-        await Assert.ThrowsAsync<AggregateException>(async () => await installer.Install([file], null, null, CancellationToken.None));
+        await Assert.ThrowsAsync<AggregateException>(async () =>
+            await installer.Install([file], null, null, CancellationToken.None));
 
         Assert.Equal("last-good-copy", await File.ReadAllTextAsync(destination));
         Assert.Empty(Directory.GetFiles(root, "*.emerald-download-*"));
@@ -93,12 +99,16 @@ public sealed class InstanceInstallationServiceTests
                 Size = 1
             };
 
-            await Assert.ThrowsAsync<AggregateException>(() => installer.Install([file], null, null, CancellationToken.None).AsTask());
+            await Assert.ThrowsAsync<AggregateException>(() =>
+                installer.Install([file], null, null, CancellationToken.None).AsTask());
             Assert.Empty(Directory.GetFiles(root, "*.emerald-download-*"));
         }
         finally
         {
-            if (Directory.Exists(root)) Directory.Delete(root, true);
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, true);
+            }
         }
     }
 
@@ -140,17 +150,25 @@ public sealed class InstanceInstallationServiceTests
         }
         finally
         {
-            if (Directory.Exists(root)) Directory.Delete(root, true);
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, true);
+            }
         }
     }
 
     private static InstanceInstallationService CreateService(INetworkCapabilityService network)
-        => new(NullLogger<InstanceInstallationService>.Instance, new InstallationStateStore(), network);
+    {
+        return new InstanceInstallationService(NullLogger<InstanceInstallationService>.Instance,
+            new InstallationStateStore(), network);
+    }
 
     private sealed class FailingHttpHandler : HttpMessageHandler
     {
         public int RequestCount { get; private set; }
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
         {
             RequestCount++;
             throw new Xunit.Sdk.XunitException($"Local verification attempted HTTP: {request.RequestUri}");
@@ -159,19 +177,27 @@ public sealed class InstanceInstallationServiceTests
 
     private sealed class StaticHttpHandler(byte[] content) : HttpMessageHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(content) });
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                { Content = new ByteArrayContent(content) });
+        }
     }
 
     private sealed class OfflineHttpHandler : HttpMessageHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            => throw new HttpRequestException("offline");
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            throw new HttpRequestException("offline");
+        }
     }
 
     private sealed class StalledHandler : HttpMessageHandler
     {
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
         {
             await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
             throw new InvalidOperationException("The stalled request should have been cancelled.");
@@ -183,16 +209,44 @@ public sealed class InstanceInstallationServiceTests
         public ObservableCollection<Notification> ActiveNotifications { get; } = [];
         public int CompletionCount { get; private set; }
 
-        public (string Id, CancellationToken? CancellationToken) Create(string title, string message = null!, double progress = 0, bool isIndeterminate = false, bool isCancellable = false)
-            => ("install", null);
+        public (string Id, CancellationToken? CancellationToken) Create(string title, string message = null!,
+            double progress = 0, bool isIndeterminate = false, bool isCancellable = false)
+        {
+            return ("install", null);
+        }
 
-        public void Update(string? id = null, string? title = null, string? message = null, double? progress = null, bool? isIndeterminate = null) { }
-        public void Complete(string id, bool success, string message = null!, Exception ex = null!) => CompletionCount++;
-        public string Warning(string title, string message, TimeSpan? duration = null) => "warning";
-        public string Info(string title, string message, TimeSpan? duration = null) => "info";
-        public string Error(string title, string message, TimeSpan? duration = null, Exception? ex = null) => "error";
-        public void RemoveNotification(string id) { }
-        public void Cancel(string id) { }
+        public void Update(string? id = null, string? title = null, string? message = null, double? progress = null,
+            bool? isIndeterminate = null)
+        {
+        }
+
+        public void Complete(string id, bool success, string message = null!, Exception ex = null!)
+        {
+            CompletionCount++;
+        }
+
+        public string Warning(string title, string message, TimeSpan? duration = null)
+        {
+            return "warning";
+        }
+
+        public string Info(string title, string message, TimeSpan? duration = null)
+        {
+            return "info";
+        }
+
+        public string Error(string title, string message, TimeSpan? duration = null, Exception? ex = null)
+        {
+            return "error";
+        }
+
+        public void RemoveNotification(string id)
+        {
+        }
+
+        public void Cancel(string id)
+        {
+        }
     }
 
     private sealed class LocalGameFixture : IDisposable
@@ -215,7 +269,8 @@ public sealed class InstanceInstallationServiceTests
             var metadata = new
             {
                 id = versionName,
-                downloads = new { client = new { sha1, size = bytes.Length, url = "https://invalid.example/client.jar" } },
+                downloads = new
+                    { client = new { sha1, size = bytes.Length, url = "https://invalid.example/client.jar" } },
                 libraries = Array.Empty<object>()
             };
             await File.WriteAllTextAsync(
@@ -229,17 +284,33 @@ public sealed class InstanceInstallationServiceTests
                 RealVersion = versionName,
                 ReleaseType = "release"
             }, globalGameSettingsService: new TestGlobalGameSettingsService());
-            return new() { Root = root, ClientPath = clientPath, Game = game };
+            return new LocalGameFixture { Root = root, ClientPath = clientPath, Game = game };
         }
 
-        public void Dispose() { if (Directory.Exists(Root)) Directory.Delete(Root, true); }
+        public void Dispose()
+        {
+            if (Directory.Exists(Root))
+            {
+                Directory.Delete(Root, true);
+            }
+        }
     }
 
     private sealed class TestGlobalGameSettingsService : IGlobalGameSettingsService
     {
         public Emerald.CoreX.Models.GameSettings Settings { get; } = new();
-        public Emerald.CoreX.Models.GameSettings CloneCurrent() => Settings.Clone();
-        public void LoadForBasePath(string basePath) { }
-        public void Save() { }
+
+        public Emerald.CoreX.Models.GameSettings CloneCurrent()
+        {
+            return Settings.Clone();
+        }
+
+        public void LoadForBasePath(string basePath)
+        {
+        }
+
+        public void Save()
+        {
+        }
     }
 }

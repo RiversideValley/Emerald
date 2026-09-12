@@ -6,22 +6,32 @@ namespace Emerald.CoreX.Services.Auth.ElyBy;
 internal sealed class ElyByAccountStore(IBaseSettingsService settingsService) : IElyByAccountStore
 {
     public IReadOnlyList<ElyByStoredAccount> GetAccounts()
-        => settingsService.Get(SettingsKeys.ElyByAccounts, new List<ElyByStoredAccount>())
+    {
+        return settingsService.Get(SettingsKeys.ElyByAccounts, new List<ElyByStoredAccount>())
             .Where(account => !string.IsNullOrWhiteSpace(account.UniqueId))
             .ToList();
+    }
 
     public ElyByStoredAccount? Find(string uniqueId)
-        => GetAccounts().FirstOrDefault(account => string.Equals(account.UniqueId, uniqueId, StringComparison.Ordinal));
+    {
+        return GetAccounts()
+            .FirstOrDefault(account => string.Equals(account.UniqueId, uniqueId, StringComparison.Ordinal));
+    }
 
     public void Upsert(ElyByStoredAccount account)
     {
         var accounts = GetAccounts().ToList();
-        var index = accounts.FindIndex(candidate => string.Equals(candidate.UniqueId, account.UniqueId, StringComparison.Ordinal));
+        var index = accounts.FindIndex(candidate =>
+            string.Equals(candidate.UniqueId, account.UniqueId, StringComparison.Ordinal));
 
         if (index >= 0)
+        {
             accounts[index] = account;
+        }
         else
+        {
             accounts.Add(account);
+        }
 
         settingsService.Set(SettingsKeys.ElyByAccounts, accounts);
     }

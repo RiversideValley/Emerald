@@ -44,6 +44,7 @@
     <PackageReference Include="CmlLib.Core" />
     <PackageReference Include="CmlLib.Core.Auth.Microsoft" />
     <PackageReference Include="CmlLib.Core.Installer.Forge" />
+    <PackageReference Include="fNbt" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Newtonsoft.Json" />
@@ -55,10 +56,5 @@
     <Reference Include="CmlLib.Core.Installer.NeoForge">
       <HintPath>NeoForge\CmlLib.Core.Installer.NeoForge.dll</HintPath>
     </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="..\Emerald\Assets\Web\SkinViewer\skin_Steve_Default.png"
-                      LogicalName="Emerald.SkinViewer.skin_Steve_Default.png" />
   </ItemGroup>
 </Project>

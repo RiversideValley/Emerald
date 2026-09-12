@@ -85,6 +85,7 @@ public sealed class EventHub : IDisposable
                 TrackSession(session);
             }
         }
+
         if (e.OldItems != null)
         {
             foreach (GameSession session in e.OldItems)
@@ -97,7 +98,10 @@ public sealed class EventHub : IDisposable
     private void TrackSession(GameSession session)
     {
         var key = session.GamePath;
-        if (!_trackedSessions.TryAdd(key, session)) return;
+        if (!_trackedSessions.TryAdd(key, session))
+        {
+            return;
+        }
 
         session.PropertyChanged += OnSessionPropertyChanged;
         session.Entries.CollectionChanged += OnSessionEntriesChanged;
@@ -127,12 +131,15 @@ public sealed class EventHub : IDisposable
 
     private void OnSessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (sender is not GameSession session) return;
+        if (sender is not GameSession session)
+        {
+            return;
+        }
 
-        if (e.PropertyName is nameof(GameSession.State) 
-            or nameof(GameSession.ProcessId) 
-            or nameof(GameSession.ExitCode) 
-            or nameof(GameSession.HasCrashReport) 
+        if (e.PropertyName is nameof(GameSession.State)
+            or nameof(GameSession.ProcessId)
+            or nameof(GameSession.ExitCode)
+            or nameof(GameSession.HasCrashReport)
             or nameof(GameSession.CrashReportPath))
         {
             Broadcast("SessionStateChanged", new
@@ -150,12 +157,22 @@ public sealed class EventHub : IDisposable
 
     private void OnSessionEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.NewItems == null) return;
-        if (sender is not ObservableCollection<GameLogEntry> entries) return;
+        if (e.NewItems == null)
+        {
+            return;
+        }
+
+        if (sender is not ObservableCollection<GameLogEntry> entries)
+        {
+            return;
+        }
 
         // Find which session these entries belong to
         var session = _trackedSessions.Values.FirstOrDefault(s => s.Entries == entries);
-        if (session == null) return;
+        if (session == null)
+        {
+            return;
+        }
 
         foreach (GameLogEntry entry in e.NewItems)
         {
@@ -190,6 +207,7 @@ public sealed class EventHub : IDisposable
                 TrackNotification(notification);
             }
         }
+
         if (e.OldItems != null)
         {
             foreach (Notification notification in e.OldItems)
@@ -201,7 +219,10 @@ public sealed class EventHub : IDisposable
 
     private void TrackNotification(Notification notification)
     {
-        if (!_trackedNotifications.TryAdd(notification.Id, notification)) return;
+        if (!_trackedNotifications.TryAdd(notification.Id, notification))
+        {
+            return;
+        }
 
         notification.PropertyChanged += OnNotificationPropertyChanged;
 
@@ -235,7 +256,10 @@ public sealed class EventHub : IDisposable
 
     private void OnNotificationPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (sender is not Notification notification) return;
+        if (sender is not Notification notification)
+        {
+            return;
+        }
 
         Broadcast("NotificationStateChanged", new
         {
@@ -253,7 +277,10 @@ public sealed class EventHub : IDisposable
 
     private void Broadcast<T>(string eventType, T data)
     {
-        if (_sockets.IsEmpty) return;
+        if (_sockets.IsEmpty)
+        {
+            return;
+        }
 
         var payload = JsonSerializer.Serialize(new
         {
@@ -274,7 +301,10 @@ public sealed class EventHub : IDisposable
             foreach (var kvp in _sockets)
             {
                 var socket = kvp.Value;
-                if (socket.State != WebSocketState.Open) continue;
+                if (socket.State != WebSocketState.Open)
+                {
+                    continue;
+                }
 
                 try
                 {
@@ -282,7 +312,8 @@ public sealed class EventHub : IDisposable
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogDebug("Failed to send WebSocket broadcast to client {Id}: {Message}", kvp.Key, ex.Message);
+                    _logger.LogDebug("Failed to send WebSocket broadcast to client {Id}: {Message}", kvp.Key,
+                        ex.Message);
                 }
             }
         });
@@ -305,7 +336,13 @@ public sealed class EventHub : IDisposable
 
         foreach (var socket in _sockets.Values)
         {
-            try { socket.Dispose(); } catch { }
+            try
+            {
+                socket.Dispose();
+            }
+            catch
+            {
+            }
         }
     }
 }

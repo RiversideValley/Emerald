@@ -14,13 +14,22 @@ internal sealed class ProcessBrowserLauncher(ILogger<ProcessBrowserLauncher> log
             var url = uri.AbsoluteUri;
             logger.LogInformation("Launching browser for account sign-in: {Url}", url);
             if (OperatingSystem.IsWindows())
+            {
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            }
             else if (OperatingSystem.IsMacOS())
+            {
                 Process.Start("open", url);
+            }
             else if (OperatingSystem.IsLinux())
+            {
                 Process.Start("xdg-open", url);
+            }
             else
+            {
                 return Task.FromResult(false);
+            }
+
             return Task.FromResult(true);
         }
         catch (Exception ex)

@@ -5,13 +5,19 @@ namespace Emerald.CoreX.Helpers;
 internal static class FileHash
 {
     public static string? Normalize(string? value)
-        => string.IsNullOrWhiteSpace(value) ? null : value.Trim().ToLowerInvariant();
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim().ToLowerInvariant();
+    }
 
     public static Task<string> ComputeSha1Async(string filePath, CancellationToken cancellationToken)
-        => ComputeHashAsync(SHA1.Create(), filePath, cancellationToken);
+    {
+        return ComputeHashAsync(SHA1.Create(), filePath, cancellationToken);
+    }
 
     public static string ComputeSha1(string filePath)
-        => ComputeHash(SHA1.Create(), filePath);
+    {
+        return ComputeHash(SHA1.Create(), filePath);
+    }
 
     public static async Task<string> ComputeHashAsync(
         HashAlgorithm algorithm,

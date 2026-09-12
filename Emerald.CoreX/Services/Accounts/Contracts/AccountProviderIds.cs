@@ -10,20 +10,24 @@ public static class AccountProviderIds
     public const string ElyBy = "elyby";
 
     public static string FromAccountType(AccountType type)
-        => type switch
+    {
+        return type switch
         {
             AccountType.Offline => Offline,
             AccountType.Microsoft => Microsoft,
             AccountType.ElyBy => ElyBy,
             _ => string.Empty
         };
+    }
 
     public static string GetDisplayName(string? providerId)
-        => providerId switch
+    {
+        return providerId switch
         {
             Offline => "Offline",
             Microsoft => "Microsoft",
             ElyBy => "Ely.by",
             _ => string.IsNullOrWhiteSpace(providerId) ? "Unknown" : providerId
         };
+    }
 }

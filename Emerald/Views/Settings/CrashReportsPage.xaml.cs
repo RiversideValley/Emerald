@@ -93,7 +93,8 @@ public sealed partial class CrashReportsPage : Page
             if (!Uri.TryCreate(draft.Url, UriKind.Absolute, out var uri)
                 || !await Launcher.LaunchUriAsync(uri))
             {
-                await MessageBox.Show("Error".Localize(), "CouldNotOpenGitHubReport".Localize(), LocalMessageBoxButtons.Ok);
+                await MessageBox.Show("Error".Localize(), "CouldNotOpenGitHubReport".Localize(),
+                    LocalMessageBoxButtons.Ok);
             }
         }
         catch (Exception exception)
@@ -132,8 +133,12 @@ public sealed partial class CrashReportsPage : Page
     }
 
     private void OpenLogs_Click(object sender, RoutedEventArgs e)
-        => Path.GetDirectoryName(ViewModel.ApplicationLogPath)?.RevealInFinder();
+    {
+        Path.GetDirectoryName(ViewModel.ApplicationLogPath)?.RevealInFinder();
+    }
 
     private void OpenNativeDiagnostics_Click(object sender, RoutedEventArgs e)
-        => Path.GetDirectoryName(ViewModel.SelectedNativeDiagnosticsPath)?.RevealInFinder();
+    {
+        Path.GetDirectoryName(ViewModel.SelectedNativeDiagnosticsPath)?.RevealInFinder();
+    }
 }

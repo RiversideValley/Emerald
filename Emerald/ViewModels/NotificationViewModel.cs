@@ -37,11 +37,13 @@ public class NotificationViewModel : ObservableObject, IDisposable
 
         _model.PropertyChanged += (_, __) => PropChanged();
     }
+
     private void PropChanged()
     {
-        OnPropertyChanged(); 
+        OnPropertyChanged();
         OnModelChanged();
     }
+
     private void OnCancel()
     {
         _service.Cancel(_model.Id);
@@ -54,8 +56,8 @@ public class NotificationViewModel : ObservableObject, IDisposable
 
     private async void OnViewError()
     {
-       await MessageBox.Show("Error", Exception.ToString() + "\nStackTrace: " + Exception.StackTrace, Helpers.Enums.MessageBoxButtons.Ok);
-
+        await MessageBox.Show("Error", Exception.ToString() + "\nStackTrace: " + Exception.StackTrace,
+            Helpers.Enums.MessageBoxButtons.Ok);
     }
 
     private void OnModelChanged()
