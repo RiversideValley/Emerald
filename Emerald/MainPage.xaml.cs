@@ -616,7 +616,7 @@ public sealed partial class MainPage : Page
             return;
         }
 
-        var tasksPanel = new UserControls.TasksPanelControl
+        var tasksPanel = new Controls.TasksPanelControl
         {
             IsCompactHost = true,
             Width = 380,

@@ -1,9 +1,9 @@
 ﻿<UserControl
-  x:Class="Emerald.UserControls.TasksPanelControl"
+  x:Class="Emerald.Controls.TasksPanelControl"
   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:helpers="using:Emerald.Helpers"
-  xmlns:uc="using:Emerald.UserControls">
+  xmlns:uc="using:Emerald.Controls">
 
   <Grid>
     <Grid.RowDefinitions>

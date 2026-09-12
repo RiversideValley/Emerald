@@ -16,7 +16,7 @@ using Emerald.CoreX.Services;
 using Emerald.CoreX.Installation;
 using Emerald.Helpers;
 using Emerald.Helpers.Enums;
-using Emerald.UserControls;
+using Emerald.Controls;
 using Emerald.Views.Store;
 using Microsoft.UI.Xaml.Media.Animation;
 

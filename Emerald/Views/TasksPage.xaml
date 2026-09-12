@@ -2,7 +2,7 @@
   x:Class="Emerald.Views.TasksPage"
   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:uc="using:Emerald.UserControls">
+  xmlns:uc="using:Emerald.Controls">
 
   <Grid>
     <uc:TasksPanelControl />

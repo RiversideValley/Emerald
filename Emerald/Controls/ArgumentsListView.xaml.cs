@@ -6,7 +6,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Emerald.Models;
 
-namespace Emerald.UserControls;
+namespace Emerald.Controls;
 
 public sealed partial class ArgumentsListView : UserControl
 {

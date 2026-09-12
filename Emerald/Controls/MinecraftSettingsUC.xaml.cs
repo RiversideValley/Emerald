@@ -20,7 +20,7 @@ using Windows.Storage.Pickers;
 using Windows.System;
 using CmlLib.Core;
 
-namespace Emerald.UserControls;
+namespace Emerald.Controls;
 
 public sealed partial class MinecraftSettingsUC : UserControl
 {

@@ -1,7 +1,7 @@
 using Emerald.CoreX.Helpers;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace Emerald.UserControls;
+namespace Emerald.Controls;
 
 public partial class JavaRuntimeOptionViewModel : ObservableObject
 {

@@ -8,7 +8,7 @@ using Emerald.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace Emerald.UserControls;
+namespace Emerald.Controls;
 
 public sealed partial class TasksPanelControl : UserControl
 {
