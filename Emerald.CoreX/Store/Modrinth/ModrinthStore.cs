@@ -48,7 +48,7 @@ public abstract class ModrinthStore : IModrinthStore
         _projectType = projectType;
         _installFolderName = installFolderName;
         ContentType = contentType;
-        _fileDownloader = new FileDownloader(logger, new());
+        _fileDownloader = new FileDownloader(logger, new HttpClient());
     }
 
 
@@ -107,12 +107,13 @@ public abstract class ModrinthStore : IModrinthStore
         try
         {
             // Prepare the facets parameter correctly
-            string facets = "[[\"project_type:" + _projectType + "\"]";
+            var facets = "[[\"project_type:" + _projectType + "\"]";
             if (categories != null && categories.Length != 0)
             {
                 var categoryFacets = categories.Select(cat => $"\"categories:{cat}\"");
                 facets += ",[" + string.Join(",", categoryFacets) + "]";
             }
+
             facets += "]";
 
             var request = new RestRequest("search")
@@ -183,7 +184,8 @@ public abstract class ModrinthStore : IModrinthStore
     /// </summary>
     /// <param name="id">The unique identifier of the item.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of item versions or null if an error occurred.</returns>
-    public virtual async Task<List<ItemVersion>?> GetVersionsAsync(string id, string[]? gameVersions = null, string[]? loaders = null)
+    public virtual async Task<List<ItemVersion>?> GetVersionsAsync(string id, string[]? gameVersions = null,
+        string[]? loaders = null)
     {
         _logger.LogInformation($"Fetching versions for {_projectType} with ID: {id}");
 
@@ -241,5 +243,7 @@ public abstract class ModrinthStore : IModrinthStore
         string filePath,
         IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
-        => _fileDownloader.DownloadFileAsync(file.Url, filePath, file.Hashes, progress, cancellationToken);
+    {
+        return _fileDownloader.DownloadFileAsync(file.Url, filePath, file.Hashes, progress, cancellationToken);
+    }
 }

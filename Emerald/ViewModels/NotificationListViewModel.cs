@@ -19,19 +19,31 @@ public class NotificationListViewModel : ObservableObject
 
         // Load existing
         foreach (var n in _service.ActiveNotifications)
+        {
             Add(n);
+        }
 
         _service.ActiveNotifications.CollectionChanged += ActiveNotifications_CollectionChanged;
     }
 
-    private void ActiveNotifications_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    private void ActiveNotifications_CollectionChanged(object? sender,
+        System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
         if (e.NewItems != null)
+        {
             foreach (Notification n in e.NewItems)
+            {
                 Add(n);
+            }
+        }
+
         if (e.OldItems != null)
+        {
             foreach (Notification n in e.OldItems)
+            {
                 Remove(n);
+            }
+        }
     }
 
     private void Add(Notification model)
@@ -43,6 +55,8 @@ public class NotificationListViewModel : ObservableObject
     {
         var vm = Notifications.FirstOrDefault(x => x.Id == model.Id);
         if (vm != null)
+        {
             Notifications.Remove(vm);
+        }
     }
 }

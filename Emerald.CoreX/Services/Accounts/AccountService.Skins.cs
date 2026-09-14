@@ -25,7 +25,9 @@ public sealed partial class AccountService
         }
 
         if (!forceRefresh && account.Skin is { } existing)
+        {
             return existing;
+        }
 
         var request = _skinRequests.GetOrAdd(key, _ => LoadSkinAsync(account));
         try
@@ -47,13 +49,15 @@ public sealed partial class AccountService
             skin = await GetProvider(account).GetSkinAsync(account).ConfigureAwait(false);
             if (skin is not null && !MinecraftSkinTextures.IsSupportedSkinPng(skin.PngBytes))
             {
-                _logger.LogWarning("Provider {ProviderId} returned an invalid skin texture for account {AccountId}.", account.ProviderId, account.UniqueId);
+                _logger.LogWarning("Provider {ProviderId} returned an invalid skin texture for account {AccountId}.",
+                    account.ProviderId, account.UniqueId);
                 skin = null;
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Unable to retrieve skin for account {AccountId} from provider {ProviderId}.", account.UniqueId, account.ProviderId);
+            _logger.LogWarning(ex, "Unable to retrieve skin for account {AccountId} from provider {ProviderId}.",
+                account.UniqueId, account.ProviderId);
         }
 
         skin ??= MinecraftSkinTextures.CreateSteveFallback(account.ProviderDisplayName);
@@ -68,5 +72,7 @@ public sealed partial class AccountService
     }
 
     private static string GetSkinCacheKey(EAccount account)
-        => $"{account.ProviderId}:{account.UniqueId}";
+    {
+        return $"{account.ProviderId}:{account.UniqueId}";
+    }
 }

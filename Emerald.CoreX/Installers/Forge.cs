@@ -15,6 +15,7 @@ public class Forge : IModLoaderInstaller
 {
     private readonly Notifications.INotificationService _notify;
     private readonly HttpClient _httpClient;
+
     public Forge(Notifications.INotificationService notificationService, HttpClient httpClient)
     {
         _notify = notificationService;
@@ -38,9 +39,12 @@ public class Forge : IModLoaderInstaller
             var versions = await versionLoader.GetForgeVersions(mcVersion);
 
             if (versions == null || !versions.Any())
+            {
                 throw new NullReferenceException();
+            }
 
-            var l = versions.Select(x => new LoaderInfo { Version = x.ForgeVersionName, Stable = x.IsRecommendedVersion });
+            var l = versions.Select(x => new LoaderInfo
+                { Version = x.ForgeVersionName, Stable = x.IsRecommendedVersion });
 
             this.Log().LogInformation("Found {count} Forge Loaders", versions.Count());
             _notify.Complete(not.Id, true);
@@ -51,11 +55,12 @@ public class Forge : IModLoaderInstaller
         {
             this.Log().LogWarning("Failed to get Forge Loaders: {ex}", ex.Message);
             _notify.Complete(not.Id, false, ex.Message, ex);
-            return new();
+            return new List<LoaderInfo>();
         }
     }
 
-    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null, bool online = true)
+    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null,
+        bool online = true)
     {
         var not = _notify.Create(
             "InstallForge",
@@ -65,16 +70,20 @@ public class Forge : IModLoaderInstaller
         this.Log().LogInformation("Installing Forge Loader for {mcversion}", mcversion);
         try
         {
-            var forge = new ForgeInstaller(new(path));
+            var forge = new ForgeInstaller(new MinecraftLauncher(path));
 
             //TODO: check whether ForgeInstaller supports offline installation
 
             string? versionName = null;
 
             if (modversion == null)
+            {
                 versionName = await forge.Install(mcversion);
+            }
             else
+            {
                 versionName = await forge.Install(mcversion, modversion);
+            }
 
             this.Log().LogInformation("Installed Forge Loader {versionName}", versionName);
             _notify.Complete(not.Id, true);

@@ -10,8 +10,8 @@ public class CountToVisibilityConverter : IValueConverter
     {
         if (value is int count)
         {
-            int targetCount = 0;
-            if (parameter is string paramStr && int.TryParse(paramStr, out int parsed))
+            var targetCount = 0;
+            if (parameter is string paramStr && int.TryParse(paramStr, out var parsed))
             {
                 targetCount = parsed;
             }

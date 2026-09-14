@@ -30,7 +30,7 @@ public class FileDownloader
     /// <param name="cancellationToken">Optional. A CancellationToken to support cancellation of the download.</param>
     /// <returns>A task representing the asynchronous download operation.</returns>
     public async Task DownloadFileAsync(string url, string filePath, Hashes? expectedHashes = null,
-    IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+        IProgress<double>? progress = null, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation($"Downloading file from URL: {url}");
 
@@ -44,12 +44,14 @@ public class FileDownloader
                 File.Delete(filePath);
             }
 
-            using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            using var response =
+                await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             response.EnsureSuccessStatusCode();
 
             var totalBytes = response.Content.Headers.ContentLength ?? -1L;
             using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            using var fileStream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 8192, true);
+            using var fileStream =
+                new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 8192, true);
 
             var buffer = new byte[8192];
             long totalBytesRead = 0;
@@ -77,8 +79,6 @@ public class FileDownloader
             throw;
         }
     }
-
-
     /// <summary>
     /// Verifies the integrity of a file against expected hashes.
     /// </summary>
@@ -96,13 +96,13 @@ public class FileDownloader
             using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
 
             // Compute SHA-1 hash
-            var sha1Hash = BitConverter.ToString(await sha1.ComputeHashAsync(stream)).Replace("-", "").ToLowerInvariant();
+            var sha1Hash = Convert.ToHexStringLower(await sha1.ComputeHashAsync(stream));
 
             // Reset stream position for the next hash computation
             stream.Position = 0;
 
             // Compute SHA-512 hash
-            var sha512Hash = BitConverter.ToString(await sha512.ComputeHashAsync(stream)).Replace("-", "").ToLowerInvariant();
+            var sha512Hash = Convert.ToHexStringLower(await sha512.ComputeHashAsync(stream));
 
             return sha1Hash == expectedHashes.Sha1 && sha512Hash == expectedHashes.Sha512;
         }
@@ -112,9 +112,7 @@ public class FileDownloader
             throw;
         }
     }
-
 }
-
 
 public class Hashes
 {

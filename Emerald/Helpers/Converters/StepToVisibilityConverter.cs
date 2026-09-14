@@ -9,7 +9,8 @@ public class StepToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
-        if (value is not int currentStep || parameter is not string targetStepString || !int.TryParse(targetStepString, out int targetStep))
+        if (value is not int currentStep || parameter is not string targetStepString ||
+            !int.TryParse(targetStepString, out var targetStep))
         {
             return Visibility.Collapsed;
         }

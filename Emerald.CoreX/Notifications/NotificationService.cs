@@ -12,7 +12,7 @@ public class NotificationService : ObservableObject, INotificationService
     public NotificationService(ILogger<NotificationService> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        ActiveNotifications = new();
+        ActiveNotifications = new ObservableCollection<Notification>();
     }
 
     public (string Id, CancellationToken? CancellationToken) Create(
@@ -22,8 +22,8 @@ public class NotificationService : ObservableObject, INotificationService
         bool isIndeterminate = false,
         bool isCancellable = false)
     {
-        string id = GenerateUniqueId();
-        var cts = isCancellable? new CancellationTokenSource() : null;
+        var id = GenerateUniqueId();
+        var cts = isCancellable ? new CancellationTokenSource() : null;
 
         var notification = new Notification
         {
@@ -43,7 +43,8 @@ public class NotificationService : ObservableObject, INotificationService
         return (id, cts?.Token);
     }
 
-    public void Update(string? id = null, string? title = null, string? message = null, double? progress = null, bool? isIndeterminate = null)
+    public void Update(string? id = null, string? title = null, string? message = null, double? progress = null,
+        bool? isIndeterminate = null)
     {
         var notification = ActiveNotifications.FirstOrDefault(n => n.Id == id);
         if (notification != null)
@@ -83,7 +84,7 @@ public class NotificationService : ObservableObject, INotificationService
 
     public string Warning(string title, string message, TimeSpan? duration = null)
     {
-        string id = GenerateUniqueId();
+        var id = GenerateUniqueId();
 
         var notification = new Notification
         {
@@ -103,7 +104,7 @@ public class NotificationService : ObservableObject, INotificationService
 
     public string Info(string title, string message, TimeSpan? duration = null)
     {
-        string id = GenerateUniqueId();
+        var id = GenerateUniqueId();
 
         var notification = new Notification
         {
@@ -112,7 +113,7 @@ public class NotificationService : ObservableObject, INotificationService
             Message = message,
             Type = NotificationType.Info,
             Timestamp = DateTime.Now,
-            Duration = duration,
+            Duration = duration
         };
 
         ActiveNotifications.Add(notification);
@@ -123,7 +124,7 @@ public class NotificationService : ObservableObject, INotificationService
 
     public string Error(string title, string message, TimeSpan? duration = null, Exception? ex = null)
     {
-        string id = GenerateUniqueId();
+        var id = GenerateUniqueId();
 
         var notification = new Notification
         {

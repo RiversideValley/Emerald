@@ -40,7 +40,8 @@ public sealed class JavaRuntimeCatalogService(
         }
 
         var results = new List<JavaRuntimeDescriptor>(candidates.Count);
-        foreach (var candidate in candidates.Values.OrderByDescending(x => x.IsCustomSaved).ThenBy(x => x.Source).ThenBy(x => x.RawPath, PathComparer))
+        foreach (var candidate in candidates.Values.OrderByDescending(x => x.IsCustomSaved).ThenBy(x => x.Source)
+                     .ThenBy(x => x.RawPath, PathComparer))
         {
             var validation = await ValidateNormalizedPathAsync(candidate.RawPath, cancellationToken);
             results.Add(new JavaRuntimeDescriptor
@@ -58,7 +59,8 @@ public sealed class JavaRuntimeCatalogService(
         return results;
     }
 
-    public Task<JavaRuntimeValidationResult> ValidateAsync(string? candidatePath, CancellationToken cancellationToken = default)
+    public Task<JavaRuntimeValidationResult> ValidateAsync(string? candidatePath,
+        CancellationToken cancellationToken = default)
     {
         var normalizedPath = NormalizeLaunchPath(candidatePath);
         if (string.IsNullOrWhiteSpace(normalizedPath))
@@ -73,7 +75,8 @@ public sealed class JavaRuntimeCatalogService(
         return ValidateNormalizedPathAsync(normalizedPath, cancellationToken);
     }
 
-    private async Task<JavaRuntimeValidationResult> ValidateNormalizedPathAsync(string normalizedPath, CancellationToken cancellationToken)
+    private async Task<JavaRuntimeValidationResult> ValidateNormalizedPathAsync(string normalizedPath,
+        CancellationToken cancellationToken)
     {
         if (!File.Exists(normalizedPath))
         {
@@ -176,7 +179,8 @@ public sealed class JavaRuntimeCatalogService(
             yield break;
         }
 
-        foreach (var entry in path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        foreach (var entry in path.Split(Path.PathSeparator,
+                     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
             var expandedEntry = ExpandUserPath(entry);
             if (string.IsNullOrWhiteSpace(expandedEntry))
@@ -274,7 +278,8 @@ public sealed class JavaRuntimeCatalogService(
                 }
                 catch (Exception ex)
                 {
-                    logger.LogDebug(ex, "Failed to read Java install candidates from registry key {RegistryKey}.", subKey);
+                    logger.LogDebug(ex, "Failed to read Java install candidates from registry key {RegistryKey}.",
+                        subKey);
                 }
                 finally
                 {
@@ -452,7 +457,8 @@ public sealed class JavaRuntimeCatalogService(
         {
             var directory = Path.GetDirectoryName(filePath);
             var fileName = Path.GetFileName(filePath);
-            if (!string.IsNullOrWhiteSpace(directory) && fileName.Equals("java.exe", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrWhiteSpace(directory) &&
+                fileName.Equals("java.exe", StringComparison.OrdinalIgnoreCase))
             {
                 var javawPath = Path.Combine(directory, "javaw.exe");
                 if (File.Exists(javawPath))
@@ -487,10 +493,11 @@ public sealed class JavaRuntimeCatalogService(
 
     private static string GetProbePath(string normalizedLaunchPath)
     {
-        if (OperatingSystem.IsWindows()) 
+        if (OperatingSystem.IsWindows())
         {
             var directory = Path.GetDirectoryName(normalizedLaunchPath);
-            if (!string.IsNullOrWhiteSpace(directory) && Path.GetFileName(normalizedLaunchPath).Equals("javaw.exe", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrWhiteSpace(directory) && Path.GetFileName(normalizedLaunchPath)
+                    .Equals("javaw.exe", StringComparison.OrdinalIgnoreCase))
             {
                 var javaExePath = Path.Combine(directory, "java.exe");
                 if (File.Exists(javaExePath))

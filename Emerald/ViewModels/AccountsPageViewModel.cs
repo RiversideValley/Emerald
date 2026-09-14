@@ -18,9 +18,11 @@ public partial class AccountsPageViewModel : ObservableObject
     private readonly ILogger<AccountsPageViewModel> _logger;
     private CancellationTokenSource? _loginCancellationSource;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(LoadingMessage))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(LoadingMessage))]
     private bool _isLoading;
+
+    [ObservableProperty]
+    private bool _isActivatingAccount;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LoadingMessage))]
@@ -28,25 +30,29 @@ public partial class AccountsPageViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(CancelLoginCommand))]
     private bool _isLoginInProgress;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(LoadingMessage))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(LoadingMessage))]
     private string _loginStatusMessage = "AccountsLoading".Localize();
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasLoadError))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasLoadError))]
     private string? _loadErrorMessage;
 
     public ObservableCollection<EAccount> Accounts => _accountService.Accounts;
     public IReadOnlyList<AccountProviderDescriptor> Providers => _accountService.Providers;
     public bool HasLoadError => !string.IsNullOrWhiteSpace(LoadErrorMessage);
     public EAccount? SelectedAccount => _accountService.GetSelectedAccount();
+
     public AccountProviderUsability GetProviderUsability(string providerId)
-        => _accountService.GetProviderUsability(providerId);
+    {
+        return _accountService.GetProviderUsability(providerId);
+    }
+
     public bool CanCancelLogin
         => IsLoginInProgress && _loginCancellationSource is { IsCancellationRequested: false };
+
     public string LoadingMessage => IsLoginInProgress ? LoginStatusMessage : "AccountsLoading".Localize();
 
-    public AccountsPageViewModel(IAccountService accountService, INotificationService notificationService, ILogger<AccountsPageViewModel> logger)
+    public AccountsPageViewModel(IAccountService accountService, INotificationService notificationService,
+        ILogger<AccountsPageViewModel> logger)
     {
         _accountService = accountService;
         _notificationService = notificationService;
@@ -62,7 +68,10 @@ public partial class AccountsPageViewModel : ObservableObject
             return;
         }
 
-        if (Accounts.Count > 0 && !HasLoadError) return;
+        if (Accounts.Count > 0 && !HasLoadError)
+        {
+            return;
+        }
 
         IsLoading = true;
         LoadErrorMessage = null;
@@ -126,7 +135,8 @@ public partial class AccountsPageViewModel : ObservableObject
             : string.Format("AccountBrowserSignInFormat".Localize(), provider.DisplayName));
         try
         {
-            await _accountService.SignInAsync(providerId, new AccountSignInRequest(methodId, username), cancellationToken);
+            await _accountService.SignInAsync(providerId, new AccountSignInRequest(methodId, username),
+                cancellationToken);
             LoadErrorMessage = null;
             _notificationService.Info(
                 "AccountAddedTitle".Localize(),
@@ -190,7 +200,10 @@ public partial class AccountsPageViewModel : ObservableObject
     [RelayCommand]
     private async Task RemoveAccountAsync(EAccount? account)
     {
-        if (account is null) return;
+        if (account is null)
+        {
+            return;
+        }
 
         try
         {
@@ -223,7 +236,8 @@ public partial class AccountsPageViewModel : ObservableObject
             return;
         }
 
-        IsLoading = true;
+        // Keep the selected card realized for the connected transition to Home.
+        IsActivatingAccount = true;
         LoadErrorMessage = null;
 
         try
@@ -246,7 +260,7 @@ public partial class AccountsPageViewModel : ObservableObject
         }
         finally
         {
-            IsLoading = false;
+            IsActivatingAccount = false;
         }
     }
 

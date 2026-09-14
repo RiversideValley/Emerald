@@ -76,20 +76,25 @@ public sealed class BaseSettingsServiceTests
     }
 
     private static BaseSettingsService CreateService(string path, string? header = null)
-        => new(NullLogger<BaseSettingsService>.Instance, path, header);
+    {
+        return new BaseSettingsService(NullLogger<BaseSettingsService>.Instance, path, header);
+    }
 
     private sealed class TemporaryDirectory : IDisposable
     {
-        public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"emerald-tests-{Guid.NewGuid():N}");
+        public string Path { get; } =
+            System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"emerald-tests-{Guid.NewGuid():N}");
 
         public TemporaryDirectory()
-            => Directory.CreateDirectory(Path);
+        {
+            Directory.CreateDirectory(Path);
+        }
 
         public void Dispose()
         {
             if (Directory.Exists(Path))
             {
-                Directory.Delete(Path, recursive: true);
+                Directory.Delete(Path, true);
             }
         }
     }

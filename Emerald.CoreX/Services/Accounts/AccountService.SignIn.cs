@@ -5,22 +5,30 @@ namespace Emerald.CoreX.Services;
 
 public sealed partial class AccountService
 {
-    public async Task<EAccount> SignInAsync(string providerId, AccountSignInRequest request, CancellationToken cancellationToken = default)
+    public async Task<EAccount> SignInAsync(string providerId, AccountSignInRequest request,
+        CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(providerId);
         ArgumentNullException.ThrowIfNull(request);
         await EnsureInitializedAsync().WaitAsync(cancellationToken).ConfigureAwait(false);
         if (!_providers.TryGetValue(providerId, out var provider))
+        {
             throw new ArgumentException($"Unknown account provider: {providerId}", nameof(providerId));
+        }
 
         var method = provider.Descriptor.SignInMethods.FirstOrDefault(candidate =>
             string.Equals(candidate.MethodId, request.MethodId, StringComparison.Ordinal));
         if (method is null)
+        {
             throw new ArgumentException(
                 $"Provider '{providerId}' does not expose sign-in method '{request.MethodId}'.",
                 nameof(request));
+        }
+
         if (method.InputKind == AccountSignInInputKind.Username && string.IsNullOrWhiteSpace(request.Username))
+        {
             throw new ArgumentException($"Sign-in method '{request.MethodId}' requires a username.", nameof(request));
+        }
 
         _uiDispatcher.Invoke(() => EnsureProviderUsableCore(providerId));
 
@@ -52,7 +60,9 @@ public sealed partial class AccountService
                 }
 
                 if (GetSelectedAccountCore() is null)
-                    ApplySelectedAccountCore(account.UniqueId, persist: false);
+                {
+                    ApplySelectedAccountCore(account.UniqueId, false);
+                }
             }).ConfigureAwait(false);
         }
         finally

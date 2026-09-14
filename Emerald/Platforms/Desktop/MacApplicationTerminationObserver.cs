@@ -36,7 +36,8 @@ internal static class MacApplicationTerminationObserver
                 var observerClass = objc_getClass("EmeraldTerminationObserver");
                 if (observerClass == IntPtr.Zero)
                 {
-                    observerClass = objc_allocateClassPair(objc_getClass("NSObject"), "EmeraldTerminationObserver", IntPtr.Zero);
+                    observerClass = objc_allocateClassPair(objc_getClass("NSObject"), "EmeraldTerminationObserver",
+                        IntPtr.Zero);
                     if (observerClass == IntPtr.Zero)
                     {
                         return;
@@ -100,11 +101,13 @@ internal static class MacApplicationTerminationObserver
     private static extern IntPtr objc_getClass([MarshalAs(UnmanagedType.LPStr)] string name);
 
     [DllImport("/usr/lib/libobjc.A.dylib", CallingConvention = CallingConvention.Cdecl)]
-    private static extern IntPtr objc_allocateClassPair(IntPtr superclass, [MarshalAs(UnmanagedType.LPStr)] string name, IntPtr extraBytes);
+    private static extern IntPtr objc_allocateClassPair(IntPtr superclass, [MarshalAs(UnmanagedType.LPStr)] string name,
+        IntPtr extraBytes);
 
     [DllImport("/usr/lib/libobjc.A.dylib", CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
-    private static extern bool class_addMethod(IntPtr cls, IntPtr selector, IntPtr implementation, [MarshalAs(UnmanagedType.LPStr)] string types);
+    private static extern bool class_addMethod(IntPtr cls, IntPtr selector, IntPtr implementation,
+        [MarshalAs(UnmanagedType.LPStr)] string types);
 
     [DllImport("/usr/lib/libobjc.A.dylib", CallingConvention = CallingConvention.Cdecl)]
     private static extern void objc_registerClassPair(IntPtr cls);
@@ -119,6 +122,7 @@ internal static class MacApplicationTerminationObserver
     private static extern IntPtr objc_msgSend(IntPtr receiver, IntPtr selector, IntPtr arg1);
 
     [DllImport("/usr/lib/libobjc.A.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "objc_msgSend")]
-    private static extern IntPtr objc_msgSend(IntPtr receiver, IntPtr selector, IntPtr arg1, IntPtr arg2, IntPtr arg3, IntPtr arg4);
+    private static extern IntPtr objc_msgSend(IntPtr receiver, IntPtr selector, IntPtr arg1, IntPtr arg2, IntPtr arg3,
+        IntPtr arg4);
 }
 #endif

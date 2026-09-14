@@ -89,7 +89,8 @@ public sealed class PlatformDiagnosticsProvider : IPlatformDiagnosticsProvider
                 candidate,
                 occurredUtc,
                 file => file.Name.Contains("emerald", StringComparison.OrdinalIgnoreCase)
-                        || file.Name.Contains(Process.GetCurrentProcess().ProcessName, StringComparison.OrdinalIgnoreCase),
+                        || file.Name.Contains(Process.GetCurrentProcess().ProcessName,
+                            StringComparison.OrdinalIgnoreCase),
                 "No matching systemd-coredump entry was found.");
             if (result.IsAvailable)
             {
@@ -97,7 +98,8 @@ public sealed class PlatformDiagnosticsProvider : IPlatformDiagnosticsProvider
             }
         }
 
-        return PlatformDiagnosticsResult.Unavailable("systemd-coredump is unavailable or did not expose a matching core.");
+        return PlatformDiagnosticsResult.Unavailable(
+            "systemd-coredump is unavailable or did not expose a matching core.");
     }
 
     private static PlatformDiagnosticsResult FindRecentFile(

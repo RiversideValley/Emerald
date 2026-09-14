@@ -3,6 +3,5 @@ namespace Emerald.Models;
 [ObservableObject]
 public partial class LaunchArg
 {
-    [ObservableProperty]
-    public string value = string.Empty;
+    [ObservableProperty] public string value = string.Empty;
 }

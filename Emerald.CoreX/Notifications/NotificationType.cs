@@ -1,5 +1,5 @@
-
 namespace Emerald.CoreX.Notifications;
+
 public enum NotificationType
 {
     Info,

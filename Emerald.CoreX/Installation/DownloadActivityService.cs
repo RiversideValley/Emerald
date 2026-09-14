@@ -28,7 +28,13 @@ public sealed class DownloadActivityService : IDownloadActivityService
 
     public DownloadActivitySnapshot Snapshot
     {
-        get { lock (_gate) return new(_activeDownloads, _catalogRefreshing); }
+        get
+        {
+            lock (_gate)
+            {
+                return new DownloadActivitySnapshot(_activeDownloads, _catalogRefreshing);
+            }
+        }
     }
 
     public async ValueTask<IDisposable> AcquireDownloadAsync(CancellationToken cancellationToken = default)
@@ -42,14 +48,16 @@ public sealed class DownloadActivityService : IDownloadActivityService
                 {
                     _activeDownloads++;
                     PublishLocked();
-                    return new Lease(this, isCatalogRefresh: false);
+                    return new Lease(this, false);
                 }
 
                 waitForCatalog = _catalogReleased?.Task;
             }
 
             if (waitForCatalog != null)
+            {
                 await waitForCatalog.WaitAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 
@@ -64,9 +72,9 @@ public sealed class DownloadActivityService : IDownloadActivityService
             }
 
             _catalogRefreshing = true;
-            _catalogReleased = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            _catalogReleased = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             PublishLocked();
-            lease = new Lease(this, isCatalogRefresh: true);
+            lease = new Lease(this, true);
             return true;
         }
     }
@@ -77,14 +85,22 @@ public sealed class DownloadActivityService : IDownloadActivityService
         {
             if (isCatalogRefresh)
             {
-                if (!_catalogRefreshing) return;
+                if (!_catalogRefreshing)
+                {
+                    return;
+                }
+
                 _catalogRefreshing = false;
                 _catalogReleased?.TrySetResult();
                 _catalogReleased = null;
             }
             else
             {
-                if (_activeDownloads == 0) return;
+                if (_activeDownloads == 0)
+                {
+                    return;
+                }
+
                 _activeDownloads--;
             }
 
@@ -92,15 +108,21 @@ public sealed class DownloadActivityService : IDownloadActivityService
         }
     }
 
-    private void PublishLocked() => Changed?.Invoke(this, new(_activeDownloads, _catalogRefreshing));
+    private void PublishLocked()
+    {
+        Changed?.Invoke(this, new DownloadActivitySnapshot(_activeDownloads, _catalogRefreshing));
+    }
 
     private sealed class Lease(DownloadActivityService owner, bool isCatalogRefresh) : IDisposable
     {
         private int _disposed;
+
         public void Dispose()
         {
             if (Interlocked.Exchange(ref _disposed, 1) == 0)
+            {
                 owner.Release(isCatalogRefresh);
+            }
         }
     }
 }

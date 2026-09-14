@@ -13,7 +13,8 @@ public sealed class GameIntegrityIssueProjectionTests
     public void IntegrityIssues_ProjectsCriticalItemsFirst_AndBoundsVisibleItems()
     {
         var game = new Game(
-            new MinecraftPath(Path.Combine(Path.GetTempPath(), "emerald-issue-projection", Guid.NewGuid().ToString("N"))),
+            new MinecraftPath(
+                Path.Combine(Path.GetTempPath(), "emerald-issue-projection", Guid.NewGuid().ToString("N"))),
             new Emerald.CoreX.Versions.Version
             {
                 BasedOn = "test",
@@ -39,8 +40,18 @@ public sealed class GameIntegrityIssueProjectionTests
     private sealed class TestGlobalGameSettingsService : IGlobalGameSettingsService
     {
         public Emerald.CoreX.Models.GameSettings Settings { get; } = new();
-        public Emerald.CoreX.Models.GameSettings CloneCurrent() => Settings.Clone();
-        public void LoadForBasePath(string basePath) { }
-        public void Save() { }
+
+        public Emerald.CoreX.Models.GameSettings CloneCurrent()
+        {
+            return Settings.Clone();
+        }
+
+        public void LoadForBasePath(string basePath)
+        {
+        }
+
+        public void Save()
+        {
+        }
     }
 }

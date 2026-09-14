@@ -31,16 +31,22 @@ public static class MinecraftSkinTextures
     private static readonly Lazy<byte[]> SteveTexture = new(LoadSteveTexture);
 
     public static AccountSkinData CreateSteveFallback(string source = "Steve")
-        => new(SteveTexture.Value, MinecraftSkinVariant.Classic, source, IsFallback: true);
+    {
+        return new AccountSkinData(SteveTexture.Value, MinecraftSkinVariant.Classic, source, true);
+    }
 
     public static bool IsSupportedSkinPng(byte[]? pngBytes)
     {
         if (pngBytes is null || pngBytes.Length < 24 || pngBytes.Length > MaxTextureBytes)
+        {
             return false;
+        }
 
         if (!pngBytes.AsSpan(0, PngSignature.Length).SequenceEqual(PngSignature)
             || !pngBytes.AsSpan(12, 4).SequenceEqual("IHDR"u8))
+        {
             return false;
+        }
 
         var width = BinaryPrimitives.ReadInt32BigEndian(pngBytes.AsSpan(16, 4));
         var height = BinaryPrimitives.ReadInt32BigEndian(pngBytes.AsSpan(20, 4));
@@ -50,36 +56,52 @@ public static class MinecraftSkinTextures
     private static byte[] LoadSteveTexture()
     {
         var stream = typeof(MinecraftSkinTextures).Assembly.GetManifestResourceStream(SteveResourceName)
-            ?? Assembly.GetEntryAssembly()?.GetManifestResourceStream(SteveResourceName);
+                     ?? Assembly.GetEntryAssembly()?.GetManifestResourceStream(SteveResourceName);
 
         if (stream is null)
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                if (assembly.IsDynamic) continue;
-                stream = assembly.GetManifestResourceStream(SteveResourceName);
-                if (stream != null) break;
-            }
-        }
-
-        if (stream is null)
-        {
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                if (assembly.IsDynamic) continue;
-                var match = assembly.GetManifestResourceNames()
-                    .FirstOrDefault(name => name.EndsWith("skin_Steve_Default.png", StringComparison.OrdinalIgnoreCase));
-                if (match != null)
+                if (assembly.IsDynamic)
                 {
-                    stream = assembly.GetManifestResourceStream(match);
-                    if (stream != null) break;
+                    continue;
+                }
+
+                stream = assembly.GetManifestResourceStream(SteveResourceName);
+                if (stream != null)
+                {
+                    break;
                 }
             }
         }
 
         if (stream is null)
         {
-            throw new InvalidOperationException($"The embedded Steve skin resource '{SteveResourceName}' could not be found.");
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (assembly.IsDynamic)
+                {
+                    continue;
+                }
+
+                var match = assembly.GetManifestResourceNames()
+                    .FirstOrDefault(name =>
+                        name.EndsWith("skin_Steve_Default.png", StringComparison.OrdinalIgnoreCase));
+                if (match != null)
+                {
+                    stream = assembly.GetManifestResourceStream(match);
+                    if (stream != null)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (stream is null)
+        {
+            throw new InvalidOperationException(
+                $"The embedded Steve skin resource '{SteveResourceName}' could not be found.");
         }
 
         using (stream)

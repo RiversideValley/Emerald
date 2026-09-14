@@ -1,3 +1,4 @@
+using Emerald.Helpers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
@@ -67,7 +68,7 @@ public sealed partial class SettingsPage : Page
 
         if (contentframe.Content == null || contentframe.Content.GetType() != type)
         {
-            contentframe.Navigate(type, parameter, new DrillInNavigationTransitionInfo());
+            contentframe.Navigate(type, parameter, AppMotion.Entrance());
         }
     }
 

@@ -20,7 +20,8 @@ public partial class MessageBox : ContentDialog
 {
     public MessageBoxResults Result { get; set; } = MessageBoxResults.Cancel;
 
-    public MessageBox(string title, string caption, MessageBoxButtons buttons, string cusbtn1 = null, string cusbtn2 = null)
+    public MessageBox(string title, string caption, MessageBoxButtons buttons, string cusbtn1 = null,
+        string cusbtn2 = null)
     {
         Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style;
         Title = title;
@@ -57,10 +58,12 @@ public partial class MessageBox : ContentDialog
             {
                 PrimaryButtonText = cusbtn1;
             }
+
             if (!string.IsNullOrEmpty(cusbtn2))
             {
                 SecondaryButtonText = cusbtn2;
             }
+
             if (string.IsNullOrEmpty(cusbtn2) && string.IsNullOrEmpty(cusbtn1))
             {
                 PrimaryButtonText = "Yes".Localize();
@@ -74,10 +77,12 @@ public partial class MessageBox : ContentDialog
             {
                 PrimaryButtonText = cusbtn1;
             }
+
             if (!string.IsNullOrEmpty(cusbtn2))
             {
                 SecondaryButtonText = cusbtn2;
             }
+
             if (string.IsNullOrEmpty(cusbtn2) && string.IsNullOrEmpty(cusbtn1))
             {
                 DefaultButton = ContentDialogButton.Primary;
@@ -128,12 +133,12 @@ public partial class MessageBox : ContentDialog
         }
     }
 
-    public static async Task<MessageBoxResults> Show(string title, string caption, MessageBoxButtons buttons, string customResult1 = null, string customResult2 = null, bool waitUntilOpens = true)
+    public static async Task<MessageBoxResults> Show(string title, string caption, MessageBoxButtons buttons,
+        string customResult1 = null, string customResult2 = null, bool waitUntilOpens = true)
     {
-        var theme = ServiceLocator.IsLocationProviderSet ? 
-
-            (ElementTheme)Ioc.Default.GetService<Services.SettingsService>().Settings.App.Appearance.Theme :
-            ElementTheme.Default;
+        var theme = ServiceLocator.IsLocationProviderSet
+            ? (ElementTheme)Ioc.Default.GetService<Services.SettingsService>().Settings.App.Appearance.Theme
+            : ElementTheme.Default;
         var d = new MessageBox(title, caption, buttons, customResult1, customResult2)
         {
             XamlRoot = App.Current.MainWindow.Content.XamlRoot,
@@ -142,7 +147,7 @@ public partial class MessageBox : ContentDialog
 
         if (waitUntilOpens)
         {
-            bool notOpen = true;
+            var notOpen = true;
             while (notOpen)
             {
                 try
@@ -156,6 +161,7 @@ public partial class MessageBox : ContentDialog
                     return MessageBoxResults.OpenFailed;
                 }
             }
+
             return d.Result;
         }
 
@@ -173,10 +179,9 @@ public partial class MessageBox : ContentDialog
 
     public static async Task<MessageBoxResults> Show(string text)
     {
-        var theme = ServiceLocator.IsLocationProviderSet ?
-
-            (ElementTheme)Ioc.Default.GetService<Services.SettingsService>().Settings.App.Appearance.Theme :
-            ElementTheme.Default;
+        var theme = ServiceLocator.IsLocationProviderSet
+            ? (ElementTheme)Ioc.Default.GetService<Services.SettingsService>().Settings.App.Appearance.Theme
+            : ElementTheme.Default;
         var d = new MessageBox("Information".Localize(), text, MessageBoxButtons.Ok)
         {
             XamlRoot = App.Current.MainWindow.Content.XamlRoot,

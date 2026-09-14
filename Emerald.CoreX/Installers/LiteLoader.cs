@@ -15,6 +15,7 @@ public class LiteLoader : IModLoaderInstaller
 {
     private readonly Notifications.INotificationService _notify;
     private readonly HttpClient _httpClient;
+
     public LiteLoader(Notifications.INotificationService notificationService, HttpClient httpClient)
     {
         _notify = notificationService;
@@ -38,14 +39,18 @@ public class LiteLoader : IModLoaderInstaller
             var versions = await LiteLoaderInstaller.GetAllLiteLoaders();
 
             if (versions == null || !versions.Any())
+            {
                 throw new NullReferenceException();
+            }
 
             var filtered = versions.Where(x => x.BaseVersion == mcVersion);
 
             if (filtered == null || !filtered.Any())
+            {
                 throw new NullReferenceException($"Can't find liteloder for specific minecraft version {mcVersion}");
+            }
 
-            var l = filtered.Select(x => new LoaderInfo { Version = x.Version});
+            var l = filtered.Select(x => new LoaderInfo { Version = x.Version });
 
             this.Log().LogInformation("Found {count} LiteLoader Loaders", filtered.Count());
             _notify.Complete(not.Id, true);
@@ -56,11 +61,12 @@ public class LiteLoader : IModLoaderInstaller
         {
             this.Log().LogWarning("Failed to get LiteLoader Loaders: {ex}", ex.Message);
             _notify.Complete(not.Id, false, ex.Message, ex);
-            return new();
+            return new List<LoaderInfo>();
         }
     }
 
-    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null, bool online = true)
+    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null,
+        bool online = true)
     {
         var not = _notify.Create(
             "InstallLiteLoader",
@@ -75,8 +81,10 @@ public class LiteLoader : IModLoaderInstaller
             if (!online)
             {
                 this.Log().LogWarning("Fabric Loader installation is not supported offline. sending the version name");
-                _notify.Complete(not.Id, false, "Fabric Loader installation is not supported offline. Passed the version name.");
-                return LiteLoaderInstaller.GetVersionName(mcversion, modversion ?? throw new NullReferenceException("No internet and no mod name found."));
+                _notify.Complete(not.Id, false,
+                    "Fabric Loader installation is not supported offline. Passed the version name.");
+                return LiteLoaderInstaller.GetVersionName(mcversion,
+                    modversion ?? throw new NullReferenceException("No internet and no mod name found."));
             }
 
             var launcher = new MinecraftLauncher(path);
@@ -87,15 +95,19 @@ public class LiteLoader : IModLoaderInstaller
             var loaderToInstall = loaders.First(loader => loader.BaseVersion == mcversion);
 
             if (modversion == null)
+            {
                 versionName = await LiteLoaderInstaller.Install(
                     loaderToInstall,
                     await launcher.GetVersionAsync(mcversion),
                     path);
+            }
             else
+            {
                 versionName = await LiteLoaderInstaller.Install(
-                    loaders.First(x=> x.Version == modversion),
+                    loaders.First(x => x.Version == modversion),
                     await launcher.GetVersionAsync(mcversion),
                     path);
+            }
 
             this.Log().LogInformation("Installed LiteLoader Loader {versionName}", versionName);
             _notify.Complete(not.Id, true);

@@ -13,7 +13,10 @@ public sealed class InlineUiDispatcher : IUiDispatcher
 {
     public bool HasThreadAccess => true;
 
-    public void Invoke(Action action) => action();
+    public void Invoke(Action action)
+    {
+        action();
+    }
 
     public Task InvokeAsync(Action action)
     {

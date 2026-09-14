@@ -52,11 +52,12 @@ public class NeoForge : IModLoaderInstaller
         {
             this.Log().LogWarning("Failed to get NeoForge Loaders: {ex}", ex.Message);
             _notify.Complete(not.Id, false, ex.Message, ex);
-            return new();
+            return new List<LoaderInfo>();
         }
     }
 
-    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null, bool online = true)
+    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null,
+        bool online = true)
     {
         var not = _notify.Create(
             "InstallNeoForge",
@@ -67,7 +68,7 @@ public class NeoForge : IModLoaderInstaller
 
         try
         {
-            var neoForge = new NeoForgeInstaller(new(path));
+            var neoForge = new NeoForgeInstaller(new MinecraftLauncher(path));
 
             string? versionName;
             if (modversion == null)

@@ -41,8 +41,9 @@ internal static class GameLogProjectionBuilder
         {
             try
             {
-                return Ioc.Default.GetService<ILoggerFactory>()?.CreateLogger(typeof(GameLogProjectionBuilder).FullName!)
-                    ?? NullLogger.Instance;
+                return Ioc.Default.GetService<ILoggerFactory>()
+                           ?.CreateLogger(typeof(GameLogProjectionBuilder).FullName!)
+                       ?? NullLogger.Instance;
             }
             catch (InvalidOperationException)
             {
@@ -67,7 +68,8 @@ internal static class GameLogProjectionBuilder
         var safePageSize = Math.Max(1, pageSize);
         var filteredEntries = entries.Where(entry => MatchesEntry(entry, searchQuery, selectedLevelFilter)).ToList();
         var totalPages = Math.Max(1, (int)Math.Ceiling(filteredEntries.Count / (double)safePageSize));
-        var targetPage = DetermineTargetPage(reason, filteredEntries.Count, previousFilteredCount, totalPages, currentPageNumber, autoScroll);
+        var targetPage = DetermineTargetPage(reason, filteredEntries.Count, previousFilteredCount, totalPages,
+            currentPageNumber, autoScroll);
         var pageEntries = filteredEntries
             .Skip((targetPage - 1) * safePageSize)
             .Take(safePageSize)
@@ -98,8 +100,10 @@ internal static class GameLogProjectionBuilder
     /// Determines whether the supplied entry matches the active filter state.
     /// </summary>
     internal static bool MatchesEntry(GameLogEntry entry, string? searchQuery, string? selectedLevelFilter)
-        => MatchesLevelFilter(entry, selectedLevelFilter)
-            && MatchesSearch(entry, searchQuery);
+    {
+        return MatchesLevelFilter(entry, selectedLevelFilter)
+               && MatchesSearch(entry, searchQuery);
+    }
 
     /// <summary>
     /// Chooses which page should be shown after a refresh.
@@ -118,15 +122,18 @@ internal static class GameLogProjectionBuilder
         {
             GameLogProjectionRefreshReason.SessionChanged => autoScroll ? totalPages : 1,
             GameLogProjectionRefreshReason.FilterChanged => autoScroll ? totalPages : 1,
-            GameLogProjectionRefreshReason.LiveEntriesChanged when autoScroll && filteredCount > previousFilteredCount => totalPages,
+            GameLogProjectionRefreshReason.LiveEntriesChanged when autoScroll && filteredCount > previousFilteredCount
+                => totalPages,
             _ => clampedCurrent
         };
     }
 
     private static bool MatchesLevelFilter(GameLogEntry entry, string? selectedLevelFilter)
-        => string.IsNullOrWhiteSpace(selectedLevelFilter)
-            || string.Equals(selectedLevelFilter, "All", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(entry.LevelText, selectedLevelFilter, StringComparison.OrdinalIgnoreCase);
+    {
+        return string.IsNullOrWhiteSpace(selectedLevelFilter)
+               || string.Equals(selectedLevelFilter, "All", StringComparison.OrdinalIgnoreCase)
+               || string.Equals(entry.LevelText, selectedLevelFilter, StringComparison.OrdinalIgnoreCase);
+    }
 
     private static bool MatchesSearch(GameLogEntry entry, string? query)
     {
@@ -136,13 +143,15 @@ internal static class GameLogProjectionBuilder
         }
 
         return Contains(entry.Message, query)
-            || Contains(entry.DetailsText, query)
-            || Contains(entry.ThreadName, query)
-            || Contains(entry.LoggerName, query)
-            || Contains(entry.LevelText, query);
+               || Contains(entry.DetailsText, query)
+               || Contains(entry.ThreadName, query)
+               || Contains(entry.LoggerName, query)
+               || Contains(entry.LevelText, query);
     }
 
     private static bool Contains(string? value, string query)
-        => !string.IsNullOrWhiteSpace(value)
-            && value.Contains(query, StringComparison.OrdinalIgnoreCase);
+    {
+        return !string.IsNullOrWhiteSpace(value)
+               && value.Contains(query, StringComparison.OrdinalIgnoreCase);
+    }
 }

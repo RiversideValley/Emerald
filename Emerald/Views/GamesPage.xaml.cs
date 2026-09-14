@@ -16,7 +16,7 @@ using Emerald.CoreX.Services;
 using Emerald.CoreX.Installation;
 using Emerald.Helpers;
 using Emerald.Helpers.Enums;
-using Emerald.UserControls;
+using Emerald.Controls;
 using Emerald.Views.Store;
 using Microsoft.UI.Xaml.Media.Animation;
 
@@ -31,7 +31,7 @@ public sealed partial class GamesPage : Page
     {
         ViewModel = Ioc.Default.GetService<GamesPageViewModel>();
         DataContext = ViewModel;
-        this.InitializeComponent();
+        InitializeComponent();
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)
@@ -80,18 +80,19 @@ public sealed partial class GamesPage : Page
     {
         if (sender is MenuFlyoutItem item && item.Tag is Game game)
         {
-            var GameSettingsControl = new MinecraftSettingsUC()
+            var GameSettingsControl = new MinecraftSettingsUC
             {
                 ShowMainSettings = false,
                 Game = game
             };
             GameSettingsControl.GameSettings = game.GetEditableSettings();
-            var SettingsDialog = GameSettingsControl.ToContentDialog("Game Settings - " + game.Version.DisplayName, "Close");
+            var SettingsDialog =
+                GameSettingsControl.ToContentDialog("Game Settings - " + game.Version.DisplayName, "Close");
 
             var result = await SettingsDialog.ShowAsync();
 
-                var core = Ioc.Default.GetService<Core>();
-                core.SaveGames();
+            var core = Ioc.Default.GetService<Core>();
+            core.SaveGames();
         }
     }
 
@@ -129,13 +130,21 @@ public sealed partial class GamesPage : Page
 
     private async void VerifyGame_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuFlyoutItem { Tag: Game game }) return;
+        if (sender is not MenuFlyoutItem { Tag: Game game })
+        {
+            return;
+        }
+
         await ViewModel.VerifyGameCommand.ExecuteAsync(game);
     }
 
     private async void RepairGame_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuFlyoutItem { Tag: Game game }) return;
+        if (sender is not MenuFlyoutItem { Tag: Game game })
+        {
+            return;
+        }
+
         await ViewModel.RepairGameCommand.ExecuteAsync(game);
     }
 
@@ -188,10 +197,12 @@ public sealed partial class GamesPage : Page
                 "Force Stop",
                 "Do you really want to force stop your game? This might cause corruptions in your game files.",
                 MessageBoxButtons.YesNo);
-            
-            if(result is not MessageBoxResults.Yes) 
+
+            if (result is not MessageBoxResults.Yes)
+            {
                 return;
-            
+            }
+
             _ = ViewModel.ForceStopGameCommand.ExecuteAsync(game);
         }
     }
@@ -209,7 +220,7 @@ public sealed partial class GamesPage : Page
             return;
         }
 
-        Frame?.Navigate(typeof(LogsPage), game.Path.BasePath, new EntranceNavigationTransitionInfo());
+        Frame?.Navigate(typeof(LogsPage), game.Path.BasePath, AppMotion.DrillIn());
     }
 
     private void OpenStore_Click(object sender, RoutedEventArgs e)
@@ -225,16 +236,16 @@ public sealed partial class GamesPage : Page
             return;
         }
 
-        Frame?.Navigate(typeof(ModrinthStorePage), game.Path.BasePath, new EntranceNavigationTransitionInfo());
+        Frame?.Navigate(typeof(ModrinthStorePage), game.Path.BasePath, AppMotion.DrillIn());
     }
 
     private void RemoveGame_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem item && item.Tag is Game game)
         {
-             ViewModel.RemoveGameCommand.Execute(game);
+            ViewModel.RemoveGameCommand.Execute(game);
         }
-        }
+    }
 
     private void RemoveGameWFiles_Click(object sender, RoutedEventArgs e)
     {
@@ -252,12 +263,15 @@ public sealed partial class GamesPage : Page
             return;
         }
 
-        Frame?.Navigate(typeof(AccountsPage), null, new EntranceNavigationTransitionInfo());
+        Frame?.Navigate(typeof(AccountsPage), null, AppMotion.Entrance());
     }
-    
+
     private async void EditOptions_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.Tag is not Game game) return;
+        if ((sender as FrameworkElement)?.Tag is not Game game)
+        {
+            return;
+        }
 
         var dialog = new GameOptionsDialog(game) { XamlRoot = XamlRoot };
         await dialog.ShowAsync();

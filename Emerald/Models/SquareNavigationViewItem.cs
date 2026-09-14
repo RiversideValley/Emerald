@@ -9,52 +9,45 @@ namespace Emerald.Models;
 public partial class SquareNavigationViewItem : Model
 {
     private readonly Services.SettingsService SS;
+
     public SquareNavigationViewItem()
     {
         SS = Ioc.Default.GetService<Services.SettingsService>();
         PropertyChanged += (_, e) =>
         {
             //idk why I did this
-            if (e.PropertyName == nameof(IsSelected) || e.PropertyName == nameof(ShowFontIcons) || e.PropertyName == nameof(Thumbnail) || e.PropertyName == nameof(Avatar))
+            if (e.PropertyName == nameof(IsSelected) || e.PropertyName == nameof(ShowFontIcons) ||
+                e.PropertyName == nameof(Thumbnail) || e.PropertyName == nameof(Avatar))
             {
                 InvokePropertyChanged(null);
             }
         };
 
-        SS.Settings.App.Appearance.PropertyChanged += (_, e) =>
-        {
-            InvokePropertyChanged(null);
-        };
+        SS.Settings.App.Appearance.PropertyChanged += (_, e) => { InvokePropertyChanged(null); };
     }
+
     public SquareNavigationViewItem(string name) : this()
     {
         Name = name;
     }
+
     public string Tag { get; set; }
 
-    [ObservableProperty]
-    private string _Name;
+    [ObservableProperty] private string _Name;
 
-    [ObservableProperty]
-    private string _FontIconGlyph;
+    [ObservableProperty] private string _FontIconGlyph;
 
-    [ObservableProperty]
-    private string _SolidFontIconGlyph;
+    [ObservableProperty] private string _SolidFontIconGlyph;
 
-    [ObservableProperty]
-    private bool _IsSelected;
+    [ObservableProperty] private bool _IsSelected;
 
-    [ObservableProperty]
-    private bool _IsEnabled = true;
+    [ObservableProperty] private bool _IsEnabled = true;
 
-    [ObservableProperty]
-    private string _Thumbnail;
+    [ObservableProperty] private string _Thumbnail;
 
-    [ObservableProperty]
-    private ImageSource? _avatar;
+    [ObservableProperty] private ImageSource? _avatar;
 
-    [ObservableProperty]
-    private InfoBadge _InfoBadge;
+    [ObservableProperty] private InfoBadge _InfoBadge;
 
 
     private bool ShowFontIcons => SS.Settings.App.Appearance.ShowFontIcons;
@@ -67,5 +60,4 @@ public partial class SquareNavigationViewItem : Model
     public Visibility SelectionVisibility => IsSelected ? Visibility.Collapsed : Visibility.Visible;
     public Visibility ImageVisibility => !HasAvatar && !UseFontIcons ? Visibility.Visible : Visibility.Collapsed;
     public Visibility AvatarVisibility => HasAvatar ? Visibility.Visible : Visibility.Collapsed;
-    
 }

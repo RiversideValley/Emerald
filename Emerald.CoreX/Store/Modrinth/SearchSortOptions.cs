@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Emerald.CoreX.Store.Modrinth;
+
 public enum SearchSortOptions
 {
     Relevance,

@@ -42,49 +42,38 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanInstall))]
     private Game? _selectedGame;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SelectedContentType))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(SelectedContentType))]
     private StoreContentTypeOption? _selectedContentTypeOption;
 
-    [ObservableProperty]
-    private SearchSortOptionItem? _selectedSortOption;
+    [ObservableProperty] private SearchSortOptionItem? _selectedSortOption;
 
-    [ObservableProperty]
-    private string _searchQuery = string.Empty;
+    [ObservableProperty] private string _searchQuery = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedSearchResult))]
     [NotifyPropertyChangedFor(nameof(CanInstall))]
     private SearchHit? _selectedSearchResult;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanInstall))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanInstall))]
     private StoreItem? _selectedItem;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanInstall))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanInstall))]
     private ItemVersion? _selectedVersion;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasCompatibilityNotice))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasCompatibilityNotice))]
     private string? _compatibilityNotice;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanSearch))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanSearch))]
     private bool _isSearching;
 
-    [ObservableProperty]
-    private bool _isLoadingDetails;
+    [ObservableProperty] private bool _isLoadingDetails;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanInstall))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanInstall))]
     private bool _isInstalling;
 
-    [ObservableProperty]
-    private bool _isLoadingInstalledItems;
+    [ObservableProperty] private bool _isLoadingInstalledItems;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasSearchResults))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasSearchResults))]
     private string _resultsStatusText = "Search to browse Modrinth projects.";
 
     public StoreContentType SelectedContentType => SelectedContentTypeOption?.ContentType ?? StoreContentType.Mod;
@@ -98,6 +87,7 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
     public bool CanInstall => SelectedGame != null && SelectedItem != null && SelectedVersion != null && !IsInstalling;
     public string SelectedGameInstallTargetName => SelectedGame?.Version.DisplayName ?? "Select a game";
     public string SelectedGameBaseVersion => SelectedGame?.Version.BasedOn ?? string.Empty;
+
     public string SelectedGameLoaderDisplayName => SelectedGame == null
         ? string.Empty
         : FormatLoaderDisplayName(SelectedGame.Version.Type);
@@ -130,7 +120,7 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
         SortOptions.Add(new SearchSortOptionItem(SearchSortOptions.Updated, "Updated"));
         SortOptions.Add(new SearchSortOptionItem(SearchSortOptions.Newest, "Newest"));
         SelectedSortOption = SortOptions.FirstOrDefault();
-        
+
         _core.Games.CollectionChanged += (_, _) =>
             App.Current.MainWindow.DispatcherQueue.TryEnqueue(SyncGames);
         SearchResults.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasSearchResults));
@@ -138,7 +128,7 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
         InstalledItems.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasInstalledItems));
         CategoryFilters.CollectionChanged += CategoryFilters_CollectionChanged;
     }
-    
+
     [RelayCommand]
     private async Task InitializeAsync(object? navigationParameter)
     {
@@ -148,14 +138,18 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
             SelectGameFromNavigation(navigationParameter as string);
 
             if (SelectedGame == null)
+            {
                 SelectedGame = Games.FirstOrDefault();
+            }
 
             await LoadCategoriesAsync();
             await RefreshInstalledItemsAsync();
             _isInitialized = true;
 
             if (SearchResults.Count == 0 && CanSearch)
+            {
                 await SearchAsync();
+            }
         });
     }
 
@@ -180,9 +174,9 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
 
             var response = await store.SearchAsync(
                 SearchQuery,
-                limit: 30,
-                sortOptions: SelectedSortOption?.Value ?? SearchSortOptions.Relevance,
-                categories: selectedCategories.Length == 0 ? null : selectedCategories);
+                30,
+                SelectedSortOption?.Value ?? SearchSortOptions.Relevance,
+                selectedCategories.Length == 0 ? null : selectedCategories);
 
             SearchResults.Clear();
             foreach (var hit in response?.Hits ?? [])
@@ -263,9 +257,9 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
         var notification = _notificationService.Create(
             title,
             $"Preparing {SelectedVersion.Name}",
-            progress: 0,
-            isIndeterminate: false,
-            isCancellable: false);
+            0,
+            false,
+            false);
 
         var progress = new Progress<double>(value =>
         {
@@ -316,7 +310,7 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
                 SelectedGame,
                 SelectedContentType,
                 item,
-                forceUntracked: false);
+                false);
 
             if (removed)
             {
@@ -346,7 +340,8 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
 
         if (string.IsNullOrWhiteSpace(item.ProjectId) || string.IsNullOrWhiteSpace(item.VersionId))
         {
-            _notificationService.Warning("StoreItemRepairUnavailable", $"Cannot redownload {item.DisplayName} because project metadata is missing.");
+            _notificationService.Warning("StoreItemRepairUnavailable",
+                $"Cannot redownload {item.DisplayName} because project metadata is missing.");
             return;
         }
 
@@ -361,7 +356,8 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
 
             if (project == null || version == null)
             {
-                _notificationService.Warning("StoreItemRepairUnavailable", $"Could not find the original Modrinth version for {item.DisplayName}.");
+                _notificationService.Warning("StoreItemRepairUnavailable",
+                    $"Could not find the original Modrinth version for {item.DisplayName}.");
                 return;
             }
 
@@ -396,7 +392,7 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
                 SelectedGame,
                 SelectedContentType,
                 item,
-                forceUntracked: true);
+                true);
 
             if (removed)
             {
@@ -592,9 +588,12 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
     }
 
     private static string NormalizePath(string path)
-        => Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+    {
+        return Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+    }
 
-    private void CategoryFilters_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    private void CategoryFilters_CollectionChanged(object? sender,
+        System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
         if (e.OldItems != null)
         {
@@ -720,7 +719,8 @@ public sealed partial class ModrinthStorePageViewModel : ObservableObject
             "optifine" => "OptiFine",
             "liteloader" => "LiteLoader",
             "datapack" => "Data Pack",
-            _ => CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value.Replace('-', ' ').Replace('_', ' ').ToLowerInvariant())
+            _ => CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value.Replace('-', ' ').Replace('_', ' ')
+                .ToLowerInvariant())
         };
     }
 }
@@ -754,8 +754,7 @@ public sealed partial class CategoryFilterOption(string name) : ObservableObject
     public string Name { get; } = name;
     public string DisplayName => FormatDisplayName(Name);
 
-    [ObservableProperty]
-    private bool _isSelected;
+    [ObservableProperty] private bool _isSelected;
 
     private static string FormatDisplayName(string name)
     {

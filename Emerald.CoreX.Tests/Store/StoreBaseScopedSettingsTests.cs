@@ -56,7 +56,8 @@ public sealed class StoreBaseScopedSettingsTests
     }
 
     private static StoreInstallRecord CreateRecord(string gamePath)
-        => new()
+    {
+        return new StoreInstallRecord
         {
             ContentType = StoreContentType.Mod,
             GamePath = gamePath,
@@ -67,19 +68,23 @@ public sealed class StoreBaseScopedSettingsTests
             FileName = "mod.jar",
             FilePath = Path.Combine(gamePath, "mods", "mod.jar")
         };
+    }
 
     private sealed class TemporaryDirectory : IDisposable
     {
-        public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"emerald-tests-{Guid.NewGuid():N}");
+        public string Path { get; } =
+            System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"emerald-tests-{Guid.NewGuid():N}");
 
         public TemporaryDirectory()
-            => Directory.CreateDirectory(Path);
+        {
+            Directory.CreateDirectory(Path);
+        }
 
         public void Dispose()
         {
             if (Directory.Exists(Path))
             {
-                Directory.Delete(Path, recursive: true);
+                Directory.Delete(Path, true);
             }
         }
     }

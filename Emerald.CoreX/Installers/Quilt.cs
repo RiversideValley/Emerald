@@ -14,6 +14,7 @@ public class Quilt : IModLoaderInstaller
 {
     private readonly Notifications.INotificationService _notify;
     private readonly HttpClient _httpClient;
+
     public Quilt(Notifications.INotificationService notificationService, HttpClient httpClient)
     {
         _notify = notificationService;
@@ -37,7 +38,9 @@ public class Quilt : IModLoaderInstaller
             var versions = await QuiltInstaller.GetLoaders(mcVersion);
 
             if (versions == null || !versions.Any())
+            {
                 throw new NullReferenceException();
+            }
 
             var l = versions.Select(x => new LoaderInfo { Version = x.Version, Stable = x.Stable });
 
@@ -50,11 +53,12 @@ public class Quilt : IModLoaderInstaller
         {
             this.Log().LogWarning("Failed to get Quilt Loaders: {ex}", ex.Message);
             _notify.Complete(not.Id, false, ex.Message, ex);
-            return new();
+            return new List<LoaderInfo>();
         }
     }
 
-    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null, bool online = true)
+    public async Task<string> InstallAsync(MinecraftPath path, string mcversion, string? modversion = null,
+        bool online = true)
     {
         var not = _notify.Create(
             "InstallQuilt",
@@ -69,16 +73,23 @@ public class Quilt : IModLoaderInstaller
             if (!online)
             {
                 this.Log().LogWarning("Fabric Loader installation is not supported offline. sending the version name");
-                _notify.Complete(not.Id, false, "Fabric Loader installation is not supported offline. Passed the version name.");
-                return QuiltInstaller.GetVersionName(mcversion, modversion ?? (await QuiltInstaller.GetFirstLoader(mcversion))?.Version ?? throw new NullReferenceException("No internet and no mod name found."));
+                _notify.Complete(not.Id, false,
+                    "Fabric Loader installation is not supported offline. Passed the version name.");
+                return QuiltInstaller.GetVersionName(mcversion,
+                    modversion ?? (await QuiltInstaller.GetFirstLoader(mcversion))?.Version ??
+                    throw new NullReferenceException("No internet and no mod name found."));
             }
 
             string? versionName = null;
 
             if (modversion == null)
+            {
                 versionName = await QuiltInstaller.Install(mcversion, path);
+            }
             else
+            {
                 versionName = await QuiltInstaller.Install(mcversion, modversion, path);
+            }
 
             this.Log().LogInformation("Installed Quilt Loader {versionName}", versionName);
             _notify.Complete(not.Id, true);

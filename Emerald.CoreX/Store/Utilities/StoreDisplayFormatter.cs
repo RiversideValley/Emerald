@@ -140,5 +140,7 @@ internal static class StoreDisplayFormatter
     }
 
     private static string NormalizeCompatibilityValue(string? value)
-        => string.IsNullOrWhiteSpace(value) ? "unknown" : value.Trim().ToLowerInvariant();
+    {
+        return string.IsNullOrWhiteSpace(value) ? "unknown" : value.Trim().ToLowerInvariant();
+    }
 }

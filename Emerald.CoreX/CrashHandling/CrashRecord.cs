@@ -34,8 +34,7 @@ public sealed class CrashRecord
     public DateTimeOffset? AcknowledgedUtc { get; set; }
     public string? ReportPath { get; set; }
 
-    [JsonIgnore]
-    public bool IsAcknowledged => AcknowledgedUtc.HasValue;
+    [JsonIgnore] public bool IsAcknowledged => AcknowledgedUtc.HasValue;
 
     public static CrashRecord CreateUnexpectedShutdown(
         LifecycleRunState previousRun,
@@ -43,7 +42,8 @@ public sealed class CrashRecord
         string applicationLogTail,
         string nativeDiagnosticsStatus = "Unavailable",
         string? nativeDiagnosticsPath = null)
-        => new()
+    {
+        return new CrashRecord
         {
             RunId = previousRun.RunId,
             OccurredUtc = previousRun.LastHeartbeatUtc == default
@@ -65,9 +65,12 @@ public sealed class CrashRecord
             NativeDiagnosticsStatus = nativeDiagnosticsStatus,
             NativeDiagnosticsPath = nativeDiagnosticsPath
         };
+    }
 
     private static string FirstValue(string value, string fallback)
-        => string.IsNullOrWhiteSpace(value) ? fallback : value;
+    {
+        return string.IsNullOrWhiteSpace(value) ? fallback : value;
+    }
 }
 
 public sealed class CrashExceptionInfo

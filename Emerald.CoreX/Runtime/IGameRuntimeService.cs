@@ -18,6 +18,11 @@ public interface IGameRuntimeService
     /// </summary>
     Task<GameSession?> LaunchAsync(Game game, EAccount? account = null);
 
+    Task<GameSession?> LaunchAsync(GameLaunchRequest request)
+    {
+        return LaunchAsync(request.Game, request.Account);
+    }
+
     /// <summary>
     /// Requests that the supplied game stop using the specified mode.
     /// </summary>

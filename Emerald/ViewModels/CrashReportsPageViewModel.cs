@@ -13,7 +13,9 @@ public sealed class CrashReportsPageViewModel : ObservableObject
     private CrashReportListItem? _selectedReport;
 
     public CrashReportsPageViewModel(CrashCoordinator crashCoordinator)
-        => _crashCoordinator = crashCoordinator;
+    {
+        _crashCoordinator = crashCoordinator;
+    }
 
     public ObservableCollection<CrashReportListItem> Reports { get; } = [];
 
@@ -38,7 +40,10 @@ public sealed class CrashReportsPageViewModel : ObservableObject
     public bool HasReports => Reports.Count > 0;
     public bool HasSelectedReport => SelectedRecord is not null;
     public bool HasSelectedNativeDiagnostics => !string.IsNullOrWhiteSpace(SelectedNativeDiagnosticsPath);
-    public string SelectedReportText => SelectedRecord is null ? string.Empty : CrashReportFormatter.ToText(SelectedRecord);
+
+    public string SelectedReportText =>
+        SelectedRecord is null ? string.Empty : CrashReportFormatter.ToText(SelectedRecord);
+
     public string? SelectedReportPath => SelectedRecord?.ReportPath;
     public string? SelectedNativeDiagnosticsPath => SelectedRecord?.NativeDiagnosticsPath;
     public string ReportsPath => _crashCoordinator.ReportsPath;
@@ -61,15 +66,21 @@ public sealed class CrashReportsPageViewModel : ObservableObject
     }
 
     public GitHubIssueDraft? GetSelectedGitHubDraft()
-        => SelectedRecord is null
+    {
+        return SelectedRecord is null
             ? null
             : new GitHubCrashIssueComposer("https://github.com/RiversideValley/Emerald").Compose(SelectedRecord);
+    }
 
     public void EnrichNativeDiagnostics()
-        => _crashCoordinator.EnrichNativeDiagnostics();
+    {
+        _crashCoordinator.EnrichNativeDiagnostics();
+    }
 
     public bool AcknowledgeSelected()
-        => SelectedRecord is not null && _crashCoordinator.Acknowledge(SelectedRecord.Id);
+    {
+        return SelectedRecord is not null && _crashCoordinator.Acknowledge(SelectedRecord.Id);
+    }
 
     public bool DeleteSelected()
     {
@@ -94,7 +105,9 @@ public sealed class CrashReportsPageViewModel : ObservableObject
 public sealed class CrashReportListItem
 {
     public CrashReportListItem(CrashRecord record)
-        => Record = record;
+    {
+        Record = record;
+    }
 
     public CrashRecord Record { get; }
 

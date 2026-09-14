@@ -6,7 +6,8 @@ namespace Emerald.CoreX.Tests.Services;
 
 public sealed class MinecraftOptionsTests : IDisposable
 {
-    private readonly string _directory = Path.Combine(Path.GetTempPath(), "emerald-options-" + Guid.NewGuid().ToString("N"));
+    private readonly string _directory =
+        Path.Combine(Path.GetTempPath(), "emerald-options-" + Guid.NewGuid().ToString("N"));
 
     [Fact]
     public void Catalog_UsesVerifiedShapes_AndPreservesEnumTokens()
@@ -46,7 +47,8 @@ public sealed class MinecraftOptionsTests : IDisposable
         Directory.CreateDirectory(_directory);
         var path = Path.Combine(_directory, "options.txt");
         var source = "# keep\r\nfov:0.0\nmalformed\r\nfov:0.5\r\nserver:host:25565";
-        await File.WriteAllBytesAsync(path, Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(source)).ToArray());
+        await File.WriteAllBytesAsync(path,
+            Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(source)).ToArray());
 
         var document = await MinecraftOptionsDocument.ReadAsync(path, CancellationToken.None);
         var patched = document.PatchLastOccurrences(new Dictionary<string, string> { ["fov"] = "1" });
@@ -72,6 +74,9 @@ public sealed class MinecraftOptionsTests : IDisposable
 
     public void Dispose()
     {
-        if (Directory.Exists(_directory)) Directory.Delete(_directory, recursive: true);
+        if (Directory.Exists(_directory))
+        {
+            Directory.Delete(_directory, true);
+        }
     }
 }

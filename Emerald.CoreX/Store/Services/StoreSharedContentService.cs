@@ -12,7 +12,8 @@ public interface IStoreSharedContentService
 
     StoreSharedContentHealth GetHealth(StoreInstallRecord record);
 
-    Task RemoveReferenceAsync(StoreInstallRecord record, bool deleteInstanceFile, CancellationToken cancellationToken = default);
+    Task RemoveReferenceAsync(StoreInstallRecord record, bool deleteInstanceFile,
+        CancellationToken cancellationToken = default);
 
     Task<StoreSharedContentMigrationPlan> CreateMigrationPlanAsync(
         Game game,
@@ -50,7 +51,9 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
     }
 
     public bool IsSharingEnabled(Game game, StoreContentType contentType)
-        => IsSharingEnabled(game, contentType, game.SharedMinecraftBasePath);
+    {
+        return IsSharingEnabled(game, contentType, game.SharedMinecraftBasePath);
+    }
 
     public bool IsSharingEnabled(Game game, StoreContentType contentType, string? sharedBasePathOverride)
     {
@@ -197,9 +200,11 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
     }
 
     private static StoreSharedContentHealth GetDirectInstallHealth(StoreInstallRecord record)
-        => File.Exists(record.FilePath) || Directory.Exists(record.FilePath)
+    {
+        return File.Exists(record.FilePath) || Directory.Exists(record.FilePath)
             ? StoreSharedContentHealth.Ok
             : StoreSharedContentHealth.MissingInstanceFile;
+    }
 
     private static StoreSharedContentHealth GetSharedInstallHealth(StoreInstallRecord record)
     {
@@ -250,7 +255,8 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
         }
     }
 
-    public Task RemoveReferenceAsync(StoreInstallRecord record, bool deleteInstanceFile, CancellationToken cancellationToken = default)
+    public Task RemoveReferenceAsync(StoreInstallRecord record, bool deleteInstanceFile,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -410,9 +416,9 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
         summary.ChangedCount += action switch
         {
             StoreSharedContentMigrationAction.ConvertTrackedFiles
-                => await ConvertTrackedFilesAsync(plan, records, matchingRecords, includeUntracked: false, cancellationToken),
+                => await ConvertTrackedFilesAsync(plan, records, matchingRecords, false, cancellationToken),
             StoreSharedContentMigrationAction.ConvertAllCompatibleFiles
-                => await ConvertTrackedFilesAsync(plan, records, matchingRecords, includeUntracked: true, cancellationToken),
+                => await ConvertTrackedFilesAsync(plan, records, matchingRecords, true, cancellationToken),
             StoreSharedContentMigrationAction.MaterializeFiles
                 => MaterializeSharedFiles(records, matchingRecords, cancellationToken),
             StoreSharedContentMigrationAction.RemoveSharedInstalls
@@ -520,7 +526,8 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
         return removedRecords.Length;
     }
 
-    public StoreSharedContentMigrationSummary SummarizeMigrationPlans(IEnumerable<StoreSharedContentMigrationPlan> plans)
+    public StoreSharedContentMigrationSummary SummarizeMigrationPlans(
+        IEnumerable<StoreSharedContentMigrationPlan> plans)
     {
         var summary = new StoreSharedContentMigrationSummary();
         foreach (var plan in plans)
@@ -626,7 +633,7 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
         var tempPath = Path.Combine(
             Path.GetDirectoryName(record.FilePath)!,
             $".emerald-materialize-{Guid.NewGuid():N}{Path.GetExtension(record.FilePath)}");
-        File.Copy(record.SharedFilePath, tempPath, overwrite: true);
+        File.Copy(record.SharedFilePath, tempPath, true);
         StorePath.TryDeleteFile(record.FilePath);
         File.Move(tempPath, record.FilePath);
     }
@@ -647,7 +654,7 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
         }
 
         var tempSharedPath = $"{sharedFilePath}.emerald-{Guid.NewGuid():N}.tmp";
-        File.Copy(sourcePath, tempSharedPath, overwrite: true);
+        File.Copy(sourcePath, tempSharedPath, true);
         if (!await FileHash.VerifyAsync(tempSharedPath, sha1, sha512, cancellationToken))
         {
             StorePath.TryDeleteFile(tempSharedPath);
@@ -671,7 +678,7 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
         }
 
         var tempSharedPath = $"{sharedFilePath}.emerald-{Guid.NewGuid():N}.tmp";
-        File.Copy(sourcePath, tempSharedPath, overwrite: true);
+        File.Copy(sourcePath, tempSharedPath, true);
         if (!FileHash.Verify(tempSharedPath, sha1, sha512))
         {
             StorePath.TryDeleteFile(tempSharedPath);
@@ -687,14 +694,19 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
     }
 
     private string? ResolveSharedBasePath(StoreSharedInstallRequest request)
-        => ResolveSharedBasePath(request.Game, request.SharedBasePathOverride);
+    {
+        return ResolveSharedBasePath(request.Game, request.SharedBasePathOverride);
+    }
 
     private static string? ResolveSharedBasePath(Game game, string? sharedBasePathOverride)
-        => string.IsNullOrWhiteSpace(sharedBasePathOverride)
+    {
+        return string.IsNullOrWhiteSpace(sharedBasePathOverride)
             ? game.SharedMinecraftBasePath
             : sharedBasePathOverride;
+    }
 
-    private static string GetSharedFilePath(string sharedBasePath, string installFolderName, string sha1, string fileName)
+    private static string GetSharedFilePath(string sharedBasePath, string installFolderName, string sha1,
+        string fileName)
     {
         var extension = Path.GetExtension(fileName);
         return Path.Combine(sharedBasePath, installFolderName, $"{sha1}{extension}");
@@ -729,6 +741,7 @@ public sealed class StoreSharedContentService : IStoreSharedContentService
             && !string.Equals(StorePath.Normalize(record.FilePath), removedFilePath, StringComparison.OrdinalIgnoreCase)
             && record.LinkKind != StoreLinkKind.None
             && !string.IsNullOrWhiteSpace(record.SharedFilePath)
-            && string.Equals(StorePath.Normalize(record.SharedFilePath), sharedPath, StringComparison.OrdinalIgnoreCase));
+            && string.Equals(StorePath.Normalize(record.SharedFilePath), sharedPath,
+                StringComparison.OrdinalIgnoreCase));
     }
 }

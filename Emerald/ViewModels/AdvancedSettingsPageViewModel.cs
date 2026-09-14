@@ -30,50 +30,49 @@ public sealed partial class AdvancedSettingsPageViewModel : ObservableObject
         _logger = logger;
         ModeOptions =
         [
-            new(AuthlibInjectorVersionMode.Recommended,
+            new AuthlibModeOption(AuthlibInjectorVersionMode.Recommended,
                 string.Format("AuthlibModeRecommendedFormat".Localize(), options.RecommendedVersion)),
-            new(AuthlibInjectorVersionMode.Latest, "AuthlibModeLatest".Localize()),
-            new(AuthlibInjectorVersionMode.Custom, "AuthlibModeCustom".Localize())
+            new AuthlibModeOption(AuthlibInjectorVersionMode.Latest, "AuthlibModeLatest".Localize()),
+            new AuthlibModeOption(AuthlibInjectorVersionMode.Custom, "AuthlibModeCustom".Localize())
         ];
         _selectedMode = ModeOptions.First(option => option.Mode == Settings.VersionMode);
     }
 
     public IReadOnlyList<AuthlibModeOption> ModeOptions { get; }
     public ObservableCollection<AuthlibVersionOption> Versions { get; } = [];
+
     private Helpers.Settings.JSON.AuthlibInjectorSettings Settings
         => _settingsService.Settings.App.Advanced.AuthlibInjector;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsCustomMode))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsCustomMode))]
     private AuthlibModeOption _selectedMode;
 
-    [ObservableProperty]
-    private AuthlibVersionOption? _selectedVersion;
+    [ObservableProperty] private AuthlibVersionOption? _selectedVersion;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanCheckConfiguration))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanCheckConfiguration))]
     private bool _isCatalogLoading;
 
-    [ObservableProperty]
-    private bool _hasCatalogError;
+    [ObservableProperty] private bool _hasCatalogError;
 
-    [ObservableProperty]
-    private string _catalogErrorMessage = string.Empty;
+    [ObservableProperty] private string _catalogErrorMessage = string.Empty;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanCheckConfiguration))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanCheckConfiguration))]
     private bool _isChecking;
 
-    [ObservableProperty]
-    private string _configurationStatus = string.Empty;
+    [ObservableProperty] private string _configurationStatus = string.Empty;
 
     public bool IsCustomMode => SelectedMode.Mode == AuthlibInjectorVersionMode.Custom;
+
     public bool CanCheckConfiguration => !IsChecking && !IsCatalogLoading
-        && (!IsCustomMode || SelectedVersion is not null);
+                                                     && (!IsCustomMode || SelectedVersion is not null);
 
     public async Task InitializeAsync()
     {
-        if (_initialized) return;
+        if (_initialized)
+        {
+            return;
+        }
+
         _initialized = true;
         await LoadCatalogAsync();
     }
@@ -89,7 +88,10 @@ public sealed partial class AdvancedSettingsPageViewModel : ObservableObject
     partial void OnSelectedVersionChanged(AuthlibVersionOption? value)
     {
         if (value is not null)
+        {
             Settings.CustomVersion = value.Version;
+        }
+
         ConfigurationStatus = string.Empty;
         OnPropertyChanged(nameof(CanCheckConfiguration));
         CheckConfigurationCommand.NotifyCanExecuteChanged();
@@ -171,11 +173,16 @@ public sealed partial class AdvancedSettingsPageViewModel : ObservableObject
     }
 
     partial void OnIsCatalogLoadingChanged(bool value)
-        => CheckConfigurationCommand.NotifyCanExecuteChanged();
+    {
+        CheckConfigurationCommand.NotifyCanExecuteChanged();
+    }
 
     partial void OnIsCheckingChanged(bool value)
-        => CheckConfigurationCommand.NotifyCanExecuteChanged();
+    {
+        CheckConfigurationCommand.NotifyCanExecuteChanged();
+    }
 }
 
 public sealed record AuthlibModeOption(AuthlibInjectorVersionMode Mode, string Label);
+
 public sealed record AuthlibVersionOption(int BuildNumber, string Version, string Label);

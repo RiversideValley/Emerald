@@ -14,7 +14,9 @@ internal sealed record ElyByOAuthOptions(
            && Uri.TryCreate(RedirectUri, UriKind.Absolute, out _);
 
     private static bool IsPlaceholder(string? value)
-        => string.IsNullOrWhiteSpace(value)
-           || value.Contains("TODO", StringComparison.OrdinalIgnoreCase)
-           || value.Contains("YOUR_", StringComparison.OrdinalIgnoreCase);
+    {
+        return string.IsNullOrWhiteSpace(value)
+               || value.Contains("TODO", StringComparison.OrdinalIgnoreCase)
+               || value.Contains("YOUR_", StringComparison.OrdinalIgnoreCase);
+    }
 }

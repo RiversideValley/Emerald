@@ -37,33 +37,41 @@ public sealed class VerifiedGameInstaller(
 
         try
         {
-            await Parallel.ForEachAsync(files, new ParallelOptions { MaxDegreeOfParallelism = 8, CancellationToken = operation.Token }, async (file, token) =>
-            {
-                try
+            await Parallel.ForEachAsync(files,
+                new ParallelOptions { MaxDegreeOfParallelism = 8, CancellationToken = operation.Token },
+                async (file, token) =>
                 {
-                    fileProgress?.Report(new(files.Length, Volatile.Read(ref completed), file.Name, InstallerEventType.Queued));
-                    if (!await IsHealthyAsync(file, token)) await DownloadVerifiedAsync(file, token);
-                    // Examples include native extraction and derived legacy mappings.
-                    await file.ExecuteUpdateTask(token);
-                    var done = Interlocked.Increment(ref completed);
-                    var bytes = Interlocked.Add(ref processedBytes, Math.Max(0, file.Size));
-                    fileProgress?.Report(new(files.Length, done, file.Name, InstallerEventType.Done));
-                    byteProgress?.Report(new(files.Sum(x => Math.Max(0, x.Size)), bytes));
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    throw;
-                }
-                catch (OperationCanceledException) when (operation.IsCancellationRequested)
-                {
-                    // Another file has already reported the terminal failure.
-                }
-                catch (Exception ex)
-                {
-                    errors.Enqueue(ex);
-                    operation.Cancel();
-                }
-            });
+                    try
+                    {
+                        fileProgress?.Report(new InstallerProgressChangedEventArgs(files.Length,
+                            Volatile.Read(ref completed), file.Name, InstallerEventType.Queued));
+                        if (!await IsHealthyAsync(file, token))
+                        {
+                            await DownloadVerifiedAsync(file, token);
+                        }
+
+                        // Examples include native extraction and derived legacy mappings.
+                        await file.ExecuteUpdateTask(token);
+                        var done = Interlocked.Increment(ref completed);
+                        var bytes = Interlocked.Add(ref processedBytes, Math.Max(0, file.Size));
+                        fileProgress?.Report(new InstallerProgressChangedEventArgs(files.Length, done, file.Name,
+                            InstallerEventType.Done));
+                        byteProgress?.Report(new ByteProgress(files.Sum(x => Math.Max(0, x.Size)), bytes));
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (OperationCanceledException) when (operation.IsCancellationRequested)
+                    {
+                        // Another file has already reported the terminal failure.
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Enqueue(ex);
+                        operation.Cancel();
+                    }
+                });
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -75,15 +83,31 @@ public sealed class VerifiedGameInstaller(
             // original error below is the useful result for the caller.
         }
 
-        if (errors.TryDequeue(out var error)) throw new AggregateException("One or more game files could not be installed safely.", errors.Prepend(error));
+        if (errors.TryDequeue(out var error))
+        {
+            throw new AggregateException("One or more game files could not be installed safely.",
+                errors.Prepend(error));
+        }
     }
 
     private static async Task<bool> IsHealthyAsync(GameFile file, CancellationToken cancellationToken)
     {
-        if (!File.Exists(file.Path)) return false;
+        if (!File.Exists(file.Path))
+        {
+            return false;
+        }
+
         var info = new FileInfo(file.Path);
-        if (file.Size > 0 && info.Length != file.Size) return false;
-        if (string.IsNullOrWhiteSpace(file.Hash)) return true;
+        if (file.Size > 0 && info.Length != file.Size)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(file.Hash))
+        {
+            return true;
+        }
+
         await using var stream = File.OpenRead(file.Path);
         var actual = Convert.ToHexString(await SHA1.HashDataAsync(stream, cancellationToken));
         return string.Equals(actual, file.Hash, StringComparison.OrdinalIgnoreCase);
@@ -91,7 +115,11 @@ public sealed class VerifiedGameInstaller(
 
     private async Task DownloadVerifiedAsync(GameFile file, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(file.Url)) throw new InvalidOperationException($"No download URL is available for {file.Path}.");
+        if (string.IsNullOrWhiteSpace(file.Url))
+        {
+            throw new InvalidOperationException($"No download URL is available for {file.Path}.");
+        }
+
         var destinationPath = file.Path!;
         Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
         // Keeping the temporary file beside its destination makes the final move
@@ -108,7 +136,13 @@ public sealed class VerifiedGameInstaller(
             network.ReportFailure(NetworkCapability.MinecraftFiles, ex);
             throw;
         }
-        finally { if (File.Exists(temporary)) File.Delete(temporary); }
+        finally
+        {
+            if (File.Exists(temporary))
+            {
+                File.Delete(temporary);
+            }
+        }
     }
 
     private async Task DownloadWithRetriesAsync(GameFile file, string temporary, CancellationToken cancellationToken)
@@ -123,7 +157,11 @@ public sealed class VerifiedGameInstaller(
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 DeleteTemporaryFile(temporary);
-                if (attempt == _timeouts.Attempts) throw new DownloadTimeoutException("response", file.Url!);
+                if (attempt == _timeouts.Attempts)
+                {
+                    throw new DownloadTimeoutException("response", file.Url!);
+                }
+
                 await DelayBeforeRetryAsync(attempt, cancellationToken);
             }
             catch (Exception ex) when (ShouldRetry(ex, attempt))
@@ -138,33 +176,55 @@ public sealed class VerifiedGameInstaller(
     {
         using var headersDeadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         headersDeadline.CancelAfter(_timeouts.ResponseHeadersTimeout);
-        using var response = await httpClient.GetAsync(file.Url, HttpCompletionOption.ResponseHeadersRead, headersDeadline.Token);
+        using var response =
+            await httpClient.GetAsync(file.Url, HttpCompletionOption.ResponseHeadersRead, headersDeadline.Token);
         if (response.StatusCode == HttpStatusCode.NotFound)
+        {
             throw new NonRetryableDownloadException($"File was not found: {file.Url}");
+        }
+
         if (!response.IsSuccessStatusCode && (int)response.StatusCode < 500)
-            throw new NonRetryableDownloadException($"Download failed with HTTP {(int)response.StatusCode}: {file.Url}");
+        {
+            throw new NonRetryableDownloadException(
+                $"Download failed with HTTP {(int)response.StatusCode}: {file.Url}");
+        }
+
         response.EnsureSuccessStatusCode();
         await using (var source = await response.Content.ReadAsStreamAsync(cancellationToken))
-        await using (var destination = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous))
+        await using (var destination = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None,
+                         81920, FileOptions.Asynchronous))
+        {
             await CopyWithInactivityTimeoutAsync(source, destination, file.Url!, cancellationToken);
+        }
 
         var downloaded = new GameFile(file.Name) { Path = temporary, Hash = file.Hash, Size = file.Size };
         if (!await IsHealthyAsync(downloaded, cancellationToken))
+        {
             throw new NonRetryableDownloadException($"Downloaded file failed validation: {file.Name}");
+        }
     }
 
     private bool ShouldRetry(Exception exception, int attempt)
-        => attempt < _timeouts.Attempts && exception is not NonRetryableDownloadException and not OperationCanceledException;
+    {
+        return attempt < _timeouts.Attempts &&
+               exception is not NonRetryableDownloadException and not OperationCanceledException;
+    }
 
     private static Task DelayBeforeRetryAsync(int attempt, CancellationToken cancellationToken)
-        => Task.Delay(TimeSpan.FromMilliseconds(250 * attempt), cancellationToken);
+    {
+        return Task.Delay(TimeSpan.FromMilliseconds(250 * attempt), cancellationToken);
+    }
 
     private static void DeleteTemporaryFile(string path)
     {
-        if (File.Exists(path)) File.Delete(path);
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
     }
 
-    private async Task CopyWithInactivityTimeoutAsync(Stream source, Stream destination, string url, CancellationToken cancellationToken)
+    private async Task CopyWithInactivityTimeoutAsync(Stream source, Stream destination, string url,
+        CancellationToken cancellationToken)
     {
         var buffer = new byte[81920];
         using var inactivity = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -172,12 +232,20 @@ public sealed class VerifiedGameInstaller(
         while (true)
         {
             int read;
-            try { read = await source.ReadAsync(buffer.AsMemory(), inactivity.Token); }
+            try
+            {
+                read = await source.ReadAsync(buffer.AsMemory(), inactivity.Token);
+            }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 throw new DownloadTimeoutException("transfer", url);
             }
-            if (read == 0) return;
+
+            if (read == 0)
+            {
+                return;
+            }
+
             await destination.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
             inactivity.CancelAfter(_timeouts.InactivityTimeout);
         }

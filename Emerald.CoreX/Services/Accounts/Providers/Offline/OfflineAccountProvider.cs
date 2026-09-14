@@ -16,18 +16,26 @@ internal sealed class OfflineAccountProvider(AccountProviderPolicyOptions policy
                 CreateMethodId,
                 "Enter your username",
                 "Enter a specific username for creating an offline Account",
-                AccountSignInInputKind.Username, true)],
+                AccountSignInInputKind.Username, true)
+        ],
         Requirements: policyOptions.RequireMicrosoftForOfflineAccounts
-            ? [new AccountProviderRequirement(
-                AccountProviderIds.Microsoft,
-                "Add a Microsoft account before creating or selecting an offline account.")]
+            ?
+            [
+                new AccountProviderRequirement(
+                    AccountProviderIds.Microsoft,
+                    "Add a Microsoft account before creating or selecting an offline account.")
+            ]
             : [],
         RequiresNetworkForLaunch: false);
 
-    public Task InitializeAsync(AccountProviderInitializationContext context, CancellationToken cancellationToken = default)
-        => Task.CompletedTask;
+    public Task InitializeAsync(AccountProviderInitializationContext context,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
 
-    public Task<AccountProviderLoadResult> LoadAccountsAsync(IReadOnlyList<EAccount> persistedAccounts, CancellationToken cancellationToken = default)
+    public Task<AccountProviderLoadResult> LoadAccountsAsync(IReadOnlyList<EAccount> persistedAccounts,
+        CancellationToken cancellationToken = default)
     {
         var accounts = persistedAccounts
             .Where(account => account.ProviderId == AccountProviderIds.Offline ||
@@ -46,7 +54,9 @@ internal sealed class OfflineAccountProvider(AccountProviderPolicyOptions policy
     public Task<EAccount> SignInAsync(AccountSignInRequest request, CancellationToken cancellationToken = default)
     {
         if (request.MethodId != CreateMethodId || string.IsNullOrWhiteSpace(request.Username))
+        {
             throw new ArgumentException("An offline username is required.", nameof(request));
+        }
 
         return Task.FromResult(new EAccount(request.Username.Trim(), AccountType.Offline)
         {
@@ -62,11 +72,18 @@ internal sealed class OfflineAccountProvider(AccountProviderPolicyOptions policy
     }
 
     public Task<AccountSkinData?> GetSkinAsync(EAccount account, CancellationToken cancellationToken = default)
-        => Task.FromResult<AccountSkinData?>(MinecraftSkinTextures.CreateSteveFallback("Offline"));
+    {
+        return Task.FromResult<AccountSkinData?>(MinecraftSkinTextures.CreateSteveFallback("Offline"));
+    }
 
-    public Task<GameAuthenticationResult> AuthenticateForLaunchAsync(EAccount account, CancellationToken cancellationToken = default)
-        => Task.FromResult(new GameAuthenticationResult(MSession.CreateOfflineSession(account.Name)));
+    public Task<GameAuthenticationResult> AuthenticateForLaunchAsync(EAccount account,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new GameAuthenticationResult(MSession.CreateOfflineSession(account.Name)));
+    }
 
     public Task RemoveAsync(EAccount account, CancellationToken cancellationToken = default)
-        => Task.CompletedTask;
+    {
+        return Task.CompletedTask;
+    }
 }

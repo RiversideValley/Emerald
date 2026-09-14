@@ -1,0 +1,9 @@
+<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Emerald.Controls.WorldThumbnail">
+  <Border Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="8">
+    <Grid>
+      <FontIcon Glyph="&#xE909;" />
+      <Image x:Name="Picture" Stretch="UniformToFill" />
+    </Grid>
+  </Border>
+</UserControl>

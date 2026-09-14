@@ -70,6 +70,7 @@ public class SearchHit
     public string FollowCountText => Follows.KiloFormat();
     public string UpdatedRelativeText => StoreDisplayFormatter.FormatRelativeTime(DateModified);
     public string CompatibilityText => StoreDisplayFormatter.FormatCompatibility(ClientSide, ServerSide);
+
     public string[] DisplayCategories => Categories?
         .Where(category => !string.IsNullOrWhiteSpace(category))
         .Select(StoreDisplayFormatter.ToDisplayLabel)
@@ -102,7 +103,8 @@ public class StoreItem
 
     [JsonPropertyName("status")] public string Status { get; set; }
 
-    [JsonPropertyName("moderator_message")] public object? ModeratorMessage { get; set; }
+    [JsonPropertyName("moderator_message")]
+    public object? ModeratorMessage { get; set; }
 
     [JsonPropertyName("license")] public License License { get; set; }
 
@@ -137,6 +139,7 @@ public class StoreItem
     public string PublishedRelativeText => StoreDisplayFormatter.FormatRelativeTime(PublishedDate);
     public string UpdatedRelativeText => StoreDisplayFormatter.FormatRelativeTime(UpdatedDate);
     public string CompatibilityText => StoreDisplayFormatter.FormatCompatibility(ClientSide, ServerSide);
+
     public string[] DisplayCategories => Categories?
         .Where(category => !string.IsNullOrWhiteSpace(category))
         .Select(StoreDisplayFormatter.ToDisplayLabel)
@@ -183,13 +186,16 @@ public class ItemVersion : INotifyPropertyChanged
     public string DownloadCountText => Downloads.KiloFormat();
     public string PublishedRelativeText => StoreDisplayFormatter.FormatRelativeTime(DatePublished);
     public string VersionTypeDisplay => StoreDisplayFormatter.ToDisplayLabel(VersionType);
+
     public string PrimaryFileSizeText => StoreDisplayFormatter.FormatFileSize(
         Files?.FirstOrDefault(file => file.Primary)?.Size
         ?? Files?.FirstOrDefault()?.Size);
+
     public StoreTagChip[] LoaderChips { get; private set; } = [];
     public StoreTagChip[] GameVersionChips { get; private set; } = [];
 
-    public void UpdateCompatibilityChips(IEnumerable<StoreTagChip> loaderChips, IEnumerable<StoreTagChip> gameVersionChips)
+    public void UpdateCompatibilityChips(IEnumerable<StoreTagChip> loaderChips,
+        IEnumerable<StoreTagChip> gameVersionChips)
     {
         LoaderChips = loaderChips.ToArray();
         GameVersionChips = gameVersionChips.ToArray();
@@ -199,8 +205,10 @@ public class ItemVersion : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public void InvokePropertyChanged(string? propertyName = null) =>
+    public void InvokePropertyChanged(string? propertyName = null)
+    {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 }
 
 public class Dependency

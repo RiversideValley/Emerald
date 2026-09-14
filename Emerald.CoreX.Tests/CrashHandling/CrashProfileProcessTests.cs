@@ -154,7 +154,7 @@ public sealed class CrashProfileProcessTests
             Assert.True(File.Exists(executable), $"Build the Debug desktop application first: {executable}");
             var start = new ProcessStartInfo(executable)
             {
-                WorkingDirectory = System.IO.Path.GetDirectoryName(executable)!,
+                WorkingDirectory = Path.GetDirectoryName(executable)!,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
@@ -177,6 +177,7 @@ public sealed class CrashProfileProcessTests
                 start.Environment["EMERALD_TEST_DISABLE_STUDIO"] = "1";
                 start.Environment["EMERALD_TEST_RECOVERY_ACTION"] = recoveryAction;
             }
+
             _process = new Process { StartInfo = start };
             _process.OutputDataReceived += ReceiveLine;
             _process.ErrorDataReceived += ReceiveLine;
@@ -188,25 +189,44 @@ public sealed class CrashProfileProcessTests
         public bool HasExited => _process.HasExited;
         public int ExitCode => _process.ExitCode;
         public string Output => string.Join(Environment.NewLine, _output);
-        public bool Saw(string checkpoint) => _checkpoints.ContainsKey(checkpoint);
-        public int CheckpointCount(string checkpoint) => _checkpoints.GetValueOrDefault(checkpoint);
+
+        public bool Saw(string checkpoint)
+        {
+            return _checkpoints.ContainsKey(checkpoint);
+        }
+
+        public int CheckpointCount(string checkpoint)
+        {
+            return _checkpoints.GetValueOrDefault(checkpoint);
+        }
 
         private void ReceiveLine(object sender, DataReceivedEventArgs args)
         {
-            if (args.Data is not { } line) return;
+            if (args.Data is not { } line)
+            {
+                return;
+            }
+
             const string prefix = "[EMERALD TEST] ";
             if (line.StartsWith(prefix, StringComparison.Ordinal))
             {
                 _checkpoints.AddOrUpdate(line[prefix.Length..], 1, (_, count) => count + 1);
             }
+
             _output.Enqueue(line);
-            while (_output.Count > 80) _output.TryDequeue(out _);
+            while (_output.Count > 80)
+            {
+                _output.TryDequeue(out _);
+            }
         }
 
         public async Task WaitForExitAsync()
         {
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-            try { await _process.WaitForExitAsync(timeout.Token); }
+            try
+            {
+                await _process.WaitForExitAsync(timeout.Token);
+            }
             catch (OperationCanceledException)
             {
                 Assert.Fail($"Fault did not terminate the app within 30 seconds.\n{Output}");
@@ -220,6 +240,7 @@ public sealed class CrashProfileProcessTests
             {
                 await Task.Delay(50);
             }
+
             Assert.True(Saw(checkpoint), $"Did not reach '{checkpoint}'.\n{Output}");
         }
 
@@ -228,8 +249,9 @@ public sealed class CrashProfileProcessTests
             if (!HasExited)
             {
                 // Only the owned, isolated test process is terminated for cleanup.
-                _process.Kill(entireProcessTree: true);
+                _process.Kill(true);
             }
+
             await _process.WaitForExitAsync();
             _process.Dispose();
         }
@@ -237,9 +259,18 @@ public sealed class CrashProfileProcessTests
 
     private sealed class TestDirectory : IDisposable
     {
-        public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "emerald-process-" + Guid.NewGuid().ToString("N"));
-        public TestDirectory() => Directory.CreateDirectory(Path);
-        public void Dispose() => Directory.Delete(Path, recursive: true);
+        public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(),
+            "emerald-process-" + Guid.NewGuid().ToString("N"));
+
+        public TestDirectory()
+        {
+            Directory.CreateDirectory(Path);
+        }
+
+        public void Dispose()
+        {
+            Directory.Delete(Path, true);
+        }
     }
 }
 

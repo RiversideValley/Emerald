@@ -47,9 +47,9 @@ public static class Extensions
         try
         {
             _logger.LogDebug("Getting device memory");
-        SystemMemoryUsageReport? systemMemoryUsageReport = SystemDiagnosticInfo.GetForCurrentSystem()?.MemoryUsage?.GetReport();
-            long memkb = Convert.ToInt64(systemMemoryUsageReport?.TotalPhysicalSizeInBytes);
-            
+            var systemMemoryUsageReport = SystemDiagnosticInfo.GetForCurrentSystem()?.MemoryUsage?.GetReport();
+            var memkb = Convert.ToInt64(systemMemoryUsageReport?.TotalPhysicalSizeInBytes);
+
             _logger.LogDebug("Memory: {memkb}", memkb);
             return Convert.ToInt32(memkb / Math.Pow(1024, 3));
         }
@@ -63,16 +63,24 @@ public static class Extensions
     public static string KiloFormat(this int num)
     {
         if (num >= 100000000)
+        {
             return (num / 1000000).ToString("#,0M");
+        }
 
         if (num >= 10000000)
+        {
             return (num / 1000000).ToString("0.#") + "M";
+        }
 
         if (num >= 100000)
+        {
             return (num / 1000).ToString("#,0K");
+        }
 
         if (num >= 1000)
+        {
             return (num / 100).ToString("0.#") + "K";
+        }
 
         return num.ToString("#,0");
     }
@@ -85,6 +93,7 @@ public static class Extensions
         {
             coll.Remove(itemToRemove);
         }
+
         return itemsToRemove.Count;
     }
 
@@ -99,28 +108,32 @@ public static class Extensions
 
         return itemsToRemove.Count;
     }
+
     public static void AddRange<T>(this ObservableCollection<T> cll, IEnumerable<T> items)
     {
         foreach (var item in items)
+        {
             cll.Add(item);
+        }
     }
 
     public static string ToBinaryString(this string str)
     {
         var binary = "";
-        foreach (char ch in str)
+        foreach (var ch in str)
         {
             binary += Convert.ToString((int)ch, 2);
         }
+
         return binary;
     }
 
     public static string ToMD5(this string s)
     {
         StringBuilder sb = new();
-        byte[] hashValue = MD5.HashData(Encoding.UTF8.GetBytes(s));
+        var hashValue = MD5.HashData(Encoding.UTF8.GetBytes(s));
 
-        foreach (byte b in hashValue)
+        foreach (var b in hashValue)
         {
             sb.Append($"{b:X2}");
         }
@@ -147,14 +160,14 @@ public static class Extensions
         {
             logger?.LogDebug("Localizing {resourceKey}", resourceKey);
 
-            if (cachedResources.TryGetValue(resourceKey, out string cached) && !string.IsNullOrEmpty(cached))
+            if (cachedResources.TryGetValue(resourceKey, out var cached) && !string.IsNullOrEmpty(cached))
             {
                 logger?.LogDebug("Found cached {resourceKey} in cache", resourceKey);
                 return cached;
             }
 
-            string? s = Windows.ApplicationModel.Resources.ResourceLoader
-                .GetForViewIndependentUse() 
+            var s = Windows.ApplicationModel.Resources.ResourceLoader
+                .GetForViewIndependentUse()
                 .GetString(resourceKey);
 
             if (string.IsNullOrEmpty(s))
@@ -162,9 +175,9 @@ public static class Extensions
                 logger?.LogWarning("ResourceLoader.GetString returned empty/null, returning defaultkey");
                 return resourceKey;
             }
-                
+
             cachedResources.AddOrUpdate(resourceKey, s, (_, _) => s);
-            
+
             logger?.LogDebug("Localized {resourceKey} to {s}", resourceKey, s);
             return string.IsNullOrEmpty(s) ? resourceKey : s;
         }

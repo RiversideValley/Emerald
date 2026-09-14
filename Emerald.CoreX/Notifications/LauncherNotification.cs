@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Emerald.CoreX.Notifications;
+
 public partial class Notification : ObservableObject
 {
     [ObservableProperty] private string _id;
@@ -19,7 +20,6 @@ public partial class Notification : ObservableObject
     [ObservableProperty] private bool _isCompleted;
 
     [ObservableProperty] private Exception _exception;
-
 
     public DateTime Timestamp { get; set; }
     public TimeSpan? Duration { get; set; }

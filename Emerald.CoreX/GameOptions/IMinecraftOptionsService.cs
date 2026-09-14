@@ -30,7 +30,12 @@ public sealed class MinecraftOptionsLoadResult
     public bool OptionsFileExists { get; init; }
 }
 
-public enum MinecraftOptionsSaveStatus { Saved, NoChanges, Conflict }
+public enum MinecraftOptionsSaveStatus
+{
+    Saved,
+    NoChanges,
+    Conflict
+}
 
 public sealed class MinecraftOptionsSaveResult
 {

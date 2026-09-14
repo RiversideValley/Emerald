@@ -3,6 +3,8 @@
     <TargetFrameworks>net10.0-windows10.0.26100;net10.0-desktop</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <UnoSingleProject>true</UnoSingleProject>
+    <!-- Icon Composer source is compiled and injected by the macOS publish workflow. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);Assets\Icons\Emerald.icon\**</DefaultItemExcludes>
 
     <VersionPrefix Condition="'$(VersionPrefix)' == ''">0.1.0</VersionPrefix>
     <EmeraldUpdateChannel Condition="'$(EmeraldUpdateChannel)' == ''">nightly</EmeraldUpdateChannel>
@@ -29,9 +31,9 @@
     <AppxPackageVersion Condition="'$(AppxPackageVersion)' == ''">$(EmeraldPackageVersion)</AppxPackageVersion>
 
     <Description>Emerald is a open-source cross-platform Minecraft Launcher made with .NET.</Description>
-  <!-- Other metadata usually required by Snapcraft -->
-  <Authors>Riverside Valley</Authors>
-  <Product>Emerald</Product>
+    <!-- Other metadata usually required by Snapcraft -->
+    <Authors>Riverside Valley</Authors>
+    <Product>Emerald</Product>
 
     <UnoFeatures>
       Lottie;
@@ -78,11 +80,11 @@
       <_Parameter1>Emerald.MSFTClientId</_Parameter1>
       <_Parameter2>$(EmeraldMSFTClientId)</_Parameter2>
     </AssemblyAttribute>
-    <PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" />
-    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
-    <PackageReference Include="CommunityToolkit.WinUI.Controls.Sizers" />
-    <PackageReference Include="CommunityToolkit.WinUI.Converters" />
-    <PackageReference Include="CommunityToolkit.WinUI.Helpers" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives"/>
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls"/>
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.Sizers"/>
+    <PackageReference Include="CommunityToolkit.WinUI.Converters"/>
+    <PackageReference Include="CommunityToolkit.WinUI.Helpers"/>
     <PackageReference Include="Microsoft.Windows.CsWin32">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -135,24 +137,24 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Assets\Icons\AppxIcons\" />
+    <Folder Include="Assets\Icons\AppxIcons\"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Emerald.CoreX\Emerald.CoreX.csproj" />
+    <ProjectReference Include="..\Emerald.CoreX\Emerald.CoreX.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Assets\Web\SkinViewer\index.html"
-                      LogicalName="Emerald.SkinViewer.index.html" />
+                      LogicalName="Emerald.SkinViewer.index.html"/>
     <EmbeddedResource Include="Assets\Web\SkinViewer\skinview3d.bundle.js"
-                      LogicalName="Emerald.SkinViewer.skinview3d.bundle.js" />
-    <Content Remove="Assets\Web\SkinViewer\15th_Anniversary_Cape.png" />
+                      LogicalName="Emerald.SkinViewer.skinview3d.bundle.js"/>
+    <Content Remove="Assets\Web\SkinViewer\15th_Anniversary_Cape.png"/>
     <EmbeddedResource Include="Assets\Web\SkinViewer\15th_Anniversary_Cape.png"
-                      LogicalName="Emerald.SkinViewer.15th_Anniversary_Cape.png" />
-    <Content Remove="Assets\Web\SkinViewer\skin_Steve_Default.png" />
+                      LogicalName="Emerald.SkinViewer.15th_Anniversary_Cape.png"/>
+    <Content Remove="Assets\Web\SkinViewer\skin_Steve_Default.png"/>
     <EmbeddedResource Include="Assets\Web\SkinViewer\skin_Steve_Default.png"
-                      LogicalName="Emerald.SkinViewer.skin_Steve_Default.png" />
+                      LogicalName="Emerald.SkinViewer.skin_Steve_Default.png"/>
   </ItemGroup>
 
 </Project>

@@ -40,9 +40,9 @@ public static class Extensions
         try
         {
             _logger.LogDebug("Getting device memory");
-        SystemMemoryUsageReport? systemMemoryUsageReport = SystemDiagnosticInfo.GetForCurrentSystem()?.MemoryUsage?.GetReport();
-            long memkb = Convert.ToInt64(systemMemoryUsageReport?.TotalPhysicalSizeInBytes);
-            
+            var systemMemoryUsageReport = SystemDiagnosticInfo.GetForCurrentSystem()?.MemoryUsage?.GetReport();
+            var memkb = Convert.ToInt64(systemMemoryUsageReport?.TotalPhysicalSizeInBytes);
+
             _logger.LogDebug("Memory: {memkb}", memkb);
             return Convert.ToInt32(memkb / Math.Pow(1024, 3));
         }
@@ -56,21 +56,31 @@ public static class Extensions
     public static string KiloFormat(this int num)
     {
         if (num >= 100000000)
+        {
             return (num / 1000000).ToString("#,0M");
+        }
 
         if (num >= 10000000)
+        {
             return (num / 1000000).ToString("0.#") + "M";
+        }
 
         if (num >= 100000)
+        {
             return (num / 1000).ToString("#,0K");
+        }
 
         if (num >= 1000)
+        {
             return (num / 100).ToString("0.#") + "K";
+        }
 
         return num.ToString("#,0");
     }
 
-    public static ContentDialog ToContentDialog(this UIElement content, string title, string closebtnText = null, ContentDialogButton defaultButton = ContentDialogButton.Close, bool addScrollBar = true, string PrimaryButtonText = null)
+    public static ContentDialog ToContentDialog(this UIElement content, string title, string closebtnText = null,
+        ContentDialogButton defaultButton = ContentDialogButton.Close, bool addScrollBar = true,
+        string PrimaryButtonText = null)
     {
         ContentDialog dialog = new()
         {
@@ -80,13 +90,16 @@ public static class Extensions
             CloseButtonText = closebtnText,
             PrimaryButtonText = PrimaryButtonText,
             DefaultButton = defaultButton,
-            Content = addScrollBar ? new ScrollViewer()
-            { 
-                Content = content, 
-                Padding = new(12) 
-            } : content,
+            Content = addScrollBar
+                ? new ScrollViewer
+                {
+                    Content = content,
+                    Padding = new Thickness(12)
+                }
+                : content,
 
-            RequestedTheme = (ElementTheme)Ioc.Default.GetService< Services.SettingsService>().Settings.App.Appearance.Theme
+            RequestedTheme =
+                (ElementTheme)Ioc.Default.GetService<Services.SettingsService>().Settings.App.Appearance.Theme
         };
         App.Current.Log().LogInformation("Created ContentDialog with title: {title}", title);
         return dialog;
@@ -100,6 +113,7 @@ public static class Extensions
         {
             coll.Remove(itemToRemove);
         }
+
         return itemsToRemove.Count;
     }
 
@@ -114,35 +128,39 @@ public static class Extensions
 
         return itemsToRemove.Count;
     }
+
     public static void AddRange<T>(this ObservableCollection<T> cll, IEnumerable<T> items)
     {
         foreach (var item in items)
+        {
             cll.Add(item);
+        }
     }
 
     public static string ToBinaryString(this string str)
     {
         var binary = "";
-        foreach (char ch in str)
+        foreach (var ch in str)
         {
             binary += Convert.ToString((int)ch, 2);
         }
+
         return binary;
     }
 
     public static string ToMD5(this string s)
     {
         StringBuilder sb = new();
-        byte[] hashValue = MD5.HashData(Encoding.UTF8.GetBytes(s));
+        var hashValue = MD5.HashData(Encoding.UTF8.GetBytes(s));
 
-        foreach (byte b in hashValue)
+        foreach (var b in hashValue)
         {
             sb.Append($"{b:X2}");
         }
 
         return sb.ToString();
     }
-    
+
     /// <summary>
     /// Stretches the dialog's BackgroundElement to fill the host window.
     /// Call before ShowAsync().
@@ -150,7 +168,7 @@ public static class Extensions
     public static void StretchToWindow(this ContentDialog dialog)
     {
         dialog.HorizontalAlignment = HorizontalAlignment.Stretch;
-        dialog.VerticalAlignment   = VerticalAlignment.Stretch;
+        dialog.VerticalAlignment = VerticalAlignment.Stretch;
 
         dialog.Loaded += OnLoaded;
     }
@@ -164,7 +182,7 @@ public static class Extensions
         if (bg != null)
         {
             bg.HorizontalAlignment = HorizontalAlignment.Stretch;
-            bg.MaxWidth            = double.PositiveInfinity;
+            bg.MaxWidth = double.PositiveInfinity;
             // Optional — remove corner radius for a truly flat full-screen feel
             // if (bg is Border b) b.CornerRadius = new CornerRadius(0);
         }
@@ -172,21 +190,29 @@ public static class Extensions
         // DialogSpace grid inside BackgroundElement
         var space = FindDescendantByName(dialog, "DialogSpace") as FrameworkElement;
         if (space != null)
+        {
             space.HorizontalAlignment = HorizontalAlignment.Stretch;
+        }
     }
 
     private static DependencyObject? FindDescendantByName(DependencyObject parent, string name)
     {
-        int count = VisualTreeHelper.GetChildrenCount(parent);
-        for (int i = 0; i < count; i++)
+        var count = VisualTreeHelper.GetChildrenCount(parent);
+        for (var i = 0; i < count; i++)
         {
             var child = VisualTreeHelper.GetChild(parent, i);
             if (child is FrameworkElement fe && fe.Name == name)
+            {
                 return child;
+            }
 
             var result = FindDescendantByName(child, name);
-            if (result != null) return result;
+            if (result != null)
+            {
+                return result;
+            }
         }
+
         return null;
     }
 

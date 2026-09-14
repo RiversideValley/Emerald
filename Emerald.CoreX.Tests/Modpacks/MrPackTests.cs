@@ -219,7 +219,8 @@ public sealed class MrPackTests
         Assert.Equal("override", await File.ReadAllTextAsync(Path.Combine(instancePath, "config", "app.cfg")));
         Assert.True(File.Exists(Path.Combine(temp.Path, "mods", $"{CreateHashes(modBytes)["sha1"]}.jar")));
         Assert.True(File.Exists(Path.Combine(temp.Path, "shaderpacks", $"{CreateHashes(shaderBytes)["sha1"]}.zip")));
-        Assert.Equal(2, minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems)?.Length ?? 0);
+        Assert.Equal(2,
+            minecraftBaseSettings.Peek<StoreInstallRecord[]>(temp.Path, SettingsKeys.StoreInstalledItems)?.Length ?? 0);
     }
 
     [Fact]
@@ -353,7 +354,8 @@ public sealed class MrPackTests
 
         Assert.Empty(service.Core.Games);
         Assert.False(Directory.Exists(Path.Combine(temp.Path, LauncherCore.GamesFolderName, "broken-pack")));
-        Assert.False(Directory.Exists(Path.Combine(temp.Path, LauncherCore.GamesFolderName, ".emerald-modpack-staging")));
+        Assert.False(
+            Directory.Exists(Path.Combine(temp.Path, LauncherCore.GamesFolderName, ".emerald-modpack-staging")));
         Assert.Null(settings.Peek<SavedGameCollection[]>(SettingsKeys.SavedGames));
     }
 
@@ -421,7 +423,8 @@ public sealed class MrPackTests
             fileInstaller ?? new FakeMrPackFileInstaller(),
             new FakeNotificationService(),
             NullLogger<ModpackInstanceCreationService>.Instance,
-            httpClient ?? new HttpClient(new TestHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.NotFound))));
+            httpClient ??
+            new HttpClient(new TestHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.NotFound))));
 
         return new TestCreationService(coreSettings.Core, service, coreSettings.MinecraftBaseSettings);
     }
@@ -455,7 +458,8 @@ public sealed class MrPackTests
         string mrPackPath,
         string instanceName,
         string folderName)
-        => new()
+    {
+        return new ModpackInstanceCreationRequest
         {
             InstanceName = instanceName,
             FolderName = folderName,
@@ -475,9 +479,11 @@ public sealed class MrPackTests
                 Hashes = CreateItemHashes([])
             })
         };
+    }
 
     private static ItemVersion CreateItemVersion(params ItemFile[] files)
-        => new()
+    {
+        return new ItemVersion
         {
             ID = "version",
             Name = "Version",
@@ -488,11 +494,13 @@ public sealed class MrPackTests
             Files = files,
             Dependencies = []
         };
+    }
 
     private static MrPackManifest CreateManifest(
         Dictionary<string, string>? dependencies = null,
         List<MrPackFile>? files = null)
-        => new()
+    {
+        return new MrPackManifest
         {
             FormatVersion = 1,
             Game = "minecraft",
@@ -507,6 +515,7 @@ public sealed class MrPackTests
                 ["minecraft"] = "1.21.4"
             }
         };
+    }
 
     private static MrPackFile CreateFile(
         string path,
@@ -514,7 +523,8 @@ public sealed class MrPackTests
         byte[] bytes,
         string client = "required",
         string? fallbackUrl = null)
-        => new()
+    {
+        return new MrPackFile
         {
             Path = path,
             Downloads = fallbackUrl == null ? [url] : [url, fallbackUrl],
@@ -528,11 +538,12 @@ public sealed class MrPackTests
                     : "unsupported"
             }
         };
+    }
 
     private static byte[] CreateMrPackBytes(MrPackManifest manifest, IDictionary<string, string>? entries = null)
     {
         using var stream = new MemoryStream();
-        using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+        using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, true))
         {
             var index = archive.CreateEntry("modrinth.index.json");
             using (var indexStream = index.Open())
@@ -560,24 +571,30 @@ public sealed class MrPackTests
     }
 
     private static Dictionary<string, string> CreateHashes(byte[] bytes)
-        => new(StringComparer.OrdinalIgnoreCase)
+    {
+        return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             ["sha1"] = Convert.ToHexString(SHA1.HashData(bytes)).ToLowerInvariant(),
             ["sha512"] = Convert.ToHexString(SHA512.HashData(bytes)).ToLowerInvariant()
         };
+    }
 
     private static Hashes CreateItemHashes(byte[] bytes)
-        => new()
+    {
+        return new Hashes
         {
             Sha1 = Convert.ToHexString(SHA1.HashData(bytes)).ToLowerInvariant(),
             Sha512 = Convert.ToHexString(SHA512.HashData(bytes)).ToLowerInvariant()
         };
+    }
 
     private static HttpResponseMessage Bytes(byte[] bytes)
-        => new(HttpStatusCode.OK)
+    {
+        return new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new ByteArrayContent(bytes)
         };
+    }
 
     private sealed record TestCoreSettings(
         LauncherCore Core,
@@ -589,10 +606,14 @@ public sealed class MrPackTests
         InMemoryMinecraftBaseSettingsService MinecraftBaseSettings)
     {
         public Task<ModpackProbeResult> ProbeAsync(ItemVersion version)
-            => Service.ProbeAsync(version);
+        {
+            return Service.ProbeAsync(version);
+        }
 
         public Task<Game> CreateAsync(ModpackInstanceCreationRequest request)
-            => Service.CreateAsync(request);
+        {
+            return Service.CreateAsync(request);
+        }
     }
 
     private sealed class FakeMrPackFileInstaller : IMrPackFileInstaller
@@ -621,21 +642,34 @@ public sealed class MrPackTests
 
     private sealed class FakeStoreFileLinkService : IStoreFileLinkService
     {
-        public StoreLinkCreationResult CreateLinkOrCopy(string sourcePath, string targetPath, StoreLinkMode preferredMode)
+        public StoreLinkCreationResult CreateLinkOrCopy(string sourcePath, string targetPath,
+            StoreLinkMode preferredMode)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
-            File.Copy(sourcePath, targetPath, overwrite: true);
+            File.Copy(sourcePath, targetPath, true);
             return new StoreLinkCreationResult { LinkKind = StoreLinkKind.Copy };
         }
 
-        public StoreLinkCreationResult ReplaceWithLinkOrCopy(string sourcePath, string targetPath, StoreLinkMode preferredMode)
-            => CreateLinkOrCopy(sourcePath, targetPath, preferredMode);
+        public StoreLinkCreationResult ReplaceWithLinkOrCopy(string sourcePath, string targetPath,
+            StoreLinkMode preferredMode)
+        {
+            return CreateLinkOrCopy(sourcePath, targetPath, preferredMode);
+        }
 
-        public bool AreOnSameRoot(string sourcePath, string targetPath) => true;
+        public bool AreOnSameRoot(string sourcePath, string targetPath)
+        {
+            return true;
+        }
 
-        public bool IsSymbolicLink(string path) => false;
+        public bool IsSymbolicLink(string path)
+        {
+            return false;
+        }
 
-        public string? GetSymbolicLinkTarget(string path) => null;
+        public string? GetSymbolicLinkTarget(string path)
+        {
+            return null;
+        }
     }
 
     private sealed class TestHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> responseFactory)
@@ -657,7 +691,9 @@ public sealed class MrPackTests
         public GameSettings Settings { get; } = new();
 
         public GameSettings CloneCurrent()
-            => Settings.Clone();
+        {
+            return Settings.Clone();
+        }
 
         public void LoadForBasePath(string basePath)
         {
@@ -673,16 +709,24 @@ public sealed class MrPackTests
         public ObservableCollection<GameSession> Sessions { get; } = [];
 
         public GameSession? FindLatestSession(string gamePath)
-            => null;
+        {
+            return null;
+        }
 
         public Task<GameSession?> LaunchAsync(Game game, EAccount? account = null)
-            => Task.FromResult<GameSession?>(null);
+        {
+            return Task.FromResult<GameSession?>(null);
+        }
 
         public Task StopAsync(Game game, GameStopMode mode)
-            => Task.CompletedTask;
+        {
+            return Task.CompletedTask;
+        }
 
         public GameSession? TryGetActiveSession(Game game)
-            => null;
+        {
+            return null;
+        }
     }
 
     private sealed class TemporaryDirectory : IDisposable
@@ -701,7 +745,7 @@ public sealed class MrPackTests
             {
                 if (Directory.Exists(Path))
                 {
-                    Directory.Delete(Path, recursive: true);
+                    Directory.Delete(Path, true);
                 }
             }
             catch

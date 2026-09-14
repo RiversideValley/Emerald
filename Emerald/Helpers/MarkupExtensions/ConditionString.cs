@@ -15,7 +15,12 @@ public class ConditionString : MarkupExtension
         => Condition ? TrueString : FalseString;
 
     public override string ToString()
-        => Result;
+    {
+        return Result;
+    }
 
-    protected override object ProvideValue() => Result;
+    protected override object ProvideValue()
+    {
+        return Result;
+    }
 }

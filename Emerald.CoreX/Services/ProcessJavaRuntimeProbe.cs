@@ -8,7 +8,8 @@ public sealed class ProcessJavaRuntimeProbe(ILogger<ProcessJavaRuntimeProbe> log
 {
     private static readonly TimeSpan ProbeTimeout = TimeSpan.FromSeconds(5);
 
-    public async Task<JavaRuntimeProbeResult> ProbeAsync(string executablePath, CancellationToken cancellationToken = default)
+    public async Task<JavaRuntimeProbeResult> ProbeAsync(string executablePath,
+        CancellationToken cancellationToken = default)
     {
         var versionResult = await TryProbeAsync(executablePath, "--version", cancellationToken);
         if (versionResult.IsSuccess)
@@ -25,11 +26,13 @@ public sealed class ProcessJavaRuntimeProbe(ILogger<ProcessJavaRuntimeProbe> log
         return new JavaRuntimeProbeResult
         {
             IsSuccess = false,
-            ErrorMessage = fallbackResult.ErrorMessage ?? versionResult.ErrorMessage ?? "Failed to execute Java version check."
+            ErrorMessage = fallbackResult.ErrorMessage ??
+                           versionResult.ErrorMessage ?? "Failed to execute Java version check."
         };
     }
 
-    private async Task<JavaRuntimeProbeResult> TryProbeAsync(string executablePath, string argument, CancellationToken cancellationToken)
+    private async Task<JavaRuntimeProbeResult> TryProbeAsync(string executablePath, string argument,
+        CancellationToken cancellationToken)
     {
         using var process = new Process
         {
@@ -98,7 +101,8 @@ public sealed class ProcessJavaRuntimeProbe(ILogger<ProcessJavaRuntimeProbe> log
         }
         catch (Exception ex)
         {
-            logger.LogDebug(ex, "Failed to probe Java executable at {ExecutablePath} with argument {Argument}.", executablePath, argument);
+            logger.LogDebug(ex, "Failed to probe Java executable at {ExecutablePath} with argument {Argument}.",
+                executablePath, argument);
             return new JavaRuntimeProbeResult
             {
                 IsSuccess = false,
@@ -113,7 +117,7 @@ public sealed class ProcessJavaRuntimeProbe(ILogger<ProcessJavaRuntimeProbe> log
         {
             if (!process.HasExited)
             {
-                process.Kill(entireProcessTree: true);
+                process.Kill(true);
             }
         }
         catch

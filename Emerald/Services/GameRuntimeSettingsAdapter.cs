@@ -16,8 +16,9 @@ public sealed class GameRuntimeSettingsAdapter(SettingsService settingsService) 
         {
             try
             {
-                return Ioc.Default.GetService<ILoggerFactory>()?.CreateLogger(typeof(GameRuntimeSettingsAdapter).FullName!)
-                    ?? NullLogger.Instance;
+                return Ioc.Default.GetService<ILoggerFactory>()
+                           ?.CreateLogger(typeof(GameRuntimeSettingsAdapter).FullName!)
+                       ?? NullLogger.Instance;
             }
             catch (InvalidOperationException)
             {
@@ -34,9 +35,9 @@ public sealed class GameRuntimeSettingsAdapter(SettingsService settingsService) 
         get
         {
             var isEnabled = settingsService.Settings != null
-                && settingsService.Settings.Minecraft != null
-                && settingsService.Settings.Minecraft.JVM != null
-                && settingsService.Settings.Minecraft.JVM.GameLogs;
+                            && settingsService.Settings.Minecraft != null
+                            && settingsService.Settings.Minecraft.JVM != null
+                            && settingsService.Settings.Minecraft.JVM.GameLogs;
 
             Logger.LogDebug(
                 "Evaluated runtime log capture setting. IsEnabled: {IsEnabled}. HasSettings: {HasSettings}.",

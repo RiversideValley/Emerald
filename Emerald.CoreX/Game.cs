@@ -30,15 +30,14 @@ public partial class Game : ObservableObject
 
     public Versions.Version Version { get; set; } = new();
     public MinecraftPath Path { get; private set; }
+    public Guid InstanceId { get; }
 
     public string? SharedMinecraftBasePath => _sharedMinecraftBasePath;
     public bool IsLauncherOfflineMode => _launcherOfflineMode;
 
-    [ObservableProperty]
-    private bool _usesCustomGameSettings;
+    [ObservableProperty] private bool _usesCustomGameSettings;
 
-    [ObservableProperty]
-    private Models.GameSettings? _customGameSettings;
+    [ObservableProperty] private Models.GameSettings? _customGameSettings;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanLaunch))]
@@ -91,11 +90,9 @@ public partial class Game : ObservableObject
     [NotifyPropertyChangedFor(nameof(IntegrityIssueCount))]
     private IReadOnlyList<IntegrityIssue> _integrityIssues = [];
 
-    [ObservableProperty]
-    private IReadOnlyList<IntegrityIssue> _visibleIntegrityIssues = [];
+    [ObservableProperty] private IReadOnlyList<IntegrityIssue> _visibleIntegrityIssues = [];
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasRemainingIntegrityIssues))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasRemainingIntegrityIssues))]
     private int _remainingIntegrityIssueCount;
 
     public bool HasIntegrityIssues => IntegrityIssues.Count > 0;
@@ -109,8 +106,8 @@ public partial class Game : ObservableObject
     public bool CanStop => HasActiveSession;
 
     public bool CanModify => !HasActiveSession
-        && InstallationState is not InstanceInstallationState.Installing
-        and not InstanceInstallationState.Verifying;
+                             && InstallationState is not InstanceInstallationState.Installing
+                                 and not InstanceInstallationState.Verifying;
 
     public string InstallationStatusText => InstallationState switch
     {
@@ -145,10 +142,12 @@ public partial class Game : ObservableObject
         GameRunState.Launching => "Launching",
         GameRunState.Running => "Running",
         GameRunState.Stopping => "Stopping",
-        GameRunState.Failed => LastExitCode is int failedCode ? $"Last run failed • exit {failedCode}" : "Last run failed",
+        GameRunState.Failed => LastExitCode is int failedCode
+            ? $"Last run failed • exit {failedCode}"
+            : "Last run failed",
         GameRunState.Exited => LastRunEndedAt is DateTimeOffset endedAt
-                ? $"Last run ended • {endedAt.ToLocalTime():g}"
-                : "Last run ended",
+            ? $"Last run ended • {endedAt.ToLocalTime():g}"
+            : "Last run ended",
         _ => "Ready"
     };
 
@@ -157,41 +156,50 @@ public partial class Game : ObservableObject
         get
         {
             var stat = "";
-            
-            if(RunState != GameRunState.Idle)
+
+            if (RunState != GameRunState.Idle)
+            {
                 stat += RuntimeStatusText;
-            
-            if(InstallationState != InstanceInstallationState.Ready)
+            }
+
+            if (InstallationState != InstanceInstallationState.Ready)
             {
                 if (!string.IsNullOrEmpty(stat))
+                {
                     stat += "\n";
-                
+                }
+
                 stat += $"Installation {InstallationStatusText}";
             }
 
             if (string.IsNullOrEmpty(stat))
+            {
                 stat = "Ready";
-            
+            }
+
             return stat;
         }
     }
-    
+
     public Game(
         MinecraftPath path,
         Versions.Version version,
         bool usesCustomGameSettings = false,
         Models.GameSettings? customGameSettings = null,
         string? sharedMinecraftBasePath = null,
-        IGlobalGameSettingsService? globalGameSettingsService = null)
+        IGlobalGameSettingsService? globalGameSettingsService = null,
+        Guid? instanceId = null)
     {
         _notify = Ioc.Default.GetService<Notifications.INotificationService>()
-            ?? throw new InvalidOperationException("Notification service is required before creating games.");
+                  ?? throw new InvalidOperationException("Notification service is required before creating games.");
         _logger = this.Log();
         _globalGameSettingsService = globalGameSettingsService
-            ?? Ioc.Default.GetService<IGlobalGameSettingsService>()
-            ?? throw new InvalidOperationException("Global game settings service is required before creating games.");
+                                     ?? Ioc.Default.GetService<IGlobalGameSettingsService>()
+                                     ?? throw new InvalidOperationException(
+                                         "Global game settings service is required before creating games.");
         _instanceBasePath = path.BasePath;
         _sharedMinecraftBasePath = sharedMinecraftBasePath;
+        InstanceId = instanceId is { } id && id != Guid.Empty ? id : Guid.NewGuid();
 
         Launcher = new MinecraftLauncher();
         Version = version;
@@ -204,13 +212,17 @@ public partial class Game : ObservableObject
 
         _globalGameSettingsService.Settings.PropertyChanged += GlobalSettings_PropertyChanged;
 
-        _logger.LogInformation("Game instance created with path: {Path}. UsesCustomGameSettings: {UsesCustomGameSettings}", path, usesCustomGameSettings);
+        _logger.LogInformation(
+            "Game instance created with path: {Path}. UsesCustomGameSettings: {UsesCustomGameSettings}", path,
+            usesCustomGameSettings);
     }
 
     public Models.GameSettings GetEditableSettings()
-        => UsesCustomGameSettings
+    {
+        return UsesCustomGameSettings
             ? CustomGameSettings ??= _globalGameSettingsService.CloneCurrent()
             : _globalGameSettingsService.Settings;
+    }
 
     public void ResetCustomGameSettings()
     {
@@ -230,7 +242,10 @@ public partial class Game : ObservableObject
         _logger.LogDebug("Creating Minecraft launcher. OfflineMode: {IsOffline}.", isOffline);
         var param = MinecraftLauncherParameters.CreateDefault(Path);
         var sharedHttpClient = Ioc.Default.GetService<HttpClient>();
-        if (sharedHttpClient != null) param.HttpClient = sharedHttpClient;
+        if (sharedHttpClient != null)
+        {
+            param.HttpClient = sharedHttpClient;
+        }
 
         if (isOffline)
         {
@@ -239,15 +254,20 @@ public partial class Game : ObservableObject
         }
         else
         {
-            var verifiedInstaller = Ioc.Default.GetService<Installation.VerifiedGameInstaller>();
-            if (verifiedInstaller != null) param.GameInstaller = verifiedInstaller;
+            var verifiedInstaller = Ioc.Default.GetService<VerifiedGameInstaller>();
+            if (verifiedInstaller != null)
+            {
+                param.GameInstaller = verifiedInstaller;
+            }
+
             _logger.LogInformation("Online mode enabled. Using the default version loader.");
         }
 
         Launcher = new MinecraftLauncher(param);
     }
 
-    public async Task InstallVersion(bool isOffline = false, bool showFileProgress = false, CancellationToken cancellationToken = default)
+    public async Task InstallVersion(bool isOffline = false, bool showFileProgress = false,
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -261,36 +281,42 @@ public partial class Game : ObservableObject
     public async Task InstallVersionOrThrow(
         bool isOffline = false,
         bool showFileProgress = false,
-        IProgress<CmlLib.Core.Installers.InstallerProgressChangedEventArgs>? fileProgress = null,
-        IProgress<CmlLib.Core.ByteProgress>? byteProgress = null,
+        IProgress<InstallerProgressChangedEventArgs>? fileProgress = null,
+        IProgress<ByteProgress>? byteProgress = null,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Starting InstallVersion with isOffline: {IsOffline}, showFileProgress: {ShowFileProgress}", isOffline, showFileProgress);
+        _logger.LogInformation(
+            "Starting InstallVersion with isOffline: {IsOffline}, showFileProgress: {ShowFileProgress}", isOffline,
+            showFileProgress);
         CreateMCLauncher(isOffline);
 
         var modLoaderRouter = Ioc.Default.GetService<Installers.ModLoaderRouter>()
-            ?? throw new InvalidOperationException("Mod loader router service is not available.");
+                              ?? throw new InvalidOperationException("Mod loader router service is not available.");
         var resolution = await modLoaderRouter.ResolveAsync(
             Path,
             Version,
             isOffline ? Installers.ModLoaderResolutionMode.LocalOnly : Installers.ModLoaderResolutionMode.Online,
             Version.RealVersion,
             cancellationToken);
-        string? ver = resolution.ResolvedVersion;
+        var ver = resolution.ResolvedVersion;
         _logger.LogInformation("Version initialization completed. Version: {Version}", ver);
 
         if (ver == null)
         {
-            _logger.LogWarning("Version {VersionType} {ModVersion} {BasedOn} not found.", Version.Type, Version.ModVersion, Version.BasedOn);
-            throw new InvalidOperationException(resolution.Message ?? $"Version {Version.Type} {Version.ModVersion} {Version.BasedOn} not found.");
+            _logger.LogWarning("Version {VersionType} {ModVersion} {BasedOn} not found.", Version.Type,
+                Version.ModVersion, Version.BasedOn);
+            throw new InvalidOperationException(resolution.Message ??
+                                                $"Version {Version.Type} {Version.ModVersion} {Version.BasedOn} not found.");
         }
+
         if (isOffline)
         {
             _logger.LogDebug("Validating version {Version} against the local offline manifest cache.", ver);
             if (!await IsVersionAvailableLocallyAsync(ver))
             {
                 _logger.LogWarning("Version {Version} not found in offline mode. Can't proceed installation.", ver);
-                throw new InvalidOperationException($"Version {ver} not found in offline mode. Can't proceed installation.");
+                throw new InvalidOperationException(
+                    $"Version {ver} not found in offline mode. Can't proceed installation.");
             }
         }
 
@@ -301,7 +327,8 @@ public partial class Game : ObservableObject
             byteProgress,
             cancellationToken);
 
-        _logger.LogInformation("Version {VersionType} {VersionDisplayName} installation completed successfully.", Version.Type, Version.DisplayName);
+        _logger.LogInformation("Version {VersionType} {VersionDisplayName} installation completed successfully.",
+            Version.Type, Version.DisplayName);
     }
 
     private async Task<bool> IsVersionAvailableLocallyAsync(string version)
@@ -313,12 +340,14 @@ public partial class Game : ObservableObject
     public async Task<Process> BuildProcess(
         string version,
         CmlLib.Core.Auth.MSession session,
-        AccountRuntimeAuthOptions? runtimeAuthOptions = null)
+        AccountRuntimeAuthOptions? runtimeAuthOptions = null,
+        MinecraftLaunchTarget? target = null)
     {
         _logger.LogInformation("Building process for version: {Version}", version);
         CreateMCLauncher(true);
         var launchOpt = EffectiveSettings.ToMLaunchOption();
         launchOpt.Session = session;
+        ApplyLaunchTarget(launchOpt, target ?? MinecraftLaunchTarget.Configured);
 
         if (runtimeAuthOptions?.ExtraJvmArguments.Count > 0)
         {
@@ -330,12 +359,14 @@ public partial class Game : ObservableObject
         if (EffectiveSettings.UseCustomJava)
         {
             var javaRuntimeCatalog = Ioc.Default.GetService<IJavaRuntimeCatalogService>()
-                ?? throw new InvalidOperationException("Java runtime catalog service is not available.");
+                                     ?? throw new InvalidOperationException(
+                                         "Java runtime catalog service is not available.");
 
             var validation = await javaRuntimeCatalog.ValidateAsync(EffectiveSettings.JavaPath);
             if (!validation.IsValid || string.IsNullOrWhiteSpace(validation.NormalizedPath))
             {
-                throw new InvalidOperationException(validation.ErrorMessage ?? "The selected Java runtime could not be used.");
+                throw new InvalidOperationException(validation.ErrorMessage ??
+                                                    "The selected Java runtime could not be used.");
             }
 
             launchOpt.JavaPath = validation.NormalizedPath;
@@ -347,8 +378,37 @@ public partial class Game : ObservableObject
                 validation.Version);
         }
 
-        _logger.LogDebug("Preparing launch options for {Version}. FullScreen: {FullScreen}. DockName: {DockName}.", version, EffectiveSettings.FullScreen, EffectiveSettings.DockName);
+        _logger.LogDebug("Preparing launch options for {Version}. FullScreen: {FullScreen}. DockName: {DockName}.",
+            version, EffectiveSettings.FullScreen, EffectiveSettings.DockName);
         return await Launcher.BuildProcessAsync(version, launchOpt);
+    }
+
+    internal static void ApplyLaunchTarget(MLaunchOption option, MinecraftLaunchTarget target)
+    {
+        if (target.Kind == MinecraftLaunchTargetKind.Configured)
+        {
+            return;
+        }
+
+        option.ServerIp = null;
+        option.ServerPort = 25565;
+        option.QuickPlaySingleplayer = null;
+        option.QuickPlayRealms = null;
+
+        switch (target.Kind)
+        {
+            case MinecraftLaunchTargetKind.MainMenu:
+                break;
+            case MinecraftLaunchTargetKind.Server:
+                ArgumentException.ThrowIfNullOrWhiteSpace(target.ServerHost);
+                option.ServerIp = target.ServerHost;
+                option.ServerPort = target.ServerPort ?? 25565;
+                break;
+            case MinecraftLaunchTargetKind.World:
+                ArgumentException.ThrowIfNullOrWhiteSpace(target.WorldFolderName);
+                option.QuickPlaySingleplayer = target.WorldFolderName;
+                break;
+        }
     }
 
     partial void OnUsesCustomGameSettingsChanged(bool value)

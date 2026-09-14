@@ -30,7 +30,7 @@ public static class WindowManager
             try
             {
                 return Ioc.Default.GetService<ILoggerFactory>()?.CreateLogger(typeof(WindowManager).FullName!)
-                    ?? NullLogger.Instance;
+                       ?? NullLogger.Instance;
             }
             catch (InvalidOperationException)
             {
@@ -42,7 +42,7 @@ public static class WindowManager
     /// <summary>
     /// This will set the Window Icon for the given <see cref="global::Microsoft.UI.Xaml.Window" /> using the provided UnoIcon.
     /// </summary>
-    public static void SetWindowIcon(this global::Microsoft.UI.Xaml.Window window, string iconpath = "icon.ico")
+    public static void SetWindowIcon(this Window window, string iconpath = "icon.ico")
     {
 #if WINDOWS && !HAS_UNO
             Logger.LogDebug("Setting window icon to {IconPath}.", iconpath);
@@ -52,7 +52,8 @@ public static class WindowManager
             global::Microsoft.UI.WindowId windowId = global::Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hWnd);
 
             // Lastly, retrieve the AppWindow for the current (XAML) WinUI 3 window.
-            global::Microsoft.UI.Windowing.AppWindow appWindow = global::Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+            global::Microsoft.UI.Windowing.AppWindow appWindow =
+ global::Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
             appWindow.SetIcon(iconpath);
 
             // Set the Window Title Only if it has the Default WinUI Desktop value and we are running Unpackaged
@@ -62,6 +63,7 @@ public static class WindowManager
             }
 #endif
     }
+
     /// <summary>
     /// Add mica and the icon to the <paramref name="window"/>
     /// </summary>
@@ -83,17 +85,19 @@ public static class WindowManager
     /// <exception cref="NullReferenceException"/>
     public static void SetTitleBar(Window window, UIElement AppTitleBar)
     {
-        if(OperatingSystem.IsLinux())
+        if (OperatingSystem.IsLinux())
+        {
             return;
-        
-            Logger.LogDebug("Applying custom title bar configuration.");
-            var titleBar = window.AppWindow.TitleBar;
-            titleBar.ExtendsContentIntoTitleBar = true;
-            titleBar.ButtonBackgroundColor = Colors.Transparent;
-            titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
+        }
 
-            // Native macOS titlebar customization (no-op on other platforms)
-            MacOSTitleBarHelper.ExtendViewIntoTitleBar(window);
+        Logger.LogDebug("Applying custom title bar configuration.");
+        var titleBar = window.AppWindow.TitleBar;
+        titleBar.ExtendsContentIntoTitleBar = true;
+        titleBar.ButtonBackgroundColor = Colors.Transparent;
+        titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
+
+        // Native macOS titlebar customization (no-op on other platforms)
+        MacOSTitleBarHelper.ExtendViewIntoTitleBar(window);
     }
 }
 
@@ -103,14 +107,16 @@ public static class WindowManager
 public class WindowsSystemDispatcherQueueHelper
 {
     private object? _dispatcherQueueController;
+
     private static ILogger Logger
     {
         get
         {
             try
             {
-                return Ioc.Default.GetService<ILoggerFactory>()?.CreateLogger(typeof(WindowsSystemDispatcherQueueHelper).FullName!)
-                    ?? NullLogger.Instance;
+                return Ioc.Default.GetService<ILoggerFactory>()
+                           ?.CreateLogger(typeof(WindowsSystemDispatcherQueueHelper).FullName!)
+                       ?? NullLogger.Instance;
             }
             catch (InvalidOperationException)
             {
@@ -128,7 +134,8 @@ public class WindowsSystemDispatcherQueueHelper
     }
 
     [DllImport("CoreMessaging.dll")]
-    private static extern int CreateDispatcherQueueController([In] DispatcherQueueOptions options, [In, Out, MarshalAs(UnmanagedType.IUnknown)] ref object? dispatcherQueueController);
+    private static extern int CreateDispatcherQueueController([In] DispatcherQueueOptions options,
+        [In] [Out] [MarshalAs(UnmanagedType.IUnknown)] ref object? dispatcherQueueController);
 
     public void EnsureWindowsSystemDispatcherQueueController()
     {

@@ -11,7 +11,9 @@ internal sealed class UnoSystemBrowserLauncher(DispatcherQueue dispatcherQueue) 
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (dispatcherQueue.HasThreadAccess)
+        {
             return Launcher.LaunchUriAsync(uri).AsTask(cancellationToken);
+        }
 
         var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         if (!dispatcherQueue.TryEnqueue(async () =>
@@ -26,7 +28,8 @@ internal sealed class UnoSystemBrowserLauncher(DispatcherQueue dispatcherQueue) 
                 }
             }))
         {
-            completion.SetException(new InvalidOperationException("Failed to dispatch browser launch to the UI thread."));
+            completion.SetException(
+                new InvalidOperationException("Failed to dispatch browser launch to the UI thread."));
         }
 
         return completion.Task.WaitAsync(cancellationToken);

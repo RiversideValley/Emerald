@@ -47,9 +47,11 @@ public sealed class StoreSharedContentSettingsService : IStoreSharedContentSetti
     }
 
     public StoreLinkMode GetPreferredLinkMode()
-        => OperatingSystem.IsWindows()
+    {
+        return OperatingSystem.IsWindows()
             ? Settings.WindowsLinkMode
             : Settings.UnixLinkMode;
+    }
 
     public void Save()
     {
@@ -69,17 +71,20 @@ public sealed class StoreSharedContentSettingsService : IStoreSharedContentSetti
     {
         if (_minecraftBaseSettingsService.Exists(SettingsKeys.StoreSharedContentSettings))
         {
-            return _minecraftBaseSettingsService.Get(SettingsKeys.StoreSharedContentSettings, new StoreSharedContentSettings());
+            return _minecraftBaseSettingsService.Get(SettingsKeys.StoreSharedContentSettings,
+                new StoreSharedContentSettings());
         }
 
         if (_baseSettingsService.Exists(SettingsKeys.StoreSharedContentSettings))
         {
-            var migrated = _baseSettingsService.Get(SettingsKeys.StoreSharedContentSettings, new StoreSharedContentSettings());
+            var migrated = _baseSettingsService.Get(SettingsKeys.StoreSharedContentSettings,
+                new StoreSharedContentSettings());
             _minecraftBaseSettingsService.Set(SettingsKeys.StoreSharedContentSettings, migrated);
             _baseSettingsService.Delete(SettingsKeys.StoreSharedContentSettings);
             return migrated;
         }
 
-        return _minecraftBaseSettingsService.Get(SettingsKeys.StoreSharedContentSettings, new StoreSharedContentSettings());
+        return _minecraftBaseSettingsService.Get(SettingsKeys.StoreSharedContentSettings,
+            new StoreSharedContentSettings());
     }
 }

@@ -49,7 +49,8 @@ public sealed class StoreInstallRecordRepository : IStoreInstallRecordRepository
             return;
         }
 
-        var centralRecords = _baseSettingsService.Get(SettingsKeys.StoreInstalledItems, Array.Empty<StoreInstallRecord>());
+        var centralRecords =
+            _baseSettingsService.Get(SettingsKeys.StoreInstalledItems, Array.Empty<StoreInstallRecord>());
         var migratedRecords = centralRecords
             .Where(record => IsPathInBase(record.GamePath, basePath))
             .ToArray();
@@ -76,9 +77,11 @@ public sealed class StoreInstallRecordRepository : IStoreInstallRecordRepository
     }
 
     public StoreInstallRecord[] GetAll()
-        => _minecraftBaseSettingsService.IsInitialized
+    {
+        return _minecraftBaseSettingsService.IsInitialized
             ? _minecraftBaseSettingsService.Get(SettingsKeys.StoreInstalledItems, Array.Empty<StoreInstallRecord>())
             : _baseSettingsService.Get(SettingsKeys.StoreInstalledItems, Array.Empty<StoreInstallRecord>());
+    }
 
     public void Save(IEnumerable<StoreInstallRecord> records)
     {
@@ -93,9 +96,11 @@ public sealed class StoreInstallRecordRepository : IStoreInstallRecordRepository
     }
 
     public IReadOnlyList<StoreInstallRecord> GetForGameAndType(string gamePath, StoreContentType contentType)
-        => GetAll()
+    {
+        return GetAll()
             .Where(record => IsForGameAndType(record, gamePath, contentType))
             .ToArray();
+    }
 
     public IReadOnlyList<StoreInstallRecord> FindByFilePath(
         StoreContentType contentType,
@@ -107,15 +112,20 @@ public sealed class StoreInstallRecordRepository : IStoreInstallRecordRepository
             .Where(record =>
                 record.ContentType == contentType
                 && (string.IsNullOrWhiteSpace(gamePath) || StorePath.EqualsPath(record.GamePath, gamePath))
-                && string.Equals(StorePath.Normalize(record.FilePath), normalizedFilePath, StringComparison.OrdinalIgnoreCase))
+                && string.Equals(StorePath.Normalize(record.FilePath), normalizedFilePath,
+                    StringComparison.OrdinalIgnoreCase))
             .ToArray();
     }
 
     public bool IsForGameAndType(StoreInstallRecord record, string gamePath, StoreContentType contentType)
-        => record.ContentType == contentType
-           && StorePath.EqualsPath(record.GamePath, gamePath);
+    {
+        return record.ContentType == contentType
+               && StorePath.EqualsPath(record.GamePath, gamePath);
+    }
 
     private static bool IsPathInBase(string path, string basePath)
-        => StorePath.EqualsPath(path, basePath)
-           || StorePath.IsInsideRoot(path, StorePath.Normalize(basePath));
+    {
+        return StorePath.EqualsPath(path, basePath)
+               || StorePath.IsInsideRoot(path, StorePath.Normalize(basePath));
+    }
 }

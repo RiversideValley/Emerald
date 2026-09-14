@@ -6,13 +6,15 @@ namespace Emerald.CoreX.Tests.Services;
 
 public sealed class JavaRuntimeCatalogServiceTests : IDisposable
 {
-    private readonly string _tempRoot = Path.Combine(Path.GetTempPath(), "emerald-java-tests", Guid.NewGuid().ToString("N"));
+    private readonly string _tempRoot =
+        Path.Combine(Path.GetTempPath(), "emerald-java-tests", Guid.NewGuid().ToString("N"));
 
     [Fact]
     public async Task ValidateAsync_NormalizesJavaHomeAndReturnsVersion()
     {
         var homePath = CreateFakeJavaHome("valid-home");
-        var service = CreateService((_, _) => new JavaRuntimeProbeResult { IsSuccess = true, Version = "openjdk 21.0.2" });
+        var service = CreateService((_, _) => new JavaRuntimeProbeResult
+            { IsSuccess = true, Version = "openjdk 21.0.2" });
 
         var result = await service.ValidateAsync(homePath);
 
@@ -70,7 +72,7 @@ public sealed class JavaRuntimeCatalogServiceTests : IDisposable
         {
             if (Directory.Exists(_tempRoot))
             {
-                Directory.Delete(_tempRoot, recursive: true);
+                Directory.Delete(_tempRoot, true);
             }
         }
         catch
@@ -79,7 +81,10 @@ public sealed class JavaRuntimeCatalogServiceTests : IDisposable
     }
 
     private JavaRuntimeCatalogService CreateService(Func<string, CancellationToken, JavaRuntimeProbeResult> handler)
-        => new(new FakeJavaRuntimeProbe(handler), NullLogger<JavaRuntimeCatalogService>.Instance);
+    {
+        return new JavaRuntimeCatalogService(new FakeJavaRuntimeProbe(handler),
+            NullLogger<JavaRuntimeCatalogService>.Instance);
+    }
 
     private string CreateFakeJavaHome(string name)
     {
@@ -124,14 +129,20 @@ public sealed class JavaRuntimeCatalogServiceTests : IDisposable
     }
 
     private static bool PathsEqual(string? left, string? right)
-        => string.Equals(
+    {
+        return string.Equals(
             left,
             right,
             OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+    }
 
-    private sealed class FakeJavaRuntimeProbe(Func<string, CancellationToken, JavaRuntimeProbeResult> handler) : IJavaRuntimeProbe
+    private sealed class FakeJavaRuntimeProbe(Func<string, CancellationToken, JavaRuntimeProbeResult> handler)
+        : IJavaRuntimeProbe
     {
-        public Task<JavaRuntimeProbeResult> ProbeAsync(string executablePath, CancellationToken cancellationToken = default)
-            => Task.FromResult(handler(executablePath, cancellationToken));
+        public Task<JavaRuntimeProbeResult> ProbeAsync(string executablePath,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(handler(executablePath, cancellationToken));
+        }
     }
 }

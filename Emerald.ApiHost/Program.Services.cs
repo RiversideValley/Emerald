@@ -60,7 +60,9 @@ public partial class Program
                 provider.GetRequiredService<ILogger<LoopbackBrowserOAuthBroker>>(),
                 provider.GetRequiredService<ISystemBrowserLauncher>()));
 
-        services.AddSingleton<Emerald.CoreX.Services.Auth.Authlib.IAuthlibInjectorSettings, HeadlessAuthlibInjectorSettings>();
+        services
+            .AddSingleton<Emerald.CoreX.Services.Auth.Authlib.IAuthlibInjectorSettings,
+                HeadlessAuthlibInjectorSettings>();
         services.AddSingleton(new Emerald.CoreX.Services.Auth.Authlib.AuthlibInjectorOptions(
             GetBuildMetadata("Emerald.AuthlibInjectorRecommendedVersion")));
         services.AddSingleton<Emerald.CoreX.Services.Auth.Authlib.IAuthlibInjectorService>(provider =>
@@ -93,7 +95,7 @@ public partial class Program
                 dispatcher,
                 provider.GetServices<IAccountProvider>(),
                 accountsFile,
-                notificationService: provider.GetRequiredService<INotificationService>());
+                provider.GetRequiredService<INotificationService>());
         });
 
         services.AddSingleton<IGameRuntimeService, GameRuntimeService>();
@@ -121,17 +123,21 @@ public partial class Program
         services.AddSingleton<IStoreSharedContentSettingsService, StoreSharedContentSettingsService>();
         services.AddSingleton<IStoreSharedContentService, StoreSharedContentService>();
         services.AddTransient<IGameStoreContentService, GameStoreContentService>();
-        services.AddTransient<Emerald.CoreX.Modpacks.IMrPackReader, Emerald.CoreX.Modpacks.MrPackReader>();
-        services.AddTransient<Emerald.CoreX.Modpacks.IMrPackFileInstaller, Emerald.CoreX.Modpacks.MrPackFileInstaller>();
-        services.AddTransient<Emerald.CoreX.Modpacks.IModpackInstanceCreationService, Emerald.CoreX.Modpacks.ModpackInstanceCreationService>();
+        services.AddTransient<CoreX.Modpacks.IMrPackReader, CoreX.Modpacks.MrPackReader>();
+        services.AddTransient<CoreX.Modpacks.IMrPackFileInstaller, CoreX.Modpacks.MrPackFileInstaller>();
+        services
+            .AddTransient<CoreX.Modpacks.IModpackInstanceCreationService,
+                CoreX.Modpacks.ModpackInstanceCreationService>();
 
         services.AddSingleton<Core>();
         services.AddSingleton<EventHub>();
     }
 
     private static string GetBuildMetadata(string key)
-        => typeof(Program).Assembly
-            .GetCustomAttributes<AssemblyMetadataAttribute>()
-            .FirstOrDefault(attribute => attribute.Key == key)?.Value
-           ?? string.Empty;
+    {
+        return typeof(Program).Assembly
+                   .GetCustomAttributes<AssemblyMetadataAttribute>()
+                   .FirstOrDefault(attribute => attribute.Key == key)?.Value
+               ?? string.Empty;
+    }
 }

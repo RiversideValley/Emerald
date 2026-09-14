@@ -49,29 +49,21 @@ public partial class LogsPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(EmptyStateMessage))]
     private GameSession? _selectedSession;
 
-    [ObservableProperty]
-    private bool _autoScroll = true;
+    [ObservableProperty] private bool _autoScroll = true;
 
-    [ObservableProperty]
-    private bool _hasSessions;
+    [ObservableProperty] private bool _hasSessions;
 
-    [ObservableProperty]
-    private string _searchQuery = string.Empty;
+    [ObservableProperty] private string _searchQuery = string.Empty;
 
-    [ObservableProperty]
-    private string _selectedLevelFilter = "All";
+    [ObservableProperty] private string _selectedLevelFilter = "All";
 
-    [ObservableProperty]
-    private int _pageSize = 100;
+    [ObservableProperty] private int _pageSize = 100;
 
-    [ObservableProperty]
-    private int _currentPageNumber = 1;
+    [ObservableProperty] private int _currentPageNumber = 1;
 
-    [ObservableProperty]
-    private int _totalPages = 1;
+    [ObservableProperty] private int _totalPages = 1;
 
-    [ObservableProperty]
-    private int _filteredEntryCount;
+    [ObservableProperty] private int _filteredEntryCount;
 
     public bool HasSelectedSession => SelectedSession != null;
 
@@ -188,7 +180,8 @@ public partial class LogsPageViewModel : ObservableObject
 
         if (preferred != null)
         {
-            _logger.LogDebug("Selected preferred session {SessionName} for path {GamePath}.", preferred.DisplayName, gamePath);
+            _logger.LogDebug("Selected preferred session {SessionName} for path {GamePath}.", preferred.DisplayName,
+                gamePath);
             SelectedSession = preferred;
             return;
         }
@@ -209,16 +202,24 @@ public partial class LogsPageViewModel : ObservableObject
     /// Builds the clipboard text for the currently selected session.
     /// </summary>
     public string? GetSelectedSessionClipboardText()
-        => SelectedSession?.ToClipboardText();
+    {
+        return SelectedSession?.ToClipboardText();
+    }
 
     partial void OnSearchQueryChanged(string value)
-        => RefreshVisibleEntries(GameLogProjectionRefreshReason.FilterChanged);
+    {
+        RefreshVisibleEntries(GameLogProjectionRefreshReason.FilterChanged);
+    }
 
     partial void OnSelectedLevelFilterChanged(string value)
-        => RefreshVisibleEntries(GameLogProjectionRefreshReason.FilterChanged);
+    {
+        RefreshVisibleEntries(GameLogProjectionRefreshReason.FilterChanged);
+    }
 
     partial void OnPageSizeChanged(int value)
-        => RefreshVisibleEntries(GameLogProjectionRefreshReason.FilterChanged);
+    {
+        RefreshVisibleEntries(GameLogProjectionRefreshReason.FilterChanged);
+    }
 
     partial void OnAutoScrollChanged(bool value)
     {

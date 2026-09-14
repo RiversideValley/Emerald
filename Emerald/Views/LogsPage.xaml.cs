@@ -55,14 +55,16 @@ public sealed partial class LogsPage : Page
         }
     }
 
-    private void VisibleEntries_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    private void VisibleEntries_CollectionChanged(object? sender,
+        System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
         if (e.NewItems == null || e.NewItems.Count == 0 || !ViewModel.AutoScroll)
         {
             return;
         }
 
-        this.Log().LogDebug("Auto-scrolling logs page after {NewItemCount} new visible entry item(s).", e.NewItems.Count);
+        this.Log().LogDebug("Auto-scrolling logs page after {NewItemCount} new visible entry item(s).",
+            e.NewItems.Count);
         ScrollToLatestEntry();
     }
 
@@ -118,7 +120,8 @@ public sealed partial class LogsPage : Page
                 folderPath = ViewModel.SelectedSession.GamePath;
             }
 
-            this.Log().LogInformation("Opening log folder for {SessionName}. Path: {FolderPath}.", ViewModel.SelectedSession.DisplayName, folderPath);
+            this.Log().LogInformation("Opening log folder for {SessionName}. Path: {FolderPath}.",
+                ViewModel.SelectedSession.DisplayName, folderPath);
             await Launcher.LaunchFolderAsync(await StorageFolder.GetFolderFromPathAsync(folderPath));
         }
         catch (Exception ex)

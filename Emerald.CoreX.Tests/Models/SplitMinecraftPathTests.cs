@@ -19,10 +19,10 @@ public sealed class SplitMinecraftPathTests
         var path = new SplitMinecraftPath(
             globalBase,
             instanceBase,
-            shareAssets: true,
-            shareLibraries: false,
-            shareRuntime: true,
-            shareVersions: false);
+            true,
+            false,
+            true,
+            false);
 
         Assert.Equal(instanceBase, path.BasePath);
         Assert.Equal(Path.Combine(globalBase, "assets"), path.Assets);
@@ -81,7 +81,8 @@ public sealed class SplitMinecraftPathTests
         IGlobalGameSettingsService globalGameSettingsService,
         string instanceBase,
         string sharedBase)
-        => new(
+    {
+        return new Game(
             new MinecraftPath(instanceBase),
             new Versions.Version
             {
@@ -91,13 +92,16 @@ public sealed class SplitMinecraftPathTests
             },
             sharedMinecraftBasePath: sharedBase,
             globalGameSettingsService: globalGameSettingsService);
+    }
 
     private sealed class TestGlobalGameSettingsService(GameSettings settings) : IGlobalGameSettingsService
     {
         public GameSettings Settings { get; } = settings;
 
         public GameSettings CloneCurrent()
-            => Settings.Clone();
+        {
+            return Settings.Clone();
+        }
 
         public void LoadForBasePath(string basePath)
         {

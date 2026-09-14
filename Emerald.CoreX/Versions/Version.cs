@@ -17,6 +17,7 @@ public enum Type
     LiteLoader,
     OptiFine
 }
+
 public class Version
 {
     public Type Type { get; set; }
@@ -28,14 +29,16 @@ public class Version
     public string? ModVersion { get; set; }
 
     public string? RealVersion { get; set; }
-    public DateTime ReleaseTime { get;set; }
+    public DateTime ReleaseTime { get; set; }
 
     public string DisplayName { get; set; } //This Should be unique among all versions
 
     public override bool Equals(object? obj)
     {
         if (obj is not Version other)
+        {
             return false;
+        }
 
         return Type == other.Type &&
                BasedOn == other.BasedOn &&

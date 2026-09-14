@@ -13,11 +13,16 @@ public partial class Program
         IGameRuntimeService runtime)
     {
         var session = runtime.FindLatestSession(gamePath);
-        if (session == null) return Results.NotFound();
+        if (session == null)
+        {
+            return Results.NotFound();
+        }
 
         var entries = session.Entries.AsEnumerable();
         if (!string.IsNullOrEmpty(level) && level != "All")
+        {
             entries = entries.Where(e => e.LevelText.Equals(level, StringComparison.OrdinalIgnoreCase));
+        }
 
         var size = Math.Clamp(pageSize ?? 100, 1, 500);
         var p = Math.Max(page ?? 1, 1);

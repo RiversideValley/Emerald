@@ -2,6 +2,7 @@ using Uno.UI.Hosting;
 using Emerald.Services;
 
 namespace Emerald;
+
 public class Program
 {
     [STAThread]

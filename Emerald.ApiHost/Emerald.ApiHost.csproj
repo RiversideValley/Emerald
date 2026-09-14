@@ -16,12 +16,12 @@
       <_Parameter1>Emerald.AuthlibInjectorRecommendedVersion</_Parameter1>
       <_Parameter2>$(EmeraldAuthlibInjectorRecommendedVersion)</_Parameter2>
     </AssemblyAttribute>
-    <ProjectReference Include="..\Emerald.CoreX\Emerald.CoreX.csproj" />
+    <ProjectReference Include="..\Emerald.CoreX\Emerald.CoreX.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-    <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
+    <PackageReference Include="Swashbuckle.AspNetCore"/>
   </ItemGroup>
 
   <ItemGroup>

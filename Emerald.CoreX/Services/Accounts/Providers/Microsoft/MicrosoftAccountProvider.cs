@@ -3,7 +3,10 @@ using Emerald.CoreX.Models;
 namespace Emerald.CoreX.Services.Auth.Microsoft;
 
 /// <summary>Adapts CmlLib's Microsoft account store to Emerald's provider contract.</summary>
-internal sealed class MicrosoftAccountProvider(IMicrosoftAccountClient client, string clientId, HttpClient? skinHttpClient = null) : IAccountProvider
+internal sealed class MicrosoftAccountProvider(
+    IMicrosoftAccountClient client,
+    string clientId,
+    HttpClient? skinHttpClient = null) : IAccountProvider
 {
     public const string BrowserMethodId = "browser";
     private const string MissingConfigurationMessage = "Microsoft sign-in is not configured for this build.";
@@ -16,16 +19,21 @@ internal sealed class MicrosoftAccountProvider(IMicrosoftAccountClient client, s
                 BrowserMethodId,
                 "Using browser",
                 "Use your default browser to sign in with Microsoft",
-                IsDefault: true)],
-        IsConfigured: !string.IsNullOrWhiteSpace(clientId),
-        ConfigurationMessage: string.IsNullOrWhiteSpace(clientId) ? MissingConfigurationMessage : null);
+                IsDefault: true)
+        ],
+        !string.IsNullOrWhiteSpace(clientId),
+        string.IsNullOrWhiteSpace(clientId) ? MissingConfigurationMessage : null);
 
-    public Task InitializeAsync(AccountProviderInitializationContext context, CancellationToken cancellationToken = default)
-        => Descriptor.IsConfigured
+    public Task InitializeAsync(AccountProviderInitializationContext context,
+        CancellationToken cancellationToken = default)
+    {
+        return Descriptor.IsConfigured
             ? client.InitializeAsync(clientId, context.AccountStorePath)
             : Task.CompletedTask;
+    }
 
-    public Task<AccountProviderLoadResult> LoadAccountsAsync(IReadOnlyList<EAccount> persistedAccounts, CancellationToken cancellationToken = default)
+    public Task<AccountProviderLoadResult> LoadAccountsAsync(IReadOnlyList<EAccount> persistedAccounts,
+        CancellationToken cancellationToken = default)
     {
         if (!Descriptor.IsConfigured)
         {
@@ -67,12 +75,18 @@ internal sealed class MicrosoftAccountProvider(IMicrosoftAccountClient client, s
         IReadOnlyList<AccountProviderNotice> notices = removedNames.Count switch
         {
             0 => [],
-            1 => [new(
-                "Microsoft account signed out",
-                $"'{removedNames[0]}' is no longer signed in and was removed from Accounts.")],
-            _ => [new(
-                "Microsoft accounts signed out",
-                $"{removedNames.Count} Microsoft accounts are no longer signed in and were removed from Accounts.")]
+            1 =>
+            [
+                new AccountProviderNotice(
+                    "Microsoft account signed out",
+                    $"'{removedNames[0]}' is no longer signed in and was removed from Accounts.")
+            ],
+            _ =>
+            [
+                new AccountProviderNotice(
+                    "Microsoft accounts signed out",
+                    $"{removedNames.Count} Microsoft accounts are no longer signed in and were removed from Accounts.")
+            ]
         };
 
         return Task.FromResult(new AccountProviderLoadResult(accounts, notices));
@@ -83,7 +97,9 @@ internal sealed class MicrosoftAccountProvider(IMicrosoftAccountClient client, s
         EnsureConfigured();
 
         if (request.MethodId != BrowserMethodId)
+        {
             throw new ArgumentException($"Unsupported Microsoft sign-in method '{request.MethodId}'.", nameof(request));
+        }
 
         var before = client.GetAccounts().Select(account => account.Identifier).ToHashSet(StringComparer.Ordinal);
         var result = await client.SignInInteractivelyAsync(cancellationToken).ConfigureAwait(false);
@@ -95,9 +111,13 @@ internal sealed class MicrosoftAccountProvider(IMicrosoftAccountClient client, s
                 .Select(account => account.Identifier))
             .Concat(accounts.OrderByDescending(account => account.LastAccess).Select(account => account.Identifier))
             .FirstOrDefault(candidate => !string.IsNullOrWhiteSpace(candidate));
-        var account = accounts.FirstOrDefault(candidate => string.Equals(candidate.Identifier, identifier, StringComparison.Ordinal));
+        var account = accounts.FirstOrDefault(candidate =>
+            string.Equals(candidate.Identifier, identifier, StringComparison.Ordinal));
         if (account is null)
-            throw new InvalidOperationException("Microsoft sign-in completed, but Emerald could not materialize the signed-in account.");
+        {
+            throw new InvalidOperationException(
+                "Microsoft sign-in completed, but Emerald could not materialize the signed-in account.");
+        }
 
         return new EAccount(account.Name, AccountType.Microsoft, account.UUID, account.Identifier)
         {
@@ -126,10 +146,12 @@ internal sealed class MicrosoftAccountProvider(IMicrosoftAccountClient client, s
         }
     }
 
-    public async Task<GameAuthenticationResult> AuthenticateForLaunchAsync(EAccount account, CancellationToken cancellationToken = default)
+    public async Task<GameAuthenticationResult> AuthenticateForLaunchAsync(EAccount account,
+        CancellationToken cancellationToken = default)
     {
         EnsureConfigured();
-        return new(await client.AuthenticateAsync(account.UniqueId).WaitAsync(cancellationToken).ConfigureAwait(false));
+        return new GameAuthenticationResult(await client.AuthenticateAsync(account.UniqueId)
+            .WaitAsync(cancellationToken).ConfigureAwait(false));
     }
 
     public async Task<AccountSkinData?> GetSkinAsync(EAccount account, CancellationToken cancellationToken = default)
@@ -137,29 +159,41 @@ internal sealed class MicrosoftAccountProvider(IMicrosoftAccountClient client, s
         var skin = client.GetAccounts().FirstOrDefault(candidate =>
             string.Equals(candidate.Identifier, account.UniqueId, StringComparison.Ordinal));
         if (skin is null || !Uri.TryCreate(skin.SkinUrl, UriKind.Absolute, out var skinUri))
+        {
             return null;
+        }
 
         return await AccountSkinDownload.DownloadAsync(
-            skinHttpClient ?? new HttpClient(), skinUri, skin.SkinVariant, Descriptor.DisplayName, cancellationToken).ConfigureAwait(false);
+                skinHttpClient ?? new HttpClient(), skinUri, skin.SkinVariant, Descriptor.DisplayName,
+                cancellationToken)
+            .ConfigureAwait(false);
     }
 
     public Task RemoveAsync(EAccount account, CancellationToken cancellationToken = default)
-        => Descriptor.IsConfigured
+    {
+        return Descriptor.IsConfigured
             ? client.SignOutAsync(account.UniqueId)
             : Task.CompletedTask;
+    }
 
     public AccountProviderUsability GetAccountUsability(EAccount account)
-        => Descriptor.IsConfigured
+    {
+        return Descriptor.IsConfigured
             ? AccountProviderUsability.Available
             : new AccountProviderUsability(false, MissingConfigurationMessage);
+    }
 
     private static bool IsMicrosoftAccount(EAccount account)
-        => string.Equals(account.ProviderId, AccountProviderIds.Microsoft, StringComparison.Ordinal)
-           || (string.IsNullOrWhiteSpace(account.ProviderId) && account.Type == AccountType.Microsoft);
+    {
+        return string.Equals(account.ProviderId, AccountProviderIds.Microsoft, StringComparison.Ordinal)
+               || (string.IsNullOrWhiteSpace(account.ProviderId) && account.Type == AccountType.Microsoft);
+    }
 
     private void EnsureConfigured()
     {
         if (!Descriptor.IsConfigured)
+        {
             throw new InvalidOperationException(MissingConfigurationMessage);
+        }
     }
 }

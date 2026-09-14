@@ -484,6 +484,21 @@ jobs:
             -p:EmeraldElyByRedirectUri="$EMERALD_ELYBY_REDIRECT_URI" \
             -o "$OUTPUT_DIR"
 
+      - name: Compile and inject Liquid Glass app icon
+        shell: bash
+        run: |
+          OUTPUT_DIR="$GITHUB_WORKSPACE/artifacts/macos/Emerald-macOS-arm64"
+          APP_PATH="$(find "$OUTPUT_DIR" -maxdepth 2 -type d -name '*.app' | head -n 1)"
+
+          if [ -z "$APP_PATH" ]; then
+            echo "No .app bundle found in $OUTPUT_DIR"
+            exit 1
+          fi
+
+          bash ./scripts/macos/inject-liquid-glass-icon.sh \
+            ./Emerald/Assets/Icons/Emerald.icon \
+            "$APP_PATH"
+
       - name: Zip macOS .app (preserve app bundle metadata)
         shell: bash
         run: |

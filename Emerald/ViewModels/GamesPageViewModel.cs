@@ -49,23 +49,17 @@ public partial class GamesPageViewModel : ObservableObject
     private bool _isUpdatingAddGameDefaults;
     private bool _isInitializingModpacks;
 
-    [ObservableProperty]
-    private ObservableCollection<Game> _games;
+    [ObservableProperty] private ObservableCollection<Game> _games;
 
-    [ObservableProperty]
-    private Game? _selectedGame;
+    [ObservableProperty] private Game? _selectedGame;
 
-    [ObservableProperty]
-    private bool _isLoading;
+    [ObservableProperty] private bool _isLoading;
 
-    [ObservableProperty]
-    private string _gamesLoadingMessage = "Loading games...";
+    [ObservableProperty] private string _gamesLoadingMessage = "Loading instances...";
 
-    [ObservableProperty]
-    private string _searchQuery = string.Empty;
+    [ObservableProperty] private string _searchQuery = string.Empty;
 
-    [ObservableProperty]
-    private ObservableCollection<Game> _filteredGames;
+    [ObservableProperty] private ObservableCollection<Game> _filteredGames;
 
     // Add Game dialog state
     [ObservableProperty]
@@ -76,23 +70,17 @@ public partial class GamesPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanGoToNextAddGameStep))]
     private int _addGameWizardStep = 0;
 
-    [ObservableProperty]
-    private ObservableCollection<CoreX.Versions.Version> _availableVersions;
+    [ObservableProperty] private ObservableCollection<CoreX.Versions.Version> _availableVersions;
 
-    [ObservableProperty]
-    private ObservableCollection<CoreX.Versions.Version> _filteredAvailableVersions;
+    [ObservableProperty] private ObservableCollection<CoreX.Versions.Version> _filteredAvailableVersions;
 
-    [ObservableProperty]
-    private string _versionSearchQuery = string.Empty;
+    [ObservableProperty] private string _versionSearchQuery = string.Empty;
 
-    [ObservableProperty]
-    private ObservableCollection<string> _releaseTypes = new();
+    [ObservableProperty] private ObservableCollection<string> _releaseTypes = new();
 
-    [ObservableProperty]
-    private string _selectedReleaseTypeFilter = "All";
+    [ObservableProperty] private string _selectedReleaseTypeFilter = "All";
 
-    [ObservableProperty]
-    private ObservableCollection<LoaderInfo> _availableModLoaders;
+    [ObservableProperty] private ObservableCollection<LoaderInfo> _availableModLoaders;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanGoToNextAddGameStep))]
@@ -112,8 +100,7 @@ public partial class GamesPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanCreateGame))]
     private CoreX.Versions.Type _selectedModLoaderType = CoreX.Versions.Type.Vanilla;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanCreateGame))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanCreateGame))]
     private string _newGameName = string.Empty;
 
     [ObservableProperty]
@@ -122,8 +109,7 @@ public partial class GamesPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasCurrentGameFolderPathPreview))]
     private string _newGameFolderName = string.Empty;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsFolderNameReadOnly))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsFolderNameReadOnly))]
     private bool _isCustomFolderNameEnabled;
 
     [ObservableProperty]
@@ -131,8 +117,7 @@ public partial class GamesPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanCreateGame))]
     private string? _gameFolderValidationMessage;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasFolderConflictWarning))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasFolderConflictWarning))]
     private string? _gameFolderConflictWarningMessage;
 
     [ObservableProperty]
@@ -140,15 +125,12 @@ public partial class GamesPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasNoAvailableModLoaders))]
     private bool _isLoadingModLoaders;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanCreateGame))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanCreateGame))]
     private bool _isCreatingGame;
 
-    [ObservableProperty]
-    private ObservableCollection<AddGameModLoaderTypeOption> _modLoaderTypes;
+    [ObservableProperty] private ObservableCollection<AddGameModLoaderTypeOption> _modLoaderTypes;
 
-    [ObservableProperty]
-    private AddGameModLoaderTypeOption? _selectedModLoaderTypeOption;
+    [ObservableProperty] private AddGameModLoaderTypeOption? _selectedModLoaderTypeOption;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNormalAddGameMode))]
@@ -160,40 +142,30 @@ public partial class GamesPageViewModel : ObservableObject
     public ObservableCollection<SearchHit> ModpackSearchResults { get; } = [];
     public ObservableCollection<ItemVersion> ModpackVersions { get; } = [];
 
-    [ObservableProperty]
-    private SearchSortOptionItem? _selectedModpackSortOption;
+    [ObservableProperty] private SearchSortOptionItem? _selectedModpackSortOption;
 
-    [ObservableProperty]
-    private string _modpackSearchQuery = string.Empty;
+    [ObservableProperty] private string _modpackSearchQuery = string.Empty;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasSelectedModpack))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasSelectedModpack))]
     private SearchHit? _selectedModpackSearchResult;
 
-    [ObservableProperty]
-    private StoreItem? _selectedModpackItem;
+    [ObservableProperty] private StoreItem? _selectedModpackItem;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanDownloadModpack))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanDownloadModpack))]
     private ItemVersion? _selectedModpackVersion;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanSearchModpacks))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanSearchModpacks))]
     private bool _isSearchingModpacks;
 
-    [ObservableProperty]
-    private bool _isLoadingModpackDetails;
+    [ObservableProperty] private bool _isLoadingModpackDetails;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanDownloadModpack))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanDownloadModpack))]
     private bool _isLoadingModpackManifest;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanDownloadModpack))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanDownloadModpack))]
     private bool _isDownloadingModpack;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasModpackSearchResults))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasModpackSearchResults))]
     private string _modpackResultsStatusText = "Search Modrinth modpacks.";
 
     [ObservableProperty]
@@ -238,17 +210,18 @@ public partial class GamesPageViewModel : ObservableObject
             _ => false
         }
         : AddGameWizardStep switch
-    {
-        0 => SelectedVersion != null,
-        1 => SelectedModLoaderType == CoreX.Versions.Type.Vanilla || SelectedModLoader != null,
-        _ => false
-    };
+        {
+            0 => SelectedVersion != null,
+            1 => SelectedModLoaderType == CoreX.Versions.Type.Vanilla || SelectedModLoader != null,
+            _ => false
+        };
 
     public bool IsModLoaderSelectionVisible => SelectedModLoaderType != CoreX.Versions.Type.Vanilla;
 
     public bool HasAvailableModLoaders => AvailableModLoaders.Count > 0;
 
-    public bool HasNoAvailableModLoaders => IsModLoaderSelectionVisible && !IsLoadingModLoaders && !HasAvailableModLoaders;
+    public bool HasNoAvailableModLoaders =>
+        IsModLoaderSelectionVisible && !IsLoadingModLoaders && !HasAvailableModLoaders;
 
     public bool IsFolderNameReadOnly => !IsCustomFolderNameEnabled;
 
@@ -353,50 +326,51 @@ public partial class GamesPageViewModel : ObservableObject
         AvailableModLoaders = new ObservableCollection<LoaderInfo>();
         ModLoaderTypes = new ObservableCollection<AddGameModLoaderTypeOption>(
         [
-            new()
+            new AddGameModLoaderTypeOption
             {
                 Type = CoreX.Versions.Type.Vanilla,
                 Title = "Vanilla".Localize(),
                 Description = "VanillaLoaderDescription".Localize()
             },
-            new()
+            new AddGameModLoaderTypeOption
             {
                 Type = CoreX.Versions.Type.Fabric,
                 Title = "Fabric",
                 Description = "FabricLoaderDescription".Localize()
             },
-            new()
+            new AddGameModLoaderTypeOption
             {
                 Type = CoreX.Versions.Type.Forge,
                 Title = "Forge",
                 Description = "ForgeLoaderDescription".Localize()
             },
-            new()
+            new AddGameModLoaderTypeOption
             {
                 Type = CoreX.Versions.Type.NeoForge,
                 Title = "NeoForge",
                 Description = "NeoForgeLoaderDescription".Localize()
             },
-            new()
+            new AddGameModLoaderTypeOption
             {
                 Type = CoreX.Versions.Type.Quilt,
                 Title = "Quilt",
                 Description = "QuiltLoaderDescription".Localize()
             },
-            new()
+            new AddGameModLoaderTypeOption
             {
                 Type = CoreX.Versions.Type.OptiFine,
                 Title = "OptiFine",
                 Description = "OptiFineLoaderDescription".Localize()
             },
-            new()
+            new AddGameModLoaderTypeOption
             {
                 Type = CoreX.Versions.Type.LiteLoader,
                 Title = "LiteLoader",
                 Description = "LiteLoaderDescription".Localize()
             }
         ]);
-        SelectedModLoaderTypeOption = ModLoaderTypes.FirstOrDefault(option => option.Type == CoreX.Versions.Type.Vanilla);
+        SelectedModLoaderTypeOption =
+            ModLoaderTypes.FirstOrDefault(option => option.Type == CoreX.Versions.Type.Vanilla);
 
         ModpackSortOptions.Add(new SearchSortOptionItem(SearchSortOptions.Relevance, "Relevance"));
         ModpackSortOptions.Add(new SearchSortOptionItem(SearchSortOptions.Downloads, "Downloads"));
@@ -479,17 +453,30 @@ public partial class GamesPageViewModel : ObservableObject
         VersionSearchQuery = string.Empty;
         SelectedReleaseTypeFilter = "All";
         AvailableModLoaders.Clear();
-        ResetModpackState(clearResults: false);
+        ResetModpackState(false);
         NotifyAddGameWizardStateChanged();
     }
 
-    partial void OnSearchQueryChanged(string value) => UpdateFilteredGames();
+    partial void OnSearchQueryChanged(string value)
+    {
+        UpdateFilteredGames();
+    }
+
     partial void OnIsLoadingChanged(bool value)
     {
         OnPropertyChanged(nameof(ShowNoGamesMessage));
     }
-    partial void OnVersionSearchQueryChanged(string value) => UpdateFilteredAvailableVersions();
-    partial void OnSelectedReleaseTypeFilterChanged(string value) => UpdateFilteredAvailableVersions();
+
+    partial void OnVersionSearchQueryChanged(string value)
+    {
+        UpdateFilteredAvailableVersions();
+    }
+
+    partial void OnSelectedReleaseTypeFilterChanged(string value)
+    {
+        UpdateFilteredAvailableVersions();
+    }
+
     partial void OnSelectedAddGameModeChanged(AddGameMode value)
     {
         if (AddGameWizardStep != 0)
@@ -713,7 +700,8 @@ public partial class GamesPageViewModel : ObservableObject
 
         if (SelectedReleaseTypeFilter != "All")
         {
-            filtered = filtered.Where(v => v.ReleaseType.Equals(SelectedReleaseTypeFilter, StringComparison.OrdinalIgnoreCase));
+            filtered = filtered.Where(v =>
+                v.ReleaseType.Equals(SelectedReleaseTypeFilter, StringComparison.OrdinalIgnoreCase));
         }
 
         FilteredAvailableVersions.Clear();
@@ -755,7 +743,11 @@ public partial class GamesPageViewModel : ObservableObject
 
     private void QueueGamesProjectionUpdate()
     {
-        if (Interlocked.Exchange(ref _gamesProjectionQueued, 1) != 0) return;
+        if (Interlocked.Exchange(ref _gamesProjectionQueued, 1) != 0)
+        {
+            return;
+        }
+
         _dispatcherQueue.TryEnqueue(() =>
         {
             Interlocked.Exchange(ref _gamesProjectionQueued, 0);
@@ -766,7 +758,11 @@ public partial class GamesPageViewModel : ObservableObject
 
     private void QueueVersionsProjectionUpdate()
     {
-        if (Interlocked.Exchange(ref _versionsProjectionQueued, 1) != 0) return;
+        if (Interlocked.Exchange(ref _versionsProjectionQueued, 1) != 0)
+        {
+            return;
+        }
+
         _dispatcherQueue.TryEnqueue(() =>
         {
             Interlocked.Exchange(ref _versionsProjectionQueued, 0);
@@ -791,7 +787,7 @@ public partial class GamesPageViewModel : ObservableObject
         {
             if (!IsDownloadingModpack)
             {
-                GamesLoadingMessage = "Loading games...";
+                GamesLoadingMessage = "Loading instances...";
                 IsLoading = true;
             }
 
@@ -841,13 +837,15 @@ public partial class GamesPageViewModel : ObservableObject
         try
         {
             _dispatcherQueue.TryEnqueue(() => IsLoadingModLoaders = true);
-            _logger.LogInformation("Loading mod loaders for {Version} - Type: {Type}", selectedVersion.BasedOn, selectedType);
+            _logger.LogInformation("Loading mod loaders for {Version} - Type: {Type}", selectedVersion.BasedOn,
+                selectedType);
 
             var installer = GetModLoaderInstaller(selectedType);
             if (installer != null)
             {
                 var loaders = await installer.GetVersionsAsync(selectedVersion.BasedOn);
-                if (requestId != _modLoaderLoadRequestId || SelectedVersion != selectedVersion || SelectedModLoaderType != selectedType)
+                if (requestId != _modLoaderLoadRequestId || SelectedVersion != selectedVersion ||
+                    SelectedModLoaderType != selectedType)
                 {
                     return;
                 }
@@ -985,9 +983,9 @@ public partial class GamesPageViewModel : ObservableObject
 
             var response = await _modPackStore.SearchAsync(
                 ModpackSearchQuery,
-                limit: 30,
-                sortOptions: SelectedModpackSortOption?.Value ?? SearchSortOptions.Relevance,
-                categories: selectedCategories.Length == 0 ? null : selectedCategories);
+                30,
+                SelectedModpackSortOption?.Value ?? SearchSortOptions.Relevance,
+                selectedCategories.Length == 0 ? null : selectedCategories);
 
             _dispatcherQueue.TryEnqueue(() =>
             {
@@ -1160,7 +1158,8 @@ public partial class GamesPageViewModel : ObservableObject
 
             _logger.LogError(ex, "Failed to inspect selected modpack version.");
             _dispatcherQueue.TryEnqueue(() =>
-                _notificationService.Error("ModpackProbeFailed", "Failed to inspect the selected modpack version.", ex: ex));
+                _notificationService.Error("ModpackProbeFailed", "Failed to inspect the selected modpack version.",
+                    ex: ex));
         }
         finally
         {
@@ -1179,7 +1178,8 @@ public partial class GamesPageViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanDownloadModpack))]
     public async Task<bool> DownloadModpackAsync()
     {
-        if (!CanDownloadModpack || SelectedModpackItem == null || SelectedModpackVersion == null || ModpackProbe == null)
+        if (!CanDownloadModpack || SelectedModpackItem == null || SelectedModpackVersion == null ||
+            ModpackProbe == null)
         {
             return false;
         }
@@ -1228,7 +1228,7 @@ public partial class GamesPageViewModel : ObservableObject
             {
                 IsDownloadingModpack = false;
                 IsLoading = false;
-                GamesLoadingMessage = "Loading games...";
+                GamesLoadingMessage = "Loading instances...";
                 OnPropertyChanged(nameof(CanDownloadModpack));
                 DownloadModpackCommand.NotifyCanExecuteChanged();
             });
@@ -1249,7 +1249,8 @@ public partial class GamesPageViewModel : ObservableObject
 
         if (HasFolderValidationMessage)
         {
-            _notificationService.Warning("InvalidGameFolderName", GameFolderValidationMessage ?? "InvalidGameFolderNameMessage".Localize());
+            _notificationService.Warning("InvalidGameFolderName",
+                GameFolderValidationMessage ?? "InvalidGameFolderNameMessage".Localize());
             return false;
         }
 
@@ -1288,7 +1289,9 @@ public partial class GamesPageViewModel : ObservableObject
 
     [RelayCommand]
     private async Task CreateGameAsync()
-        => await SubmitAddGameAsync();
+    {
+        await SubmitAddGameAsync();
+    }
 
     [RelayCommand]
     private async Task InstallGameAsync(Game? game)
@@ -1298,10 +1301,11 @@ public partial class GamesPageViewModel : ObservableObject
             _logger.LogDebug("Ignoring install request because no game was provided.");
             return;
         }
+
         try
         {
             _logger.LogInformation("Installing game: {Name}", game.Version.DisplayName);
-            await _core.InstallGame(game, showFileprog: true);
+            await _core.InstallGame(game, true);
         }
         catch (Exception ex)
         {
@@ -1314,7 +1318,11 @@ public partial class GamesPageViewModel : ObservableObject
     [RelayCommand]
     private async Task VerifyGameAsync(Game? game)
     {
-        if (game == null) return;
+        if (game == null)
+        {
+            return;
+        }
+
         try
         {
             var report = await _core.VerifyGameAsync(game, IntegrityCheckLevel.Full);
@@ -1322,19 +1330,22 @@ public partial class GamesPageViewModel : ObservableObject
             {
                 _notificationService.Info(
                     "VerificationComplete",
-                    string.Format("VerificationCompleteMessage".Localize(), game.Version.DisplayName, report.CheckedFiles));
+                    string.Format("VerificationCompleteMessage".Localize(), game.Version.DisplayName,
+                        report.CheckedFiles));
             }
             else if (report.State == InstanceInstallationState.ReadyWithWarnings)
             {
                 _notificationService.Warning(
                     "VerificationWarnings",
-                    string.Format("VerificationWarningsMessage".Localize(), game.Version.DisplayName, report.Issues.Count));
+                    string.Format("VerificationWarningsMessage".Localize(), game.Version.DisplayName,
+                        report.Issues.Count));
             }
             else
             {
                 _notificationService.Error(
                     "VerificationFailed",
-                    string.Format("VerificationNeedsRepairMessage".Localize(), game.Version.DisplayName, report.Issues.Count));
+                    string.Format("VerificationNeedsRepairMessage".Localize(), game.Version.DisplayName,
+                        report.Issues.Count));
             }
         }
         catch (Exception ex)
@@ -1347,14 +1358,23 @@ public partial class GamesPageViewModel : ObservableObject
     [RelayCommand]
     private async Task RepairGameAsync(Game? game)
     {
-        if (game == null) return;
+        if (game == null)
+        {
+            return;
+        }
+
         try
         {
             var result = await _core.RepairGameAsync(game);
             if (result.Success)
+            {
                 _notificationService.Info("RepairComplete", $"Repaired {game.Version.DisplayName}.");
+            }
             else
-                _notificationService.Warning("RepairFailed", result.FailureReason ?? $"Could not repair {game.Version.DisplayName}.");
+            {
+                _notificationService.Warning("RepairFailed",
+                    result.FailureReason ?? $"Could not repair {game.Version.DisplayName}.");
+            }
         }
         catch (Exception ex)
         {
@@ -1370,6 +1390,7 @@ public partial class GamesPageViewModel : ObservableObject
             _logger.LogDebug("Ignoring launch request because no game was provided.");
             return;
         }
+
         try
         {
             _logger.LogInformation("Launching game: {Name}", game.Version.DisplayName);
@@ -1435,10 +1456,11 @@ public partial class GamesPageViewModel : ObservableObject
             _logger.LogDebug("Ignoring remove request because no game was provided.");
             return;
         }
+
         try
         {
             _logger.LogInformation("Removing game: {Name}", game.Version.DisplayName);
-            _core.RemoveGame(game, deleteFolder: false);
+            _core.RemoveGame(game, false);
         }
         catch (Exception ex)
         {
@@ -1456,10 +1478,11 @@ public partial class GamesPageViewModel : ObservableObject
             _logger.LogDebug("Ignoring remove-with-files request because no game was provided.");
             return;
         }
+
         try
         {
             _logger.LogInformation("Removing game with files: {Name}", game.Version.DisplayName);
-            await Task.Run(() => _core.RemoveGame(game, deleteFolder: true));
+            await Task.Run(() => _core.RemoveGame(game, true));
         }
         catch (Exception ex)
         {
@@ -1473,7 +1496,8 @@ public partial class GamesPageViewModel : ObservableObject
     {
         var installers = Ioc.Default.GetServices<IModLoaderInstaller>();
         var installer = installers.FirstOrDefault(x => x.Type == type);
-        _logger.LogDebug("Resolved mod loader installer for {LoaderType}. FoundInstaller: {FoundInstaller}.", type, installer != null);
+        _logger.LogDebug("Resolved mod loader installer for {LoaderType}. FoundInstaller: {FoundInstaller}.", type,
+            installer != null);
         return installer;
     }
 
@@ -1576,7 +1600,8 @@ public partial class GamesPageViewModel : ObservableObject
             return "GameFolderNameInvalidCharacters".Localize();
         }
 
-        if (trimmedFolderName.Contains(Path.DirectorySeparatorChar) || trimmedFolderName.Contains(Path.AltDirectorySeparatorChar))
+        if (trimmedFolderName.Contains(Path.DirectorySeparatorChar) ||
+            trimmedFolderName.Contains(Path.AltDirectorySeparatorChar))
         {
             return "GameFolderNameSingleSegmentOnly".Localize();
         }
@@ -1676,7 +1701,8 @@ public partial class GamesPageViewModel : ObservableObject
         version.UpdateCompatibilityChips(loaderChips, gameVersionChips);
     }
 
-    private void ModpackCategoryFilters_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    private void ModpackCategoryFilters_CollectionChanged(object? sender,
+        System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
         if (e.OldItems != null)
         {
@@ -1724,7 +1750,8 @@ public partial class GamesPageViewModel : ObservableObject
             "optifine" => "OptiFine",
             "liteloader" => "LiteLoader",
             "datapack" => "Data Pack",
-            _ => System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value.Replace('-', ' ').Replace('_', ' ').ToLowerInvariant())
+            _ => System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value.Replace('-', ' ')
+                .Replace('_', ' ').ToLowerInvariant())
         };
     }
 }

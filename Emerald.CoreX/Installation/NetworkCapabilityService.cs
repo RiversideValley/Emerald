@@ -3,8 +3,25 @@ using System.Net.NetworkInformation;
 
 namespace Emerald.CoreX.Installation;
 
-public enum NetworkCapability { MinecraftMetadata, MinecraftFiles, LoaderMetadata, Modrinth, Authentication }
-public enum NetworkAvailabilityState { Unknown, Checking, Available, Degraded, Unavailable }
+public enum NetworkCapability
+{
+    MinecraftMetadata,
+    MinecraftFiles,
+    LoaderMetadata,
+    Modrinth,
+    Authentication,
+    ServerDirectory,
+    ServerStatus
+}
+
+public enum NetworkAvailabilityState
+{
+    Unknown,
+    Checking,
+    Available,
+    Degraded,
+    Unavailable
+}
 
 public sealed record NetworkCapabilitySnapshot(
     NetworkCapability Capability,
@@ -28,7 +45,10 @@ public interface INetworkCapabilityService : IDisposable
 {
     event EventHandler<NetworkCapabilitySnapshot>? Changed;
     NetworkCapabilitySnapshot GetSnapshot(NetworkCapability capability);
-    Task<NetworkCapabilitySnapshot> ProbeAsync(NetworkCapability capability, CancellationToken cancellationToken = default);
+
+    Task<NetworkCapabilitySnapshot> ProbeAsync(NetworkCapability capability,
+        CancellationToken cancellationToken = default);
+
     void ReportSuccess(NetworkCapability capability);
     void ReportFailure(NetworkCapability capability, Exception exception);
 }
@@ -36,14 +56,18 @@ public interface INetworkCapabilityService : IDisposable
 public sealed class NetworkCapabilityService : INetworkCapabilityService
 {
     // Probe the service needed by an operation, not a generic connectivity host.
-    private static readonly IReadOnlyDictionary<NetworkCapability, Uri> Endpoints = new Dictionary<NetworkCapability, Uri>
-    {
-        [NetworkCapability.MinecraftMetadata] = new("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"),
-        [NetworkCapability.MinecraftFiles] = new("https://resources.download.minecraft.net/"),
-        [NetworkCapability.LoaderMetadata] = new("https://meta.fabricmc.net/v2/versions/loader"),
-        [NetworkCapability.Modrinth] = new("https://api.modrinth.com/v2/tag/project_type"),
-        [NetworkCapability.Authentication] = new("https://login.live.com/")
-    };
+    private static readonly IReadOnlyDictionary<NetworkCapability, Uri> Endpoints =
+        new Dictionary<NetworkCapability, Uri>
+        {
+            [NetworkCapability.MinecraftMetadata] =
+                new("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"),
+            [NetworkCapability.MinecraftFiles] = new("https://resources.download.minecraft.net/"),
+            [NetworkCapability.LoaderMetadata] = new("https://meta.fabricmc.net/v2/versions/loader"),
+            [NetworkCapability.Modrinth] = new("https://api.modrinth.com/v2/tag/project_type"),
+            [NetworkCapability.Authentication] = new("https://login.live.com/"),
+            [NetworkCapability.ServerDirectory] = new("https://minecraftserve.rs/api/servers?edition=java&per_page=1"),
+            [NetworkCapability.ServerStatus] = new("https://api.mcsrvstat.us/3/mc.hypixel.net")
+        };
 
     private readonly HttpClient _httpClient;
     private readonly Dictionary<NetworkCapability, NetworkCapabilitySnapshot> _snapshots;
@@ -68,10 +92,14 @@ public sealed class NetworkCapabilityService : INetworkCapabilityService
 
     public NetworkCapabilitySnapshot GetSnapshot(NetworkCapability capability)
     {
-        lock (_gate) return _snapshots[capability];
+        lock (_gate)
+        {
+            return _snapshots[capability];
+        }
     }
 
-    public async Task<NetworkCapabilitySnapshot> ProbeAsync(NetworkCapability capability, CancellationToken cancellationToken = default)
+    public async Task<NetworkCapabilitySnapshot> ProbeAsync(NetworkCapability capability,
+        CancellationToken cancellationToken = default)
     {
         Task<NetworkCapabilitySnapshot> probe;
         TaskCompletionSource<NetworkCapabilitySnapshot>? starter = null;
@@ -87,7 +115,8 @@ public sealed class NetworkCapabilityService : INetworkCapabilityService
             {
                 // A caller may cancel its wait without cancelling the shared
                 // probe used by recovery polling and other operations.
-                starter = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                starter = new TaskCompletionSource<NetworkCapabilitySnapshot>(TaskCreationOptions
+                    .RunContinuationsAsynchronously);
                 probe = starter.Task;
                 _probes[capability] = probe;
             }
@@ -114,7 +143,8 @@ public sealed class NetworkCapabilityService : INetworkCapabilityService
         }
     }
 
-    private async Task RunProbeAsync(NetworkCapability capability, TaskCompletionSource<NetworkCapabilitySnapshot> completion)
+    private async Task RunProbeAsync(NetworkCapability capability,
+        TaskCompletionSource<NetworkCapabilitySnapshot> completion)
     {
         try
         {
@@ -126,7 +156,8 @@ public sealed class NetworkCapabilityService : INetworkCapabilityService
         }
     }
 
-    private async Task<NetworkCapabilitySnapshot> ProbeCoreAsync(NetworkCapability capability, CancellationToken callerCancellationToken)
+    private async Task<NetworkCapabilitySnapshot> ProbeCoreAsync(NetworkCapability capability,
+        CancellationToken callerCancellationToken)
     {
         Set(capability, NetworkAvailabilityState.Checking);
         // ResponseHeadersRead keeps a reachability probe cheap; downloading the
@@ -136,7 +167,8 @@ public sealed class NetworkCapabilityService : INetworkCapabilityService
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, Endpoints[capability]);
-            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+            using var response =
+                await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
             var state = (int)response.StatusCode >= 500
                 ? NetworkAvailabilityState.Degraded
                 : NetworkAvailabilityState.Available;
@@ -156,14 +188,20 @@ public sealed class NetworkCapabilityService : INetworkCapabilityService
         }
     }
 
-    public void ReportSuccess(NetworkCapability capability) => Set(capability, NetworkAvailabilityState.Available);
+    public void ReportSuccess(NetworkCapability capability)
+    {
+        Set(capability, NetworkAvailabilityState.Available);
+    }
 
     public void ReportFailure(NetworkCapability capability, Exception exception)
-        => Set(capability, exception is HttpRequestException { StatusCode: >= HttpStatusCode.InternalServerError }
+    {
+        Set(capability, exception is HttpRequestException { StatusCode: >= HttpStatusCode.InternalServerError }
             ? NetworkAvailabilityState.Degraded
             : NetworkAvailabilityState.Unavailable, exception.Message);
+    }
 
-    private NetworkCapabilitySnapshot Set(NetworkCapability capability, NetworkAvailabilityState state, string? detail = null)
+    private NetworkCapabilitySnapshot Set(NetworkCapability capability, NetworkAvailabilityState state,
+        string? detail = null)
     {
         NetworkCapabilitySnapshot snapshot;
         var startRecovery = false;
@@ -173,8 +211,12 @@ public sealed class NetworkCapabilityService : INetworkCapabilityService
             var lastResolved = state == NetworkAvailabilityState.Checking
                 ? old.LastResolvedState ?? (old.State == NetworkAvailabilityState.Checking ? null : old.State)
                 : state;
-            if (old.State == state && old.Detail == detail && old.LastResolvedState == lastResolved) return old;
-            snapshot = new(capability, state, DateTimeOffset.UtcNow, detail, lastResolved);
+            if (old.State == state && old.Detail == detail && old.LastResolvedState == lastResolved)
+            {
+                return old;
+            }
+
+            snapshot = new NetworkCapabilitySnapshot(capability, state, DateTimeOffset.UtcNow, detail, lastResolved);
             _snapshots[capability] = snapshot;
             if (state == NetworkAvailabilityState.Unavailable
                 && (!_recoveryPolls.TryGetValue(capability, out var existing) || existing.IsCompleted))
@@ -182,8 +224,13 @@ public sealed class NetworkCapabilityService : INetworkCapabilityService
                 startRecovery = true;
             }
         }
+
         Changed?.Invoke(this, snapshot);
-        if (startRecovery) StartRecoveryPoll(capability);
+        if (startRecovery)
+        {
+            StartRecoveryPoll(capability);
+        }
+
         return snapshot;
     }
 
@@ -205,11 +252,14 @@ public sealed class NetworkCapabilityService : INetworkCapabilityService
         var started = DateTimeOffset.UtcNow;
         try
         {
-            while (!_lifetime.IsCancellationRequested && GetSnapshot(capability).EffectiveState == NetworkAvailabilityState.Unavailable)
+            while (!_lifetime.IsCancellationRequested &&
+                   GetSnapshot(capability).EffectiveState == NetworkAvailabilityState.Unavailable)
             {
                 // Poll aggressively for the first minute so a transient disconnect is
                 // reflected quickly, then back off to avoid needless background work.
-                var delay = DateTimeOffset.UtcNow - started < TimeSpan.FromMinutes(1) ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
+                var delay = DateTimeOffset.UtcNow - started < TimeSpan.FromMinutes(1)
+                    ? TimeSpan.FromSeconds(5)
+                    : TimeSpan.FromSeconds(30);
                 await Task.Delay(delay, _lifetime.Token);
                 await ProbeAsync(capability, _lifetime.Token);
             }
@@ -227,8 +277,15 @@ public sealed class NetworkCapabilityService : INetworkCapabilityService
         }
     }
 
-    private void OnNetworkChanged(object? sender, NetworkAvailabilityEventArgs e) => ScheduleRequestedProbes();
-    private void OnAddressChanged(object? sender, EventArgs e) => ScheduleRequestedProbes();
+    private void OnNetworkChanged(object? sender, NetworkAvailabilityEventArgs e)
+    {
+        ScheduleRequestedProbes();
+    }
+
+    private void OnAddressChanged(object? sender, EventArgs e)
+    {
+        ScheduleRequestedProbes();
+    }
 
     private void ScheduleRequestedProbes()
     {
@@ -274,6 +331,7 @@ public sealed class NetworkCapabilityService : INetworkCapabilityService
                     _networkSignalDebounce = null;
                 }
             }
+
             debounce.Dispose();
         }
     }
@@ -287,6 +345,7 @@ public sealed class NetworkCapabilityService : INetworkCapabilityService
             _networkSignalDebounce?.Cancel();
             _networkSignalDebounce = null;
         }
+
         _lifetime.Cancel();
         _lifetime.Dispose();
     }

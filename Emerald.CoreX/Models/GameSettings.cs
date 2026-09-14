@@ -12,7 +12,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System.Runtime.Serialization;
 using System.Collections.Specialized;
 using Emerald.CoreX.Store;
+
 namespace Emerald.CoreX.Models;
+
 public partial class GameSettings : ObservableObject
 {
     public GameSettings()
@@ -20,57 +22,41 @@ public partial class GameSettings : ObservableObject
         JVMArgs.CollectionChanged += OnJvmArgsChanged;
     }
 
-    [JsonIgnore]
-    public double MaxRAMinGB => Math.Round((MaximumRamMb / 1024.00), 2);
+    [JsonIgnore] public double MaxRAMinGB => Math.Round(MaximumRamMb / 1024.00, 2);
 
-    [NotifyPropertyChangedFor(nameof(MaxRAMinGB))]
-    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MaxRAMinGB))] [ObservableProperty]
     private int _maximumRamMb;
 
-    [ObservableProperty]
-    private int _minimumRamMb;
+    [ObservableProperty] private int _minimumRamMb;
 
-    [ObservableProperty]
-    private string? _dockName = "Minecraft";
+    [ObservableProperty] private string? _dockName = "Minecraft";
 
-    [ObservableProperty]
-    private bool _isDemo;
+    [ObservableProperty] private bool _isDemo;
 
-    [NotifyPropertyChangedFor(nameof(ScreenSizeStatus))]
-    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ScreenSizeStatus))] [ObservableProperty]
     private int _screenWidth;
 
-    [NotifyPropertyChangedFor(nameof(ScreenSizeStatus))]
-    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ScreenSizeStatus))] [ObservableProperty]
     private int _screenHeight;
 
-    [NotifyPropertyChangedFor(nameof(ScreenSizeStatus))]
-    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ScreenSizeStatus))] [ObservableProperty]
     private bool _fullScreen;
 
-    [ObservableProperty]
-    private string? _quickPlayPath;
+    [ObservableProperty] private string? _quickPlayPath;
 
-    [ObservableProperty]
-    private string? _quickPlaySingleplayer;
+    [ObservableProperty] private string? _quickPlaySingleplayer;
 
-    [ObservableProperty]
-    private string? _quickPlayRealms;
+    [ObservableProperty] private string? _quickPlayRealms;
 
-    [ObservableProperty]
-    private string? _serverIp;
+    [ObservableProperty] private string? _serverIp;
 
-    [ObservableProperty]
-    private int _serverPort = 25565;
+    [ObservableProperty] private int _serverPort = 25565;
 
-    [ObservableProperty]
-    private bool _IsAdmin;
+    [ObservableProperty] private bool _IsAdmin;
 
-    [ObservableProperty]
-    private bool _UseCustomJava;
+    [ObservableProperty] private bool _UseCustomJava;
 
-    [ObservableProperty]
-    private string? _JavaPath;
+    [ObservableProperty] private string? _JavaPath;
 
     [NotifyPropertyChangedFor(nameof(UsesSharedMinecraftFolders))]
     [NotifyPropertyChangedFor(nameof(SharedMinecraftFoldersStatus))]
@@ -111,12 +97,13 @@ public partial class GameSettings : ObservableObject
     [NotifyPropertyChangedFor(nameof(SharedStoreFoldersStatus))]
     [ObservableProperty]
     private bool _useSharedStoreShaderPacksPath;
-    
+
     public ObservableCollection<string> JVMArgs { get; set; } = new();
 
     [JsonIgnore]
     public string ScreenSizeStatus =>
-        FullScreen ? "FullScreen".Localize() : ((ScreenWidth > 0 && ScreenHeight > 0) ? $"{ScreenWidth} × {ScreenHeight}" : "Default".Localize());
+        FullScreen ? "FullScreen".Localize() :
+        ScreenWidth > 0 && ScreenHeight > 0 ? $"{ScreenWidth} × {ScreenHeight}" : "Default".Localize();
 
     [JsonIgnore]
     public bool UsesSharedMinecraftFolders
@@ -203,7 +190,8 @@ public partial class GameSettings : ObservableObject
     }
 
     public bool IsSharedStoreContentEnabled(StoreContentType contentType)
-        => contentType switch
+    {
+        return contentType switch
         {
             StoreContentType.Mod => UseSharedStoreModsPath,
             StoreContentType.ResourcePack => UseSharedStoreResourcePacksPath,
@@ -211,6 +199,7 @@ public partial class GameSettings : ObservableObject
             StoreContentType.Shader => UseSharedStoreShaderPacksPath,
             _ => false
         };
+    }
 
     public MLaunchOption ToMLaunchOption()
     {
@@ -231,7 +220,7 @@ public partial class GameSettings : ObservableObject
             JavaPath = _UseCustomJava ? _JavaPath : null
         };
         var args = MLaunchOption.DefaultExtraJvmArguments.ToList();
-         args.AddRange(JVMArgs.Select(x => new MArgument(x)));
+        args.AddRange(JVMArgs.Select(x => new MArgument(x)));
         opt.ExtraJvmArguments = args.ToArray();
         return opt;
     }
@@ -259,9 +248,11 @@ public partial class GameSettings : ObservableObject
         game.JVMArgs.Clear();
         foreach (var arg in option.ExtraJvmArguments)
         {
-            if(MLaunchOption.DefaultExtraJvmArguments.Contains(arg))
+            if (MLaunchOption.DefaultExtraJvmArguments.Contains(arg))
+            {
                 continue;
-            
+            }
+
             game.JVMArgs.AddRange(arg.Values.ToArray());
         }
 
@@ -338,11 +329,16 @@ public partial class GameSettings : ObservableObject
         }
     }
 
-    public static GameSettings Resolve(GameSettings globalSettings, bool usesCustomGameSettings, GameSettings? customGameSettings)
-        => usesCustomGameSettings && customGameSettings != null
+    public static GameSettings Resolve(GameSettings globalSettings, bool usesCustomGameSettings,
+        GameSettings? customGameSettings)
+    {
+        return usesCustomGameSettings && customGameSettings != null
             ? customGameSettings
             : globalSettings;
+    }
 
     private void OnJvmArgsChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        => OnPropertyChanged(nameof(JVMArgs));
+    {
+        OnPropertyChanged(nameof(JVMArgs));
+    }
 }

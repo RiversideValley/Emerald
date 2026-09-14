@@ -15,19 +15,24 @@ using Emerald.CoreX.Helpers;
 using Emerald.Models;
 using System.IO;
 using Emerald.CoreX.Services.Auth.Authlib;
+
 namespace Emerald.Helpers.Settings.JSON;
 
-public class JSON : Models.Model
+public class JSON : Model
 {
     public string Serialize()
-        => JsonSerializer.Serialize(this);
+    {
+        return JsonSerializer.Serialize(this);
+    }
 }
 
 public class SettingsBackup : JSON
 {
     public string Backup { get; set; }
     public string Name { get; set; }
+
     public DateTime Time { get; set; }
+
     // ik there is Time.ToString() lol
     public string DateString => $"{Time.ToLongDateString()} {Time.ToShortTimeString()}";
 }
@@ -40,31 +45,34 @@ public class Backups : JSON
 
 public partial class Settings : JSON
 {
-    public static Settings CreateNew() => new()
+    public static Settings CreateNew()
     {
-        App = new()
+        return new Settings
         {
-            Discord = new(),
-            Tasks = new(),
-            Appearance = new()
+            App = new App
             {
-                MicaTintColor = (int)Enums.MicaTintColor.NoColor,
-                Theme = (int)ElementTheme.Default
+                Discord = new Discord(),
+                Tasks = new Tasks(),
+                Appearance = new Appearance
+                {
+                    MicaTintColor = (int)Enums.MicaTintColor.NoColor,
+                    Theme = (int)ElementTheme.Default
+                },
+                Updates = new Updates
+                {
+                    PreferredChannel = DirectResoucres.ReleaseChannel
+                },
+                Advanced = new Advanced()
             },
-            Updates = new()
+            Minecraft = new Minecraft
             {
-                PreferredChannel = DirectResoucres.ReleaseChannel
-            },
-            Advanced = new()
-        },
-        Minecraft = new()
-        {
-            Path = GetDefaultMinecraftPath(),
-           // RAM = DirectResoucres.MaxRAM / 2,
-            MCVerionsConfiguration = new(),
-            JVM = new(),
-        }
-    };
+                Path = GetDefaultMinecraftPath(),
+                // RAM = DirectResoucres.MaxRAM / 2,
+                MCVerionsConfiguration = new MCVerionsConfiguration(),
+                JVM = new JVM()
+            }
+        };
+    }
 
     public string APIVersion { get; set; } = DirectResoucres.SettingsAPIVersion;
     public DateTime LastSaved { get; set; } = DateTime.Now;
@@ -93,21 +101,19 @@ public partial class Minecraft : JSON
         PropertyChanged += (_, e) =>
         {
             if (e.PropertyName != null)
+            {
                 InvokePropertyChanged();
+            }
         };
     }
 
-    [JsonIgnore]
-    public double RAMinGB => Math.Round((RAM / 1024.00), 2);
+    [JsonIgnore] public double RAMinGB => Math.Round(RAM / 1024.00, 2);
 
-    [ObservableProperty]
-    private string _Path;
+    [ObservableProperty] private string _Path;
 
-    [ObservableProperty]
-    private int _RAM;
+    [ObservableProperty] private int _RAM;
 
-    [ObservableProperty]
-    private bool _IsAdmin;
+    [ObservableProperty] private bool _IsAdmin;
 
     public MCVerionsConfiguration MCVerionsConfiguration { get; set; }
 
@@ -131,10 +137,15 @@ public partial class Minecraft : JSON
     }
 
     public bool ReadLogs()
-        => JVM.GameLogs && !IsAdmin;
+    {
+        return JVM.GameLogs && !IsAdmin;
+    }
 
-    private void SavedJavaPaths_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        => InvokePropertyChanged(nameof(SavedJavaPaths));
+    private void SavedJavaPaths_CollectionChanged(object? sender,
+        System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        InvokePropertyChanged(nameof(SavedJavaPaths));
+    }
 }
 
 public class Account : JSON
@@ -151,31 +162,29 @@ public partial class JVM : JSON
 {
     public JVM()
     {
-        this.PropertyChanged += (_, e) =>
+        PropertyChanged += (_, e) =>
         {
             if (e.PropertyName != null)
-                this.InvokePropertyChanged();
+            {
+                InvokePropertyChanged();
+            }
         };
     }
 
-    [ObservableProperty]
-    private string[] _Arguments;
+    [ObservableProperty] private string[] _Arguments;
 
-    [ObservableProperty]
-    private double _ScreenWidth;
+    [ObservableProperty] private double _ScreenWidth;
 
-    [ObservableProperty]
-    private double _ScreenHeight;
+    [ObservableProperty] private double _ScreenHeight;
 
-    [ObservableProperty]
-    private bool _FullScreen;
+    [ObservableProperty] private bool _FullScreen;
 
-    [ObservableProperty]
-    private bool _GameLogs;
+    [ObservableProperty] private bool _GameLogs;
 
     [JsonIgnore]
     public string ScreenSizeStatus =>
-             FullScreen ? "FullScreen".Localize() : ((ScreenWidth > 0 && ScreenHeight > 0) ? $"{ScreenWidth} × {ScreenHeight}" : "Default".Localize());
+        FullScreen ? "FullScreen".Localize() :
+        ScreenWidth > 0 && ScreenHeight > 0 ? $"{ScreenWidth} × {ScreenHeight}" : "Default".Localize();
 
     [JsonIgnore]
     public bool SetSize => !(ScreenSizeStatus == "FullScreen".Localize() || ScreenSizeStatus == "Default".Localize());
@@ -191,14 +200,11 @@ public partial class App : JSON
     public Updates Updates { get; set; } = new();
     public Advanced Advanced { get; set; } = new();
 
-    [ObservableProperty]
-    private bool _autoClose;
+    [ObservableProperty] private bool _autoClose;
 
-    [ObservableProperty]
-    private bool _hideOnLaunch;
+    [ObservableProperty] private bool _hideOnLaunch;
 
-    [ObservableProperty]
-    private bool _windowsHello;
+    [ObservableProperty] private bool _windowsHello;
 }
 
 public partial class Advanced : JSON
@@ -208,95 +214,74 @@ public partial class Advanced : JSON
 
 public partial class AuthlibInjectorSettings : JSON
 {
-    [ObservableProperty]
-    private AuthlibInjectorVersionMode _versionMode = AuthlibInjectorVersionMode.Recommended;
+    [ObservableProperty] private AuthlibInjectorVersionMode _versionMode = AuthlibInjectorVersionMode.Recommended;
 
-    [ObservableProperty]
-    private string? _customVersion;
+    [ObservableProperty] private string? _customVersion;
 }
 
 public partial class Updates : JSON
 {
-    [ObservableProperty]
-    private AppReleaseChannel _preferredChannel = AppReleaseChannel.Nightly;
+    [ObservableProperty] private AppReleaseChannel _preferredChannel = AppReleaseChannel.Nightly;
 
-    [ObservableProperty]
-    private bool _checkAtStartup = true;
+    [ObservableProperty] private bool _checkAtStartup = true;
 
-    [ObservableProperty]
-    private bool _autoDownload;
+    [ObservableProperty] private bool _autoDownload;
 
-    [ObservableProperty]
-    private bool _includePreReleases;
+    [ObservableProperty] private bool _includePreReleases;
 
-    [ObservableProperty]
-    private string? _lastShownReleaseNotesVersion;
+    [ObservableProperty] private string? _lastShownReleaseNotesVersion;
 }
 
 public partial class Tasks : JSON
 {
-    [ObservableProperty]
-    private bool _compactMode;
+    [ObservableProperty] private bool _compactMode;
 }
 
 public partial class StoreFilter : JSON
 {
-    [ObservableProperty]
-    private bool _Fabric;
+    [ObservableProperty] private bool _Fabric;
 
-    [ObservableProperty]
-    private bool _Forge;
+    [ObservableProperty] private bool _Forge;
 
-    [ObservableProperty]
-    private bool _Adventure;
+    [ObservableProperty] private bool _Adventure;
 
-    [ObservableProperty]
-    private bool _Cursed;
+    [ObservableProperty] private bool _Cursed;
 
-    [ObservableProperty]
-    private bool _Decoration;
+    [ObservableProperty] private bool _Decoration;
 
-    [ObservableProperty]
-    private bool _Equipment;
+    [ObservableProperty] private bool _Equipment;
 
-    [ObservableProperty]
-    private bool _Food;
+    [ObservableProperty] private bool _Food;
 
-    [ObservableProperty]
-    private bool _Library;
+    [ObservableProperty] private bool _Library;
 
-    [ObservableProperty]
-    private bool _Magic;
+    [ObservableProperty] private bool _Magic;
 
-    [ObservableProperty]
-    private bool _Misc;
+    [ObservableProperty] private bool _Misc;
 
-    [ObservableProperty]
-    private bool _Optimization;
+    [ObservableProperty] private bool _Optimization;
 
-    [ObservableProperty]
-    private bool _Storage;
+    [ObservableProperty] private bool _Storage;
 
-    [ObservableProperty]
-    private bool _Technology;
+    [ObservableProperty] private bool _Technology;
 
-    [ObservableProperty]
-    private bool _Utility;
+    [ObservableProperty] private bool _Utility;
 
-    [ObservableProperty]
-    private bool _Worldgen;
+    [ObservableProperty] private bool _Worldgen;
 
     [JsonIgnore]
     public bool All
     {
-        get =>true;
+        get => true;
         set
         {
-            _Fabric = _Forge = _Adventure = _Cursed = _Decoration = _Equipment = _Food = _Library = _Magic = _Misc = _Optimization = _Storage = _Technology = _Utility = _Worldgen = false;
+            _Fabric = _Forge = _Adventure = _Cursed = _Decoration = _Equipment = _Food = _Library =
+                _Magic = _Misc = _Optimization = _Storage = _Technology = _Utility = _Worldgen = false;
             InvokePropertyChanged(null);
         }
     }
 }
+
 public class Store : JSON
 {
     public StoreFilter Filter { get; set; } = new();
@@ -305,42 +290,41 @@ public class Store : JSON
 
 public partial class StoreSortOptions : JSON
 {
-    [ObservableProperty]
-    private bool _Relevance = true;
+    [ObservableProperty] private bool _Relevance = true;
 
-    [ObservableProperty]
-    private bool _Downloads;
+    [ObservableProperty] private bool _Downloads;
 
-    [ObservableProperty]
-    private bool _Follows;
+    [ObservableProperty] private bool _Follows;
 
-    [ObservableProperty]
-    private bool _Updated;
+    [ObservableProperty] private bool _Updated;
 
-    [ObservableProperty]
-    private bool _Newest;
+    [ObservableProperty] private bool _Newest;
 
     public SearchSortOptions GetResult()
     {
         if (!(Relevance || Downloads || Follows || Updated || Newest))
+        {
             return SearchSortOptions.Relevance;
+        }
         else
-            return Relevance ? SearchSortOptions.Relevance : (Downloads ? SearchSortOptions.Downloads : (Follows ? SearchSortOptions.Follows : (Updated ? SearchSortOptions.Updated : SearchSortOptions.Newest)));
+        {
+            return Relevance ? SearchSortOptions.Relevance :
+                Downloads ? SearchSortOptions.Downloads :
+                Follows ? SearchSortOptions.Follows :
+                Updated ? SearchSortOptions.Updated : SearchSortOptions.Newest;
+        }
     }
 }
+
 public partial class NewsFilter : JSON
 {
-    [ObservableProperty]
-    private bool _Java = false;
+    [ObservableProperty] private bool _Java = false;
 
-    [ObservableProperty]
-    private bool _Bedrock = false;
+    [ObservableProperty] private bool _Bedrock = false;
 
-    [ObservableProperty]
-    private bool _Dungeons = false;
+    [ObservableProperty] private bool _Dungeons = false;
 
-    [ObservableProperty]
-    private bool _Legends = false;
+    [ObservableProperty] private bool _Legends = false;
 
     [JsonIgnore]
     public bool All
@@ -352,6 +336,7 @@ public partial class NewsFilter : JSON
             InvokePropertyChanged(null);
         }
     }
+
     public string[] GetResult()
     {
         var r = new List<string>();
@@ -366,69 +351,70 @@ public partial class NewsFilter : JSON
         }
 
         if (Java)
+        {
             r.Add("Minecraft: Java Edition");
+        }
 
         if (Bedrock)
+        {
             r.Add("Minecraft for Windows");
+        }
 
         if (Dungeons)
+        {
             r.Add("Minecraft Dungeons");
+        }
 
         if (Legends)
+        {
             r.Add("Minecraft Legends");
+        }
 
         return r.ToArray();
     }
 }
+
 public class Discord : JSON
 {
 }
+
 public partial class MCVerionsConfiguration : JSON
 {
-    [ObservableProperty]
-    private bool _Release = true;
+    [ObservableProperty] private bool _Release = true;
 
-    [ObservableProperty]
-    private bool _Custom = false;
+    [ObservableProperty] private bool _Custom = false;
 
-    [ObservableProperty]
-    private bool _OldBeta = false;
+    [ObservableProperty] private bool _OldBeta = false;
 
-    [ObservableProperty]
-    private bool _OldAlpha = false;
+    [ObservableProperty] private bool _OldAlpha = false;
 
-    [ObservableProperty]
-    private bool _Snapshot = false;
+    [ObservableProperty] private bool _Snapshot = false;
 }
 
 public partial class Appearance : JSON
 {
-    [ObservableProperty]
-    private int _NavIconType = 1;
+    [ObservableProperty] private int _NavIconType = 1;
 
     public bool ShowFontIcons => NavIconType == 0;
 
-    [ObservableProperty]
-    private int _Theme;
+    [ObservableProperty] private int _Theme;
 
-    [ObservableProperty]
-    private int _MicaTintColor;
+    [ObservableProperty] private int _MicaTintColor;
 
-    [ObservableProperty]
-    private int _BackdropType = 0;
+    [ObservableProperty] private int _BackdropType = 0;
 
-    [ObservableProperty]
-    private Color? _CustomMicaTintColor;
+    [ObservableProperty] private Color? _CustomMicaTintColor;
 
-    [ObservableProperty]
-    private int _TintOpacity = 10;
+    [ObservableProperty] private int _TintOpacity = 10;
 
     public Appearance()
     {
-        this.PropertyChanged += (_, e) =>
+        PropertyChanged += (_, e) =>
         {
             if (e.PropertyName != null)
-                this.InvokePropertyChanged();
+            {
+                InvokePropertyChanged();
+            }
         };
     }
 }

@@ -16,14 +16,15 @@ public partial class Program
         string? socketPath = null;
         var swaggerEnabled = true;
 
-        for (int i = 0; i < args.Length; i++)
+        for (var i = 0; i < args.Length; i++)
         {
             if ((args[i] == "--base-path" || args[i] == "-b") && i + 1 < args.Length)
             {
                 basePath = args[i + 1];
                 i++;
             }
-            else if ((args[i] == "--port" || args[i] == "-p") && i + 1 < args.Length && int.TryParse(args[i + 1], out var parsedPort))
+            else if ((args[i] == "--port" || args[i] == "-p") && i + 1 < args.Length &&
+                     int.TryParse(args[i + 1], out var parsedPort))
             {
                 port = parsedPort;
                 i++;
@@ -37,7 +38,8 @@ public partial class Program
             {
                 swaggerEnabled = false;
             }
-            else if (args[i] == "--swagger" && i + 1 < args.Length && bool.TryParse(args[i + 1], out var parsedSwaggerEnabled))
+            else if (args[i] == "--swagger" && i + 1 < args.Length &&
+                     bool.TryParse(args[i + 1], out var parsedSwaggerEnabled))
             {
                 swaggerEnabled = parsedSwaggerEnabled;
                 i++;
@@ -46,7 +48,8 @@ public partial class Program
 
         if (string.IsNullOrEmpty(basePath))
         {
-            basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Emerald");
+            basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Emerald");
         }
 
         basePath = Path.GetFullPath(basePath);

@@ -10,6 +10,7 @@ using Emerald.CoreX.Store;
 using Emerald.CoreX.Tests.Support;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
+using Version = Emerald.CoreX.Versions.Version;
 
 namespace Emerald.CoreX.Tests.Core;
 
@@ -63,14 +64,18 @@ public sealed class CoreAddGameTests
         finally
         {
             audits.Release();
-            if (Directory.Exists(basePath)) Directory.Delete(basePath, true);
+            if (Directory.Exists(basePath))
+            {
+                Directory.Delete(basePath, true);
+            }
         }
     }
 
-    private static Emerald.CoreX.Core CreateCore(string basePath, IInstanceInstallationService? installationService = null)
+    private static Emerald.CoreX.Core CreateCore(string basePath,
+        IInstanceInstallationService? installationService = null)
     {
         var notificationService = Ioc.Default.GetService<INotificationService>()
-            ?? new NotificationService(NullLogger<NotificationService>.Instance);
+                                  ?? new NotificationService(NullLogger<NotificationService>.Instance);
         var core = new Emerald.CoreX.Core(
             NullLogger<Emerald.CoreX.Core>.Instance,
             notificationService,
@@ -96,20 +101,29 @@ public sealed class CoreAddGameTests
         }
 
         public StoreInstallRecord[] GetAll()
-            => [];
+        {
+            return [];
+        }
 
         public void Save(IEnumerable<StoreInstallRecord> records)
         {
         }
 
         public IReadOnlyList<StoreInstallRecord> GetForGameAndType(string gamePath, StoreContentType contentType)
-            => [];
+        {
+            return [];
+        }
 
-        public IReadOnlyList<StoreInstallRecord> FindByFilePath(StoreContentType contentType, string filePath, string? gamePath = null)
-            => [];
+        public IReadOnlyList<StoreInstallRecord> FindByFilePath(StoreContentType contentType, string filePath,
+            string? gamePath = null)
+        {
+            return [];
+        }
 
         public bool IsForGameAndType(StoreInstallRecord record, string gamePath, StoreContentType contentType)
-            => false;
+        {
+            return false;
+        }
     }
 
     private sealed class TestStoreSharedContentSettingsService : IStoreSharedContentSettingsService
@@ -121,7 +135,9 @@ public sealed class CoreAddGameTests
         }
 
         public StoreLinkMode GetPreferredLinkMode()
-            => StoreLinkMode.Copy;
+        {
+            return StoreLinkMode.Copy;
+        }
 
         public void Save()
         {
@@ -129,19 +145,23 @@ public sealed class CoreAddGameTests
     }
 
     private static Emerald.CoreX.Versions.Version CreateVersion(string displayName)
-        => new()
+    {
+        return new Version
         {
             DisplayName = displayName,
             BasedOn = "1.21.4",
             ReleaseType = "release"
         };
+    }
 
     private sealed class TestGlobalGameSettingsService : IGlobalGameSettingsService
     {
         public Emerald.CoreX.Models.GameSettings Settings { get; } = new();
 
         public Emerald.CoreX.Models.GameSettings CloneCurrent()
-            => Settings.Clone();
+        {
+            return Settings.Clone();
+        }
 
         public void LoadForBasePath(string basePath)
         {
@@ -157,16 +177,24 @@ public sealed class CoreAddGameTests
         public ObservableCollection<GameSession> Sessions { get; } = new();
 
         public GameSession? FindLatestSession(string gamePath)
-            => null;
+        {
+            return null;
+        }
 
-        public Task<GameSession?> LaunchAsync(Emerald.CoreX.Game game, Emerald.CoreX.Models.EAccount? account = null)
-            => Task.FromResult<GameSession?>(null);
+        public Task<GameSession?> LaunchAsync(Game game, Emerald.CoreX.Models.EAccount? account = null)
+        {
+            return Task.FromResult<GameSession?>(null);
+        }
 
-        public Task StopAsync(Emerald.CoreX.Game game, GameStopMode mode)
-            => Task.CompletedTask;
+        public Task StopAsync(Game game, GameStopMode mode)
+        {
+            return Task.CompletedTask;
+        }
 
-        public GameSession? TryGetActiveSession(Emerald.CoreX.Game game)
-            => null;
+        public GameSession? TryGetActiveSession(Game game)
+        {
+            return null;
+        }
     }
 
     private sealed class BlockingAuditService : IInstanceInstallationService
@@ -174,21 +202,37 @@ public sealed class CoreAddGameTests
         private readonly TaskCompletionSource<bool> _release = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> CancellationObserved { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource<bool> CancellationObserved { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
         public int CallCount { get; private set; }
 
-        public void Release() => _release.TrySetResult(true);
+        public void Release()
+        {
+            _release.TrySetResult(true);
+        }
 
-        public Task<InstanceInstallResult> InstallAsync(Game game, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
-            => throw new NotSupportedException();
+        public Task<InstanceInstallResult> InstallAsync(Game game, IProgress<InstallationProgress>? progress = null,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
 
-        public Task<InstanceInstallResult> RepairAsync(Game game, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
-            => throw new NotSupportedException();
+        public Task<InstanceInstallResult> RepairAsync(Game game, IProgress<InstallationProgress>? progress = null,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
 
-        public Task<InstanceIntegrityReport> VerifyAsync(Game game, IntegrityCheckLevel level, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
-            => Task.FromResult(ReadyReport(level));
+        public Task<InstanceIntegrityReport> VerifyAsync(Game game, IntegrityCheckLevel level,
+            IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(ReadyReport(level));
+        }
 
-        public async Task<InstanceIntegrityReport?> VerifyWhenIdleAsync(Game game, IntegrityCheckLevel level, IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
+        public async Task<InstanceIntegrityReport?> VerifyWhenIdleAsync(Game game, IntegrityCheckLevel level,
+            IProgress<InstallationProgress>? progress = null, CancellationToken cancellationToken = default)
         {
             CallCount++;
             Started.TrySetResult(true);
@@ -211,6 +255,8 @@ public sealed class CoreAddGameTests
         }
 
         private static InstanceIntegrityReport ReadyReport(IntegrityCheckLevel level)
-            => new(level, InstanceInstallationState.Ready, [], DateTimeOffset.UtcNow, 0, 0);
+        {
+            return new InstanceIntegrityReport(level, InstanceInstallationState.Ready, [], DateTimeOffset.UtcNow, 0, 0);
+        }
     }
 }

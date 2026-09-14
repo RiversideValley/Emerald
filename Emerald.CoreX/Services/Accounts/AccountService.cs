@@ -53,8 +53,13 @@ public sealed partial class AccountService : IAccountService
             .GroupBy(provider => provider.Descriptor.ProviderId, StringComparer.Ordinal)
             .FirstOrDefault(group => group.Count() > 1)?.Key;
         if (duplicateProviderId is not null)
-            throw new ArgumentException($"Account provider ID '{duplicateProviderId}' is registered more than once.", nameof(providers));
-        _providers = registeredProviders.ToDictionary(provider => provider.Descriptor.ProviderId, StringComparer.Ordinal);
+        {
+            throw new ArgumentException($"Account provider ID '{duplicateProviderId}' is registered more than once.",
+                nameof(providers));
+        }
+
+        _providers =
+            registeredProviders.ToDictionary(provider => provider.Descriptor.ProviderId, StringComparer.Ordinal);
         _providerDescriptors = registeredProviders.Select(provider => provider.Descriptor).ToArray();
         _selectedAccountId = _settingsService.Get<string?>(SettingsKeys.SelectedMinecraftAccount, null);
     }
@@ -85,7 +90,10 @@ public sealed partial class AccountService : IAccountService
         {
             var context = new AccountProviderInitializationContext(_accountStorePath);
             foreach (var provider in _providers.Values)
+            {
                 await provider.InitializeAsync(context).ConfigureAwait(false);
+            }
+
             _logger.LogInformation("AccountService initialized.");
         }
         catch (Exception ex)
@@ -109,17 +117,21 @@ public sealed partial class AccountService : IAccountService
         }
 
         if (task is null)
+        {
             task = InitializeAsync();
+        }
 
         await task.ConfigureAwait(false);
     }
 
     private static string GetDefaultAccountStorePath()
-        => Path.Combine(
+    {
+        return Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Emerald",
             "accounts",
             "cml_accounts.json");
+    }
 
     private static void ValidateProviderRegistrations(IReadOnlyList<IAccountProvider> providers)
     {
@@ -135,10 +147,16 @@ public sealed partial class AccountService : IAccountService
         {
             var descriptor = provider.Descriptor;
             if (string.IsNullOrWhiteSpace(descriptor.DisplayName))
-                throw new ArgumentException($"Account provider '{descriptor.ProviderId}' must have a display name.", nameof(providers));
+            {
+                throw new ArgumentException($"Account provider '{descriptor.ProviderId}' must have a display name.",
+                    nameof(providers));
+            }
 
             if (descriptor.SignInMethods.Any(method => string.IsNullOrWhiteSpace(method.MethodId)))
-                throw new ArgumentException($"Account provider '{descriptor.ProviderId}' has a blank sign-in method ID.", nameof(providers));
+            {
+                throw new ArgumentException(
+                    $"Account provider '{descriptor.ProviderId}' has a blank sign-in method ID.", nameof(providers));
+            }
 
             var duplicateMethodId = descriptor.SignInMethods
                 .GroupBy(method => method.MethodId, StringComparer.Ordinal)
@@ -151,7 +169,11 @@ public sealed partial class AccountService : IAccountService
             }
 
             if (descriptor.EffectiveRequirements.Any(requirement => string.IsNullOrWhiteSpace(requirement.ProviderId)))
-                throw new ArgumentException($"Account provider '{descriptor.ProviderId}' has a blank requirement provider ID.", nameof(providers));
+            {
+                throw new ArgumentException(
+                    $"Account provider '{descriptor.ProviderId}' has a blank requirement provider ID.",
+                    nameof(providers));
+            }
         }
     }
 }

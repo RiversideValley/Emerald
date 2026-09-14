@@ -52,10 +52,14 @@ public sealed partial class AccountService
     private static void EnsureProviderId(EAccount account)
     {
         if (string.IsNullOrWhiteSpace(account.ProviderId))
+        {
             account.ProviderId = AccountProviderIds.FromAccountType(account.Type);
+        }
 
         if (string.IsNullOrWhiteSpace(account.ProviderDisplayName))
+        {
             account.ProviderDisplayName = AccountProviderIds.GetDisplayName(account.ProviderId);
+        }
     }
 
     private static void ApplyProviderMetadata(EAccount account, AccountProviderDescriptor descriptor)

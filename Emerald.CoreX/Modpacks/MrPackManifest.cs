@@ -5,31 +5,27 @@ namespace Emerald.CoreX.Modpacks;
 
 public sealed class MrPackManifest
 {
-    [JsonPropertyName("formatVersion")]
-    public int FormatVersion { get; set; }
+    [JsonPropertyName("formatVersion")] public int FormatVersion { get; set; }
 
-    [JsonPropertyName("game")]
-    public string Game { get; set; } = string.Empty;
+    [JsonPropertyName("game")] public string Game { get; set; } = string.Empty;
 
-    [JsonPropertyName("versionId")]
-    public string VersionId { get; set; } = string.Empty;
+    [JsonPropertyName("versionId")] public string VersionId { get; set; } = string.Empty;
 
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
+    [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
 
-    [JsonPropertyName("summary")]
-    public string? Summary { get; set; }
+    [JsonPropertyName("summary")] public string? Summary { get; set; }
 
-    [JsonPropertyName("files")]
-    public List<MrPackFile> Files { get; set; } = [];
+    [JsonPropertyName("files")] public List<MrPackFile> Files { get; set; } = [];
 
     [JsonPropertyName("dependencies")]
     public Dictionary<string, string> Dependencies { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     public string? GetMinecraftVersion()
-        => Dependencies.TryGetValue("minecraft", out var version)
+    {
+        return Dependencies.TryGetValue("minecraft", out var version)
             ? version
             : null;
+    }
 
     public MrPackLoaderDependency GetLoaderDependency()
     {
@@ -68,20 +64,16 @@ public sealed class MrPackLoaderDependency(GameVersionType type, string? version
 
 public sealed class MrPackFile
 {
-    [JsonPropertyName("path")]
-    public string Path { get; set; } = string.Empty;
+    [JsonPropertyName("path")] public string Path { get; set; } = string.Empty;
 
     [JsonPropertyName("hashes")]
     public Dictionary<string, string> Hashes { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
-    [JsonPropertyName("env")]
-    public MrPackFileEnvironment? Environment { get; set; }
+    [JsonPropertyName("env")] public MrPackFileEnvironment? Environment { get; set; }
 
-    [JsonPropertyName("downloads")]
-    public List<string> Downloads { get; set; } = [];
+    [JsonPropertyName("downloads")] public List<string> Downloads { get; set; } = [];
 
-    [JsonPropertyName("fileSize")]
-    public long FileSize { get; set; }
+    [JsonPropertyName("fileSize")] public long FileSize { get; set; }
 
     public bool IsClientEligible
     {
@@ -97,9 +89,7 @@ public sealed class MrPackFile
 
 public sealed class MrPackFileEnvironment
 {
-    [JsonPropertyName("client")]
-    public string? Client { get; set; }
+    [JsonPropertyName("client")] public string? Client { get; set; }
 
-    [JsonPropertyName("server")]
-    public string? Server { get; set; }
+    [JsonPropertyName("server")] public string? Server { get; set; }
 }

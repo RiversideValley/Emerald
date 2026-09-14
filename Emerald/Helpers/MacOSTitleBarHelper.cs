@@ -31,7 +31,8 @@ public static class MacOSTitleBarHelper
     private static extern IntPtr IntPtr_objc_msgSend(IntPtr receiver, IntPtr selector);
 
     [DllImport(LibObjC, EntryPoint = "objc_msgSend")]
-    private static extern void void_objc_msgSend_bool(IntPtr receiver, IntPtr selector, [MarshalAs(UnmanagedType.I1)] bool value);
+    private static extern void void_objc_msgSend_bool(IntPtr receiver, IntPtr selector,
+        [MarshalAs(UnmanagedType.I1)] bool value);
 
     [DllImport(LibObjC, EntryPoint = "objc_msgSend")]
     private static extern void void_objc_msgSend_long(IntPtr receiver, IntPtr selector, long value);
@@ -54,7 +55,9 @@ public static class MacOSTitleBarHelper
     public static void ExtendViewIntoTitleBar(Window window)
     {
         if (!OperatingSystem.IsMacOS())
+        {
             return;
+        }
 
         try
         {
@@ -109,7 +112,9 @@ public static class MacOSTitleBarHelper
     {
         var fromWindowHelper = TryGetNSWindowViaWindowHelper(window);
         if (fromWindowHelper != IntPtr.Zero)
+        {
             return fromWindowHelper;
+        }
 
         return TryGetNSWindowViaNSApplication();
     }
@@ -120,7 +125,9 @@ public static class MacOSTitleBarHelper
         {
             var method = GetNativeWindowMethod.Value;
             if (method is null)
+            {
                 return IntPtr.Zero;
+            }
 
             var nativeWindow = method.Invoke(null, new object[] { window });
             return ExtractNativeHandle(nativeWindow);
@@ -142,21 +149,27 @@ public static class MacOSTitleBarHelper
 
         foreach (var typeName in typeNames)
         {
-            var type = Type.GetType(typeName, throwOnError: false);
+            var type = Type.GetType(typeName, false);
             var method = type?.GetMethod("GetNativeWindow", BindingFlags.Public | BindingFlags.Static);
             if (method != null)
+            {
                 return method;
+            }
         }
 
         foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
         {
-            var type = asm.GetType("Uno.UI.Xaml.WindowHelper", throwOnError: false);
+            var type = asm.GetType("Uno.UI.Xaml.WindowHelper", false);
             if (type == null)
+            {
                 continue;
+            }
 
             var method = type.GetMethod("GetNativeWindow", BindingFlags.Public | BindingFlags.Static);
             if (method != null)
+            {
                 return method;
+            }
         }
 
         return null;
@@ -168,27 +181,39 @@ public static class MacOSTitleBarHelper
         {
             var nsAppClass = objc_getClass("NSApplication");
             if (nsAppClass == IntPtr.Zero)
+            {
                 return IntPtr.Zero;
+            }
 
             var sharedApp = IntPtr_objc_msgSend(nsAppClass, sel_registerName("sharedApplication"));
             if (sharedApp == IntPtr.Zero)
+            {
                 return IntPtr.Zero;
+            }
 
             var mainWindow = IntPtr_objc_msgSend(sharedApp, sel_registerName("mainWindow"));
             if (mainWindow != IntPtr.Zero)
+            {
                 return mainWindow;
+            }
 
             var keyWindow = IntPtr_objc_msgSend(sharedApp, sel_registerName("keyWindow"));
             if (keyWindow != IntPtr.Zero)
+            {
                 return keyWindow;
+            }
 
             var windowsArray = IntPtr_objc_msgSend(sharedApp, sel_registerName("windows"));
             if (windowsArray == IntPtr.Zero)
+            {
                 return IntPtr.Zero;
+            }
 
             var count = long_objc_msgSend(windowsArray, sel_registerName("count"));
             if (count <= 0)
+            {
                 return IntPtr.Zero;
+            }
 
             return IntPtr_objc_msgSend_long(windowsArray, sel_registerName("objectAtIndex:"), 0);
         }
@@ -202,26 +227,38 @@ public static class MacOSTitleBarHelper
     private static IntPtr ExtractNativeHandle(object? nativeWindow)
     {
         if (nativeWindow is null)
+        {
             return IntPtr.Zero;
+        }
 
         if (nativeWindow is IntPtr ptr)
+        {
             return ptr;
+        }
 
         if (nativeWindow is nint nPtr)
+        {
             return (IntPtr)nPtr;
+        }
 
         var type = nativeWindow.GetType();
 
         var handleProp = type.GetProperty("Handle", BindingFlags.Public | BindingFlags.Instance);
         if (handleProp?.GetValue(nativeWindow) is IntPtr handle && handle != IntPtr.Zero)
+        {
             return handle;
+        }
 
         if (handleProp?.GetValue(nativeWindow) is nint nh && nh != IntPtr.Zero)
+        {
             return (IntPtr)nh;
+        }
 
         var nativeHandleProp = type.GetProperty("NativeHandle", BindingFlags.Public | BindingFlags.Instance);
         if (nativeHandleProp?.GetValue(nativeWindow) is IntPtr nativeHandle && nativeHandle != IntPtr.Zero)
+        {
             return nativeHandle;
+        }
 
         return IntPtr.Zero;
     }
